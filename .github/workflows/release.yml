@@ -129,11 +129,12 @@ jobs:
           rustup install ${{ matrix.rust }}
           rustup target add ${{ matrix.target }}
           rustup show
-
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
         with:
           version: "latest"
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@latest
 
       - name: Build WASM
         working-directory: ./pagefind_web
