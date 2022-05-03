@@ -1,4 +1,5 @@
 use cucumber::gherkin::Table;
+use portpicker::pick_unused_port;
 use std::convert::Infallible;
 use std::io::{Read, Write};
 use std::process::Command;
@@ -25,12 +26,19 @@ struct TestWorld {
     tmp_dir: Option<tempfile::TempDir>,
     last_command_output: Option<CommandOutput>,
     browser: Option<BrowserTester>,
+    assigned_server_port: Option<u16>,
 }
 
 impl TestWorld {
+    fn ensure_port(&mut self) -> u16 {
+        if self.assigned_server_port.is_none() {
+            self.assigned_server_port = pick_unused_port();
+        }
+        self.assigned_server_port.expect("No port was available")
+    }
     async fn ensure_browser(&mut self) -> &mut BrowserTester {
         if self.browser.is_none() {
-            self.browser = Some(BrowserTester::new("http://localhost:4444").await);
+            self.browser = Some(BrowserTester::new().await);
         }
         self.browser.as_mut().unwrap()
     }

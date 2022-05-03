@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures::{StreamExt, TryFutureExt};
 
 use chromiumoxide::browser::{Browser, BrowserConfig};
 use chromiumoxide::page::Page;
@@ -10,7 +10,7 @@ pub struct BrowserTester {
 }
 
 impl BrowserTester {
-    pub async fn new(webdriver_url: &str) -> Self {
+    pub async fn new() -> Self {
         let (browser, mut handler) = Browser::launch(BrowserConfig::builder().build().unwrap())
             .await
             .unwrap();
@@ -28,6 +28,7 @@ impl BrowserTester {
 
     pub async fn load_page(&mut self, url: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.page = Some(self.browser.new_page(url).await?);
+
         Ok(())
     }
 
@@ -44,15 +45,19 @@ impl BrowserTester {
     }
 
     pub async fn contents(&mut self, selector: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let text = self
+        let el = self
             .page
             .as_mut()
             .expect("No page launched")
             .find_element(selector)
-            .await?
-            .inner_text()
-            .await?;
+            .await
+            .expect("Selector does not exist");
 
-        Ok(text.expect("Element contained inner text"))
+        let contents = el
+            .inner_html()
+            .await
+            .expect("Element did not have Inner HTML");
+
+        Ok(contents.expect("Element was empty"))
     }
 }

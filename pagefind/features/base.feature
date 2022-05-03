@@ -6,7 +6,18 @@ Feature: Base Tests
     Then I should see "Running Pagefind" in stdout
 
   Scenario: Web Test
-    When I load "https://cloudcannon.com"
-    Then The selector "h1" should contain "The collaborative CMS, powered by Git."
-
-
+    Given I have a "public/index.html" file with the content:
+      """
+      <!doctype html>
+      <html>
+      <head>
+      <title>My Page</title>
+      </head>
+      <body>
+      <h1>Hello!</h1>
+      </body>
+      </html>
+      """
+    When I serve the "public" directory
+    When I load "/"
+    Then The selector "h1" should contain "Hello!"
