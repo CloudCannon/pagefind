@@ -8,7 +8,11 @@ use tempfile::tempdir;
 use wax::Glob;
 
 use async_trait::async_trait;
+use browser::BrowserTester;
 use cucumber::{World, WorldInit};
+
+mod browser;
+mod steps;
 
 #[derive(Debug)]
 struct CommandOutput {
@@ -20,9 +24,17 @@ struct CommandOutput {
 struct TestWorld {
     tmp_dir: Option<tempfile::TempDir>,
     last_command_output: Option<CommandOutput>,
+    browser: Option<BrowserTester>,
 }
 
 impl TestWorld {
+    async fn ensure_browser(&mut self) -> &mut BrowserTester {
+        if self.browser.is_none() {
+            self.browser = Some(BrowserTester::new("http://localhost:4444").await);
+        }
+        self.browser.as_mut().unwrap()
+    }
+
     fn tmp_dir(&mut self) -> PathBuf {
         if self.tmp_dir.is_none() {
             self.tmp_dir = Some(tempdir().expect("testing on a system with a temp dir"));
@@ -127,8 +139,6 @@ impl World for TestWorld {
         Ok(Self::default())
     }
 }
-
-mod steps;
 
 // This runs before everything else, so you can setup things here
 #[tokio::main]

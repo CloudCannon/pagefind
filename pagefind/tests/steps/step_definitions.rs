@@ -10,6 +10,7 @@ use kuchiki::{Attributes, ElementData, NodeDataRef, NodeRef};
 use regex::Regex;
 use serde_json::Value;
 
+use crate::BrowserTester;
 use crate::TestWorld;
 
 // GIVENS
@@ -39,7 +40,7 @@ fn new_templated_file(world: &mut TestWorld, step: &Step, filename: String) {
     }
 }
 
-// WHENS
+// BINARY WHENS
 
 #[when(regex = "^I run my program$")]
 fn run_rosey(world: &mut TestWorld) {
