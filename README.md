@@ -1,0 +1,3 @@
+# Pagefind
+
+Documentation incoming...

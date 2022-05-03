@@ -1,0 +1,37 @@
+{
+  "name": "pagefind",
+  "version": "",
+  "description": "Implement search on any static website.",
+  "bin": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CloudCannon/pagefind"
+  },
+  "scripts": {
+    "postinstall": "node ./lib/postinstall.js"
+  },
+  "author": "CloudCannon",
+  "license": "MIT",
+  "dependencies": {
+    "https-proxy-agent": "^5.0.0",
+    "proxy-from-env": "^1.1.0"
+  },
+  "overrides": {
+    "agent-base": "^6.0.2"
+  },
+  "keywords": [
+    "CloudCannon",
+    "Cloud",
+    "Cannon",
+    "jamstack",
+    "static",
+    "search",
+    "pagefind",
+    "page",
+    "find"
+  ],
+  "bugs": {
+    "url": "https://github.com/CloudCannon/pagefind/issues"
+  },
+  "homepage": "https://github.com/CloudCannon/pagefind#readme"
+}

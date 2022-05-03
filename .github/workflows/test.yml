@@ -1,0 +1,72 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        include:
+          - build: linux
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-musl
+            cross: false
+          - build: macos
+            os: macos-latest
+            rust: stable
+            target: x86_64-apple-darwin
+            cross: false
+          # - build: windows
+          #   os: windows-latest
+          #   rust: stable
+          #   target: x86_64-pc-windows-msvc
+          #   cross: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      # - name: Cache
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       ~/.cargo/registry
+      #       ~/.cargo/git
+      #       ~/.rustup
+      #       target
+      #     key: ${{ runner.os }}-${{ matrix.rust }}
+
+      - name: Install Rust
+        run: |
+          rustup install ${{ matrix.rust }}
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: "latest"
+
+      - name: Build WASM
+        working-directory: ./pagefind_web
+        run: wasm-pack build --release -t no-modules
+
+      - name: Test Web
+        working-directory: ./pagefind_web
+        run: cargo test
+
+      - name: Test CLI
+        working-directory: ./pagefind
+        run: TEST_BINARY=../target/release/pagefind cargo test --release

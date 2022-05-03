@@ -1,0 +1,194 @@
+# Based on: https://github.com/ClementTsang/bottom/blob/master/.github/workflows/deployment.yml
+
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # publish-crate:
+  #   name: Publish Crate
+  #   runs-on: ubuntu-20.04
+  #   defaults:
+  #     run:
+  #       working-directory: ./rosey-rs
+  #   steps:
+  #   - name: Clone
+  #     uses: actions/checkout@v2
+  #   - name: Cache
+  #     uses: actions/cache@v2
+  #     with:
+  #       path: |
+  #         ~/.cargo/registry
+  #         ~/.cargo/git
+  #         ~/.rustup
+  #         target
+  #       key: ${{ runner.os }}-stable
+  #   - name: Setup
+  #     run: |
+  #       rustup install stable
+  #   - name: Build
+  #     run: cargo build --verbose
+  #   - name: Run tests
+  #     run: cargo test
+  #   - name: Publish
+  #     run: cargo publish
+  #     env:
+  #       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish-npm-package:
+    name: Publish NPM package
+    runs-on: ubuntu-20.04
+    needs: publish-to-github
+    defaults:
+      run:
+        working-directory: ./wrappers/node
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Prepare package
+        run: |
+          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
+          npm version $(echo $RELEASE_VERSION | cut -c1-)
+          mkdir checksums
+          for TARGET in x86_64-unknown-linux-musl x86_64-apple-darwin
+          do
+            ASSET_NAME="rosey-$RELEASE_VERSION-$TARGET.tar.gz.sha256"
+            curl -L https://github.com/CloudCannon/rosey/releases/download/$RELEASE_VERSION/$ASSET_NAME -o checksums/$ASSET_NAME
+          done
+      - name: Publish
+        run: npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-to-github:
+    name: Publish to Github
+    runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./pagefind
+    strategy:
+      matrix:
+        include:
+          - build: linux
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-musl
+            cross: false
+          # - build: windows
+          #   os: windows-latest
+          #   rust: stable
+          #   target: x86_64-pc-windows-msvc
+          #   cross: false
+          # - build: arm-v7
+          #   os: ubuntu-latest
+          #   rust: stable
+          #   target: armv7-unknown-linux-gnueabihf
+          #   linker: gcc-arm-linux-gnueabihf
+          #   cross: true
+          # - build: aarch64
+          #   os: ubuntu-latest
+          #   rust: stable
+          #   target: aarch64-unknown-linux-gnu
+          #   linker: gcc-aarch64-linux-gnu
+          #   cross: true
+          - build: macos
+            os: macos-latest
+            rust: stable
+            target: x86_64-apple-darwin
+            cross: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.rustup
+            target
+          key: ${{ runner.os }}-${{ matrix.rust }}
+
+      - name: Install Linker
+        if: matrix.cross
+        run: |
+          sudo apt update
+          sudo apt install ${{ matrix.linker }}
+      - name: Install Rust
+        run: |
+          rustup install ${{ matrix.rust }}
+          rustup target add ${{ matrix.target }}
+          rustup show
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: "latest"
+
+      - name: Build WASM
+        working-directory: ./pagefind_web
+        run: wasm-pack build --release -t no-modules
+      - name: Test CLI
+        run: TEST_BINARY=../target/release/pagefind cargo test --release
+      - name: Build
+        run: RELEASE_VERSION=${GITHUB_REF#refs/tags/} cargo build --release --target ${{ matrix.target }}
+
+      - name: Package Artifacts
+        run: |
+          src=$(pwd)
+          stage=
+          case $RUNNER_OS in
+              Windows)
+                  stage=$(mktemp -d)
+                  ;;
+              Linux)
+                  stage=$(mktemp -d)
+                  ;;
+              macOS)
+                  stage=$(mktemp -d -t tmp)
+                  ;;
+          esac
+          cp target/${{ matrix.target }}/release/rosey $stage/
+          cd $stage
+          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
+          ASSET_NAME="rosey-$RELEASE_VERSION-${{ matrix.target }}.tar.gz"
+          ASSET_PATH="$src/$ASSET_NAME"
+          CHECKSUM_PATH="$ASSET_PATH.sha256"
+          tar czf $ASSET_PATH *
+          cd $src
+          case $RUNNER_OS in
+              Windows)
+                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
+                  ;;
+              Linux)
+                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
+                  ;;
+              macOS)
+                  shasum -a 256 $ASSET_NAME > $CHECKSUM_PATH
+                  ;;
+          esac
+          if [ "$RUNNER_OS" == "Windows" ]; then
+              ASSET_PATH=$(echo "$ASSET_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
+              CHECKSUM_PATH=$(echo "$CHECKSUM_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
+          fi
+          echo "ASSET_PATH=$ASSET_PATH" >> $GITHUB_ENV
+          echo "CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ${{ env.ASSET_PATH }}
+            ${{ env.CHECKSUM_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,37 @@
+[package]
+name = "pagefind"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[test]]
+name = "cucumber"
+harness = false   # Allows Cucumber to print output instead of libtest
+
+[dependencies]
+clap = "2.33.0"
+kuchiki = "0.8.1"
+wax = "0.4.0"
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }
+rust-stemmers = "1.2"
+stop-words = "0.6.2"
+hashbrown = { version = "0.12.0", features = ["serde"] }
+regex = "1.1"
+rmp = "0.8.11"
+minicbor = { version = "0.15.0", features = ["derive"] }
+lol_html = "0.3"
+bit-set = "0.5"
+flate2 = "1.0"
+minifier = "0.0.43"
+sha-1 = "0.10"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+json_dotpath = "1.1.0"
+async-trait = "0.1"
+cucumber = "0.13"
+tempfile = "3.0.2"
+fantoccini = "0.19.0"
