@@ -143,7 +143,12 @@ jobs:
 
       - name: Build WASM
         working-directory: ./pagefind_web
-        run: ./build.sh
+        run: |
+          wasm-pack build --release -t no-modules
+          mkdir -p ../pagefind/vendor
+          cp pkg/pagefind_web_bg.wasm ../pagefind/vendor/pagefind_web_bg.$GIT_VERSION.wasm
+          cp pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$GIT_VERSION.js
+
       - name: Test CLI
         working-directory: ./pagefind
         run: TEST_BINARY=../target/release/pagefind cargo test --release

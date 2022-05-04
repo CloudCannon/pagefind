@@ -62,7 +62,7 @@ jobs:
 
       - name: Build WASM
         working-directory: ./pagefind_web
-        run: ./build.sh
+        run: ./local_build.sh
 
       - name: Test Web
         working-directory: ./pagefind_web

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+rm ../pagefind/vendor/*
+wasm-pack build --release -t no-modules
+mkdir -p ../pagefind/vendor
+cp pkg/pagefind_web_bg.wasm ../pagefind/vendor/pagefind_web_bg.0.0.0.wasm
+cp pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.0.0.0.js
+
+ls -lh ../pagefind/vendor/
