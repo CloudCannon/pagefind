@@ -118,6 +118,29 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
 
+      # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
+      - name: Get Version
+        run: echo GIT_VERSION="${$(git describe --tags):1}" >> $GITHUB_ENV
+      - name: Prepare Git
+        run: |
+          git config user.email "github@github.com"
+          git config user.name "Github Actions"
+          git checkout -b main
+          # Use throw-away branch so we don't push the changes to origin
+          git checkout -b deploy_branch
+      - name: Prepare Crates
+        run: |
+          # Update cargo version, 
+          sed -i "s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/" ./pagefind/Cargo.toml
+          sed -i "s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/" ./pagefind_web/Cargo.toml
+          git add ./pagefind/Cargo.toml
+          git add ./pagefind_web/Cargo.toml
+          # Commit changes so cargo doesn't complain about dirty repo
+          git commit -m "Deploy changes."
+          # Package crate to ensure it works without issue
+          cd pagefind
+          cargo package
+
       - name: Build WASM
         working-directory: ./pagefind_web
         run: wasm-pack build --release -t no-modules
