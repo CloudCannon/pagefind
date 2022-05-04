@@ -12,8 +12,16 @@ use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncWriteExt;
 use tokio::time::sleep;
 
-const WEB_WASM: &[u8] = include_bytes!("../../../pagefind_web/pkg/pagefind_web_bg.wasm");
-const WEB_JS: &str = include_str!("../../../pagefind_web/pkg/pagefind_web.js");
+const WEB_WASM: &[u8] = include_bytes!(concat!(
+    "../../vendor/pagefind_web_bg.",
+    env!("CARGO_PKG_VERSION"),
+    ".wasm"
+));
+const WEB_JS: &str = include_str!(concat!(
+    "../../vendor/pagefind_web.",
+    env!("CARGO_PKG_VERSION"),
+    ".js"
+));
 const GUNZIP_JS: &str = include_str!("./stubs/gz.js");
 const SEARCH_JS: &str = include_str!("./stubs/search.js");
 

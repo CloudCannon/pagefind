@@ -62,7 +62,7 @@ jobs:
 
       - name: Build WASM
         working-directory: ./pagefind_web
-        run: wasm-pack build --release -t no-modules
+        run: ./build.sh
 
       - name: Test Web
         working-directory: ./pagefind_web
