@@ -146,11 +146,13 @@ jobs:
           cp pkg/pagefind_web_bg.wasm ../pagefind/vendor/pagefind_web_bg.$GIT_VERSION.wasm
           cp pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$GIT_VERSION.js
           ls -lh ../pagefind/vendor/
+          pwd
 
       - name: Package Crate
+        working-directory: ./pagefind
         run: |
           # Package crate to ensure it works without issue
-          cd pagefind
+          ls -lh ./vendor/
           cargo package
 
       - name: Test CLI
