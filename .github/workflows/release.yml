@@ -11,35 +11,35 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # publish-crate:
-  #   name: Publish Crate
-  #   runs-on: ubuntu-20.04
-  #   defaults:
-  #     run:
-  #       working-directory: ./rosey-rs
-  #   steps:
-  #   - name: Clone
-  #     uses: actions/checkout@v2
-  #   - name: Cache
-  #     uses: actions/cache@v2
-  #     with:
-  #       path: |
-  #         ~/.cargo/registry
-  #         ~/.cargo/git
-  #         ~/.rustup
-  #         target
-  #       key: ${{ runner.os }}-stable
-  #   - name: Setup
-  #     run: |
-  #       rustup install stable
-  #   - name: Build
-  #     run: cargo build --verbose
-  #   - name: Run tests
-  #     run: cargo test
-  #   - name: Publish
-  #     run: cargo publish
-  #     env:
-  #       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  publish-crate:
+    name: Publish Crate
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: ./pagefind
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.rustup
+            ../target
+          key: ${{ runner.os }}-stable
+      - name: Setup
+        run: |
+          rustup install stable
+      - name: Build
+        run: cargo build --release --verbose
+      - name: Run tests
+        run: cargo test
+      - name: Publish
+        run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   publish-npm-package:
     name: Publish NPM package
