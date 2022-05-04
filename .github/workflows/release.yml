@@ -37,7 +37,7 @@ jobs:
       - name: Run tests
         run: cargo test
       - name: Publish
-        run: cargo publish
+        run: cargo publish --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -153,7 +153,7 @@ jobs:
         run: |
           # Package crate to ensure it works without issue
           ls -lh ./vendor/
-          cargo package
+          cargo package --allow-dirty
 
       - name: Test CLI
         working-directory: ./pagefind
