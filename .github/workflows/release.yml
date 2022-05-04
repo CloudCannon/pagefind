@@ -145,6 +145,7 @@ jobs:
           mkdir -p ../pagefind/vendor
           cp pkg/pagefind_web_bg.wasm ../pagefind/vendor/pagefind_web_bg.$GIT_VERSION.wasm
           cp pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$GIT_VERSION.js
+          ls -lh ../pagefind/vendor/
 
       - name: Package Crate
         run: |
