@@ -2,7 +2,7 @@
 name = "pagefind"
 version = "0.0.0"
 edition = "2021"
-include = ["/src", "/vendor"]
+include = ["/src", "/vendor", "/features", "/tests"]
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
