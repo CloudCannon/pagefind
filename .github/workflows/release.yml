@@ -120,7 +120,7 @@ jobs:
 
       # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
       - name: Get Version
-        run: echo GIT_VERSION="${$(git describe --tags):1}" >> $GITHUB_ENV
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
       - name: Prepare Git
         run: |
           git config user.email "github@github.com"
