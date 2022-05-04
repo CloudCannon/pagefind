@@ -137,9 +137,6 @@ jobs:
           git add ./pagefind_web/Cargo.toml
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
-          # Package crate to ensure it works without issue
-          cd pagefind
-          cargo package
 
       - name: Build WASM
         working-directory: ./pagefind_web
@@ -148,6 +145,12 @@ jobs:
           mkdir -p ../pagefind/vendor
           cp pkg/pagefind_web_bg.wasm ../pagefind/vendor/pagefind_web_bg.$GIT_VERSION.wasm
           cp pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$GIT_VERSION.js
+
+      - name: Package Crate
+        run: |
+          # Package crate to ensure it works without issue
+          cd pagefind
+          cargo package
 
       - name: Test CLI
         working-directory: ./pagefind
