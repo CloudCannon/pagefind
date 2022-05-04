@@ -1,3 +1,5 @@
+use chromiumoxide::cdp::browser_protocol::log::EventEntryAdded;
+use chromiumoxide::listeners::EventStream;
 use futures::{StreamExt, TryFutureExt};
 
 use chromiumoxide::browser::{Browser, BrowserConfig};
@@ -7,6 +9,7 @@ use chromiumoxide::page::Page;
 pub struct BrowserTester {
     browser: Browser,
     page: Option<Page>,
+    logs: Option<EventStream<EventEntryAdded>>,
 }
 
 impl BrowserTester {
@@ -23,11 +26,15 @@ impl BrowserTester {
         Self {
             browser,
             page: None,
+            logs: None,
         }
     }
 
     pub async fn load_page(&mut self, url: &str) -> Result<(), Box<dyn std::error::Error>> {
-        self.page = Some(self.browser.new_page(url).await?);
+        let page = self.page.insert(self.browser.new_page(url).await?);
+
+        let events = page.event_listener::<EventEntryAdded>().await?;
+        self.logs = Some(events);
 
         Ok(())
     }
