@@ -58,8 +58,8 @@ jobs:
           mkdir checksums
           for TARGET in x86_64-unknown-linux-musl x86_64-apple-darwin
           do
-            ASSET_NAME="rosey-$RELEASE_VERSION-$TARGET.tar.gz.sha256"
-            curl -L https://github.com/CloudCannon/rosey/releases/download/$RELEASE_VERSION/$ASSET_NAME -o checksums/$ASSET_NAME
+            ASSET_NAME="pagefind-$RELEASE_VERSION-$TARGET.tar.gz.sha256"
+            curl -L https://github.com/CloudCannon/pagefind/releases/download/$RELEASE_VERSION/$ASSET_NAME -o checksums/$ASSET_NAME
           done
       - name: Publish
         run: npm publish
@@ -72,7 +72,6 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./pagefind
     strategy:
       matrix:
         include:
@@ -81,23 +80,6 @@ jobs:
             rust: stable
             target: x86_64-unknown-linux-musl
             cross: false
-          # - build: windows
-          #   os: windows-latest
-          #   rust: stable
-          #   target: x86_64-pc-windows-msvc
-          #   cross: false
-          # - build: arm-v7
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: armv7-unknown-linux-gnueabihf
-          #   linker: gcc-arm-linux-gnueabihf
-          #   cross: true
-          # - build: aarch64
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: aarch64-unknown-linux-gnu
-          #   linker: gcc-aarch64-linux-gnu
-          #   cross: true
           - build: macos
             os: macos-latest
             rust: stable
@@ -140,8 +122,10 @@ jobs:
         working-directory: ./pagefind_web
         run: wasm-pack build --release -t no-modules
       - name: Test CLI
+        working-directory: ./pagefind
         run: TEST_BINARY=../target/release/pagefind cargo test --release
       - name: Build
+        working-directory: ./pagefind
         run: RELEASE_VERSION=${GITHUB_REF#refs/tags/} cargo build --release --target ${{ matrix.target }}
 
       - name: Package Artifacts
@@ -159,10 +143,10 @@ jobs:
                   stage=$(mktemp -d -t tmp)
                   ;;
           esac
-          cp target/${{ matrix.target }}/release/rosey $stage/
+          cp target/${{ matrix.target }}/release/pagefind $stage/
           cd $stage
           RELEASE_VERSION=${GITHUB_REF#refs/tags/}
-          ASSET_NAME="rosey-$RELEASE_VERSION-${{ matrix.target }}.tar.gz"
+          ASSET_NAME="pagefind-$RELEASE_VERSION-${{ matrix.target }}.tar.gz"
           ASSET_PATH="$src/$ASSET_NAME"
           CHECKSUM_PATH="$ASSET_PATH.sha256"
           tar czf $ASSET_PATH *
