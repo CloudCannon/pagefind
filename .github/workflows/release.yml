@@ -11,40 +11,10 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  publish-crate:
-    name: Publish Crate
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: ./pagefind
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-      - name: Cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.rustup
-            ../target
-          key: ${{ runner.os }}-stable
-      - name: Setup
-        run: |
-          rustup install stable
-      - name: Build
-        run: cargo build --release --verbose
-      - name: Run tests
-        run: cargo test
-      - name: Publish
-        run: cargo publish --allow-dirty
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
   publish-npm-package:
     name: Publish NPM package
     runs-on: ubuntu-20.04
-    needs: publish-to-github
+    needs: publish-to-platforms
     defaults:
       run:
         working-directory: ./wrappers/node
@@ -66,8 +36,8 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  publish-to-github:
-    name: Publish to Github
+  publish-to-platforms:
+    name: Publish to Github and Crates
     runs-on: ${{matrix.os}}
     defaults:
       run:
@@ -211,3 +181,7 @@ jobs:
             ${{ env.CHECKSUM_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish
+        run: cargo publish --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
