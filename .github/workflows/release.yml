@@ -131,8 +131,8 @@ jobs:
       - name: Prepare Crates
         run: |
           # Update cargo version, 
-          sed -i "s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/" ./pagefind/Cargo.toml
-          sed -i "s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/" ./pagefind_web/Cargo.toml
+          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind/Cargo.toml
+          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_web/Cargo.toml
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
           # Commit changes so cargo doesn't complain about dirty repo
