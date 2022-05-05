@@ -11,10 +11,70 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  publish-crate:
+    name: Publish Crate
+    runs-on: ubuntu-20.04
+    needs: publish-to-github
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.rustup
+            target
+          key: ${{ runner.os }}-stable
+      - name: Setup
+        run: |
+          rustup install stable
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: "latest"
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+      - name: Prepare Git
+        run: |
+          git config user.email "github@github.com"
+          git config user.name "Github Actions"
+          git checkout -b main
+          # Use throw-away branch so we don't push the changes to origin
+          git checkout -b deploy_branch
+      - name: Prepare Crates
+        run: |
+          # Update cargo version, 
+          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind/Cargo.toml
+          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_web/Cargo.toml
+          git add ./pagefind/Cargo.toml
+          git add ./pagefind_web/Cargo.toml
+          # Commit changes so cargo doesn't complain about dirty repo
+          git commit -m "Deploy changes."
+
+      - name: Build WASM
+        working-directory: ./pagefind_web
+        run: |
+          wasm-pack build --release -t no-modules
+          mkdir -p ../pagefind/vendor
+          cp pkg/pagefind_web_bg.wasm ../pagefind/vendor/pagefind_web_bg.$GIT_VERSION.wasm
+          cp pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$GIT_VERSION.js
+          ls -lh ../pagefind/vendor/
+          pwd
+
+      - name: Build
+        run: cargo build --release --verbose
+      - name: Publish
+        working-directory: ./pagefind
+        run: cargo publish --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
   publish-npm-package:
     name: Publish NPM package
     runs-on: ubuntu-20.04
-    needs: publish-to-platforms
+    needs: publish-to-github
     defaults:
       run:
         working-directory: ./wrappers/node
@@ -36,7 +96,7 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  publish-to-platforms:
+  publish-to-github:
     name: Publish to Github and Crates
     runs-on: ${{matrix.os}}
     defaults:
@@ -181,8 +241,3 @@ jobs:
             ${{ env.CHECKSUM_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish
-        working-directory: ./pagefind
-        run: cargo publish --allow-dirty
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
