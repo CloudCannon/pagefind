@@ -57,7 +57,7 @@ impl Fossicker {
                 element_content_handlers: vec![
                     text!(
                         // "p, span, li, pre, code, blockquote, td, h1, h2, h3, h4, h5, h6",
-                        "[data-pagefind]",
+                        "body",
                         |el| {
                             let text = el.as_str().to_string();
                             digest.borrow_mut().push(text);

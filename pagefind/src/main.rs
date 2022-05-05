@@ -14,7 +14,7 @@ async fn main() {
             Arg::with_name("source")
                 .short("s")
                 .long("source")
-                .default_value("."),
+                .default_value("public"),
         )
         .get_matches();
 

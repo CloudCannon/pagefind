@@ -38,6 +38,9 @@ impl SearchState {
 
     pub async fn run(&mut self) {
         println!("Running Pagefind v{}", self.options.version);
+        println!("Running from: {:?}", self.options.working_directory);
+        println!("Source:       {:?}", self.options.source);
+        println!("Destination:  {:?}", self.options.dest);
         self.walk_for_files().await;
         println!("Building search indexes...");
 

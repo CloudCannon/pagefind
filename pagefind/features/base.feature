@@ -1,23 +1,29 @@
 Feature: Base Tests
 
-  Scenario: CLI is working
-    Given I have a "public/index.html" file
-    When I run my program
-    Then I should see "Running Pagefind" in stdout
-
-  Scenario: Web Test
+  Scenario: Search for a word
     Given I have a "public/index.html" file with the content:
       """
-      <!doctype html>
-      <html>
-      <head>
-      <title>My Page</title>
-      </head>
-      <body>
-      <h1>Hello!</h1>
-      </body>
-      </html>
+      <p data-url>
+      </p>
       """
+    Given I have a "public/cat/index.html" file with the content:
+      """
+      <body>
+      <h1>world</h1>
+      </body>
+      """
+    When I run my program
+    Then DEBUG I should see "Running Pagefind" in stdout
+    Then I should see the file "public/_pagefind/pagefind.js"
     When I serve the "public" directory
     When I load "/"
-    Then The selector "h1" should contain "Hello!"
+    When I evaluate:
+      """
+      async function() {
+      let pagefind = await import("/_pagefind/pagefind.js");
+      let results = await pagefind.search("world");
+      let data = await results[0].data();
+      document.querySelector('[data-url]').innerText = data.url;
+      }
+      """
+    Then The selector "[data-url]" should contain "/cat/"

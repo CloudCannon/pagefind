@@ -67,4 +67,24 @@ impl BrowserTester {
 
         Ok(contents.expect("Element was empty"))
     }
+
+    pub async fn eval(&mut self, js: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let _ = self
+            .page
+            .as_mut()
+            .expect("No page launched")
+            .evaluate_function(js)
+            .await?;
+        Ok(())
+    }
+    // pub async fn eval(&mut self, js: &str) -> Result<String, Box<dyn std::error::Error>> {
+    //     let result: String = self
+    //         .page
+    //         .as_mut()
+    //         .expect("No page launched")
+    //         .evaluate_function(js)
+    //         .await?
+    //         .into_value()?;
+    //     Ok(result)
+    // }
 }
