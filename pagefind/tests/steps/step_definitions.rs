@@ -64,6 +64,7 @@ fn stdout_does_contain(world: &mut TestWorld, debug: StepDebug, expected: String
     match &world.last_command_output {
         Some(command) => {
             debug.log(&command.stdout);
+            debug.log(&command.stderr);
             assert!(command.stdout.contains(&expected));
         }
         None => panic!("No stdout to check"),

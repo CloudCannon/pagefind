@@ -27,7 +27,7 @@ const SEARCH_JS: &str = include_str!("./stubs/search.js");
 
 impl PagefindIndexes {
     pub async fn write_files(self, options: &SearchOptions) {
-        let outdir = options.dest.join(&options.bundle_dir);
+        let outdir = options.source.join(&options.bundle_dir);
 
         let fragment_data: Vec<_> = self
             .fragments

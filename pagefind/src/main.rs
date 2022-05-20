@@ -14,7 +14,15 @@ async fn main() {
             Arg::with_name("source")
                 .short("s")
                 .long("source")
-                .default_value("public"),
+                .default_value("public")
+                .help("The location of your build static website"),
+        )
+        .arg(
+            Arg::with_name("bundle_dir")
+                .short("b")
+                .long("bundle_dir")
+                .default_value("_pagefind")
+                .help("Where to output the search files, relative to source"),
         )
         .get_matches();
 
