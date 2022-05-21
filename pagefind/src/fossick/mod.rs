@@ -50,7 +50,7 @@ impl Fossicker {
 
         let remove_selectors =
             "*script, *noscript, *label, *form, *svg, *footer, *header, *nav, *iframe"
-                .replace("*", "[data-pagefind] ");
+                .replace("*", "body ");
 
         let mut rewriter = HtmlRewriter::new(
             Settings {
