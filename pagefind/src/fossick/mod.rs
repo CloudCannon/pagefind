@@ -1,4 +1,5 @@
 use hashbrown::HashMap;
+use lazy_static::lazy_static;
 use lol_html::html_content::ContentType;
 use lol_html::{element, text, HtmlRewriter, Settings};
 use regex::Regex;
@@ -16,6 +17,12 @@ use tokio::time::{sleep, Duration};
 use crate::fragments::{PageFragment, PageFragmentData};
 use crate::utils::full_hash;
 use crate::SearchOptions;
+
+lazy_static! {
+    static ref EXTRANEOUS_NEWLINES: Regex = Regex::new("(^|\\s)*((\n|\r\n)\\s*)+($|\\s)*").unwrap();
+    static ref TRIM_NEWLINES: Regex = Regex::new("^\n|\n$").unwrap();
+    static ref EXTRANEOUS_SPACES: Regex = Regex::new("\\s{2,}").unwrap();
+}
 
 pub struct FossickedData {
     pub file_path: PathBuf,
@@ -205,13 +212,9 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
 }
 
 fn normalize_content(content: &str) -> String {
-    let extraneous_newlines = Regex::new("(^|\\s)*((\n|\r\n)\\s*)+($|\\s)*").unwrap();
-    let trim_newlines = Regex::new("^\n|\n$").unwrap();
-    let extraneous_spaces = Regex::new("\\s{2,}").unwrap();
-
-    let content = extraneous_newlines.replace_all(content, "\n");
-    let content = trim_newlines.replace_all(&content, "");
-    let content = extraneous_spaces.replace_all(&content, " ");
+    let content = EXTRANEOUS_NEWLINES.replace_all(content, "\n");
+    let content = TRIM_NEWLINES.replace_all(&content, "");
+    let content = EXTRANEOUS_SPACES.replace_all(&content, " ");
 
     content.to_string()
 }
