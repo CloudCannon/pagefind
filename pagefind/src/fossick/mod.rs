@@ -105,12 +105,23 @@ impl Fossicker {
         drop(rewriter);
 
         let removals = removals.into_inner();
-        self.digest = digest
+        let strings = digest
             .into_inner()
             .into_iter()
-            .filter(|x| !removals.contains(x))
-            .collect::<Vec<String>>()
-            .join(" ");
+            .filter_map(|x| {
+                if !removals.contains(&x) {
+                    let normalized = normalize_content(&x);
+                    if !normalized.is_empty() {
+                        Some(normalized)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<String>>();
+        self.digest = strings.join(". ");
         self.title = title.unwrap_or_default();
 
         if file_needs_write {
@@ -164,7 +175,6 @@ impl Fossicker {
 
         let word_data = self.retrieve_words_from_digest();
         let hash = full_hash(self.digest.as_bytes());
-        let content = normalize_content(&self.digest);
 
         Ok(FossickedData {
             file_path: self.file_path.clone(),
@@ -174,7 +184,7 @@ impl Fossicker {
                 data: PageFragmentData {
                     url: build_url(&self.file_path, options),
                     title: self.title.clone(),
-                    content,
+                    content: self.digest.clone(),
                     attributes: HashMap::new(),
                 },
             },
