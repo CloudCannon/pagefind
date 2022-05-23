@@ -9,6 +9,7 @@ use std::borrow::Cow;
 use std::cell::RefCell;
 use std::io::Error;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tokio::io::{AsyncReadExt, BufReader};
@@ -19,9 +20,17 @@ use crate::utils::full_hash;
 use crate::SearchOptions;
 
 lazy_static! {
-    static ref EXTRANEOUS_NEWLINES: Regex = Regex::new("(^|\\s)*((\n|\r\n)\\s*)+($|\\s)*").unwrap();
-    static ref TRIM_NEWLINES: Regex = Regex::new("^\n|\n$").unwrap();
+    static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
+    static ref TRIM_NEWLINES: Regex = Regex::new("^[\n\r\\s]+|[\n\r\\s]+$").unwrap();
     static ref EXTRANEOUS_SPACES: Regex = Regex::new("\\s{2,}").unwrap();
+    static ref SENTENCE_CHARS: Regex = Regex::new("[\\w'\"\\)\\$\\*]").unwrap();
+}
+lazy_static! {
+    static ref SENTENCE_SELECTORS: Vec<&'static str> =
+        vec!("p", "td", "div", "ul", "article", "section");
+    static ref LIST_SELECTORS: Vec<&'static str> = vec!("li");
+    static ref REMOVE_SELECTORS: Vec<&'static str> =
+        vec!("script", "noscript", "label", "form", "svg", "footer", "header", "nav", "iframe");
 }
 
 pub struct FossickedData {
@@ -50,36 +59,60 @@ impl Fossicker {
 
         let mut output = vec![];
 
-        let digest = RefCell::new(Vec::new());
-        let removals = RefCell::new(Vec::new());
+        let digest = Rc::new(RefCell::new(Vec::new()));
+        let current_value: Rc<RefCell<Option<String>>> = Rc::new(RefCell::new(None));
         let mut title = None;
         let file_needs_write = false;
-
-        let remove_selectors =
-            "*script, *noscript, *label, *form, *svg, *footer, *header, *nav, *iframe"
-                .replace("*", "body ");
 
         let mut rewriter = HtmlRewriter::new(
             Settings {
                 element_content_handlers: vec![
-                    text!(
-                        // "p, span, li, pre, code, blockquote, td, h1, h2, h3, h4, h5, h6",
-                        "body",
-                        |el| {
-                            let text = el.as_str().to_string();
-                            digest.borrow_mut().push(text);
-                            Ok(())
-                        }
-                    ),
-                    text!(remove_selectors, |el| {
-                        // TODO: write some tests to ensure that these chunks always match
-                        // 1:1 with the chunks in the text handler above,
-                        // and will thus be removed.
-                        // Especially for large elements that might not come through in one chunk.
-                        let text = el.as_str().to_string();
-                        removals.borrow_mut().push(text);
+                    text!("body", |el| {
+                        let mut current_value = current_value.borrow_mut();
+                        match &mut *current_value {
+                            Some(v) => v.push_str(el.as_str()),
+                            None => {
+                                let _ = current_value.insert(el.as_str().to_string());
+                            }
+                        };
                         Ok(())
                     }),
+                    element!("body *", |el| {
+                        let current_value = Rc::clone(&current_value);
+                        let digest = Rc::clone(&digest);
+
+                        // This will error if the element can not have an end tag
+                        // We don't care about this,
+                        // as that means it has no content for us anyway.
+                        let _ = el.on_end_tag(move |end| {
+                            let tag_name = end.name();
+                            if REMOVE_SELECTORS.contains(&tag_name.as_str()) {
+                                let _ = current_value.take();
+                                return Ok(());
+                            }
+                            let mut current_value = current_value.borrow_mut();
+                            if let Some(ref mut v) = &mut *current_value {
+                                if v.chars()
+                                    .last()
+                                    .filter(|c| SENTENCE_CHARS.is_match(&c.to_string()))
+                                    .is_some()
+                                {
+                                    if SENTENCE_SELECTORS.contains(&tag_name.as_str()) {
+                                        v.push('.');
+                                    } else if LIST_SELECTORS.contains(&tag_name.as_str()) {
+                                        v.push(',');
+                                    }
+                                }
+                            }
+                            if current_value.is_some() {
+                                digest.borrow_mut().push(current_value.take().unwrap());
+                            }
+                            Ok(())
+                        });
+                        Ok(())
+                    }),
+                    // Track the first h1 on the page as the title to return in search
+                    // TODO: This doesn't handle a chunk boundary
                     text!("h1", |el| {
                         let text = normalize_content(el.as_str());
                         if title.is_none() && !text.is_empty() {
@@ -87,12 +120,6 @@ impl Fossicker {
                         }
                         Ok(())
                     }),
-                    // element!("head", |el| {
-                    //     el.append("<script>alert(\"Hey pals\");</script>", ContentType::Html);
-                    //     file_needs_write = true;
-
-                    //     Ok(())
-                    // }),
                 ],
                 ..Settings::default()
             },
@@ -111,24 +138,8 @@ impl Fossicker {
         }
         drop(rewriter);
 
-        let removals = removals.into_inner();
-        let strings = digest
-            .into_inner()
-            .into_iter()
-            .filter_map(|x| {
-                if !removals.contains(&x) {
-                    let normalized = normalize_content(&x);
-                    if !normalized.is_empty() {
-                        Some(normalized)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<String>>();
-        self.digest = strings.join(". ");
+        let strings = Rc::try_unwrap(digest).unwrap().into_inner();
+        self.digest = normalize_content(&strings.join(" "));
         self.title = title.unwrap_or_default();
 
         if file_needs_write {
@@ -147,21 +158,19 @@ impl Fossicker {
     fn retrieve_words_from_digest(&mut self) -> HashMap<String, Vec<u32>> {
         let mut map: HashMap<String, Vec<u32>> = HashMap::new();
         let en_stemmer = Stemmer::create(Algorithm::English);
-        let special_chars = Regex::new("[^\\w\\s]").unwrap(); // TODO: i18n?
+        let special_chars = Regex::new("[^\\w]").unwrap(); // TODO: i18n?
 
         // TODO: Improve stop words in general
         let mut words_to_remove = stop_words::get(stop_words::LANGUAGE::English);
         words_to_remove.retain(|w| w.len() < 5);
 
-        let base_content = self.digest.to_lowercase().replace('\'', "");
-        let raw_content = special_chars.replace_all(&base_content, " ");
-
         // TODO: Read newlines and jump the word_index up some amount,
         // so that separate bodies of text don't return exact string
         // matches across the boundaries.
 
-        for (word_index, word) in raw_content.split_whitespace().enumerate() {
-            let word = en_stemmer.stem(word).into_owned();
+        for (word_index, word) in self.digest.to_lowercase().split_whitespace().enumerate() {
+            let mut word = special_chars.replace_all(word, "").into_owned();
+            word = en_stemmer.stem(&word).into_owned();
             if words_to_remove.contains(&word) {
                 continue;
             }
@@ -212,8 +221,8 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
 }
 
 fn normalize_content(content: &str) -> String {
-    let content = EXTRANEOUS_NEWLINES.replace_all(content, "\n");
-    let content = TRIM_NEWLINES.replace_all(&content, "");
+    let content = TRIM_NEWLINES.replace_all(content, "");
+    let content = NEWLINES.replace_all(&content, " ");
     let content = EXTRANEOUS_SPACES.replace_all(&content, " ");
 
     content.to_string()

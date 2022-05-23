@@ -50,13 +50,12 @@ class Pagefind {
     }
 
     // TODO: Due for a rework (chunking)
-    // TODO: Return excerpt with punctuation and such
     // TODO: Large test "fishing" has the wrong mark
     // TODO: Large test "hades" returns some strange results
     async loadFragment(hash, excerpt = [0, 0], locations = []) {
         let fragment = await fetch(`${this.base_path}fragment/${hash}.pf_fragment`);
         fragment = await fragment.json();
-        let fragment_words = fragment.content.replace(/(\s|^)[^\w]+(\s|$)/g, ' ').replace(/\s{2,}/g, ' ').split(/[\r\n\s]+/g);
+        let fragment_words = fragment.content.split(/[\r\n\s]+/g);
         for (let word of locations) {
             fragment_words[word] = `<mark>${fragment_words[word]}</mark>`;
         }
