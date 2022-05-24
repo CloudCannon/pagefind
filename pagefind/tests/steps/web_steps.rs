@@ -57,3 +57,15 @@ async fn selector_contains(world: &mut TestWorld, selector: String, contents: St
         .expect("Selector does not exist");
     assert_eq!(found_contents, contents);
 }
+
+#[then(regex = "^There should be no logs$")]
+async fn no_logs(world: &mut TestWorld) {
+    let browser = world.ensure_browser().await;
+    let logs = browser.get_logs().await.expect("Page is loaded");
+    if !logs.is_empty() {
+        panic!(
+            "No logs were expected, but logs were found:\n\n{}",
+            logs.join("\n")
+        );
+    }
+}

@@ -1,5 +1,5 @@
 use super::{IndexChunk, SearchIndex};
-use crate::util::*;
+use crate::{util::*, Page};
 use minicbor::{decode, Decoder};
 
 /*
@@ -29,12 +29,16 @@ impl SearchIndex {
         debug!({ "Reading version number" });
         self.generator_version = Some(consume_string!(decoder));
 
-        debug!({ "Reading page hashes array" });
+        debug!({ "Reading pages array" });
         let page_hashes = consume_arr_len!(decoder);
-        debug!({ format!("Reading {:#?} page hashes", page_hashes) });
+        debug!({ format!("Reading {:#?} pages", page_hashes) });
         self.pages = Vec::with_capacity(page_hashes as usize);
         for _ in 0..page_hashes {
-            self.pages.push(consume_string!(decoder));
+            consume_fixed_arr!(decoder);
+            self.pages.push(Page {
+                hash: consume_string!(decoder),
+                word_count: consume_num!(decoder),
+            });
         }
 
         debug!({ "Reading stop words array" });

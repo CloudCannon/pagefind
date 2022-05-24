@@ -1,7 +1,7 @@
 use hashbrown::HashMap;
 
 use crate::{fossick::FossickedData, fragments::PageFragment, utils::full_hash, SearchOptions};
-use index_metadata::{MetaChunk, MetaIndex};
+use index_metadata::{MetaChunk, MetaIndex, MetaPage};
 use index_words::{PackedPage, PackedWord, WordIndex};
 
 mod index_metadata;
@@ -65,9 +65,16 @@ where
         }
     }
 
-    meta.pages = fragments.keys().cloned().collect();
+    meta.pages = fragments
+        .iter()
+        .map(|(hash, fragment)| MetaPage {
+            hash: hash.clone(),
+            word_count: fragment.data.word_count as u32,
+        })
+        .collect();
+
     meta.pages
-        .sort_by_cached_key(|p| fragments.get(p).unwrap().page_number);
+        .sort_by_cached_key(|p| fragments.get(&p.hash).unwrap().page_number);
 
     if TryInto::<u32>::try_into(meta.pages.len()).is_err() {
         panic!("Too many documents to index");

@@ -13,6 +13,7 @@ use wasm_bindgen::prelude::*;
 mod excerpt;
 mod index;
 mod metadata;
+mod search;
 mod util;
 
 pub struct PageWord {
@@ -26,10 +27,15 @@ pub struct IndexChunk {
     hash: String,
 }
 
+pub struct Page {
+    hash: String,
+    word_count: u32,
+}
+
 pub struct SearchIndex {
     web_version: &'static str,
     generator_version: Option<String>,
-    pages: Vec<String>,
+    pages: Vec<Page>,
     chunks: Vec<IndexChunk>,
     stops: Vec<String>,
     words: HashMap<String, Vec<PageWord>>,
@@ -120,71 +126,33 @@ pub fn search(ptr: *mut SearchIndex, query: &str) -> String {
         }
     }
 
-    let terms = query.split(' ');
-    // TODO: i18n
-    let en_stemmer = Stemmer::create(Algorithm::English);
+    let results = search_index.search_term(query);
 
-    #[cfg(debug_assertions)]
-    debug_log(&format! {"Searching {:?}", query});
+    let result_string = results
+        .into_iter()
+        .map(|result| {
+            format!(
+                "{}@{},{}@{}",
+                &result.page,
+                calculate_excerpt(&result.word_locations, 30),
+                30,
+                result
+                    .word_locations
+                    .iter()
+                    .map(|l| l.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+            )
+        })
+        .collect::<Vec<String>>()
+        .join(" ");
 
-    let mut maps = Vec::new();
-    let mut words = Vec::new();
-    for term in terms {
-        let term = en_stemmer.stem(term).into_owned();
-        if let Some(word_index) = search_index.words.get(&term) {
-            words.extend(word_index);
-            let mut set = BitSet::new();
-            for page in word_index {
-                set.insert(page.page as usize);
-            }
-            maps.push(set);
-        }
-    }
-
-    let mut maps = maps.drain(..);
-    let mut results = if let Some(map) = maps.next() {
-        map
-    } else {
-        let _ = Box::into_raw(search_index);
-        return "".into();
-    };
-
-    for map in maps {
-        results.intersect_with(&map);
-    }
-
-    let mut pages: Vec<String> = vec![];
-
-    for page in results.iter() {
-        let locs: Vec<u32> = words
-            .iter()
-            .filter_map(|p| {
-                if p.page as usize == page {
-                    Some(p.locs.clone())
-                } else {
-                    None
-                }
-            })
-            .flatten()
-            .collect();
-        pages.push(format!(
-            "{}@{},{}@{}",
-            &search_index.pages[page],
-            calculate_excerpt(&locs, 30),
-            30,
-            locs.iter()
-                .map(|l| l.to_string())
-                .collect::<Vec<String>>()
-                .join(",")
-        ));
-    }
-    let o = pages.join(" ");
     let _ = Box::into_raw(search_index);
 
     #[cfg(debug_assertions)]
-    debug_log(&format! {"{:?}", o});
+    debug_log(&format! {"{:?}", result_string});
 
-    o
+    result_string
 }
 
 #[cfg(test)]

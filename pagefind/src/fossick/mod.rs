@@ -202,6 +202,7 @@ impl Fossicker {
                     title: self.title.clone(),
                     content: self.digest.clone(),
                     attributes: HashMap::new(),
+                    word_count: word_data.len(),
                 },
             },
             word_data,

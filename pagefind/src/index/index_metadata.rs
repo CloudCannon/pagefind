@@ -8,7 +8,7 @@ pub struct MetaIndex {
     #[n(0)]
     pub version: String,
     #[n(1)]
-    pub pages: Vec<String>,
+    pub pages: Vec<MetaPage>,
     #[n(2)]
     pub stops: Vec<String>,
     #[n(3)]
@@ -25,4 +25,12 @@ pub struct MetaChunk {
     pub to: String,
     #[n(2)]
     pub hash: String,
+}
+
+#[derive(Encode)]
+pub struct MetaPage {
+    #[n(0)]
+    pub hash: String,
+    #[n(1)]
+    pub word_count: u32,
 }
