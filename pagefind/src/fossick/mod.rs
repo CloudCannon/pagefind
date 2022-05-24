@@ -263,3 +263,73 @@ fn normalize_content(content: &str) -> String {
 
     content.to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalizing_content() {
+        let input = "\nHello  Wor\n ld? \n \n";
+        let output = normalize_content(input);
+
+        assert_eq!(&output, "Hello Wor ld?");
+    }
+
+    #[test]
+    fn building_url() {
+        let opts = SearchOptions {
+            source: "hello/world".into(),
+            ..Default::default()
+        };
+
+        let p: PathBuf = "hello/world/index.html".into();
+        assert_eq!(&build_url(&p, &opts), "/");
+
+        let p: PathBuf = "hello/world/about/index.html".into();
+        assert_eq!(&build_url(&p, &opts), "/about/");
+
+        let p: PathBuf = "hello/world/about.html".into();
+        assert_eq!(&build_url(&p, &opts), "/about.html");
+    }
+
+    fn test_parse(input: Vec<&'static str>) -> DomParserResult {
+        let mut rewriter = DomParser::new();
+        let _ = rewriter.write(b"<body>");
+        for line in input {
+            let _ = rewriter.write(line.as_bytes());
+        }
+        let _ = rewriter.write(b"</body>");
+        rewriter.wrap()
+    }
+
+    #[test]
+    fn block_tag_formatting() {
+        let data = test_parse(vec![
+            "<p>Sentences should have periods</p>",
+            "<p>Unless one exists.</p>",
+            "<div>Or it ends with punctuation:</div>",
+            "<article>Except for 'quotes'</article>",
+        ]);
+
+        assert_eq!(
+            data.digest,
+            "Sentences should have periods. Unless one exists. Or it ends with punctuation: Except for 'quotes'."
+        )
+    }
+
+    #[test]
+    fn inline_tag_formatting() {
+        let data = test_parse(vec![
+            "<p>Inline tags like <span>span</span>",
+            " and <b>bol",
+            "d</b> shouldn't have periods</p>",
+        ]);
+
+        assert_eq!(
+            data.digest,
+            "Inline tags like span and bold shouldn't have periods."
+        )
+    }
+
+}
