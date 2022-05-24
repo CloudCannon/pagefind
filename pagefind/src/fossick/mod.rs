@@ -1,17 +1,13 @@
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use lol_html::html_content::ContentType;
 use lol_html::{element, text, HtmlRewriter, Settings};
 use regex::Regex;
 use rust_stemmers::{Algorithm, Stemmer};
-use sha1::{Digest, Sha1};
-use std::borrow::Cow;
 use std::cell::RefCell;
 use std::io::Error;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
 use tokio::io::{AsyncReadExt, BufReader};
 use tokio::time::{sleep, Duration};
 
@@ -57,74 +53,7 @@ impl Fossicker {
     async fn read_file(&mut self) -> Result<(), Error> {
         let file = File::open(&self.file_path).await?;
 
-        let mut output = vec![];
-
-        let digest = Rc::new(RefCell::new(Vec::new()));
-        let current_value: Rc<RefCell<Option<String>>> = Rc::new(RefCell::new(None));
-        let mut title = None;
-        let file_needs_write = false;
-
-        let mut rewriter = HtmlRewriter::new(
-            Settings {
-                element_content_handlers: vec![
-                    text!("body", |el| {
-                        let mut current_value = current_value.borrow_mut();
-                        match &mut *current_value {
-                            Some(v) => v.push_str(el.as_str()),
-                            None => {
-                                let _ = current_value.insert(el.as_str().to_string());
-                            }
-                        };
-                        Ok(())
-                    }),
-                    element!("body *", |el| {
-                        let current_value = Rc::clone(&current_value);
-                        let digest = Rc::clone(&digest);
-
-                        // This will error if the element can not have an end tag
-                        // We don't care about this,
-                        // as that means it has no content for us anyway.
-                        let _ = el.on_end_tag(move |end| {
-                            let tag_name = end.name();
-                            if REMOVE_SELECTORS.contains(&tag_name.as_str()) {
-                                let _ = current_value.take();
-                                return Ok(());
-                            }
-                            let mut current_value = current_value.borrow_mut();
-                            if let Some(ref mut v) = &mut *current_value {
-                                if v.chars()
-                                    .last()
-                                    .filter(|c| SENTENCE_CHARS.is_match(&c.to_string()))
-                                    .is_some()
-                                {
-                                    if SENTENCE_SELECTORS.contains(&tag_name.as_str()) {
-                                        v.push('.');
-                                    } else if LIST_SELECTORS.contains(&tag_name.as_str()) {
-                                        v.push(',');
-                                    }
-                                }
-                            }
-                            if current_value.is_some() {
-                                digest.borrow_mut().push(current_value.take().unwrap());
-                            }
-                            Ok(())
-                        });
-                        Ok(())
-                    }),
-                    // Track the first h1 on the page as the title to return in search
-                    // TODO: This doesn't handle a chunk boundary
-                    text!("h1", |el| {
-                        let text = normalize_content(el.as_str());
-                        if title.is_none() && !text.is_empty() {
-                            title = Some(text);
-                        }
-                        Ok(())
-                    }),
-                ],
-                ..Settings::default()
-            },
-            |c: &[u8]| output.extend_from_slice(c),
-        );
+        let mut rewriter = DomParser::new();
 
         let mut br = BufReader::new(file);
         let mut buf = [0; 20000];
@@ -136,21 +65,10 @@ impl Fossicker {
                 panic!("HTML parse encountered an error: {:#?}", error);
             }
         }
-        drop(rewriter);
 
-        let strings = Rc::try_unwrap(digest).unwrap().into_inner();
-        self.digest = normalize_content(&strings.join(" "));
-        self.title = title.unwrap_or_default();
-
-        if file_needs_write {
-            let mut outfile = File::create(&self.file_path).await;
-            while outfile.is_err() {
-                sleep(Duration::from_millis(100)).await;
-                outfile = File::create(&self.file_path).await;
-            }
-
-            outfile.unwrap().write_all(&output).await.unwrap();
-        }
+        let data = rewriter.wrap();
+        self.digest = data.digest;
+        self.title = data.title;
 
         Ok(())
     }
@@ -207,6 +125,123 @@ impl Fossicker {
             },
             word_data,
         })
+    }
+}
+
+struct EmptySink;
+impl lol_html::OutputSink for EmptySink {
+    fn handle_chunk(&mut self, chunk: &[u8]) {}
+}
+
+struct DomParser<'a> {
+    rewriter: HtmlRewriter<'a, EmptySink>,
+    data: Rc<RefCell<DomParserData>>,
+}
+
+#[derive(Default, Debug)]
+struct DomParserData {
+    digest: Vec<String>,
+    current_value: Option<String>,
+    title: Option<String>,
+}
+
+struct DomParserResult {
+    digest: String,
+    title: String,
+}
+
+// From https://github.com/rust-lang/rfcs/issues/2407#issuecomment-385291238
+macro_rules! enclose {
+    ( ($( $x:ident ),*) $y:expr ) => {
+        {
+            $(let $x = $x.clone();)*
+            $y
+        }
+    };
+}
+
+impl<'a> DomParser<'a> {
+    fn new() -> Self {
+        let data = Rc::new(RefCell::new(DomParserData::default()));
+        let empty = EmptySink {};
+
+        let rewriter = HtmlRewriter::new(
+            Settings {
+                element_content_handlers: vec![
+                    enclose! { (data) text!("body", move |el| {
+                        let mut data = data.borrow_mut();
+                        match &mut data.current_value {
+                            Some(v) => v.push_str(el.as_str()),
+                            None => {
+                                let _ = data.current_value.insert(el.as_str().to_string());
+                            }
+                        };
+                        Ok(())
+                    })},
+                    enclose! { (data) element!("body *", move |el| {
+                        let data = Rc::clone(&data);
+
+                        // This will error if the element can not have an end tag
+                        // We don't care about this,
+                        // as that means it has no content for us anyway.
+                        let _ = el.on_end_tag(move |end| {
+                            let mut data = data.borrow_mut();
+                            let tag_name = end.name();
+                            if REMOVE_SELECTORS.contains(&tag_name.as_str()) {
+                                let _ = data.current_value.take();
+                                return Ok(());
+                            }
+                            if let Some(ref mut v) = &mut data.current_value {
+                                if v.chars()
+                                    .last()
+                                    .filter(|c| SENTENCE_CHARS.is_match(&c.to_string()))
+                                    .is_some()
+                                {
+                                    if SENTENCE_SELECTORS.contains(&tag_name.as_str()) {
+                                        v.push('.');
+                                    } else if LIST_SELECTORS.contains(&tag_name.as_str()) {
+                                        v.push(',');
+                                    }
+                                }
+                            }
+                            if data.current_value.is_some() {
+                                let val = data.current_value.take().unwrap();
+                                data.digest.push(val);
+                            }
+                            Ok(())
+                        });
+                        Ok(())
+                    })},
+                    // Track the first h1 on the page as the title to return in search
+                    // TODO: This doesn't handle a chunk boundary
+                    enclose! { (data) text!("h1", move |el| {
+                        let mut data = data.borrow_mut();
+                        let text = normalize_content(el.as_str());
+                        if data.title.is_none() && !text.is_empty() {
+                            data.title = Some(text);
+                        }
+                        Ok(())
+                    })},
+                ],
+                ..Settings::default()
+            },
+            empty,
+        );
+
+        Self { rewriter, data }
+    }
+
+    fn write(&mut self, data: &[u8]) -> Result<(), lol_html::errors::RewritingError> {
+        self.rewriter.write(data)
+    }
+
+    fn wrap(self) -> DomParserResult {
+        drop(self.rewriter); // Clears the extra Rcs on data
+        let data = Rc::try_unwrap(self.data).unwrap().into_inner();
+        DomParserResult {
+            digest: normalize_content(&data.digest.join(" ")),
+            title: data.title.unwrap_or_default(),
+        }
     }
 }
 
