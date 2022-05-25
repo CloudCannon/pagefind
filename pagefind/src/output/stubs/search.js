@@ -81,6 +81,7 @@ class Pagefind {
     async search(term) {
         let start = Date.now();
         let ptr = await this.getPtr();
+        term = term.toLowerCase();
 
         let chunks = this.backend.request_indexes(ptr, term);
         await Promise.all(chunks.split(' ').map(chunk => this.loadChunk(chunk)));

@@ -1,5 +1,11 @@
-@skip
 Feature: Word Stemming
+    Background:
+        Given I have a "public/index.html" file with the content:
+            """
+            <ul>
+                <li data-result>
+            </ul>
+            """
 
     Scenario: Searching for a word will match against the stem of that word
         Given I have a "public/cat/index.html" file with the content:
@@ -21,10 +27,10 @@ Feature: Word Stemming
                 let results = await pagefind.search("meowed");
 
                 let data = await results[0].data();
-                document.querySelector('[data-url]').innerText = data.url;
+                document.querySelector('[data-result]').innerText = data.url;
             }
             """
-        Then The selector "[data-url]" should contain "/cat/"
+        Then The selector "[data-result]" should contain "/cat/"
 
     Scenario: Search is case independent
         Given I have a "public/cat/index.html" file with the content:
@@ -43,11 +49,11 @@ Feature: Word Stemming
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("meOWer");
+                let results = await pagefind.search("meOWings");
 
                 let data = await results[0].data();
-                document.querySelector('[data-url]').innerText = data.url;
+                document.querySelector('[data-result]').innerText = data.url;
             }
             """
-        Then The selector "[data-url]" should contain "/cat/"
+        Then The selector "[data-result]" should contain "/cat/"
 
