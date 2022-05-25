@@ -60,12 +60,12 @@ impl Fossicker {
 
     fn retrieve_words_from_digest(&mut self) -> HashMap<String, Vec<u32>> {
         let mut map: HashMap<String, Vec<u32>> = HashMap::new();
-        let en_stemmer = Stemmer::create(Algorithm::English);
+        let en_stemmer = Stemmer::create(Algorithm::English); // TODO: i18n
         let special_chars = Regex::new("[^\\w]").unwrap(); // TODO: i18n?
 
-        // TODO: Improve stop words in general
-        let mut words_to_remove = stop_words::get(stop_words::LANGUAGE::English);
-        words_to_remove.retain(|w| w.len() < 5);
+        // TODO: Reconsider stopwords. Removing them for now as they seem to remove too much,
+        // let mut words_to_remove = stop_words::get(stop_words::LANGUAGE::English);
+        // words_to_remove.retain(|w| w.len() < 5);
 
         // TODO: Read newlines and jump the word_index up some amount,
         // so that separate bodies of text don't return exact string
@@ -74,13 +74,15 @@ impl Fossicker {
         for (word_index, word) in self.digest.to_lowercase().split_whitespace().enumerate() {
             let mut word = special_chars.replace_all(word, "").into_owned();
             word = en_stemmer.stem(&word).into_owned();
-            if words_to_remove.contains(&word) {
-                continue;
-            }
-            if let Some(repeat) = map.get_mut(&word) {
-                repeat.push(word_index.try_into().unwrap());
-            } else {
-                map.insert(word, vec![word_index.try_into().unwrap()]);
+            // if words_to_remove.contains(&word) {
+            //     continue; // Removing stopwords for now...
+            // }
+            if !word.is_empty() {
+                if let Some(repeat) = map.get_mut(&word) {
+                    repeat.push(word_index.try_into().unwrap());
+                } else {
+                    map.insert(word, vec![word_index.try_into().unwrap()]);
+                }
             }
         }
 
