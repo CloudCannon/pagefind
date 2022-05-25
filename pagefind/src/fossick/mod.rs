@@ -1,12 +1,8 @@
 use hashbrown::HashMap;
-use lazy_static::lazy_static;
-use lol_html::{element, text, HtmlRewriter, Settings};
 use regex::Regex;
 use rust_stemmers::{Algorithm, Stemmer};
-use std::cell::RefCell;
 use std::io::Error;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, BufReader};
 use tokio::time::{sleep, Duration};
@@ -14,20 +10,9 @@ use tokio::time::{sleep, Duration};
 use crate::fragments::{PageFragment, PageFragmentData};
 use crate::utils::full_hash;
 use crate::SearchOptions;
+use parser::DomParser;
 
-lazy_static! {
-    static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
-    static ref TRIM_NEWLINES: Regex = Regex::new("^[\n\r\\s]+|[\n\r\\s]+$").unwrap();
-    static ref EXTRANEOUS_SPACES: Regex = Regex::new("\\s{2,}").unwrap();
-    static ref SENTENCE_CHARS: Regex = Regex::new("[\\w'\"\\)\\$\\*]").unwrap();
-}
-lazy_static! {
-    static ref SENTENCE_SELECTORS: Vec<&'static str> =
-        vec!("p", "td", "div", "ul", "article", "section");
-    static ref LIST_SELECTORS: Vec<&'static str> = vec!("li");
-    static ref REMOVE_SELECTORS: Vec<&'static str> =
-        vec!("script", "noscript", "label", "form", "svg", "footer", "header", "nav", "iframe");
-}
+mod parser;
 
 pub struct FossickedData {
     pub file_path: PathBuf,
@@ -128,123 +113,6 @@ impl Fossicker {
     }
 }
 
-struct EmptySink;
-impl lol_html::OutputSink for EmptySink {
-    fn handle_chunk(&mut self, chunk: &[u8]) {}
-}
-
-struct DomParser<'a> {
-    rewriter: HtmlRewriter<'a, EmptySink>,
-    data: Rc<RefCell<DomParserData>>,
-}
-
-#[derive(Default, Debug)]
-struct DomParserData {
-    digest: Vec<String>,
-    current_value: Option<String>,
-    title: Option<String>,
-}
-
-struct DomParserResult {
-    digest: String,
-    title: String,
-}
-
-// From https://github.com/rust-lang/rfcs/issues/2407#issuecomment-385291238
-macro_rules! enclose {
-    ( ($( $x:ident ),*) $y:expr ) => {
-        {
-            $(let $x = $x.clone();)*
-            $y
-        }
-    };
-}
-
-impl<'a> DomParser<'a> {
-    fn new() -> Self {
-        let data = Rc::new(RefCell::new(DomParserData::default()));
-        let empty = EmptySink {};
-
-        let rewriter = HtmlRewriter::new(
-            Settings {
-                element_content_handlers: vec![
-                    enclose! { (data) text!("body", move |el| {
-                        let mut data = data.borrow_mut();
-                        match &mut data.current_value {
-                            Some(v) => v.push_str(el.as_str()),
-                            None => {
-                                let _ = data.current_value.insert(el.as_str().to_string());
-                            }
-                        };
-                        Ok(())
-                    })},
-                    enclose! { (data) element!("body *", move |el| {
-                        let data = Rc::clone(&data);
-
-                        // This will error if the element can not have an end tag
-                        // We don't care about this,
-                        // as that means it has no content for us anyway.
-                        let _ = el.on_end_tag(move |end| {
-                            let mut data = data.borrow_mut();
-                            let tag_name = end.name();
-                            if REMOVE_SELECTORS.contains(&tag_name.as_str()) {
-                                let _ = data.current_value.take();
-                                return Ok(());
-                            }
-                            if let Some(ref mut v) = &mut data.current_value {
-                                if v.chars()
-                                    .last()
-                                    .filter(|c| SENTENCE_CHARS.is_match(&c.to_string()))
-                                    .is_some()
-                                {
-                                    if SENTENCE_SELECTORS.contains(&tag_name.as_str()) {
-                                        v.push('.');
-                                    } else if LIST_SELECTORS.contains(&tag_name.as_str()) {
-                                        v.push(',');
-                                    }
-                                }
-                            }
-                            if data.current_value.is_some() {
-                                let val = data.current_value.take().unwrap();
-                                data.digest.push(val);
-                            }
-                            Ok(())
-                        });
-                        Ok(())
-                    })},
-                    // Track the first h1 on the page as the title to return in search
-                    // TODO: This doesn't handle a chunk boundary
-                    enclose! { (data) text!("h1", move |el| {
-                        let mut data = data.borrow_mut();
-                        let text = normalize_content(el.as_str());
-                        if data.title.is_none() && !text.is_empty() {
-                            data.title = Some(text);
-                        }
-                        Ok(())
-                    })},
-                ],
-                ..Settings::default()
-            },
-            empty,
-        );
-
-        Self { rewriter, data }
-    }
-
-    fn write(&mut self, data: &[u8]) -> Result<(), lol_html::errors::RewritingError> {
-        self.rewriter.write(data)
-    }
-
-    fn wrap(self) -> DomParserResult {
-        drop(self.rewriter); // Clears the extra Rcs on data
-        let data = Rc::try_unwrap(self.data).unwrap().into_inner();
-        DomParserResult {
-            digest: normalize_content(&data.digest.join(" ")),
-            title: data.title.unwrap_or_default(),
-        }
-    }
-}
-
 fn build_url(page_url: &Path, options: &SearchOptions) -> String {
     let url = page_url
         .strip_prefix(&options.source)
@@ -256,25 +124,9 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
     )
 }
 
-fn normalize_content(content: &str) -> String {
-    let content = TRIM_NEWLINES.replace_all(content, "");
-    let content = NEWLINES.replace_all(&content, " ");
-    let content = EXTRANEOUS_SPACES.replace_all(&content, " ");
-
-    content.to_string()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn normalizing_content() {
-        let input = "\nHello  Wor\n ld? \n \n";
-        let output = normalize_content(input);
-
-        assert_eq!(&output, "Hello Wor ld?");
-    }
 
     #[test]
     fn building_url() {
@@ -292,44 +144,4 @@ mod tests {
         let p: PathBuf = "hello/world/about.html".into();
         assert_eq!(&build_url(&p, &opts), "/about.html");
     }
-
-    fn test_parse(input: Vec<&'static str>) -> DomParserResult {
-        let mut rewriter = DomParser::new();
-        let _ = rewriter.write(b"<body>");
-        for line in input {
-            let _ = rewriter.write(line.as_bytes());
-        }
-        let _ = rewriter.write(b"</body>");
-        rewriter.wrap()
-    }
-
-    #[test]
-    fn block_tag_formatting() {
-        let data = test_parse(vec![
-            "<p>Sentences should have periods</p>",
-            "<p>Unless one exists.</p>",
-            "<div>Or it ends with punctuation:</div>",
-            "<article>Except for 'quotes'</article>",
-        ]);
-
-        assert_eq!(
-            data.digest,
-            "Sentences should have periods. Unless one exists. Or it ends with punctuation: Except for 'quotes'."
-        )
-    }
-
-    #[test]
-    fn inline_tag_formatting() {
-        let data = test_parse(vec![
-            "<p>Inline tags like <span>span</span>",
-            " and <b>bol",
-            "d</b> shouldn't have periods</p>",
-        ]);
-
-        assert_eq!(
-            data.digest,
-            "Inline tags like span and bold shouldn't have periods."
-        )
-    }
-
 }
