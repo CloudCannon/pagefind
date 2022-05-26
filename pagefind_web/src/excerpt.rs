@@ -1,5 +1,5 @@
 // TODO: MVP — Implement something smarter
-pub fn calculate_excerpt(word_positions: &Vec<u32>, excerpt_length: u32) -> u32 {
+pub fn calculate_excerpt(word_positions: &[u32], excerpt_length: u32) -> u32 {
     let start_distance = excerpt_length / 3;
     if word_positions.is_empty() {
         return 0;

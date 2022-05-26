@@ -1,8 +1,7 @@
+use crate::util::*;
 use bit_set::BitSet;
 use rust_stemmers::{Algorithm, Stemmer}; // TODO: too big, Stemming should be performed on the JS side
 
-#[cfg(debug_assertions)]
-use crate::debug_log;
 use crate::SearchIndex;
 
 pub struct PageSearchResult {
@@ -12,15 +11,16 @@ pub struct PageSearchResult {
 }
 
 impl SearchIndex {
-    pub fn search_term(&self, term: &str) -> Vec<PageSearchResult> {
+    pub fn search_term(&self, term: &str, filter_results: Option<BitSet>) -> Vec<PageSearchResult> {
         let terms = term.split(' ');
         // TODO: i18n
         // TODO: Stemming should be performed on the JS side of the boundary
         //       As the snowball implementation there seems a lot smaller and just as fast.
         let en_stemmer = Stemmer::create(Algorithm::English);
 
-        #[cfg(debug_assertions)]
-        debug_log(&format! {"Searching {:?}", term});
+        debug!({
+            format! {"Searching {:?}", term}
+        });
 
         let mut maps = Vec::new();
         let mut words = Vec::new();
@@ -49,6 +49,10 @@ impl SearchIndex {
             results.intersect_with(&map);
         }
 
+        if let Some(filter) = filter_results {
+            results.intersect_with(&filter);
+        }
+
         let mut pages: Vec<PageSearchResult> = vec![];
 
         for page in results.iter() {
@@ -71,10 +75,9 @@ impl SearchIndex {
                 word_locations,
             };
 
-            #[cfg(debug_assertions)]
-            debug_log(
-                &format! {"Page {} has {} matching terms (in {} total words), giving the word frequency {:?}", search_result.page, search_result.word_locations.len(), page.word_count, search_result.word_frequency},
-            );
+            debug!({
+                format! {"Page {} has {} matching terms (in {} total words), giving the word frequency {:?}", search_result.page, search_result.word_locations.len(), page.word_count, search_result.word_frequency}
+            });
 
             pages.push(search_result);
         }

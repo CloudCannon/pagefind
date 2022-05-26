@@ -10,9 +10,9 @@ pub struct MetaIndex {
     #[n(1)]
     pub pages: Vec<MetaPage>,
     #[n(2)]
-    pub stops: Vec<String>,
-    #[n(3)]
     pub index_chunks: Vec<MetaChunk>,
+    #[n(3)]
+    pub filters: Vec<MetaFilter>,
 }
 
 /// Communicates the _pagefind/index/*.pf_index file we need to load
@@ -33,4 +33,12 @@ pub struct MetaPage {
     pub hash: String,
     #[n(1)]
     pub word_count: u32,
+}
+
+#[derive(Encode)]
+pub struct MetaFilter {
+    #[n(0)]
+    pub filter: String,
+    #[n(1)]
+    pub hash: String,
 }

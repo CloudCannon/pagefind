@@ -1,4 +1,3 @@
-@skip
 Feature: Filtering
     Background:
         Given I have a "public/index.html" file with the content:
@@ -44,16 +43,17 @@ Feature: Filtering
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
 
     Scenario: Filtering on tagged elements
         When I evaluate:
-            """js
+            """
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
                 let results = await pagefind.search("Cat", {
-                    filter: {
+                    filters: {
                         color: "Orange"
                     }
                 });
@@ -62,16 +62,17 @@ Feature: Filtering
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-results]" should contain "/theodore/"
 
     Scenario: Filtering on tagged values
         When I evaluate:
-            """js
+            """
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
                 let results = await pagefind.search("Cat", {
-                    filter: {
+                    filters: {
                         color: "Tabby"
                     }
                 });
@@ -80,16 +81,17 @@ Feature: Filtering
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/"
 
     Scenario: Filtering returns multiple results
         When I evaluate:
-            """js
+            """
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
                 let results = await pagefind.search("Cat", {
-                    filter: {
+                    filters: {
                         color: "White"
                     }
                 });
@@ -98,4 +100,64 @@ Feature: Filtering
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-results]" should contain "/cheeka/, /theodore/"
+
+    @skip
+    # Currently only an AND filtering is supported. Need to restructure to support boolean logic
+    Scenario: Filtering to multiple values
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let results = await pagefind.search("Cat", {
+                    filters: {
+                        color: ["Tabby", "Orange"]
+                    }
+                });
+                let data = await Promise.all(results.map(result => result.data()));
+
+                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/ali/, /theodore/"
+
+    @skip
+    Scenario: Non-existent filters return no results
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let results = await pagefind.search("Cat", {
+                    filters: {
+                        name: "Ali"
+                    }
+                });
+
+                document.querySelector('[data-results]').innerText = results.length;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "0"
+
+    @skip
+    Scenario: Non-existent values return no results
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let results = await pagefind.search("Cat", {
+                    filters: {
+                        color: "Green"
+                    }
+                });
+
+                document.querySelector('[data-results]').innerText = results.length;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "0"

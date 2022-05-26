@@ -34,6 +34,7 @@ Feature: Exclusions
                 document.querySelector('[data-search-two]').innerText = `${searchtwo.length} result(s)`;
             }
             """
+        Then There should be no logs
         Then The selector "[data-search-one]" should contain "Hello World, from Pagefind. Huzzah!"
         Then The selector "[data-search-two]" should contain "0 result(s)"
 
@@ -75,5 +76,6 @@ Feature: Exclusions
                 document.querySelector('[data-search-two]').innerText = `${searchtwo.length} result(s)`;
             }
             """
+        Then There should be no logs
         Then The selector "[data-search-one]" should contain "Hello World, from Pagefind. Hooray!"
         Then The selector "[data-search-two]" should contain "0 result(s)"

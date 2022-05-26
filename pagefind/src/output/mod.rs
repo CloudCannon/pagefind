@@ -67,6 +67,14 @@ impl PagefindIndexes {
             )
         }));
 
+        files.extend(self.filter_indexes.iter().map(|(hash, index)| {
+            write(
+                outdir.join(format!("filter/{}.pf_filter", hash)),
+                vec![index],
+                Compress::GZ,
+            )
+        }));
+
         join_all(files).await;
     }
 }

@@ -15,6 +15,13 @@ use minicbor::{decode, Decoder};
             String,         // hash of index chunk
         },
         ...
+    ],
+    [
+        {
+            String,         // value of filter chunk
+            String,         // hash of filter chunk
+        },
+        ...
     ]
 }
 */
@@ -41,14 +48,6 @@ impl SearchIndex {
             });
         }
 
-        debug!({ "Reading stop words array" });
-        let stop_words = consume_arr_len!(decoder);
-        debug!({ format!("Reading {:#?} stop words", stop_words) });
-        self.stops = Vec::with_capacity(stop_words as usize);
-        for _ in 0..stop_words {
-            self.stops.push(consume_string!(decoder));
-        }
-
         debug!({ "Reading index chunks array" });
         let index_chunks = consume_arr_len!(decoder);
         debug!({ format!("Reading {:#?} index chunks", index_chunks) });
@@ -60,6 +59,15 @@ impl SearchIndex {
                 to: consume_string!(decoder),
                 hash: consume_string!(decoder),
             })
+        }
+
+        debug!({ "Reading filter chunks array" });
+        let filter_chunks = consume_arr_len!(decoder);
+        debug!({ format!("Reading {:#?} filter chunks", filter_chunks) });
+        for _ in 0..filter_chunks {
+            consume_fixed_arr!(decoder);
+            self.filter_chunks
+                .insert(consume_string!(decoder), consume_string!(decoder));
         }
 
         debug!({ "Finished decoding metadata" });

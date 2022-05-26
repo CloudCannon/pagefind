@@ -38,6 +38,7 @@ Feature: Build Options
                 document.querySelector('[data-url]').innerText = data.url;
             }
             """
+        Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
     Scenario: Output path can be configured
@@ -69,6 +70,7 @@ Feature: Build Options
                 document.querySelector('[data-url]').innerText = data.url;
             }
             """
+        Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
     @skip

@@ -185,9 +185,18 @@ jobs:
           ls -lh ./vendor/
           cargo package --allow-dirty
 
+      - name: Test Web
+        working-directory: ./pagefind_web
+        run: cargo test
+
+      - name: Test Lib
+        working-directory: ./pagefind
+        run: cargo test --lib
+
       - name: Test CLI
         working-directory: ./pagefind
         run: TEST_BINARY=../target/release/pagefind cargo test --release --test cucumber -- -c 16 --tags "not @skip"
+
       - name: Build
         working-directory: ./pagefind
         run: RELEASE_VERSION=${GITHUB_REF#refs/tags/} cargo build --release --target ${{ matrix.target }}

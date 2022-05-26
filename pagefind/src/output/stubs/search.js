@@ -7,6 +7,7 @@ class Pagefind {
         this.searchMeta = null;
         this.raw_ptr = null;
         this.loaded_chunks = [];
+        this.loaded_filters = [];
         this.base_path = "/_pagefind/";
         this.init();
     }
@@ -49,6 +50,18 @@ class Pagefind {
         this.loaded_chunks.push(hash);
     }
 
+    async loadFilterChunk(hash) {
+        if (this.loaded_filters.includes(hash)) return;
+
+        let compressed_chunk = await fetch(`${this.base_path}filter/${hash}.pf_filter`);
+        compressed_chunk = await compressed_chunk.arrayBuffer();
+        let chunk = gunzip(new Uint8Array(compressed_chunk));
+
+        let ptr = await this.getPtr();
+        this.raw_ptr = this.backend.load_filter_chunk(ptr, chunk);
+        this.loaded_filters.push(hash);
+    }
+
     // TODO: Due for a rework (chunking)
     // TODO: Large test "fishing" has the wrong mark
     // TODO: Large test "hades" returns some strange results
@@ -78,18 +91,38 @@ class Pagefind {
         return this.raw_ptr;
     }
 
-    async search(term) {
+    async search(term, options) {
+        options = {
+            verbose: false,
+            filters: {},
+            ...options,
+        };
+        const log = str => { if (options.verbose) console.log(str) };
         let start = Date.now();
         let ptr = await this.getPtr();
         term = term.toLowerCase();
 
-        let chunks = this.backend.request_indexes(ptr, term);
-        await Promise.all(chunks.split(' ').map(chunk => this.loadChunk(chunk)));
+        let filter_list = [];
+        for (let [filter, values] of Object.entries(options.filters)) {
+            if (Array.isArray(values)) {
+                for (let value of values) {
+                    filter_list.push(`${filter}:${value}`);
+                }
+            } else {
+                filter_list.push(`${filter}:${values}`);
+            }
+        }
+
+        filter_list = filter_list.join("__PF_FILTER_DELIM__");
+
+        let chunks = this.backend.request_indexes(ptr, term).split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
+        let filter_chunks = this.backend.request_filter_indexes(ptr, filter_list).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
+        await Promise.all([...chunks, ...filter_chunks]);
 
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let results = this.backend.search(ptr, term);
+        let results = this.backend.search(ptr, term, filter_list);
         results = results.length ? results.split(" ") : [];
 
         let resultsInterface = results.map(result => {
@@ -104,11 +137,11 @@ class Pagefind {
             }
         });
 
-        // console.log(`Found ${results.length} result${results.length == 1 ? '' : 's'} for "${term}" in ${Date.now() - searchStart}ms (${Date.now() - start}ms realtime)`);
+        log(`Found ${results.length} result${results.length == 1 ? '' : 's'} for "${term}" in ${Date.now() - searchStart}ms (${Date.now() - start}ms realtime)`);
         return resultsInterface;
     }
 }
 
 const pagefind = new Pagefind();
 
-export const search = async (term) => await pagefind.search(term);
+export const search = async (term, options) => await pagefind.search(term, options);

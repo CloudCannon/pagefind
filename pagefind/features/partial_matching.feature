@@ -24,5 +24,6 @@ Feature: Partial Matching
                 document.querySelector('[data-url]').innerText = data.url;
             }
             """
+        Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 

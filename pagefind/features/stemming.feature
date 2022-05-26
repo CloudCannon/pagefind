@@ -30,6 +30,7 @@ Feature: Word Stemming
                 document.querySelector('[data-result]').innerText = data.url;
             }
             """
+        Then There should be no logs
         Then The selector "[data-result]" should contain "/cat/"
 
     Scenario: Search is case independent
@@ -55,5 +56,6 @@ Feature: Word Stemming
                 document.querySelector('[data-result]').innerText = data.url;
             }
             """
+        Then There should be no logs
         Then The selector "[data-result]" should contain "/cat/"
 

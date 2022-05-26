@@ -12,26 +12,28 @@ use crate::utils::full_hash;
 use crate::SearchOptions;
 use parser::DomParser;
 
+use self::parser::DomParserResult;
+
 mod parser;
 
+#[derive(Debug)]
 pub struct FossickedData {
     pub file_path: PathBuf,
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
 }
 
+#[derive(Debug)]
 pub struct Fossicker {
     file_path: PathBuf,
-    title: String,
-    digest: String,
+    data: Option<DomParserResult>,
 }
 
 impl Fossicker {
     pub fn new(file_path: PathBuf) -> Self {
         Self {
             file_path,
-            title: String::new(),
-            digest: String::new(),
+            data: None,
         }
     }
 
@@ -51,9 +53,7 @@ impl Fossicker {
             }
         }
 
-        let data = rewriter.wrap();
-        self.digest = data.digest;
-        self.title = data.title;
+        self.data = Some(rewriter.wrap());
 
         Ok(())
     }
@@ -71,7 +71,15 @@ impl Fossicker {
         // so that separate bodies of text don't return exact string
         // matches across the boundaries.
 
-        for (word_index, word) in self.digest.to_lowercase().split_whitespace().enumerate() {
+        for (word_index, word) in self
+            .data
+            .as_ref()
+            .unwrap()
+            .digest
+            .to_lowercase()
+            .split_whitespace()
+            .enumerate()
+        {
             let mut word = special_chars.replace_all(word, "").into_owned();
             word = en_stemmer.stem(&word).into_owned();
             // if words_to_remove.contains(&word) {
@@ -95,7 +103,9 @@ impl Fossicker {
         }
 
         let word_data = self.retrieve_words_from_digest();
-        let hash = full_hash(self.digest.as_bytes());
+
+        let data = self.data.as_ref().unwrap();
+        let hash = full_hash(data.digest.as_bytes());
 
         Ok(FossickedData {
             file_path: self.file_path.clone(),
@@ -104,8 +114,9 @@ impl Fossicker {
                 page_number: 0,
                 data: PageFragmentData {
                     url: build_url(&self.file_path, options),
-                    title: self.title.clone(),
-                    content: self.digest.clone(),
+                    title: data.title.clone(),
+                    content: data.digest.clone(),
+                    filters: data.filters.clone(),
                     attributes: HashMap::new(),
                     word_count: word_data.len(),
                 },

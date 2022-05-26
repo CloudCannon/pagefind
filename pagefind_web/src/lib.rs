@@ -5,12 +5,13 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 use std::collections::HashMap;
 
-use bit_set::BitSet;
 use excerpt::calculate_excerpt;
-use rust_stemmers::{Algorithm, Stemmer}; // TODO: too big
+use util::*;
 use wasm_bindgen::prelude::*;
 
 mod excerpt;
+mod filter;
+mod filter_index;
 mod index;
 mod metadata;
 mod search;
@@ -37,8 +38,9 @@ pub struct SearchIndex {
     generator_version: Option<String>,
     pages: Vec<Page>,
     chunks: Vec<IndexChunk>,
-    stops: Vec<String>,
+    filter_chunks: HashMap<String, String>,
     words: HashMap<String, Vec<PageWord>>,
+    filters: HashMap<String, HashMap<String, Vec<u32>>>,
 }
 
 #[cfg(debug_assertions)]
@@ -62,8 +64,9 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
         generator_version: None,
         pages: Vec::new(),
         chunks: Vec::new(),
-        stops: Vec::new(),
+        filter_chunks: HashMap::new(),
         words: HashMap::new(),
+        filters: HashMap::new(),
     };
 
     match search_index.decode_metadata(metadata_bytes) {
@@ -78,15 +81,27 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
 
 #[wasm_bindgen]
 pub fn load_index_chunk(ptr: *mut SearchIndex, chunk_bytes: &[u8]) -> *mut SearchIndex {
-    #[cfg(debug_assertions)]
-    debug_log("Loading Index Chunk");
+    debug!({ "Loading Index Chunk" });
     let mut search_index = unsafe { Box::from_raw(ptr) };
 
     match search_index.decode_index_chunk(chunk_bytes) {
         Ok(_) => Box::into_raw(search_index),
         Err(e) => {
-            #[cfg(debug_assertions)]
-            debug_log(&format!("{:#?}", e));
+            debug!({ format!("{:#?}", e) });
+            std::ptr::null_mut::<SearchIndex>()
+        }
+    }
+}
+
+#[wasm_bindgen]
+pub fn load_filter_chunk(ptr: *mut SearchIndex, chunk_bytes: &[u8]) -> *mut SearchIndex {
+    debug!({ "Loading Filter Chunk" });
+    let mut search_index = unsafe { Box::from_raw(ptr) };
+
+    match search_index.decode_filter_index_chunk(chunk_bytes) {
+        Ok(_) => Box::into_raw(search_index),
+        Err(e) => {
+            debug!({ format!("{:#?}", e) });
             std::ptr::null_mut::<SearchIndex>()
         }
     }
@@ -94,8 +109,9 @@ pub fn load_index_chunk(ptr: *mut SearchIndex, chunk_bytes: &[u8]) -> *mut Searc
 
 #[wasm_bindgen]
 pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
-    #[cfg(debug_assertions)]
-    debug_log(&format! {"Finding the index chunks needed for {:?}", query});
+    debug!({
+        format! {"Finding the index chunks needed for {:?}", query}
+    });
 
     let search_index = unsafe { Box::from_raw(ptr) };
     let mut indexes = Vec::new();
@@ -107,16 +123,56 @@ pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
             .iter()
             .find(|chunk| term >= &chunk.from && term <= &chunk.to);
         if let Some(index) = term_index {
+            debug!({
+                format! {"Need {:?} for {:?}", index.hash, term}
+            });
             indexes.push(index.hash.clone())
+        } else {
+            debug!({
+                format! {"No hash found for {:?}", term}
+            })
         }
     }
 
     let _ = Box::into_raw(search_index);
+    indexes.sort();
+    indexes.dedup();
     indexes.join(" ")
 }
 
 #[wasm_bindgen]
-pub fn search(ptr: *mut SearchIndex, query: &str) -> String {
+pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
+    debug!({
+        format! {"Finding the filter chunks needed for {:?}", filters}
+    });
+
+    let search_index = unsafe { Box::from_raw(ptr) };
+    let mut indexes = Vec::new();
+    let filters = filters.split("__PF_FILTER_DELIM__");
+
+    for filter in filters {
+        if let Some((filter, _)) = filter.split_once(":") {
+            if let Some(hash) = search_index.filter_chunks.get(filter) {
+                debug!({
+                    format! {"Need {:?} for {:?}", hash, filter}
+                });
+                indexes.push(hash.clone());
+            } else {
+                debug!({
+                    format! {"No hash found for {:?}", filter}
+                })
+            }
+        }
+    }
+
+    let _ = Box::into_raw(search_index);
+    indexes.sort();
+    indexes.dedup();
+    indexes.join(" ")
+}
+
+#[wasm_bindgen]
+pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
 
     if let Some(generator_version) = search_index.generator_version.as_ref() {
@@ -126,7 +182,8 @@ pub fn search(ptr: *mut SearchIndex, query: &str) -> String {
         }
     }
 
-    let results = search_index.search_term(query);
+    let filter_set = search_index.filter(filter);
+    let results = search_index.search_term(query, filter_set);
 
     let result_string = results
         .into_iter()

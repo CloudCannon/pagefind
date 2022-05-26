@@ -52,6 +52,7 @@ Feature: Result Scoring
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-count]" should contain "2 result(s)"
         Then The selector "[data-result]" should contain "/dog/, /cat/"
 
@@ -69,6 +70,7 @@ Feature: Result Scoring
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-count]" should contain "2 result(s)"
         Then The selector "[data-result]" should contain "/dog/, /cat/"
         When I evaluate:
@@ -83,5 +85,6 @@ Feature: Result Scoring
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-count]" should contain "2 result(s)"
         Then The selector "[data-result]" should contain "/cat/, /dog/"

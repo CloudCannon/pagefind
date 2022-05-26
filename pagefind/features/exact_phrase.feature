@@ -36,6 +36,7 @@ Feature: Exact Phrase Matching
                 document.querySelector('[data-result]').innerText = data.url;
             }
             """
+        Then There should be no logs
         Then The selector "[data-count]" should contain "1 result(s)"
         Then The selector "[data-result]" should contain "/cat/"
 
@@ -69,6 +70,7 @@ Feature: Exact Phrase Matching
                 document.querySelector('[data-result]').innerText = data.url;
             }
             """
+        Then There should be no logs
         Then The selector "[data-count]" should contain "1 result(s)"
         Then The selector "[data-result]" should contain "/cattwo/"
 
@@ -102,6 +104,7 @@ Feature: Exact Phrase Matching
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """
+        Then There should be no logs
         Then The selector "[data-count]" should contain "2 result(s)"
         Then The selector "[data-result]" should contain "/cat/, /dog/"
 
