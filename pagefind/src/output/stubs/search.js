@@ -6,8 +6,9 @@ class Pagefind {
         this.searchIndex = null;
         this.searchMeta = null;
         this.raw_ptr = null;
-        this.loaded_chunks = [];
-        this.loaded_filters = [];
+        this.loaded_chunks = {};
+        this.loaded_filters = {};
+        this.loaded_fragments = {};
         this.base_path = "/_pagefind/";
         this.init();
     }
@@ -24,50 +25,72 @@ class Pagefind {
     }
 
     async loadMeta() {
-        // We always load a fresh copy of the metadata,
-        // as it ensures we don't try to load an old build's chunks,
-        // and it's a small enough file to not be a worry.
-        let compressed_meta = await fetch(`${this.base_path}pagefind.pf_meta?ts=${Date.now()}`);
-        compressed_meta = await compressed_meta.arrayBuffer();
-        this.searchMeta = gunzip(new Uint8Array(compressed_meta));
+        try {
+            // We always load a fresh copy of the metadata,
+            // as it ensures we don't try to load an old build's chunks,
+            // and it's (hopefully) a small enough file to not be a worry.
+            // TODO:     ^^^^^^^^^
+            let compressed_meta = await fetch(`${this.base_path}pagefind.pf_meta?ts=${Date.now()}`);
+            compressed_meta = await compressed_meta.arrayBuffer();
+            this.searchMeta = gunzip(new Uint8Array(compressed_meta));
+        } catch (e) {
+            console.error(`Failed to load the meta index:\n${e.toString()}`);
+        }
     }
 
     async loadWasm() {
-        let compressed_wasm = await fetch(`${this.base_path}wasm.pagefind`);
-        compressed_wasm = await compressed_wasm.arrayBuffer();
-        this.wasm = await this.backend(gunzip(new Uint8Array(compressed_wasm)));
+        try {
+            let compressed_wasm = await fetch(`${this.base_path}wasm.pagefind`);
+            compressed_wasm = await compressed_wasm.arrayBuffer();
+            this.wasm = await this.backend(gunzip(new Uint8Array(compressed_wasm)));
+        } catch (e) {
+            console.error(`Failed to load the Pagefind WASM ${url}:\n${e.toString()}`);
+        }
+    }
+
+    async _loadGenericChunk(url, method) {
+        try {
+            let compressed_chunk = await fetch(url);
+            compressed_chunk = await compressed_chunk.arrayBuffer();
+            let chunk = gunzip(new Uint8Array(compressed_chunk));
+
+            let ptr = await this.getPtr();
+            this.raw_ptr = this.backend[method](ptr, chunk);
+        } catch (e) {
+            console.error(`Failed to load the index chunk ${url}:\n${e.toString()}`);
+        }
     }
 
     async loadChunk(hash) {
-        if (this.loaded_chunks.includes(hash)) return;
-
-        let compressed_chunk = await fetch(`${this.base_path}index/${hash}.pf_index`);
-        compressed_chunk = await compressed_chunk.arrayBuffer();
-        let chunk = gunzip(new Uint8Array(compressed_chunk));
-
-        let ptr = await this.getPtr();
-        this.raw_ptr = this.backend.load_index_chunk(ptr, chunk);
-        this.loaded_chunks.push(hash);
+        if (!this.loaded_chunks[hash]) {
+            const url = `${this.base_path}index/${hash}.pf_index`;
+            this.loaded_chunks[hash] = this._loadGenericChunk(url, "load_index_chunk");
+        }
+        return await this.loaded_chunks[hash];
     }
 
     async loadFilterChunk(hash) {
-        if (this.loaded_filters.includes(hash)) return;
-
-        let compressed_chunk = await fetch(`${this.base_path}filter/${hash}.pf_filter`);
-        compressed_chunk = await compressed_chunk.arrayBuffer();
-        let chunk = gunzip(new Uint8Array(compressed_chunk));
-
-        let ptr = await this.getPtr();
-        this.raw_ptr = this.backend.load_filter_chunk(ptr, chunk);
-        this.loaded_filters.push(hash);
+        if (!this.loaded_filters[hash]) {
+            const url = `${this.base_path}filter/${hash}.pf_filter`;
+            this.loaded_filters[hash] = this._loadGenericChunk(url, "load_filter_chunk");
+        }
+        return await this.loaded_filters[hash];
     }
 
-    // TODO: Due for a rework (chunking)
+    async _loadFragment(hash) {
+        let fragment = await fetch(`${this.base_path}fragment/${hash}.pf_fragment`);
+        return await fragment.json();
+    }
+
+    // TODO: Due for a rework (chunking + compression)
     // TODO: Large test "fishing" has the wrong mark
     // TODO: Large test "hades" returns some strange results
     async loadFragment(hash, excerpt = [0, 0], locations = []) {
-        let fragment = await fetch(`${this.base_path}fragment/${hash}.pf_fragment`);
-        fragment = await fragment.json();
+        if (!this.loaded_fragments[hash]) {
+            this.loaded_fragments[hash] = this._loadFragment(hash);
+        }
+        let fragment = await this.loaded_fragments[hash];
+
         let fragment_words = fragment.content.split(/[\r\n\s]+/g);
         for (let word of locations) {
             fragment_words[word] = `<mark>${fragment_words[word]}</mark>`;
