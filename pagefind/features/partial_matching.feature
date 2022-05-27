@@ -2,11 +2,9 @@
 Feature: Partial Matching
 
     Scenario: Search will return pages that match 2 out of 3 words
-        Given I have a "public/cat/index.html" file with the content:
+        Given I have a "public/cat/index.html" file with the body:
             """
-            <body>
-                <h1>hello world</h1>
-            </body>
+            <h1>hello world</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -18,9 +16,9 @@ Feature: Partial Matching
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("hello there world");
+                let search = await pagefind.search("hello there world");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-url]').innerText = data.url;
             }
             """

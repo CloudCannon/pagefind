@@ -6,7 +6,7 @@ Feature: Sanity Tests
     Then I should see "Running Pagefind" in stdout
 
   Scenario: Web tests are working
-    Given I have a "public/index.html" file with the content:
+    Given I have a "public/index.html" file with the body:
       """
       <h1>Hello!</h1>
       """

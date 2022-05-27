@@ -1,23 +1,19 @@
 Feature: Result Scoring
     Background:
-        Given I have a "public/index.html" file with the content:
+        Given I have a "public/index.html" file with the body:
             """
             <ul>
                 <li data-count>
                 <li data-result>
             </ul>
             """
-        Given I have a "public/cat/index.html" file with the content:
+        Given I have a "public/cat/index.html" file with the body:
             """
-            <body>
-                <h1>Happy cat post, that later mentions dogs in the context of cats</h1>
-            </body>
+            <h1>Happy cat post, that later mentions dogs in the context of cats</h1>
             """
-        Given I have a "public/dog/index.html" file with the content:
+        Given I have a "public/dog/index.html" file with the body:
             """
-            <body>
-                <h1>A post about dogs vs cats (but mainly dogs)</h1>
-            </body>
+            <h1>A post about dogs vs cats (but mainly dogs)</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -30,10 +26,10 @@ Feature: Result Scoring
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search(`cat`);
+                let search = await pagefind.search(`cat`);
 
-                document.querySelector('[data-count]').innerText = `${results.length} result(s)`;
-                let data = await Promise.all(results.map(result => result.data()));
+                document.querySelector('[data-count]').innerText = `${search.results.length} result(s)`;
+                let data = await Promise.all(search.results.map(result => result.data()));
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """
@@ -45,10 +41,10 @@ Feature: Result Scoring
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search(`dog`);
+                let search = await pagefind.search(`dog`);
 
-                document.querySelector('[data-count]').innerText = `${results.length} result(s)`;
-                let data = await Promise.all(results.map(result => result.data()));
+                document.querySelector('[data-count]').innerText = `${search.results.length} result(s)`;
+                let data = await Promise.all(search.results.map(result => result.data()));
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """
@@ -63,10 +59,10 @@ Feature: Result Scoring
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search(`cats dogs`);
+                let search = await pagefind.search(`cats dogs`);
 
-                document.querySelector('[data-count]').innerText = `${results.length} result(s)`;
-                let data = await Promise.all(results.map(result => result.data()));
+                document.querySelector('[data-count]').innerText = `${search.results.length} result(s)`;
+                let data = await Promise.all(search.results.map(result => result.data()));
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """
@@ -78,10 +74,10 @@ Feature: Result Scoring
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search(`cats posts`);
+                let search = await pagefind.search(`cats posts`);
 
-                document.querySelector('[data-count]').innerText = `${results.length} result(s)`;
-                let data = await Promise.all(results.map(result => result.data()));
+                document.querySelector('[data-count]').innerText = `${search.results.length} result(s)`;
+                let data = await Promise.all(search.results.map(result => result.data()));
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """

@@ -1,20 +1,24 @@
 Feature: Fragments
     Background:
-        Given I have a "public/index.html" file with the content:
+        Given I have a "public/index.html" file with the body:
             """
-            <p data-result>
-            </p>
+            <p data-result>Nothing</p>
             """
         Given I have a "public/cat/index.html" file with the content:
             """
+            <html>
+            <head>
+                <meta data-pagefind-meta="image[content]" content="/kitty.jpg" property="og:image">
+            </head>
             <body>
                 <h1 data-pagefind-filter="title">
                     Cat Post.
                 </h1>
                 <span data-pagefind-ignore data-pagefind-filter="animal">cats</span>
                 <p>A post about the 'felines'</p>
-                <p>This post has some <span>gnarly<span> things to test the fragment formatting.</p>
+                <p>This post has some <span data-pagefind-meta="adjective">gnarly</span> things to test the fragment formatting.</p>
             </body>
+            </html>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -28,9 +32,9 @@ Feature: Fragments
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("cat");
+                let search = await pagefind.search("cat");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-result]').innerText = data.title;
             }
             """
@@ -43,9 +47,9 @@ Feature: Fragments
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("feline");
+                let search = await pagefind.search("feline");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-result]').innerText = data.content;
             }
             """
@@ -58,9 +62,9 @@ Feature: Fragments
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("feline");
+                let search = await pagefind.search("feline");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-result]').innerText = data.excerpt;
             }
             """
@@ -74,15 +78,27 @@ Feature: Fragments
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("cat");
+                let search = await pagefind.search("cat");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-result]').innerText = Object.entries(data.filters).map(([f, v]) => `${f}: ${v}`).sort().join(', ');
             }
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "animal: cats, title: Cat Post."
 
-    @skip
     Scenario: Search results return tagged metadata
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("cat");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-result]').innerText = data.meta.image + " — " + data.meta.adjective;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "/kitty.jpg — gnarly"
 

@@ -117,7 +117,7 @@ impl Fossicker {
                     title: data.title.clone(),
                     content: data.digest.clone(),
                     filters: data.filters.clone(),
-                    attributes: HashMap::new(),
+                    meta: data.meta.clone(),
                     word_count: word_data.len(),
                 },
             },

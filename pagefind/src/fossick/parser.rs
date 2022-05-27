@@ -1,5 +1,6 @@
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
+use lol_html::html_content::Element;
 use lol_html::{element, text, HtmlRewriter, Settings};
 use regex::Regex;
 use std::cell::RefCell;
@@ -12,10 +13,15 @@ lazy_static! {
     static ref SENTENCE_CHARS: Regex = Regex::new("[\\w'\"\\)\\$\\*]").unwrap();
 }
 lazy_static! {
+    static ref ATTRIBUTE_MATCH: Regex =
+        Regex::new("^\\s*(?P<name>[^:\\[\\]]+)\\[(?P<attribute>.+)\\]\\s*$").unwrap();
+}
+lazy_static! {
     static ref SENTENCE_SELECTORS: Vec<&'static str> =
         vec!("p", "td", "div", "ul", "li", "article", "section");
-    static ref REMOVE_SELECTORS: Vec<&'static str> =
-        vec!("script", "noscript", "label", "form", "svg", "footer", "header", "nav", "iframe");
+    static ref REMOVE_SELECTORS: Vec<&'static str> = vec!(
+        "head", "script", "noscript", "label", "form", "svg", "footer", "header", "nav", "iframe"
+    );
 }
 
 // We aren't transforming HTML, just parsing, so we dump the output.
@@ -39,6 +45,7 @@ struct DomParserData {
     current_node: Rc<RefCell<DomParsingNode>>,
     title: Option<String>,
     filters: HashMap<String, Vec<String>>,
+    meta: HashMap<String, String>,
 }
 
 // A single HTML element that we're reading into.
@@ -50,6 +57,7 @@ struct DomParsingNode {
     current_value: String,
     parent: Option<Rc<RefCell<DomParsingNode>>>,
     filter: Option<String>,
+    meta: Option<String>,
     ignore: bool,
 }
 
@@ -59,6 +67,7 @@ pub struct DomParserResult {
     pub digest: String,
     pub title: String,
     pub filters: HashMap<String, Vec<String>>,
+    pub meta: HashMap<String, String>,
 }
 
 // Some shorthand to clean up our use of Rc<RefCell<*>> in the lol_html macros
@@ -79,14 +88,16 @@ impl<'a> DomParser<'a> {
         let rewriter = HtmlRewriter::new(
             Settings {
                 element_content_handlers: vec![
-                    enclose! { (data) element!("body *", move |el| {
+                    enclose! { (data) element!("html *", move |el| {
                         let should_ignore_el = el.has_attribute("data-pagefind-ignore") || REMOVE_SELECTORS.contains(&el.tag_name().as_str());
-                        let filter = el.get_attribute("data-pagefind-filter");
+                        let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
+                        let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
 
                         let node = Rc::new(RefCell::new(DomParsingNode{
                             parent: Some(Rc::clone(&data.borrow().current_node)),
                             ignore: should_ignore_el,
                             filter,
+                            meta,
                             ..DomParsingNode::default()
                         }));
 
@@ -105,9 +116,9 @@ impl<'a> DomParser<'a> {
                                 data.current_node = Rc::clone(parent);
                             }
 
-                            // Process filters before we continue
-                            // (Filters are valid on ignored elements)
-                            if let Some((filter, value)) = node.get_filter() {
+                            // Process filters & meta before we continue
+                            // (Filters & meta are valid on ignored elements)
+                            if let Some((filter, value)) = node.get_attribute_pair(&node.filter) {
                                 match data.filters.get_mut(&filter) {
                                     Some(filter_arr) => filter_arr.push(normalize_content(&value)),
                                     None => {
@@ -116,6 +127,9 @@ impl<'a> DomParser<'a> {
                                         ]);
                                     }
                                 }
+                            }
+                            if let Some((meta, value)) = node.get_attribute_pair(&node.meta) {
+                                data.meta.insert(meta, value);
                             }
 
                             // If we bail out now, the content won't be persisted anywhere
@@ -166,11 +180,27 @@ impl<'a> DomParser<'a> {
                             if let Some(parent) = &node.parent {
                                 data.current_node = Rc::clone(parent);
                             }
+
+                            // Process filters & meta before we continue
+                            // TODO: Abstract repitition into function
+                            if let Some((filter, value)) = node.get_attribute_pair(&node.filter) {
+                                match data.filters.get_mut(&filter) {
+                                    Some(filter_arr) => filter_arr.push(normalize_content(&value)),
+                                    None => {
+                                        data.filters.insert(filter, vec![
+                                            normalize_content(&value)
+                                        ]);
+                                    }
+                                }
+                            }
+                            if let Some((meta, value)) = node.get_attribute_pair(&node.meta) {
+                                data.meta.insert(meta, value);
+                            }
                         }
                         Ok(())
                     })},
                     // Slap any text we encounter inside the body into the current node's current value
-                    enclose! { (data) text!("body", move |el| {
+                    enclose! { (data) text!("html", move |el| {
                         let data = data.borrow_mut();
                         let mut node = data.current_node.borrow_mut();
                         node.current_value.push_str(el.as_str());
@@ -226,6 +256,7 @@ impl<'a> DomParser<'a> {
             digest: normalize_content(&node.current_value),
             title: data.title.unwrap_or_default(),
             filters: data.filters,
+            meta: data.meta,
         }
     }
 }
@@ -238,15 +269,28 @@ fn normalize_content(content: &str) -> String {
     content.to_string()
 }
 
+fn parse_attr_string(input: String, el: &Element) -> String {
+    if let Some(value) = ATTRIBUTE_MATCH.captures(&input) {
+        let name = value.name("name").unwrap().as_str().to_owned();
+        let attr = value.name("attribute").unwrap().as_str().to_owned();
+        format!("{}:{}", name, el.get_attribute(&attr).unwrap_or_default())
+    } else {
+        input
+    }
+}
+
 impl DomParsingNode {
-    fn get_filter(&self) -> Option<(String, String)> {
-        if self.current_value.is_empty() {
-            return None;
-        }
-        if let Some(filter) = &self.filter {
-            match filter.split_once(":") {
+    fn get_attribute_pair(&self, input: &Option<String>) -> Option<(String, String)> {
+        if let Some(value) = input.as_ref() {
+            match value.split_once(":") {
                 Some((filter, value)) => Some((filter.to_owned(), value.to_owned())),
-                None => Some((filter.to_owned(), self.current_value.to_owned())),
+                None => {
+                    if self.current_value.is_empty() {
+                        None
+                    } else {
+                        Some((value.to_owned(), self.current_value.to_owned()))
+                    }
+                }
             }
         } else {
             None
@@ -269,29 +313,39 @@ mod tests {
     #[test]
     fn get_filter_from_node() {
         let mut node = DomParsingNode::default();
-        assert_eq!(node.get_filter(), None);
+        assert_eq!(node.get_attribute_pair(&None), None);
 
-        node.filter = Some("color".into());
-        assert_eq!(node.get_filter(), None);
+        assert_eq!(node.get_attribute_pair(&Some("color".into())), None);
 
         node.current_value = "White".into();
-        assert_eq!(node.get_filter(), Some(("color".into(), "White".into())));
+        assert_eq!(
+            node.get_attribute_pair(&Some("color".into())),
+            Some(("color".into(), "White".into()))
+        );
 
-        node.filter = Some("color:auburn".into());
-        assert_eq!(node.get_filter(), Some(("color".into(), "auburn".into())));
+        assert_eq!(
+            node.get_attribute_pair(&Some("color:auburn".into())),
+            Some(("color".into(), "auburn".into()))
+        );
 
-        node.filter = Some("color:ye:llow".into());
-        assert_eq!(node.get_filter(), Some(("color".into(), "ye:llow".into())));
+        assert_eq!(
+            node.get_attribute_pair(&Some("color:ye:llow".into())),
+            Some(("color".into(), "ye:llow".into()))
+        );
     }
 
-    fn test_parse(input: Vec<&'static str>) -> DomParserResult {
+    fn test_raw_parse(input: Vec<&'static str>) -> DomParserResult {
         let mut rewriter = DomParser::new();
-        let _ = rewriter.write(b"<body>");
         for line in input {
             let _ = rewriter.write(line.as_bytes());
         }
-        let _ = rewriter.write(b"</body>");
         rewriter.wrap()
+    }
+
+    fn test_parse(mut input: Vec<&'static str>) -> DomParserResult {
+        input.insert(0, "<html><body>");
+        input.push("</body></html>");
+        test_raw_parse(input)
     }
 
     #[test]
@@ -335,6 +389,26 @@ mod tests {
             "*crickets*</div>",
         ]);
 
-        assert_eq!(data.digest, "Elements like: forms. As well as *crickets*.")
+        assert_eq!(data.digest, "Elements like: forms. As well as *crickets*.");
+    }
+
+    #[test]
+    fn return_metadata() {
+        let data = test_raw_parse(vec![
+            "<html><head>",
+            "<meta data-pagefind-meta='image[content]' content='/kitty.jpg' property='og:image'>",
+            "</head><body>",
+            "<div data-pagefind-meta='type:post'></div>",
+            "<h1 data-pagefind-meta='headline'>Hello World</h1>",
+            "<div>This post is <span data-pagefind-meta='adj'>hella</span> good.</div>",
+            "<img data-pagefind-meta='hero[src]' src='/huzzah.png'>",
+            "</body></html>",
+        ]);
+
+        assert_eq!(data.meta.get("image"), Some(&"/kitty.jpg".to_owned()));
+        assert_eq!(data.meta.get("type"), Some(&"post".to_owned()));
+        assert_eq!(data.meta.get("headline"), Some(&"Hello World".to_owned()));
+        assert_eq!(data.meta.get("adj"), Some(&"hella".to_owned()));
+        assert_eq!(data.meta.get("hero"), Some(&"/huzzah.png".to_owned()));
     }
 }

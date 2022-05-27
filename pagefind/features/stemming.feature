@@ -1,6 +1,6 @@
 Feature: Word Stemming
     Background:
-        Given I have a "public/index.html" file with the content:
+        Given I have a "public/index.html" file with the body:
             """
             <ul>
                 <li data-result>
@@ -8,11 +8,9 @@ Feature: Word Stemming
             """
 
     Scenario: Searching for a word will match against the stem of that word
-        Given I have a "public/cat/index.html" file with the content:
+        Given I have a "public/cat/index.html" file with the body:
             """
-            <body>
-                <h1>the cat is meowing</h1>
-            </body>
+            <h1>the cat is meowing</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -24,9 +22,9 @@ Feature: Word Stemming
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("meowed");
+                let search = await pagefind.search("meowed");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-result]').innerText = data.url;
             }
             """
@@ -34,11 +32,9 @@ Feature: Word Stemming
         Then The selector "[data-result]" should contain "/cat/"
 
     Scenario: Search is case independent
-        Given I have a "public/cat/index.html" file with the content:
+        Given I have a "public/cat/index.html" file with the body:
             """
-            <body>
-                <h1>the cat is Meowing</h1>
-            </body>
+            <h1>the cat is Meowing</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -50,9 +46,9 @@ Feature: Word Stemming
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("meOWings");
+                let search = await pagefind.search("meOWings");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-result]').innerText = data.url;
             }
             """

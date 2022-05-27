@@ -1,24 +1,20 @@
 @skip
 Feature: Exact Phrase Matching
     Background:
-        Given I have a "public/index.html" file with the content:
+        Given I have a "public/index.html" file with the body:
             """
-            <p data-count></p>
-            <p data-result></p>
+            <p data-count>Nothing</p>
+            <p data-result>Nothing</p>
             """
 
     Scenario: Searching in quotes will return pages with exact matches
-        Given I have a "public/cat/index.html" file with the content:
+        Given I have a "public/cat/index.html" file with the body:
             """
-            <body>
-                <h1>Happy post about cats</h1>
-            </body>
+            <h1>Happy post about cats</h1>
             """
-        Given I have a "public/dog/index.html" file with the content:
+        Given I have a "public/dog/index.html" file with the body:
             """
-            <body>
-                <h1>A post about how cats do not like dogs</h1>
-            </body>
+            <h1>A post about how cats do not like dogs</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -41,18 +37,14 @@ Feature: Exact Phrase Matching
         Then The selector "[data-result]" should contain "/cat/"
 
     Scenario: Exact matches will be discouraged across element boundaries
-        Given I have a "public/catone/index.html" file with the content:
+        Given I have a "public/catone/index.html" file with the body:
             """
-            <body>
-                <p>Happy post</p>
-                <p>about cats</p>
-            </body>
+            <p>Happy post</p>
+            <p>about cats</p>
             """
-        Given I have a "public/cattwo/index.html" file with the content:
+        Given I have a "public/cattwo/index.html" file with the body:
             """
-            <body>
-                <p>Happy post about cats</p>
-            </body>
+            <p>Happy post about cats</p>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -75,18 +67,14 @@ Feature: Exact Phrase Matching
         Then The selector "[data-result]" should contain "/cattwo/"
 
     Scenario: Exact matches will match across stop words
-        Given I have a "public/cat/index.html" file with the content:
+        Given I have a "public/cat/index.html" file with the body:
             """
-            <body>
-                <h1>Happy post about the cats</h1>
-            </body>
+            <h1>Happy post about the cats</h1>
             """
         # This file will _also_ match, due to our stop word culling
-        Given I have a "public/dog/index.html" file with the content:
+        Given I have a "public/dog/index.html" file with the body:
             """
-            <body>
-                <h1>A post not about happy cats</h1>
-            </body>
+            <h1>A post not about happy cats</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -97,10 +85,10 @@ Feature: Exact Phrase Matching
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search(`"about the cats"`);
+                let search = await pagefind.search(`"about the cats"`);
 
-                document.querySelector('[data-count]').innerText = `${results.length} result(s)`;
-                let data = await Promise.all(results.map(result => result.data()));
+                document.querySelector('[data-count]').innerText = `${search.results.length} result(s)`;
+                let data = await Promise.all(search.results.map(result => result.data()));
                 document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
             }
             """

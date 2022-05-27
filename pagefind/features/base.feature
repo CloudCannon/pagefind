@@ -1,17 +1,14 @@
 Feature: Base Tests
     Background:
-        Given I have a "public/index.html" file with the content:
+        Given I have a "public/index.html" file with the body:
             """
-            <p data-url>
-            </p>
+            <p data-url>Nothing</p>
             """
 
     Scenario: Search for a word
-        Given I have a "public/cat/index.html" file with the content:
+        Given I have a "public/cat/index.html" file with the body:
             """
-            <body>
-                <h1>world</h1>
-            </body>
+            <h1>world</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -23,9 +20,9 @@ Feature: Base Tests
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("world");
+                let search = await pagefind.search("world");
 
-                let data = await results[0].data();
+                let data = await search.results[0].data();
                 document.querySelector('[data-url]').innerText = data.url;
             }
             """

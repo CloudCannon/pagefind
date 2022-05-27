@@ -161,7 +161,11 @@ class Pagefind {
         });
 
         log(`Found ${results.length} result${results.length == 1 ? '' : 's'} for "${term}" in ${Date.now() - searchStart}ms (${Date.now() - start}ms realtime)`);
-        return resultsInterface;
+        return {
+            suggestion: "<!-- NYI -->",
+            matched: "<!-- NYI -->",
+            results: resultsInterface
+        };
     }
 }
 

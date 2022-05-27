@@ -1,30 +1,23 @@
 Feature: Filtering
     Background:
-        Given I have a "public/index.html" file with the content:
+        Given I have a "public/index.html" file with the body:
             """
-            <p data-results>
-            </p>
+            <p data-results>Nothing</p>
             """
-        Given I have a "public/cheeka/index.html" file with the content:
+        Given I have a "public/cheeka/index.html" file with the body:
             """
-            <body>
-                <span data-pagefind-filter="color">Black</span>
-                <span data-pagefind-filter="color">White</span>
-                <h1>Cat</h1>
-            </body>
+            <span data-pagefind-filter="color">Black</span>
+            <span data-pagefind-filter="color">White</span>
+            <h1>Cat</h1>
             """
-        Given I have a "public/theodore/index.html" file with the content:
+        Given I have a "public/theodore/index.html" file with the body:
             """
-            <body>
-                <span data-pagefind-filter="color">Orange</span>
-                <h1 data-pagefind-filter="color:White">Cat</h1>
-            </body>
+            <span data-pagefind-filter="color">Orange</span>
+            <h1 data-pagefind-filter="color:White">Cat</h1>
             """
-        Given I have a "public/ali/index.html" file with the content:
+        Given I have a "public/ali/index.html" file with the body:
             """
-            <body>
-                <h1 data-pagefind-filter="color:Tabby">Cat</h1>
-            </body>
+            <h1 data-pagefind-filter="color:Tabby">Cat</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -37,8 +30,8 @@ Feature: Filtering
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("Cat");
-                let data = await Promise.all(results.map(result => result.data()));
+                let search = await pagefind.search("Cat");
+                let data = await Promise.all(search.results.map(result => result.data()));
 
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
@@ -52,12 +45,12 @@ Feature: Filtering
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("Cat", {
+                let search = await pagefind.search("Cat", {
                     filters: {
                         color: "Orange"
                     }
                 });
-                let data = await Promise.all(results.map(result => result.data()));
+                let data = await Promise.all(search.results.map(result => result.data()));
 
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
@@ -71,12 +64,12 @@ Feature: Filtering
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("Cat", {
+                let search = await pagefind.search("Cat", {
                     filters: {
                         color: "Tabby"
                     }
                 });
-                let data = await Promise.all(results.map(result => result.data()));
+                let data = await Promise.all(search.results.map(result => result.data()));
 
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
@@ -90,12 +83,12 @@ Feature: Filtering
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("Cat", {
+                let search = await pagefind.search("Cat", {
                     filters: {
                         color: "White"
                     }
                 });
-                let data = await Promise.all(results.map(result => result.data()));
+                let data = await Promise.all(search.results.map(result => result.data()));
 
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
@@ -111,12 +104,12 @@ Feature: Filtering
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("Cat", {
+                let search = await pagefind.search("Cat", {
                     filters: {
                         color: ["Tabby", "Orange"]
                     }
                 });
-                let data = await Promise.all(results.map(result => result.data()));
+                let data = await Promise.all(search.results.map(result => result.data()));
 
                 document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
             }
@@ -131,13 +124,13 @@ Feature: Filtering
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("Cat", {
+                let search = await pagefind.search("Cat", {
                     filters: {
                         name: "Ali"
                     }
                 });
 
-                document.querySelector('[data-results]').innerText = results.length;
+                document.querySelector('[data-results]').innerText = search.results.length;
             }
             """
         Then There should be no logs
@@ -150,13 +143,13 @@ Feature: Filtering
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let results = await pagefind.search("Cat", {
+                let search = await pagefind.search("Cat", {
                     filters: {
                         color: "Green"
                     }
                 });
 
-                document.querySelector('[data-results]').innerText = results.length;
+                document.querySelector('[data-results]').innerText = search.results.length;
             }
             """
         Then There should be no logs

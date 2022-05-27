@@ -9,7 +9,7 @@ pub struct PageFragmentData {
     pub content: String,
     pub word_count: usize,
     pub filters: HashMap<String, Vec<String>>,
-    pub attributes: HashMap<String, String>,
+    pub meta: HashMap<String, String>,
 }
 
 #[derive(Debug)]
