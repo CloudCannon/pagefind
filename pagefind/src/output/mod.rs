@@ -55,7 +55,7 @@ impl PagefindIndexes {
             write(
                 outdir.join(format!("fragment/{}.pf_fragment", hash)),
                 vec![fragment.as_bytes()],
-                Compress::None,
+                Compress::GZ,
             )
         }));
 

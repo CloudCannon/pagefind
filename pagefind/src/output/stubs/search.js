@@ -78,8 +78,10 @@ class Pagefind {
     }
 
     async _loadFragment(hash) {
-        let fragment = await fetch(`${this.base_path}fragment/${hash}.pf_fragment`);
-        return await fragment.json();
+        let compressed_fragment = await fetch(`${this.base_path}fragment/${hash}.pf_fragment`);
+        compressed_fragment = await compressed_fragment.arrayBuffer();
+        let fragment = gunzip(new Uint8Array(compressed_fragment));
+        return JSON.parse(new TextDecoder().decode(fragment));
     }
 
     // TODO: Due for a rework (chunking + compression)
