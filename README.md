@@ -100,7 +100,7 @@ This will return the following object:
 }
 ```
 
-To load the data for a result, await the data attribute:
+To load the data for a result, await the data function:
 
 ```js
 const result = await search.results[0].data();
@@ -112,7 +112,7 @@ Which will yield:
 {
   "url": "/url-of-the-page/",
   "title": "The title from the first h1 element on the page",
-  "excerpt": "A small snippet of the <mark>content</mark>, with the <mark>search</mark> term(s) highlighted in mark elements."
+  "excerpt": "A small snippet of the <mark>content</mark>, with the <mark>search</mark> term(s) highlighted in mark elements.",
   "filters": {
       "author": "CloudCannon"
   },
