@@ -15,7 +15,7 @@ This will currently index all content within your `body`. Pagefind currently has
 
 #### Ignoring Elements
 
-Adding `data-pagefind-ignore` to an element will exclude it from the search index. Some elements are excluded automatically, such as `form` and `svg` elements.
+Adding `data-pagefind-ignore` to an element will exclude it from the search index. Some elements are excluded automatically, such as `<form>` and `<svg>` elements.
 ```html
 <body>
     <h1>Hello World</h1>
@@ -26,11 +26,11 @@ Adding `data-pagefind-ignore` to an element will exclude it from the search inde
 </body>
 ```
 
+Note: Filters and metadata inside an ignored element will **not** be ignored, so you can tag a filter inside the `<head>`, for example.
+
 #### Filters
 
-Filters can be supplied alongside search terms to narrow the results.
-
-Filters can be set with `data-pagefind-filter`. By default, this will capture the contents of that element.
+Filters can be supplied alongside search terms to narrow the results. These can be set with `data-pagefind-filter`. By default, this will capture the contents of that element.
 
 ```html
 <body>
@@ -59,9 +59,7 @@ Or based on an attribute:
 
 #### Metadata
 
-Metadata can be returned alongside the page content after a search.
-
-Any metadata can be tagged with `data-pagefind-meta` using the same syntax as `data-pagefind-filter`:
+Metadata can be returned alongside the page content after a search. This can be tagged with `data-pagefind-meta` using the same syntax as `data-pagefind-filter`:
 
 ```html
 <body data-pagefind-meta="date:2022-06-01">
@@ -69,6 +67,10 @@ Any metadata can be tagged with `data-pagefind-meta` using the same syntax as `d
     <img data-pagefind-meta="image[src]" src="/weka.png">
 </body>
 ```
+
+#### Local Development
+
+Since Pagefind runs on a built site, you will need to build your site locally → run Pagefind → host that directory. Some more work is needed to improve this dev experience, but that hasn't been scoped yet.
 
 ### Usage
 
