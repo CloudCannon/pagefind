@@ -63,6 +63,10 @@ jobs:
           ls -lh ../pagefind/vendor/
           pwd
 
+      - name: Build UI
+        working-directory: ./pagefind_ui
+        run: npm i && npm run build
+
       - name: Build
         run: cargo build --release --verbose
       - name: Publish
