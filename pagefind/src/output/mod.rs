@@ -22,10 +22,15 @@ const WEB_JS: &str = include_str!(concat!(
     env!("CARGO_PKG_VERSION"),
     ".js"
 ));
-const WEB_UI: &[u8] = include_bytes!(concat!(
+const WEB_UI_JS: &[u8] = include_bytes!(concat!(
     "../../vendor/pagefind_ui.",
     env!("CARGO_PKG_VERSION"),
     ".js"
+));
+const WEB_UI_CSS: &[u8] = include_bytes!(concat!(
+    "../../vendor/pagefind_ui.",
+    env!("CARGO_PKG_VERSION"),
+    ".css"
 ));
 const GUNZIP_JS: &str = include_str!("./stubs/gz.js");
 const SEARCH_JS: &str = include_str!("./stubs/search.js");
@@ -48,7 +53,16 @@ impl PagefindIndexes {
                 vec![js.as_bytes()],
                 Compress::None,
             ),
-            write(outdir.join("pagefind-ui.js"), vec![WEB_UI], Compress::None),
+            write(
+                outdir.join("pagefind-ui.js"),
+                vec![WEB_UI_JS],
+                Compress::None,
+            ),
+            write(
+                outdir.join("pagefind-ui.css"),
+                vec![WEB_UI_CSS],
+                Compress::None,
+            ),
             write(outdir.join("wasm.pagefind"), vec![WEB_WASM], Compress::GZ),
             write(
                 outdir.join("pagefind.pf_meta"),

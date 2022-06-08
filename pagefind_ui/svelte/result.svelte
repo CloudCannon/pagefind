@@ -37,6 +37,7 @@
     .result {
         list-style-type: none;
         display: flex;
+        align-items: flex-start;
         gap: 10px;
         padding: 10px 0;
     }
