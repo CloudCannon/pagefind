@@ -78,13 +78,12 @@ where
         let mut short_hash = &page.fragment.hash[0..=6];
         // If we hit a collision, extend both hashes until we stop colliding
         while let Some(collision) = fragments.remove(short_hash) {
-            let new_length = short_hash.len() + 1;
-
-            fragments.insert(collision.hash[0..=new_length].to_string(), collision);
-            short_hash = &page.fragment.hash[0..=new_length];
-
-            if short_hash.len() == page.fragment.hash.len() {
-                break;
+            if short_hash.len() >= page.fragment.hash.len() {
+                fragments.insert(format!("{}0", collision.hash), collision);
+            } else {
+                let new_length = short_hash.len() + 1;
+                fragments.insert(collision.hash[0..=new_length].to_string(), collision);
+                short_hash = &page.fragment.hash[0..=new_length];
             }
         }
         fragments.insert(short_hash.to_string(), page.fragment);
