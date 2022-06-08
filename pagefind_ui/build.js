@@ -29,7 +29,7 @@ const build = async () => {
         watch: false,
         outdir: path.join(__dirname, `../pagefind/vendor/`),
         entryPoints: [path.join(__dirname, 'ui.js')],
-        entryNames: `pagefind-[name].${version}`,
+        entryNames: `pagefind_[name].${version}`,
         plugins: [
             sveltePlugin({ compileOptions: { css: false } }),
             sveltefixPlugin
