@@ -193,7 +193,7 @@ jobs:
 
       - name: Test Web
         working-directory: ./pagefind_web
-        run: cargo test
+        run: cargo test --release
 
       - name: Test Lib
         working-directory: ./pagefind
