@@ -1,0 +1,17 @@
+{
+  "name": "pagefind_ui",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "build.js",
+  "scripts": {
+    "start": "PAGEFIND_DEV=true node ./build.js",
+    "build": "node ./build.js"
+  },
+  "author": "Cloudcannon",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.14.42",
+    "esbuild-svelte": "^0.7.1",
+    "svelte": "^3.48.0"
+  }
+}

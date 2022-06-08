@@ -64,6 +64,10 @@ jobs:
         working-directory: ./pagefind_web
         run: ./local_build.sh
 
+      - name: Build UI
+        working-directory: ./pagefind_ui
+        run: npm i && npm run build
+
       - name: Test Web
         working-directory: ./pagefind_web
         run: cargo test

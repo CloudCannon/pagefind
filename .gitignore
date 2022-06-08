@@ -20,3 +20,6 @@ Cargo.lock
 
 # Our vendoring directories
 vendor
+
+# Node
+node_modules
