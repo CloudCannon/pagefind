@@ -56,7 +56,7 @@ impl SearchIndex {
         let mut pages: Vec<PageSearchResult> = vec![];
 
         for page in results.iter() {
-            let word_locations: Vec<u32> = words
+            let mut word_locations: Vec<u32> = words
                 .iter()
                 .filter_map(|p| {
                     if p.page as usize == page {
@@ -67,6 +67,13 @@ impl SearchIndex {
                 })
                 .flatten()
                 .collect();
+            debug!({
+                format! {"Word locations {:?}", word_locations}
+            });
+            word_locations.sort_unstable();
+            debug!({
+                format! {"Word locations {:?}", word_locations}
+            });
 
             let page = &self.pages[page];
             let search_result = PageSearchResult {
@@ -82,6 +89,7 @@ impl SearchIndex {
             pages.push(search_result);
         }
 
+        debug!({ "Sorting by word frequency" });
         pages.sort_by(|a, b| b.word_frequency.partial_cmp(&a.word_frequency).unwrap());
 
         pages

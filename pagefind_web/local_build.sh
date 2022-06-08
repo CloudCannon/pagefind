@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-rm ../pagefind/vendor/*
+rm ../pagefind/vendor/pagefind_web*
 if [ $1 = "debug" ]; then
 wasm-pack build --debug -t no-modules
 else

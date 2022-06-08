@@ -1,5 +1,10 @@
+use crate::util::*;
+
 // TODO: MVP — Implement something smarter
 pub fn calculate_excerpt(word_positions: &[u32], excerpt_length: u32) -> u32 {
+    debug!({
+        format! {"Calculating a {} word excerpt for the word positions {:#?}", excerpt_length, word_positions}
+    });
     let start_distance = excerpt_length / 3;
     if word_positions.is_empty() {
         return 0;
