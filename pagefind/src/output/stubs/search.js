@@ -9,13 +9,27 @@ class Pagefind {
         this.loaded_chunks = {};
         this.loaded_filters = {};
         this.loaded_fragments = {};
-        this.base_path = "/_pagefind/";
+        this.basePath = "/_pagefind/";
+        this.baseUrl = "/";
         this.init();
+    }
+
+    options(options) {
+        const opts = ["basePath", "baseUrl"];
+        for (const [k, v] of Object.entries(options)) {
+            if (opts.includes(k)) {
+                this[k] = v;
+            } else {
+                console.warn(`Unknown Pagefind option ${k}. Allowed options: [${opts.join(', ')}]`);
+            }
+        }
     }
 
     async init() {
         try {
-            this.base_path = new URL(import.meta.url).pathname.match(/^(.*\/)pagefind.js.*$/)[1];
+            this.basePath = new URL(import.meta.url).pathname.match(/^(.*\/)pagefind.js.*$/)[1];
+            let default_base = this.basePath.match(/^(.*\/)_pagefind/)?.[1];
+            this.baseUrl = default_base || this.baseUrl;
         } catch (e) {
             console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
         }
@@ -30,7 +44,7 @@ class Pagefind {
             // as it ensures we don't try to load an old build's chunks,
             // and it's (hopefully) a small enough file to not be a worry.
             // TODO:     ^^^^^^^^^
-            let compressed_meta = await fetch(`${this.base_path}pagefind.pf_meta?ts=${Date.now()}`);
+            let compressed_meta = await fetch(`${this.basePath}pagefind.pf_meta?ts=${Date.now()}`);
             compressed_meta = await compressed_meta.arrayBuffer();
             this.searchMeta = gunzip(new Uint8Array(compressed_meta));
         } catch (e) {
@@ -40,7 +54,7 @@ class Pagefind {
 
     async loadWasm() {
         try {
-            let compressed_wasm = await fetch(`${this.base_path}wasm.pagefind`);
+            let compressed_wasm = await fetch(`${this.basePath}wasm.pagefind`);
             compressed_wasm = await compressed_wasm.arrayBuffer();
             this.wasm = await this.backend(gunzip(new Uint8Array(compressed_wasm)));
         } catch (e) {
@@ -63,7 +77,7 @@ class Pagefind {
 
     async loadChunk(hash) {
         if (!this.loaded_chunks[hash]) {
-            const url = `${this.base_path}index/${hash}.pf_index`;
+            const url = `${this.basePath}index/${hash}.pf_index`;
             this.loaded_chunks[hash] = this._loadGenericChunk(url, "load_index_chunk");
         }
         return await this.loaded_chunks[hash];
@@ -71,14 +85,14 @@ class Pagefind {
 
     async loadFilterChunk(hash) {
         if (!this.loaded_filters[hash]) {
-            const url = `${this.base_path}filter/${hash}.pf_filter`;
+            const url = `${this.basePath}filter/${hash}.pf_filter`;
             this.loaded_filters[hash] = this._loadGenericChunk(url, "load_filter_chunk");
         }
         return await this.loaded_filters[hash];
     }
 
     async _loadFragment(hash) {
-        let compressed_fragment = await fetch(`${this.base_path}fragment/${hash}.pf_fragment`);
+        let compressed_fragment = await fetch(`${this.basePath}fragment/${hash}.pf_fragment`);
         compressed_fragment = await compressed_fragment.arrayBuffer();
         let fragment = gunzip(new Uint8Array(compressed_fragment));
         return JSON.parse(new TextDecoder().decode(fragment));
@@ -98,7 +112,15 @@ class Pagefind {
             fragment_words[word] = `<mark>${fragment_words[word]}</mark>`;
         }
         fragment.excerpt = fragment_words.slice(excerpt[0], excerpt[0] + excerpt[1]).join(' ');
+        if (!fragment.raw_url) {
+            fragment.raw_url = fragment.url;
+            fragment.url = this.fullUrl(fragment.raw_url);
+        }
         return fragment;
+    }
+
+    fullUrl(raw) {
+        return `/${this.baseUrl}/${raw}`.replace(/\/+/g, "/");
     }
 
     async sleep(ms = 100) {
@@ -204,5 +226,6 @@ class Pagefind {
 
 const pagefind = new Pagefind();
 
+export const options = async (options) => await pagefind.options(options);
 export const search = async (term, options) => await pagefind.search(term, options);
 export const filters = async () => await pagefind.filters();
