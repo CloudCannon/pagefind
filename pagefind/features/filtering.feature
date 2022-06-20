@@ -18,7 +18,7 @@ Feature: Filtering
         Given I have a "public/ali/index.html" file with the body:
             """
             <span data-pagefind-filter="mood">Angry</span>
-            <h1 data-pagefind-filter="color:Tabby">Cat</h1>
+            <h1 data-pagefind-filter="color:Tabby">Ali Cat</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -59,6 +59,28 @@ Feature: Filtering
             """
         Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
+
+
+    Scenario: Filter counts are returned for a given search term
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                await pagefind.filters(); // Load filters
+                let search = await pagefind.search("Ali");
+                let strings = Object.entries(search.filters).map(([filter, values]) => {
+                    values = Object.entries(values).map(([value, count]) => {
+                        return `${value}(${count})`;
+                    })
+                    return `${filter}:[${values.join(", ")}]`;
+                });
+
+                document.querySelector('[data-results]').innerText = strings.join(' ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "color:[Black(0), Orange(0), Tabby(1), White(0)] mood:[Angry(1)]"
 
     Scenario: Filtering on tagged elements
         When I evaluate:

@@ -6,6 +6,7 @@ use crate::SearchIndex;
 
 pub struct PageSearchResult {
     pub page: String,
+    pub page_index: usize,
     pub word_frequency: f32, // TODO: tf-idf implementation? Paired with the dictionary-in-meta approach
     pub word_locations: Vec<u32>,
 }
@@ -55,11 +56,11 @@ impl SearchIndex {
 
         let mut pages: Vec<PageSearchResult> = vec![];
 
-        for page in results.iter() {
+        for page_index in results.iter() {
             let mut word_locations: Vec<u32> = words
                 .iter()
                 .filter_map(|p| {
-                    if p.page as usize == page {
+                    if p.page as usize == page_index {
                         Some(p.locs.clone())
                     } else {
                         None
@@ -75,9 +76,10 @@ impl SearchIndex {
                 format! {"Word locations {:?}", word_locations}
             });
 
-            let page = &self.pages[page];
+            let page = &self.pages[page_index];
             let search_result = PageSearchResult {
                 page: page.hash.clone(),
+                page_index,
                 word_frequency: word_locations.len() as f32 / page.word_count as f32,
                 word_locations,
             };

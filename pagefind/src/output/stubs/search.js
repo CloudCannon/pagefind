@@ -116,6 +116,20 @@ class Pagefind {
         return this.raw_ptr;
     }
 
+    parseFilters(str) {
+        let output = {};
+        for (const block of str.split("__PF_FILTER_DELIM__")) {
+            let [filter, values] = block.split(/:(.*)$/);
+            output[filter] = {};
+            for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
+                let [, value, count] = valueBlock.match(/^(.*):(\d+)$/);
+                output[filter][value] = count;
+            }
+        }
+
+        return output;
+    }
+
     async filters() {
         let ptr = await this.getPtr();
 
@@ -126,17 +140,7 @@ class Pagefind {
         ptr = await this.getPtr();
 
         let results = this.backend.filters(ptr);
-        let output = {};
-        for (const block of results.split("__PF_FILTER_DELIM__")) {
-            let [filter, values] = block.split(/:(.*)$/);
-            output[filter] = {};
-            for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
-                let [count, value] = valueBlock.split(/:(.*)$/);
-                output[filter][value] = count;
-            }
-        }
-
-        return output;
+        return this.parseFilters(results);
     }
 
     async search(term, options) {
@@ -170,7 +174,9 @@ class Pagefind {
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let results = this.backend.search(ptr, term, filter_list);
+        let result = this.backend.search(ptr, term, filter_list);
+        let [results, filters] = result.split(/:(.*)$/);
+        let filterObj = this.parseFilters(filters);
         results = results.length ? results.split(" ") : [];
 
         let resultsInterface = results.map(result => {
@@ -189,7 +195,8 @@ class Pagefind {
         return {
             suggestion: "<!-- NYI -->",
             matched: "<!-- NYI -->",
-            results: resultsInterface
+            results: resultsInterface,
+            filters: filterObj,
         };
     }
 }

@@ -194,22 +194,10 @@ pub fn filters(ptr: *mut SearchIndex) -> String {
 
     let search_index = unsafe { Box::from_raw(ptr) };
 
-    let mut results: Vec<String> = search_index
-        .filters
-        .iter()
-        .map(|(filter, values)| {
-            let mut values: Vec<String> = values
-                .iter()
-                .map(|(value, pages)| format!("{}:{}", pages.len(), value))
-                .collect();
-            values.sort();
-            format!("{}:{}", filter, values.join("__PF_VALUE_DELIM__"))
-        })
-        .collect();
+    let results = search_index.get_filters(None);
 
     let _ = Box::into_raw(search_index);
-    results.sort();
-    results.join("__PF_FILTER_DELIM__")
+    results
 }
 
 #[wasm_bindgen]
@@ -225,6 +213,9 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str) -> String {
 
     let filter_set = search_index.filter(filter);
     let results = search_index.search_term(query, filter_set);
+
+    let filter_string =
+        search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
 
     let result_string = results
         .into_iter()
@@ -250,7 +241,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str) -> String {
     #[cfg(debug_assertions)]
     debug_log(&format! {"{:?}", result_string});
 
-    result_string
+    format!("{}:{}", result_string, filter_string)
 }
 
 #[cfg(test)]
