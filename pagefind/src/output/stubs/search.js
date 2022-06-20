@@ -118,6 +118,7 @@ class Pagefind {
 
     parseFilters(str) {
         let output = {};
+        if (!str) return output;
         for (const block of str.split("__PF_FILTER_DELIM__")) {
             let [filter, values] = block.split(/:(.*)$/);
             output[filter] = {};
