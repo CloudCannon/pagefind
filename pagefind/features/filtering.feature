@@ -17,12 +17,33 @@ Feature: Filtering
             """
         Given I have a "public/ali/index.html" file with the body:
             """
+            <span data-pagefind-filter="mood">Angry</span>
             <h1 data-pagefind-filter="color:Tabby">Cat</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
         When I serve the "public" directory
         When I load "/"
+
+    Scenario: Filters can be retrieved
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let filters = await pagefind.filters();
+                let strings = Object.entries(filters).map(([filter, values]) => {
+                    values = Object.entries(values).map(([value, count]) => {
+                        return `${value}(${count})`;
+                    })
+                    return `${filter}:[${values.join(", ")}]`;
+                });
+
+                document.querySelector('[data-results]').innerText = strings.join(' ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "color:[Black(1), Orange(1), Tabby(1), White(2)] mood:[Angry(1)]"
 
     Scenario: All results are returned with no filters
         When I evaluate:

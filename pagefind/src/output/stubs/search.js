@@ -116,6 +116,29 @@ class Pagefind {
         return this.raw_ptr;
     }
 
+    async filters() {
+        let ptr = await this.getPtr();
+
+        let filter_chunks = this.backend.request_all_filter_indexes(ptr).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
+        await Promise.all([...filter_chunks]);
+
+        // pointer may have updated from the loadChunk calls
+        ptr = await this.getPtr();
+
+        let results = this.backend.filters(ptr);
+        let output = {};
+        for (const block of results.split("__PF_FILTER_DELIM__")) {
+            let [filter, values] = block.split(/:(.*)$/);
+            output[filter] = {};
+            for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
+                let [count, value] = valueBlock.split(/:(.*)$/);
+                output[filter][value] = count;
+            }
+        }
+
+        return output;
+    }
+
     async search(term, options) {
         options = {
             verbose: false,
@@ -174,3 +197,4 @@ class Pagefind {
 const pagefind = new Pagefind();
 
 export const search = async (term, options) => await pagefind.search(term, options);
+export const filters = async () => await pagefind.filters();

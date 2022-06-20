@@ -172,6 +172,47 @@ pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
 }
 
 #[wasm_bindgen]
+pub fn request_all_filter_indexes(ptr: *mut SearchIndex) -> String {
+    debug!({ "Finding all filter chunks" });
+
+    let search_index = unsafe { Box::from_raw(ptr) };
+    let mut indexes: Vec<String> = search_index
+        .filter_chunks
+        .iter()
+        .map(|(_, chunk)| chunk.into())
+        .collect();
+
+    let _ = Box::into_raw(search_index);
+    indexes.sort();
+    indexes.dedup();
+    indexes.join(" ")
+}
+
+#[wasm_bindgen]
+pub fn filters(ptr: *mut SearchIndex) -> String {
+    debug!({ "Returning all loaded filters" });
+
+    let search_index = unsafe { Box::from_raw(ptr) };
+
+    let mut results: Vec<String> = search_index
+        .filters
+        .iter()
+        .map(|(filter, values)| {
+            let mut values: Vec<String> = values
+                .iter()
+                .map(|(value, pages)| format!("{}:{}", pages.len(), value))
+                .collect();
+            values.sort();
+            format!("{}:{}", filter, values.join("__PF_VALUE_DELIM__"))
+        })
+        .collect();
+
+    let _ = Box::into_raw(search_index);
+    results.sort();
+    results.join("__PF_FILTER_DELIM__")
+}
+
+#[wasm_bindgen]
 pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
 
