@@ -114,7 +114,6 @@ impl Fossicker {
                 page_number: 0,
                 data: PageFragmentData {
                     url: build_url(&self.file_path, options),
-                    title: data.title.clone(),
                     content: data.digest.clone(),
                     filters: data.filters.clone(),
                     meta: data.meta.clone(),

@@ -3,18 +3,21 @@ Feature: Fragments
         Given I have a "public/index.html" file with the body:
             """
             <p data-result>Nothing</p>
+            <p data-result-two>Nothing</p>
             """
         Given I have a "public/cat/index.html" file with the content:
             """
             <html>
             <head>
-                <meta data-pagefind-meta="image[content]" content="/kitty.jpg" property="og:image">
+                <meta data-pagefind-meta="social-image[content]" content="/kitty.jpg" property="og:image">
             </head>
             <body>
+                <img src="/logo.png" />
                 <h1 data-pagefind-filter="title">
                     Cat Post.
                 </h1>
                 <span data-pagefind-ignore data-pagefind-filter="animal">cats</span>
+                <img src="/cat.png" />
                 <p>A post about the 'felines'</p>
                 <p>This post has some <span data-pagefind-meta="adjective">gnarly</span> things to test the fragment formatting.</p>
             </body>
@@ -35,11 +38,13 @@ Feature: Fragments
                 let search = await pagefind.search("cat");
 
                 let data = await search.results[0].data();
-                document.querySelector('[data-result]').innerText = data.title;
+                document.querySelector('[data-result]').innerText = data.meta.title;
+                document.querySelector('[data-result-two]').innerText = data.meta.image;
             }
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "Cat Post."
+        Then The selector "[data-result-two]" should contain "/cat.png"
 
     Scenario: Search results return nicely formatted content
         When I evaluate:
@@ -96,7 +101,7 @@ Feature: Fragments
                 let search = await pagefind.search("cat");
 
                 let data = await search.results[0].data();
-                document.querySelector('[data-result]').innerText = data.meta.image + " — " + data.meta.adjective;
+                document.querySelector('[data-result]').innerText = data.meta["social-image"] + " — " + data.meta.adjective;
             }
             """
         Then There should be no logs

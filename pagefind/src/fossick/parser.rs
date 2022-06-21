@@ -43,7 +43,6 @@ pub struct DomParser<'a> {
 #[derive(Default, Debug)]
 struct DomParserData {
     current_node: Rc<RefCell<DomParsingNode>>,
-    title: Option<String>,
     filters: HashMap<String, Vec<String>>,
     meta: HashMap<String, String>,
 }
@@ -65,7 +64,6 @@ struct DomParsingNode {
 #[derive(Debug)]
 pub struct DomParserResult {
     pub digest: String,
-    pub title: String,
     pub filters: HashMap<String, Vec<String>>,
     pub meta: HashMap<String, String>,
 }
@@ -92,6 +90,7 @@ impl<'a> DomParser<'a> {
                         let should_ignore_el = el.has_attribute("data-pagefind-ignore") || REMOVE_SELECTORS.contains(&el.tag_name().as_str());
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
+                        let tag_name = el.tag_name();
 
                         let node = Rc::new(RefCell::new(DomParsingNode{
                             parent: Some(Rc::clone(&data.borrow().current_node)),
@@ -106,7 +105,7 @@ impl<'a> DomParser<'a> {
                             data.current_node = Rc::clone(&node);
                         }
 
-                        let can_have_content = el.on_end_tag(enclose! { (data, node) move |end| {
+                        let can_have_content = el.on_end_tag(enclose! { (data, node, tag_name) move |end| {
                             let mut data = data.borrow_mut();
                             let mut node = node.borrow_mut();
 
@@ -130,6 +129,10 @@ impl<'a> DomParser<'a> {
                             }
                             if let Some((meta, value)) = node.get_attribute_pair(&node.meta) {
                                 data.meta.insert(meta, value);
+                            }
+                            // Try to capture the first title on the page (if unset)
+                            if tag_name == "h1" && !data.meta.contains_key("title") {
+                                data.meta.insert("title".into(), normalize_content(&node.current_value));
                             }
 
                             // If we bail out now, the content won't be persisted anywhere
@@ -196,6 +199,12 @@ impl<'a> DomParser<'a> {
                             if let Some((meta, value)) = node.get_attribute_pair(&node.meta) {
                                 data.meta.insert(meta, value);
                             }
+                            // Try to capture the first image _after_ a title (if unset)
+                            if tag_name == "img" && data.meta.contains_key("title") && !data.meta.contains_key("image") {
+                                if let Some(src) = el.get_attribute("src") {
+                                    data.meta.insert("image".into(), src);
+                                }
+                            }
                         }
                         Ok(())
                     })},
@@ -204,17 +213,6 @@ impl<'a> DomParser<'a> {
                         let data = data.borrow_mut();
                         let mut node = data.current_node.borrow_mut();
                         node.current_value.push_str(el.as_str());
-                        Ok(())
-                    })},
-                    // Track the first h1 on the page as the title to return in search
-                    // TODO: This doesn't handle a chunk boundary,
-                    //       we can instead handle this by marking the node as a title and handling it in end_node
-                    enclose! { (data) text!("h1", move |el| {
-                        let mut data = data.borrow_mut();
-                        let text = normalize_content(el.as_str());
-                        if data.title.is_none() && !text.is_empty() {
-                            data.title = Some(text);
-                        }
                         Ok(())
                     })},
                 ],
@@ -254,7 +252,6 @@ impl<'a> DomParser<'a> {
         let node = node.borrow();
         DomParserResult {
             digest: normalize_content(&node.current_value),
-            title: data.title.unwrap_or_default(),
             filters: data.filters,
             meta: data.meta,
         }
