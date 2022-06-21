@@ -81,7 +81,7 @@ where
             if short_hash.len() >= page.fragment.hash.len() {
                 fragments.insert(format!("{}0", collision.hash), collision);
             } else {
-                let new_length = short_hash.len() + 1;
+                let new_length = short_hash.len();
                 fragments.insert(collision.hash[0..=new_length].to_string(), collision);
                 short_hash = &page.fragment.hash[0..=new_length];
             }
