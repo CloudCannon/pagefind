@@ -16,12 +16,12 @@
 <li class="result">
     {#if data}
         {#if data.meta.image}
-            <img class="thumb" src={data.meta?.image} alt={data.title} />
+            <img class="thumb" src={data.meta?.image} alt={data.meta?.title} />
         {:else}
             <div class="thumb" />
         {/if}
         <div class="details">
-            <p class="title"><a href={data.url}>{data.title}</a></p>
+            <p class="title"><a href={data.url}>{data.meta?.title}</a></p>
             <p class="excerpt">{@html data.excerpt}</p>
         </div>
     {:else}
