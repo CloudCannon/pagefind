@@ -21,6 +21,7 @@ pub struct FossickedData {
     pub file_path: PathBuf,
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
+    pub has_custom_body: bool,
 }
 
 #[derive(Debug)]
@@ -109,6 +110,7 @@ impl Fossicker {
 
         Ok(FossickedData {
             file_path: self.file_path.clone(),
+            has_custom_body: data.has_custom_body,
             fragment: PageFragment {
                 hash,
                 page_number: 0,

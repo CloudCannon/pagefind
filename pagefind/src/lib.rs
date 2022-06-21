@@ -50,10 +50,24 @@ impl SearchState {
             .map(|f| f.fossick(&self.options))
             .collect();
         let all_pages = join_all(results).await;
-        let pages_with_data = all_pages
-            .into_iter()
-            .flatten()
-            .filter(|d| !d.word_data.is_empty());
+
+        let used_custom_body = all_pages.iter().flatten().any(|page| page.has_custom_body);
+        if used_custom_body {
+            println!(
+                "Found a data-pagefind-body element on the site.\n↳ Ignoring pages without this tag."
+            );
+        } else {
+            println!(
+                "Did not find a data-pagefind-body element on the site.\n↳ Indexing all <body> elements on the site."
+            );
+        }
+
+        let pages_with_data = all_pages.into_iter().flatten().filter(|d| {
+            if used_custom_body && !d.has_custom_body {
+                return false;
+            }
+            !d.word_data.is_empty()
+        });
 
         let indexes = build_indexes(pages_with_data, &self.options).await;
         indexes.write_files(&self.options).await;

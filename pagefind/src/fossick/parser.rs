@@ -47,6 +47,22 @@ struct DomParserData {
     meta: HashMap<String, String>,
 }
 
+#[derive(Debug, PartialEq)]
+enum NodeStatus {
+    Indexing,
+    Ignored,
+    Body,
+    // There was a body element below us,
+    // so our content should be ignored.
+    ParentOfBody,
+}
+
+impl Default for NodeStatus {
+    fn default() -> Self {
+        Self::Indexing
+    }
+}
+
 // A single HTML element that we're reading into.
 // Contains a reference to the parent element,
 // and since we collapse this tree upwards while we parse,
@@ -57,7 +73,7 @@ struct DomParsingNode {
     parent: Option<Rc<RefCell<DomParsingNode>>>,
     filter: Option<String>,
     meta: Option<String>,
-    ignore: bool,
+    status: NodeStatus,
 }
 
 /// The search-relevant data that was retrieved from the given input
@@ -66,6 +82,7 @@ pub struct DomParserResult {
     pub digest: String,
     pub filters: HashMap<String, Vec<String>>,
     pub meta: HashMap<String, String>,
+    pub has_custom_body: bool,
 }
 
 // Some shorthand to clean up our use of Rc<RefCell<*>> in the lol_html macros
@@ -88,13 +105,22 @@ impl<'a> DomParser<'a> {
                 element_content_handlers: vec![
                     enclose! { (data) element!("html *", move |el| {
                         let should_ignore_el = el.has_attribute("data-pagefind-ignore") || REMOVE_SELECTORS.contains(&el.tag_name().as_str());
+                        let treat_as_body = el.has_attribute("data-pagefind-body");
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
                         let tag_name = el.tag_name();
 
+                        let status = if treat_as_body {
+                            NodeStatus::Body
+                        } else if should_ignore_el {
+                            NodeStatus::Ignored
+                        } else {
+                            NodeStatus::Indexing
+                        };
+
                         let node = Rc::new(RefCell::new(DomParsingNode{
                             parent: Some(Rc::clone(&data.borrow().current_node)),
-                            ignore: should_ignore_el,
+                            status,
                             filter,
                             meta,
                             ..DomParsingNode::default()
@@ -137,7 +163,7 @@ impl<'a> DomParser<'a> {
 
                             // If we bail out now, the content won't be persisted anywhere
                             // and the node + children will be dropped.
-                            if node.ignore {
+                            if node.status == NodeStatus::Ignored {
                                 return Ok(());
                             }
 
@@ -169,7 +195,27 @@ impl<'a> DomParser<'a> {
                             // and the order of tree traversal will mean that it
                             // is inserted in the correct position in the parent's content.
                             let mut parent = data.current_node.borrow_mut();
-                            parent.current_value.push_str(&node.current_value);
+
+                            // If the parent is a parent of a body, we don't want to append
+                            // any more content to it. (Unless, of course, we are another body)
+                            if node.status != NodeStatus::Body && parent.status == NodeStatus::ParentOfBody {
+                                return Ok(());
+                            }
+                            match node.status {
+                                NodeStatus::Ignored => {},
+                                NodeStatus::Indexing => {
+                                    parent.current_value.push_str(&node.current_value);
+                                },
+                                NodeStatus::Body | NodeStatus::ParentOfBody => {
+                                    // If our parent is already a parent of a body, then
+                                    // we're probably a subsequent body. Avoid clearing it out.
+                                    if parent.status != NodeStatus::ParentOfBody {
+                                        parent.current_value.clear();
+                                    }
+                                    parent.current_value.push_str(&node.current_value);
+                                    parent.status = NodeStatus::ParentOfBody;
+                                }
+                            };
 
                             Ok(())
                         }});
@@ -240,8 +286,20 @@ impl<'a> DomParser<'a> {
         while node.borrow().parent.is_some() {
             {
                 let node = node.borrow();
-                let mut parent_node = node.parent.as_ref().unwrap().borrow_mut();
-                parent_node.current_value.push_str(&node.current_value);
+                let mut parent = node.parent.as_ref().unwrap().borrow_mut();
+                if parent.status != NodeStatus::ParentOfBody {
+                    match node.status {
+                        NodeStatus::Ignored => {}
+                        NodeStatus::Indexing => {
+                            parent.current_value.push_str(&node.current_value);
+                        }
+                        NodeStatus::Body | NodeStatus::ParentOfBody => {
+                            parent.current_value.clear();
+                            parent.current_value.push_str(&node.current_value);
+                            parent.status = NodeStatus::ParentOfBody;
+                        }
+                    };
+                }
             }
             let old_node = node.borrow();
             let new_node = Rc::clone(old_node.parent.as_ref().unwrap());
@@ -254,6 +312,7 @@ impl<'a> DomParser<'a> {
             digest: normalize_content(&node.current_value),
             filters: data.filters,
             meta: data.meta,
+            has_custom_body: node.status == NodeStatus::ParentOfBody,
         }
     }
 }
