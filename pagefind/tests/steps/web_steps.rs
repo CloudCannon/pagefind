@@ -1,8 +1,8 @@
 use crate::TestWorld;
 use actix_files as fs;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer};
 use cucumber::gherkin::Step;
-use cucumber::{given, then, when};
+use cucumber::{then, when};
 use tokio::time::{sleep, Duration};
 
 #[when(regex = "^I serve the (?:\"|')(.*)(?:\"|') directory$")]

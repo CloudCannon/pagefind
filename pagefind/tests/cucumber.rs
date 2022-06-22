@@ -1,5 +1,6 @@
 use cucumber::gherkin::Table;
 use portpicker::pick_unused_port;
+use std::collections::HashMap;
 use std::convert::Infallible;
 use std::io::{Read, Write};
 use std::process::Command;
@@ -27,6 +28,7 @@ struct TestWorld {
     last_command_output: Option<CommandOutput>,
     browser: Option<BrowserTester>,
     assigned_server_port: Option<u16>,
+    env_vars: HashMap<String, String>,
 }
 
 impl TestWorld {
@@ -118,16 +120,34 @@ impl TestWorld {
         self.tmp_file_path(filename).exists()
     }
 
+    fn set_env(&mut self, options: Option<&Table>) {
+        if let Some(options) = options {
+            for row in &options.rows {
+                self.env_vars.insert(
+                    row.get(0).cloned().unwrap_or_default(),
+                    row.get(1).cloned().unwrap_or_default(),
+                );
+            }
+        }
+    }
+
     fn run_command(&mut self, options: Option<&Table>) {
         let binary = std::env::var("TEST_BINARY").unwrap_or_else(|_| {
             panic!("No binary supplied — please provide a TEST_BINARY environment variable");
         });
 
         let cli = build_command(&binary, None, options);
-        let output = Command::new("sh")
+        let mut command = Command::new("sh");
+        command
             .arg("-c")
             .current_dir(self.tmp_dir())
-            .arg(&cli.replace(std::path::MAIN_SEPARATOR, "/"))
+            .arg(&cli.replace(std::path::MAIN_SEPARATOR, "/"));
+
+        for (key, val) in &self.env_vars {
+            command.env(key, val);
+        }
+
+        let output = command
             .output()
             .unwrap_or_else(|_| panic!("failed to run {}", binary));
         self.last_command_output = Some(CommandOutput {

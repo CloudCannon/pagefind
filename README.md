@@ -11,7 +11,17 @@ npx pagefind@latest -s public
 
 Where `public` matches your output dir — `_site` for Jekyll etc.
 
-This will currently index all content within your `body`. Pagefind currently has a few tags that can be used to customize this:
+By default, this will index all content within your `body`. Pagefind currently has a few tags that can be used to customize this:
+
+#### Limiting Indexing to Elements
+
+Adding `data-pagefind-body` to an element will cause Pagefind to exlusively index content within this element and its children, instead of indexing the entire `<body>`. In most cases, you will want to add this attribute to the main element in your content layout.
+
+If there are multiple regions you want to index, `data-pagefind-body` can be set on multiple elements on the same page.
+
+If a `data-pagefind-body` element is found anywhere on your site, any pages without this element will be excluded from search. This means if you tag a specific region on your `post` layout with `data-pagefind-body`, your homepage will no longer be indexed (unless it too has a `data-pagefind-body` element).
+
+Note: Filters and metadata outside a body element will still be processed.
 
 #### Ignoring Elements
 
@@ -26,7 +36,7 @@ Adding `data-pagefind-ignore` to an element will exclude it from the search inde
 </body>
 ```
 
-Note: Filters and metadata inside an ignored element will **not** be ignored, so you can tag a filter inside the `<head>`, for example.
+Note: Filters and metadata inside an ignored element will still be processed.
 
 #### Filters
 
@@ -70,7 +80,43 @@ Metadata can be returned alongside the page content after a search. This can be 
 
 #### Local Development
 
-Since Pagefind runs on a built site, you will need to build your site locally → run Pagefind → host that directory. Some more work is needed to improve this dev experience, but that hasn't been scoped yet.
+Since Pagefind runs on a built site, you will currently need to build your site locally → run Pagefind → host that directory. Improving this development experience is on the roadmap.
+
+### Configuration
+
+Pagefind can be configured through CLI flags, environment variables, or configuration files. Values will be merged from all sources, with CLI flags overriding environment variables, and environment variables overriding configuration files.
+
+#### Config files
+
+Pagefind will look for a `pagefind.toml`, `pagefind.yml`, or `pagefind.json` file in the directory that you have run the command in.
+
+```bash
+echo "source: public" > pagefind.yml
+npx pagefind
+```
+
+#### Environment Variables
+
+Pagefind will load any values via a `PAGEFIND_*` environment variable.
+
+```bash
+PAGEFIND_SOURCE=public npx pagefind
+```
+
+#### CLI Flags
+
+Pagefind can be passed CLI flags directly.
+
+```bash
+npx pagefind --source public
+```
+
+#### Configuration Options:
+
+| flag         | env                 | config     | default   | description                                                |
+|--------------|---------------------|------------|-----------|------------------------------------------------------------|
+| --source     | PAGEFIND_SOURCE     | source     |           | Required: The location of your built static site           |
+| --bundle-dir | PAGEFIND_BUNDLE_DIR | bundle_dir | _pagefind | The folder to output search files into, relative to source |
 
 ### Usage
 
@@ -95,6 +141,7 @@ This will return the following object:
         {
             id: "6fceec9",
             data: async function data(),
+            filters: {},
         }
     ]
 }
@@ -111,16 +158,67 @@ Which will yield:
 ```js
 {
   "url": "/url-of-the-page/",
-  "title": "The title from the first h1 element on the page",
   "excerpt": "A small snippet of the <mark>content</mark>, with the <mark>search</mark> term(s) highlighted in mark elements.",
   "filters": {
-      "author": "CloudCannon"
+    "author": "CloudCannon"
   },
   "meta": {
-      "image": "/weka.png"
+    "title": "The title from the first h1 element on the page",
+    "image": "/weka.png"
   },
   "content": "The full content of the page, formatted as text. Cursus Ipsum Risus Ullamcorper...",
   "word_count": 242,
+}
+```
+
+#### Filtering
+
+To load the available filters, you can run:
+
+```js
+const filters = await pagefind.filters();
+```
+
+This will return the following object, showing the number of search results available under the given `filter: value`.
+```js
+{
+    "filter": {
+        "value_one": 4,
+        "value_two": 12,
+    },
+    "color": {
+        "Orange": 6
+    }
+}
+```
+
+To filter results alongside searching, pass an options object to the search function:
+```js
+const search = await pagefind.search("hello", {
+    filters: {
+        color: "Orange"
+    }
+});
+```
+
+If the filters have been loaded with `await pagefind.filters()`, counts will also be returned with each search object, detailing the number of remaining items for each filter value:
+```js
+{ 
+    results: [
+        {
+            id: "6fceec9",
+            data: async function data(),
+            filters: {
+                "filter": {
+                    "value_one": 0,
+                    "value_two": 3,
+                },
+                "color": {
+                    "Orange": 1
+                }
+            },
+        }
+    ]
 }
 ```
 

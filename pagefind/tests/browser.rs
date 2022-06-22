@@ -1,8 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use chromiumoxide::cdp::browser_protocol::log::EventEntryAdded;
-use chromiumoxide::listeners::EventStream;
-use futures::{StreamExt, TryFutureExt};
+// use chromiumoxide::cdp::browser_protocol::log::EventEntryAdded;
+// use chromiumoxide::listeners::EventStream;
+use futures::StreamExt;
 
 use chromiumoxide::browser::{Browser, BrowserConfig};
 use chromiumoxide::page::Page;

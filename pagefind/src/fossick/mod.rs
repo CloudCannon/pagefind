@@ -140,14 +140,17 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::PagefindInboundConfig;
+    use twelf::Layer;
+
     use super::*;
 
     #[test]
     fn building_url() {
-        let opts = SearchOptions {
-            source: "hello/world".into(),
-            ..Default::default()
-        };
+        std::env::set_var("PAGEFIND_SOURCE", "hello/world");
+        let config =
+            PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
+        let opts = SearchOptions::load(config).unwrap();
 
         let p: PathBuf = "hello/world/index.html".into();
         assert_eq!(&build_url(&p, &opts), "/");

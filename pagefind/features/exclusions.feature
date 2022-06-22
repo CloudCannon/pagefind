@@ -1,5 +1,9 @@
 Feature: Exclusions
 
+    Background:
+        Given I have the environment variables:
+            | PAGEFIND_SOURCE | public |
+
     Scenario: Elements within search regions can be excluded from indexing and excerpts
         Given I have a "public/index.html" file with the body:
             """

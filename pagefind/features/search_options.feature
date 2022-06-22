@@ -1,5 +1,9 @@
 Feature: Search Options
 
+    Background:
+        Given I have the environment variables:
+            | PAGEFIND_SOURCE | public |
+
     Scenario: Base URL can be configured
         Given I have a "public/index.html" file with the body:
             """
@@ -41,7 +45,7 @@ Feature: Search Options
             <h1>world</h1>
             """
         When I run my program with the flags:
-            | --bundle_dir blog/_pagefind |
+            | --bundle-dir blog/_pagefind |
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/blog/_pagefind/pagefind.js"
         When I serve the "public" directory

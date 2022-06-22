@@ -1,13 +1,7 @@
 Feature: Build Options
-
-    @skip
-    Scenario: Settings can be pulled from configuration files
-
-    @skip
-    Scenario: Settings can be pulled from commandline flags
-
-    @skip
-    Scenario: Settings can be pulled from environment variables
+    Background:
+        Given I have the environment variables:
+            | PAGEFIND_SOURCE | public |
 
     Scenario: Source folder can be configured
         Given I have a "my_website/index.html" file with the body:
@@ -48,7 +42,7 @@ Feature: Build Options
             <h1>world</h1>
             """
         When I run my program with the flags:
-            | --bundle_dir _search |
+            | --bundle-dir _search |
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/_search/pagefind.js"
         When I serve the "public" directory

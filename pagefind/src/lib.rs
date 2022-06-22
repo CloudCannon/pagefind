@@ -1,6 +1,6 @@
 use fossick::Fossicker;
 use futures::future::join_all;
-pub use options::SearchOptions;
+pub use options::{PagefindInboundConfig, SearchOptions};
 use wax::{Glob, WalkEntry};
 
 use crate::index::build_indexes;

@@ -1,5 +1,7 @@
 Feature: Filtering
     Background:
+        Given I have the environment variables:
+            | PAGEFIND_SOURCE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-results>Nothing</p>

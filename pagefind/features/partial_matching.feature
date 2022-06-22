@@ -1,6 +1,10 @@
 @skip
 Feature: Partial Matching
 
+    Background:
+        Given I have the environment variables:
+            | PAGEFIND_SOURCE | public |
+
     Scenario: Search will return pages that match 2 out of 3 words
         Given I have a "public/cat/index.html" file with the body:
             """

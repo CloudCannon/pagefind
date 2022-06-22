@@ -10,7 +10,6 @@ use kuchiki::{Attributes, ElementData, NodeDataRef, NodeRef};
 use regex::Regex;
 use serde_json::Value;
 
-use crate::BrowserTester;
 use crate::TestWorld;
 
 // GIVENS
@@ -40,6 +39,16 @@ fn new_templated_file(world: &mut TestWorld, step: &Step, filename: String) {
     }
 }
 
+#[given(regex = "^I have the environment variables:$")]
+fn new_env_vars(world: &mut TestWorld, step: &Step) {
+    match &step.table {
+        Some(table) => {
+            world.set_env(Some(table));
+        }
+        None => panic!("`{}` step expected a table", step.value),
+    }
+}
+
 // BINARY WHENS
 
 #[when(regex = "^I run my program$")]
@@ -53,7 +62,7 @@ fn run_rosey_with_options(world: &mut TestWorld, step: &Step) {
         Some(table) => {
             world.run_command(Some(table));
         }
-        None => panic!("`{}` step expected a docstring", step.value),
+        None => panic!("`{}` step expected a table", step.value),
     }
 }
 
@@ -65,7 +74,14 @@ fn stdout_does_contain(world: &mut TestWorld, debug: StepDebug, expected: String
         Some(command) => {
             debug.log(&command.stdout);
             debug.log(&command.stderr);
-            assert!(command.stdout.contains(&expected));
+
+            if !command.stdout.contains(&expected) {
+                panic!(
+                "String does not exist in the STDOUT:\n-----\n{}\n-----\nSTDERR:\n-----\n{}\n-----\n",
+                    command.stdout,
+                    command.stderr
+                );
+            }
         }
         None => panic!("No stdout to check"),
     }
