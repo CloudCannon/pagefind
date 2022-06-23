@@ -105,7 +105,7 @@ impl Fossicker {
 
     pub async fn fossick(&mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
         while self.read_file().await.is_err() {
-            sleep(Duration::from_millis(100)).await;
+            sleep(Duration::from_millis(1)).await;
         }
 
         let word_data = self.retrieve_words_from_digest();
