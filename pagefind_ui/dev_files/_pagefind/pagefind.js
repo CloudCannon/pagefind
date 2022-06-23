@@ -14,10 +14,10 @@ const stubbed_results = [
                 color: ["Red"]
             },
             meta: {
+                title: `Post about TERM`,
                 image: "https://placekitten.com/800/400"
             },
             word_count: 12,
-            title: `Post about TERM`,
             excerpt: `some excerpt that references TERM with a nice highlighted element.`
         }
     },
@@ -34,10 +34,10 @@ const stubbed_results = [
                 color: ["Blue", "Gold"]
             },
             meta: {
+                title: `TERM and TERM-like things`,
                 image: "https://placekitten.com/1000/500"
             },
             word_count: 15,
-            title: `TERM and TERM-like things`,
             excerpt: `I like TERM and also TERM...`
         }
     },
@@ -55,11 +55,11 @@ const stubbed_results = [
                 smell: ["Sweet"]
             },
             meta: {
+                title: `TERM the llama`,
                 image: "https://placekitten.com/900/600",
                 name: "Steve"
             },
             word_count: 100,
-            title: `TERM the llama`,
             excerpt: `Nullam id dolor id nibh ultricies TERM vehicula ut id elit.`
         }
     }
@@ -77,7 +77,10 @@ class Pagefind {
         block = {
             ...block,
             excerpt: block.excerpt.replace(/TERM/g, `<mark>${term}</mark>`),
-            title: block.title.replace(/TERM/g, term)
+            meta: {
+                ...block.meta,
+                title: block.meta.title.replace(/TERM/g, term)
+            }
         }
 
         return block;

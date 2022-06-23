@@ -79,6 +79,7 @@
         width: 100%;
         -webkit-appearance: none;
         background-color: #efefef;
+        color: #444;
         margin-right: 6px;
         margin-bottom: 6px;
         padding: 10px;
