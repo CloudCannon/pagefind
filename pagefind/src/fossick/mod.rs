@@ -1,4 +1,5 @@
 use hashbrown::HashMap;
+use lazy_static::lazy_static;
 use regex::Regex;
 use rust_stemmers::{Algorithm, Stemmer};
 use std::io::Error;
@@ -13,6 +14,11 @@ use crate::SearchOptions;
 use parser::DomParser;
 
 use self::parser::DomParserResult;
+
+lazy_static! {
+    // TODO: i18n?
+    static ref SPECIAL_CHARS: Regex = Regex::new("[^\\w]").unwrap();
+}
 
 mod parser;
 
@@ -62,7 +68,6 @@ impl Fossicker {
     fn retrieve_words_from_digest(&mut self) -> HashMap<String, Vec<u32>> {
         let mut map: HashMap<String, Vec<u32>> = HashMap::new();
         let en_stemmer = Stemmer::create(Algorithm::English); // TODO: i18n
-        let special_chars = Regex::new("[^\\w]").unwrap(); // TODO: i18n?
 
         // TODO: Reconsider stopwords. Removing them for now as they seem to remove too much,
         // let mut words_to_remove = stop_words::get(stop_words::LANGUAGE::English);
@@ -81,7 +86,7 @@ impl Fossicker {
             .split_whitespace()
             .enumerate()
         {
-            let mut word = special_chars.replace_all(word, "").into_owned();
+            let mut word = SPECIAL_CHARS.replace_all(word, "").into_owned();
             word = en_stemmer.stem(&word).into_owned();
             // if words_to_remove.contains(&word) {
             //     continue; // Removing stopwords for now...

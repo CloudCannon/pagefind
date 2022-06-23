@@ -37,7 +37,11 @@ impl SearchState {
     }
 
     pub async fn run(&mut self) {
-        println!("Running Pagefind v{}", self.options.version);
+        if self.options.verbose {
+            println!("Running Pagefind v{} in verbose mode", self.options.version);
+        } else {
+            println!("Running Pagefind v{}", self.options.version);
+        }
         println!("Running from: {:?}", self.options.working_directory);
         println!("Source:       {:?}", self.options.source);
         println!("Bundle Directory:  {:?}", self.options.bundle_dir);
