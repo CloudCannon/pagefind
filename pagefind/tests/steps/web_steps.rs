@@ -7,17 +7,30 @@ use tokio::time::{sleep, Duration};
 
 #[when(regex = "^I serve the (?:\"|')(.*)(?:\"|') directory$")]
 async fn serve_dir(world: &mut TestWorld, dir: String) {
-    let port = world.ensure_port();
-    let dir = world.tmp_file_path(&dir);
-    let server = HttpServer::new(move || {
-        App::new().service(fs::Files::new("/", &dir).index_file("index.html"))
-    })
-    .bind(("127.0.0.1", port))
-    .expect("Port was taken")
-    .run();
-    let _handle = tokio::task::spawn(async { server.await });
-    println!("Serving at {}", port);
-    // Wait a beat to make sure the server is running
+    let mut attempts = 0;
+    let mut running = false;
+    while !running && attempts < 5 {
+        let port = world.ensure_port();
+        let dir = world.tmp_file_path(&dir);
+        match HttpServer::new(move || {
+            App::new().service(fs::Files::new("/", &dir).index_file("index.html"))
+        })
+        .bind(("127.0.0.1", port))
+        {
+            Ok(bound) => {
+                let server = bound.run();
+                let _handle = tokio::task::spawn(async { server.await });
+                println!("Serving at {}", port);
+                running = true;
+            }
+            Err(_) => {
+                attempts += 1;
+            }
+        }
+    }
+
+    assert!(running);
+    // Wait a beat to make sure the server is ready to roll
     sleep(Duration::from_millis(100)).await;
 }
 

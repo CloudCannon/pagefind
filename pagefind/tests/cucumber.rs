@@ -38,6 +38,9 @@ impl TestWorld {
         }
         self.assigned_server_port.expect("No port was available")
     }
+    fn purge_port(&mut self) {
+        self.assigned_server_port = None;
+    }
     async fn ensure_browser(&mut self) -> &mut BrowserTester {
         if self.browser.is_none() {
             self.browser = Some(BrowserTester::new().await);
