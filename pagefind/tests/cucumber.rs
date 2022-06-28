@@ -7,6 +7,7 @@ use std::process::Command;
 use std::str::from_utf8;
 use std::{fs, path::PathBuf};
 use tempfile::tempdir;
+use tokio::task::JoinHandle;
 use wax::Glob;
 
 use async_trait::async_trait;
@@ -28,7 +29,16 @@ struct TestWorld {
     last_command_output: Option<CommandOutput>,
     browser: Option<BrowserTester>,
     assigned_server_port: Option<u16>,
+    threads: Vec<JoinHandle<Result<(), std::io::Error>>>,
     env_vars: HashMap<String, String>,
+}
+
+impl Drop for TestWorld {
+    fn drop(&mut self) {
+        for thread in &self.threads {
+            thread.abort()
+        }
+    }
 }
 
 impl TestWorld {
@@ -150,9 +160,7 @@ impl TestWorld {
             command.env(key, val);
         }
 
-        let output = command
-            .output()
-            .unwrap_or_else(|_| panic!("failed to run {}", binary));
+        let output = command.output().expect("Failed to run binary");
         self.last_command_output = Some(CommandOutput {
             stdout: from_utf8(&output.stdout).unwrap_or("failed utf8").into(),
             stderr: from_utf8(&output.stderr).unwrap_or("failed utf8").into(),

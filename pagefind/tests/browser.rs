@@ -6,12 +6,22 @@ use futures::StreamExt;
 
 use chromiumoxide::browser::{Browser, BrowserConfig};
 use chromiumoxide::page::Page;
+use tokio::task::JoinHandle;
 
 #[derive(Debug)]
 pub struct BrowserTester {
     browser: Browser,
     page: Option<Page>,
     log_events: Arc<Mutex<Vec<String>>>,
+    threads: Vec<JoinHandle<Result<(), std::io::Error>>>,
+}
+
+impl Drop for BrowserTester {
+    fn drop(&mut self) {
+        for thread in &self.threads {
+            thread.abort()
+        }
+    }
 }
 
 impl BrowserTester {
@@ -20,15 +30,15 @@ impl BrowserTester {
             .await
             .unwrap();
 
-        let _handle = tokio::task::spawn(async move {
-            loop {
-                let _ = handler.next().await.unwrap();
-            }
-        });
         Self {
             browser,
             page: None,
             log_events: Arc::new(Mutex::new(Vec::new())),
+            threads: vec![tokio::task::spawn(async move {
+                loop {
+                    let _ = handler.next().await.unwrap();
+                }
+            })],
         }
     }
 
@@ -57,7 +67,7 @@ impl BrowserTester {
             .await?;
 
         let event_list = Arc::clone(&self.log_events);
-        let _handle = tokio::task::spawn(async move {
+        self.threads.push(tokio::task::spawn(async move {
             loop {
                 let event = events.next().await;
                 if let Some(event) = event {
@@ -65,7 +75,7 @@ impl BrowserTester {
                 }
                 panic!("This block was broken, but now seems to be working? Remove the console override hack 🙂 ");
             }
-        });
+        }));
         // END TODO
 
         Ok(())

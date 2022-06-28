@@ -19,11 +19,14 @@ async fn serve_dir(world: &mut TestWorld, dir: String) {
         {
             Ok(bound) => {
                 let server = bound.run();
-                let _handle = tokio::task::spawn(async { server.await });
+                world
+                    .threads
+                    .push(tokio::task::spawn(async { server.await }));
                 println!("Serving at {}", port);
                 running = true;
             }
             Err(_) => {
+                world.purge_port();
                 attempts += 1;
             }
         }
