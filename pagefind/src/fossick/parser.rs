@@ -17,8 +17,9 @@ lazy_static! {
         Regex::new("^\\s*(?P<name>[^:\\[\\]]+)\\[(?P<attribute>.+)\\]\\s*$").unwrap();
 }
 lazy_static! {
-    static ref SENTENCE_SELECTORS: Vec<&'static str> =
-        vec!("p", "td", "div", "ul", "li", "article", "section");
+    static ref SENTENCE_SELECTORS: Vec<&'static str> = vec!(
+        "h1", "h2", "h3", "h4", "h5", "h6", "p", "td", "div", "ul", "li", "article", "section"
+    );
     static ref REMOVE_SELECTORS: Vec<&'static str> = vec!(
         "head", "script", "noscript", "label", "form", "svg", "footer", "header", "nav", "iframe"
     );
@@ -108,6 +109,7 @@ impl<'a> DomParser<'a> {
                         let treat_as_body = el.has_attribute("data-pagefind-body");
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
+                        let index_attrs: Option<Vec<String>> = el.get_attribute("data-pagefind-index-attrs").map(|attr| attr.split(',').map(|a| a.trim().to_string()).collect());
                         let tag_name = el.tag_name();
 
                         let status = if treat_as_body {
@@ -125,6 +127,22 @@ impl<'a> DomParser<'a> {
                             meta,
                             ..DomParsingNode::default()
                         }));
+
+                        if let Some(attrs) = index_attrs {
+                            let parent = &data.borrow().current_node;
+                            for attr in attrs {
+                                let mut value = el.get_attribute(attr.trim()).unwrap_or_default();
+                                if value.chars()
+                                    .last()
+                                    .filter(|c| SENTENCE_CHARS.is_match(&c.to_string()))
+                                    .is_some() {
+                                        value.push('.');
+                                    }
+                                parent.borrow_mut().current_value.push(' ');
+                                parent.borrow_mut().current_value.push_str(&value);
+                                parent.borrow_mut().current_value.push(' ');
+                            }
+                        }
 
                         {
                             let mut data = data.borrow_mut();

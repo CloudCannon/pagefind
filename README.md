@@ -27,26 +27,33 @@ Note: Filters and metadata outside a body element will still be processed.
 
 Adding `data-pagefind-ignore` to an element will exclude it from the search index. Some elements are excluded automatically, such as `<form>` and `<svg>` elements.
 ```html
-<body>
-    <h1>Hello World</h1>
-    <p>Some content</p>
-    <footer data-pagefind-ignore>
-        <span>This footer content will not be indexed</footer>
-    </footer>
-</body>
+<h1>Hello World</h1>
+<p>Some content</p>
+<footer data-pagefind-ignore>
+    <span>This footer content will not be indexed</footer>
+</footer>
 ```
 
 Note: Filters and metadata inside an ignored element will still be processed.
+
+#### Indexing Attributes
+
+Attributes of HTML elements can be added to the main search index with the `data-pagefind-index-attrs` attribute.
+```html
+<img 
+    src="/hero.png"
+    title="Image Title"
+    alt="Image Alt"
+    data-pagefind-index-attrs="title,alt" />
+```
 
 #### Filters
 
 Filters can be supplied alongside search terms to narrow the results. These can be set with `data-pagefind-filter`. By default, this will capture the contents of that element.
 
 ```html
-<body>
-    <h1>Hello World</h1>
-    <p>Author: <span data-pagefind-filter="author">CloudCannon</span></p>
-</body>
+<h1>Hello World</h1>
+<p>Author: <span data-pagefind-filter="author">CloudCannon</span></p>
 ```
 
 Filters can also be set inline:
