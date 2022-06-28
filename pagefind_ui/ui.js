@@ -1,6 +1,6 @@
-import Pagefind from './svelte/ui.svelte';
+import PagefindSvelte from './svelte/ui.svelte';
 
-class PagefindUi {
+class PagefindUI {
     constructor(opts) {
         let selector = opts.element ?? "[data-pagefind-ui]";
         let bundlePath = opts.bundlePath;
@@ -11,7 +11,7 @@ class PagefindUi {
             } catch (e) {
                 bundlePath = "/_pagefind/";
                 console.warn(`Pagefind couldn't determine the base of the bundle from the javascript import path. Falling back to the default of ${bundlePath}.`);
-                console.warn("You can configure this by passing a bundlePath option to PagefindUi");
+                console.warn("You can configure this by passing a bundlePath option to PagefindUI");
             }
         }
 
@@ -21,7 +21,7 @@ class PagefindUi {
 
         const dom = document.querySelector(selector);
         if (dom) {
-            new Pagefind({
+            new PagefindSvelte({
                 target: dom,
                 props: {
                     base_path: bundlePath,
@@ -34,4 +34,4 @@ class PagefindUi {
     }
 }
 
-window.PagefindUi = PagefindUi;
+window.PagefindUI = PagefindUI;
