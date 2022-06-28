@@ -83,6 +83,35 @@ impl BrowserTester {
         Ok(())
     }
 
+    pub async fn selector_exists(
+        &mut self,
+        selector: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let _ = self
+            .page
+            .as_mut()
+            .expect("No page launched")
+            .evaluate_function(format!(
+                "
+            async function() {{
+                const time = Date.now();
+                const timeout = 2000;
+                const selector = \"{}\";
+                while (!document.querySelector(selector) && (Date.now() - time) < timeout) {{
+                    await new Promise(r => setTimeout(r, 50));
+                }}
+                
+                if (!document.querySelector(selector)) {{
+                    throw new Error(`${{selector}} did not appear within ${{timeout}}ms`);
+                }}
+            }}",
+                selector
+            ))
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn contents(&mut self, selector: &str) -> Result<String, Box<dyn std::error::Error>> {
         let el = self
             .page

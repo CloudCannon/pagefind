@@ -2,6 +2,7 @@
     import Result from "./result.svelte";
 
     export let base_path = "/_pagefind/";
+    export let pagefind_options = {};
 
     let val = "";
     let pagefind;
@@ -21,6 +22,7 @@
         initializing = true;
         if (!pagefind) {
             pagefind = await import(`${base_path}pagefind.js`);
+            pagefind.options(pagefind_options || {});
         }
     };
 

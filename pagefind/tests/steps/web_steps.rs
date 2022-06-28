@@ -48,6 +48,12 @@ async fn eval_js(world: &mut TestWorld, step: &Step) {
     }
 }
 
+#[then(regex = "^The selector (?:\"|')(.*)(?:\"|') should exist$")]
+async fn selector_exists(world: &mut TestWorld, selector: String) {
+    let browser = world.ensure_browser().await;
+    browser.selector_exists(&selector).await;
+}
+
 #[then(regex = "^The selector (?:\"|')(.*)(?:\"|') should contain (?:\"|')(.*)(?:\"|')$")]
 async fn selector_contains(world: &mut TestWorld, selector: String, contents: String) {
     let browser = world.ensure_browser().await;
