@@ -10,10 +10,14 @@ Feature: Spellcheck
             </ul>
             """
 
-    Scenario: Search results will be returned for the closest extention of the word
-        Given I have a "public/basic/index.html" file with the body:
+    Scenario: Search results will be returned for all extensions of the word
+        Given I have a "public/one/index.html" file with the body:
             """
             <h1>Hello World</h1>
+            """
+        Given I have a "public/two/index.html" file with the body:
+            """
+            <h1>Hello Wow</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -27,12 +31,13 @@ Feature: Spellcheck
 
                 let search = await pagefind.search("w");
 
-                let data = await search.results[0].data();
-                document.querySelector('[data-result]').innerText = data.url;
+                let results = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerText = results.map(r => r.url).join(', ');
             }
             """
         Then There should be no logs
-        Then The selector "[data-result]" should contain "/basic/"
+        # It should have prioritised the shorter word extension in the results
+        Then The selector "[data-result]" should contain "/two/, /one/"
 
     @skip
     Scenario: Spelling correction can be returned for the unique words in the dataset
