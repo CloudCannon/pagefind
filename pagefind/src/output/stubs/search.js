@@ -175,7 +175,8 @@ class Pagefind {
         const log = str => { if (options.verbose) console.log(str) };
         let start = Date.now();
         let ptr = await this.getPtr();
-        term = term.toLowerCase();
+        // Strip special characters to match the indexing operation
+        term = term.toLowerCase().replace(/[^\w]/g, "");
 
         let filter_list = [];
         for (let [filter, values] of Object.entries(options.filters)) {
