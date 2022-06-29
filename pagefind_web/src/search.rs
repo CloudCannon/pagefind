@@ -38,7 +38,7 @@ impl SearchIndex {
                 for page in word_index {
                     set.insert(page.page as usize);
                 }
-                unique_maps.push((word.len() - term.len(), set.clone()));
+                unique_maps.push((word.len() - term.len() + 1, set.clone()));
                 word_maps.push(set);
             }
             let mut word_maps = word_maps.drain(..);
