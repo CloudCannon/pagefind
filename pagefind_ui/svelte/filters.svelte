@@ -53,6 +53,7 @@
         clip: rect(0 0 0 0);
     }
     details {
+        padding: 0;
         display: block;
         max-height: 300px;
         border-top: 1px solid #cfcfcf;

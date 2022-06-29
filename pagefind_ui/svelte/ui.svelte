@@ -1,6 +1,7 @@
 <script>
     import Result from "./result.svelte";
     import Filters from "./filters.svelte";
+    import Reset from "./reset.svelte";
 
     export let base_path = "/_pagefind/";
     export let pagefind_options = {};
@@ -74,12 +75,21 @@
             }
             searchResult = results;
             loading = false;
+            show = 5;
         }
+    };
+
+    const showMore = () => {
+        show += 5;
     };
 </script>
 
-<div class="pagefind-ui">
-    <form role="search" aria-label="Search this site">
+<div class="pagefind-ui pagefind-reset">
+    <form
+        role="search"
+        aria-label="Search this site"
+        action="javascript:void(0);"
+    >
         <input
             on:focus={init}
             bind:value={val}
@@ -115,6 +125,11 @@
                                 <Result {result} />
                             {/each}
                         </ol>
+                        {#if searchResult.results.length > show}
+                            <button on:click={showMore}
+                                >Load more results</button
+                            >
+                        {/if}
                     {/if}
                 {/if}
             </div>
@@ -189,5 +204,23 @@
         font-size: 16px;
         font-weight: 700;
         margin-top: 0;
+    }
+
+    button {
+        border: 2px solid #cfcfcf;
+        border-radius: 8px;
+        height: 48px;
+        padding: 0 12px;
+        color: #034ad8;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        background: #fff;
+    }
+
+    button:hover {
+        border-color: #034ad8;
+        background: #fff;
+        margin-top: 40px;
     }
 </style>
