@@ -1,7 +1,7 @@
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use regex::Regex;
-use rust_stemmers::{Algorithm, Stemmer};
+use pagefind_stem::{Algorithm, Stemmer};
 use std::io::Error;
 use std::path::{Path, PathBuf};
 use tokio::fs::File;

@@ -1,0 +1,42 @@
+[package]
+name = "pagefind_stem"
+version = "0.0.0"
+# Imports would have to change for a newer edition,
+# and I don't want to have to edit snowball's rust files
+edition = "2015"
+
+[dependencies]
+
+[features]
+arabic = []
+armenian = []
+basque = []
+catalan = []
+danish = []
+dutch = []
+english = []
+finnish = []
+french = []
+german = []
+german2 = []
+greek = []
+hindi = []
+hungarian = []
+indonesian = []
+irish = []
+italian = []
+kraaij_pohlmann = []
+lithuanian = []
+lovins = []
+nepali = []
+norwegian = []
+porter = []
+portuguese = []
+romanian = []
+russian = []
+serbian = []
+spanish = []
+swedish = []
+tamil = []
+turkish = []
+yiddish = []

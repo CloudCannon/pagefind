@@ -2,7 +2,7 @@ use std::{cmp::Ordering, collections::HashMap};
 
 use crate::{util::*, PageWord};
 use bit_set::BitSet;
-use rust_stemmers::{Algorithm, Stemmer}; // TODO: too big, Stemming should be performed on the JS side
+use pagefind_stem::{Algorithm, Stemmer}; // TODO: too big, Stemming should be performed on the JS side
 
 use crate::SearchIndex;
 
