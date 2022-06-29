@@ -11,7 +11,10 @@
 <body style="max-width: 1000px; padding: 80px; margin: 0 auto;">
     <h1>Hello World from the local dev suite</h1>
     <p>Searches for words ending in <kbd>y</kbd> will return no results</p>
-    <div data-pagefind-ui></div>
+    <div id="search"></div>
     <script src="/_pagefind/ui.js" type="application/javascript"></script>
+    <script>
+        new PagefindUI({ element: "#search" });
+    </script>
 </body>
 </html>

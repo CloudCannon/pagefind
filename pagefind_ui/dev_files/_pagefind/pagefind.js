@@ -65,6 +65,22 @@ const stubbed_results = [
     }
 ]
 
+
+const num = (max) => Math.floor(Math.random() * max);
+const stubbed_filters = (max) => {
+    return {
+        color: {
+            Red: num(max),
+            Blue: num(max),
+            Green: num(max),
+        },
+        type: {
+            Blog: num(max),
+            Docs: num(max),
+        }
+    }
+}
+
 class Pagefind {
 
     async sleep(ms = 100) {
@@ -96,6 +112,10 @@ class Pagefind {
             }
         }
 
+        if (options?.filters) {
+            term += ` ${Object.entries(options.filters).map(([f, v]) => `[${f}:${v.join(',')}]`).join(' ')}`;
+        }
+
         return {
             suggestion: "some suggestion",
             matched: "some match info",
@@ -104,11 +124,19 @@ class Pagefind {
                     id: r.id,
                     data: async () => await this.loadFragment(term, r.data),
                 }
-            })
+            }),
+            filters: stubbed_filters(3),
         };
+    }
+
+    async filters() {
+        await this.sleep(Math.floor(Math.random() * 2000));
+        return stubbed_filters(2000);
     }
 }
 
 const pagefind = new Pagefind();
 
+export const options = async () => { };
 export const search = async (term, options) => await pagefind.search(term, options);
+export const filters = async () => await pagefind.filters();
