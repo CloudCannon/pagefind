@@ -207,6 +207,7 @@
     }
 
     button {
+        margin-top: 40px;
         border: 2px solid #cfcfcf;
         border-radius: 8px;
         height: 48px;
@@ -221,6 +222,5 @@
     button:hover {
         border-color: #034ad8;
         background: #fff;
-        margin-top: 40px;
     }
 </style>

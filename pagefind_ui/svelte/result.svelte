@@ -117,4 +117,7 @@
         border-radius: 8px;
         background-color: #eeeeee;
     }
+    :global(.pagefind-ui mark) {
+        all: revert;
+    }
 </style>

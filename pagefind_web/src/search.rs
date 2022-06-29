@@ -1,4 +1,4 @@
-use crate::util::*;
+use crate::{util::*, PageWord};
 use bit_set::BitSet;
 use rust_stemmers::{Algorithm, Stemmer}; // TODO: too big, Stemming should be performed on the JS side
 
@@ -27,7 +27,7 @@ impl SearchIndex {
         let mut words = Vec::new();
         for term in terms {
             let term = en_stemmer.stem(term).into_owned(); // TODO: Remove this once JS stems
-            if let Some(word_index) = self.words.get(&term) {
+            if let Some(word_index) = self.find_nearest_word(&term) {
                 words.extend(word_index);
                 let mut set = BitSet::new();
                 for page in word_index {
@@ -95,5 +95,38 @@ impl SearchIndex {
         pages.sort_by(|a, b| b.word_frequency.partial_cmp(&a.word_frequency).unwrap());
 
         pages
+    }
+
+    fn find_nearest_word(&self, term: &str) -> Option<&Vec<PageWord>> {
+        self.words.get(term).or_else(|| {
+            let mut closest: Option<String> = None;
+            debug!({
+                format! {"Didn't find {:?}, trying to find a better match", term}
+            });
+            for key in self.words.keys() {
+                if key.starts_with(term) {
+                    match &closest {
+                        Some(other) => {
+                            if key.len() < other.len() {
+                                debug!({
+                                    format! {"{:?} is a better match", key}
+                                });
+                                closest = Some(key.clone())
+                            }
+                        }
+                        None => {
+                            debug!({
+                                format! {"{:?} is a better match", key}
+                            });
+                            closest = Some(key.clone())
+                        }
+                    }
+                }
+            }
+            debug!({
+                format! {"Searching with {:#?}", closest}
+            });
+            closest.map(|term| self.words.get(&term)).flatten()
+        })
     }
 }
