@@ -201,7 +201,7 @@ pub fn filters(ptr: *mut SearchIndex) -> String {
 }
 
 #[wasm_bindgen]
-pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str) -> String {
+pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
 
     if let Some(generator_version) = search_index.generator_version.as_ref() {
@@ -212,7 +212,11 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str) -> String {
     }
 
     let filter_set = search_index.filter(filter);
-    let results = search_index.search_term(query, filter_set);
+    let results = if exact {
+        search_index.exact_term(query, filter_set)
+    } else {
+        search_index.search_term(query, filter_set)
+    };
 
     let filter_string =
         search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
@@ -242,13 +246,4 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str) -> String {
     debug_log(&format! {"{:?}", result_string});
 
     format!("{}:{}", result_string, filter_string)
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
 }

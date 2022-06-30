@@ -176,7 +176,8 @@ class Pagefind {
         let start = Date.now();
         let ptr = await this.getPtr();
         // Strip special characters to match the indexing operation
-        term = term.toLowerCase().replace(/[^\w\s]/g, "").trim();
+        let exact_search = /^\s*".+"\s*$/.test(term);
+        term = term.toLowerCase().trim().replace(/[^\w\s]/g, "").trim();
 
         let filter_list = [];
         for (let [filter, values] of Object.entries(options.filters)) {
@@ -198,7 +199,7 @@ class Pagefind {
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let result = this.backend.search(ptr, term, filter_list);
+        let result = this.backend.search(ptr, term, filter_list, exact_search);
         let [results, filters] = result.split(/:(.*)$/);
         let filterObj = this.parseFilters(filters);
         results = results.length ? results.split(" ") : [];

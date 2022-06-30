@@ -1,8 +1,8 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::{borrow::Cow, cmp::Ordering};
 
 use crate::{util::*, PageWord};
 use bit_set::BitSet;
-use pagefind_stem::{Algorithm, Stemmer}; // TODO: too big, Stemming should be performed on the JS side
+use pagefind_stem::{Algorithm, Stemmer};
 
 use crate::SearchIndex;
 
@@ -14,13 +14,92 @@ pub struct PageSearchResult {
 }
 
 impl SearchIndex {
-    pub fn search_term(&self, term: &str, filter_results: Option<BitSet>) -> Vec<PageSearchResult> {
-        let terms = term.split(' ');
-        // TODO: i18n
-        // TODO: Stemming should be performed on the JS side of the boundary
-        //       As the snowball implementation there seems a lot smaller and just as fast.
-        let en_stemmer = Stemmer::create(Algorithm::English);
+    pub fn exact_term(
+        &self,
+        term: &str,
+        filter_results: Option<BitSet>,
+    ) -> Vec<PageSearchResult> {
+        debug!({
+            format! {"Searching {:?}", term}
+        });
 
+        let mut maps = Vec::new();
+        let mut words = Vec::new();
+        for term in stems_from_term(term) {
+            if let Some(word_index) = self.words.get(term.as_ref()) {
+                words.extend(word_index);
+                let mut set = BitSet::new();
+                for page in word_index {
+                    set.insert(page.page as usize);
+                }
+                maps.push(set);
+            } else {
+                // If we can't find this word, there are obviously no exact matches
+                return vec![];
+            }
+        }
+
+        if let Some(filter) = filter_results {
+            maps.push(filter);
+        }
+
+        let results = match intersect_maps(maps) {
+            Some(map) => map,
+            None => return vec![],
+        };
+
+        let mut pages: Vec<PageSearchResult> = vec![];
+
+        for page_index in results.iter() {
+            let word_locations: Vec<Vec<u32>> = words
+                .iter()
+                .filter_map(|p| {
+                    if p.page as usize == page_index {
+                        Some(p.locs.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            debug!({
+                format! {"Word locations {:?}", word_locations}
+            });
+
+            if word_locations.len() > 1 {
+                'indexes: for pos in &word_locations[0] {
+                    let mut i = *pos;
+                    for subsequent in &word_locations[1..] {
+                        i += 1;
+                        // Test each subsequent word map to try and find a contiguous block
+                        if !subsequent.contains(&i) {
+                            continue 'indexes;
+                        }
+                    }
+                    let page = &self.pages[page_index];
+                    let search_result = PageSearchResult {
+                        page: page.hash.clone(),
+                        page_index,
+                        word_frequency: 1.0,
+                        word_locations: (*pos..=i).collect(),
+                    };
+                    pages.push(search_result);
+                }
+            } else {
+                let page = &self.pages[page_index];
+                let search_result = PageSearchResult {
+                    page: page.hash.clone(),
+                    page_index,
+                    word_frequency: 1.0,
+                    word_locations: word_locations[0].clone(),
+                };
+                pages.push(search_result);
+            }
+        }
+
+        pages
+    }
+
+    pub fn search_term(&self, term: &str, filter_results: Option<BitSet>) -> Vec<PageSearchResult> {
         debug!({
             format! {"Searching {:?}", term}
         });
@@ -28,9 +107,7 @@ impl SearchIndex {
         let mut maps = Vec::new();
         let mut unique_maps = Vec::new();
         let mut words = Vec::new();
-        for term in terms {
-            let term = en_stemmer.stem(term).into_owned(); // TODO: Remove this once JS stems
-
+        for term in stems_from_term(term) {
             let mut word_maps = Vec::new();
             for (word, word_index) in self.find_word_extensions(&term) {
                 words.extend(word_index);
@@ -41,31 +118,19 @@ impl SearchIndex {
                 unique_maps.push((word.len() - term.len() + 1, set.clone()));
                 word_maps.push(set);
             }
-            let mut word_maps = word_maps.drain(..);
-            if let Some(mut base) = word_maps.next() {
-                for map in word_maps {
-                    base.union_with(&map);
-                }
-                maps.push(base)
+            if let Some(result) = union_maps(word_maps) {
+                maps.push(result);
             }
         }
 
-        let mut maps = maps.drain(..);
-        let mut results = if let Some(map) = maps.next() {
-            map
-        } else {
-            return vec![];
-            // let _ = Box::into_raw(search_index);
-            // return "".into();
-        };
-
-        for map in maps {
-            results.intersect_with(&map);
-        }
-
         if let Some(filter) = filter_results {
-            results.intersect_with(&filter);
+            maps.push(filter);
         }
+
+        let results = match intersect_maps(maps) {
+            Some(map) => map,
+            None => return vec![],
+        };
 
         let mut pages: Vec<PageSearchResult> = vec![];
 
@@ -137,5 +202,34 @@ impl SearchIndex {
             }
         }
         extensions
+    }
+}
+
+fn stems_from_term(term: &str) -> Vec<Cow<str>> {
+    let en_stemmer = Stemmer::create(Algorithm::English);
+    term.split(' ').map(|word| en_stemmer.stem(word)).collect()
+}
+
+fn intersect_maps(mut maps: Vec<BitSet>) -> Option<BitSet> {
+    let mut maps = maps.drain(..);
+    if let Some(mut base) = maps.next() {
+        for map in maps {
+            base.intersect_with(&map);
+        }
+        Some(base)
+    } else {
+        None
+    }
+}
+
+fn union_maps(mut maps: Vec<BitSet>) -> Option<BitSet> {
+    let mut maps = maps.drain(..);
+    if let Some(mut base) = maps.next() {
+        for map in maps {
+            base.union_with(&map);
+        }
+        Some(base)
+    } else {
+        None
     }
 }
