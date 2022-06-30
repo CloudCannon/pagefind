@@ -48,7 +48,6 @@ jobs:
           # Update cargo version, 
           printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind/Cargo.toml
           printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_web/Cargo.toml
-          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_stem/Cargo.toml
           printf ",s/\"version\": \"0.0.0\"/\"version\": \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_ui/package.json
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
@@ -170,7 +169,6 @@ jobs:
           # Update cargo version, 
           printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind/Cargo.toml
           printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_web/Cargo.toml
-          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_stem/Cargo.toml
           printf ",s/\"version\": \"0.0.0\"/\"version\": \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_ui/package.json
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
