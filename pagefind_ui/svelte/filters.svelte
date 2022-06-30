@@ -16,7 +16,12 @@
                 <fieldset class="pagefind-filter">
                     <legend>{filter}</legend>
                     {#each Object.entries(values) as [value, count]}
-                        <div class="pagefind-filter-input">
+                        <div
+                            class="pagefind-filter-input"
+                            class:checked={selected_filters[
+                                `${filter}:${value}`
+                            ]}
+                        >
                             <input
                                 type="checkbox"
                                 id="{filter}-{value}"
@@ -102,13 +107,21 @@
         content: "";
         top: 50%;
         left: 8px;
-        width: 9px;
-        height: 4px;
+        width: 0px;
+        height: 0px;
         border: solid 1px #fff;
-        transform: translate(-50%, -70%) skewX(-5deg) rotateZ(-45deg);
+        opacity: 0;
+        transform: translate(-4.5px, 0.8px) skewX(-5deg) rotateZ(-45deg);
+        transform-origin: top left;
         border-top: 0;
         border-right: 0;
         pointer-events: none;
+    }
+    .pagefind-filter-input.checked::before {
+        opacity: 1;
+        width: 9px;
+        height: 4px;
+        transition: width 0.1s ease-out 0.1s, height 0.1s ease-in;
     }
     input[type="checkbox"] {
         margin: 0;
