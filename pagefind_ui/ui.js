@@ -4,6 +4,7 @@ class PagefindUI {
     constructor(opts) {
         let selector = opts.element ?? "[data-pagefind-ui]";
         let bundlePath = opts.bundlePath;
+        let resetStyles = opts.resetStyles ?? true;
 
         if (!bundlePath) {
             try {
@@ -19,6 +20,7 @@ class PagefindUI {
         // Remove the UI-specific config before passing it along to the Pagefind backend
         delete opts["element"];
         delete opts["bundlePath"];
+        delete opts["resetStyles"];
 
         const dom = document.querySelector(selector);
         if (dom) {
@@ -26,6 +28,7 @@ class PagefindUI {
                 target: dom,
                 props: {
                     base_path: bundlePath,
+                    reset_styles: resetStyles,
                     pagefind_options: opts,
                 }
             })

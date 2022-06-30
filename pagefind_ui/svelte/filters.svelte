@@ -3,26 +3,29 @@
     export const selected_filters = {};
 </script>
 
-<fieldset class="pagefind-filter-block">
-    <legend>Filters</legend>
+<fieldset class="pagefind-ui__filter-panel">
+    <legend class="pagefind-ui__filter-panel-label">Filters</legend>
     {#if available_filters}
         {#each Object.entries(available_filters) as [filter, values]}
-            <details>
-                <summary
+            <details class="pagefind-ui__filter-block">
+                <summary class="pagefind-ui__filter-name"
                     >{filter.replace(/^(\w)/, (c) =>
                         c.toLocaleUpperCase()
                     )}</summary
                 >
-                <fieldset class="pagefind-filter">
-                    <legend>{filter}</legend>
+                <fieldset class="pagefind-ui__filter-group">
+                    <legend class="pagefind-ui__filter-group-label"
+                        >{filter}</legend
+                    >
                     {#each Object.entries(values) as [value, count]}
                         <div
-                            class="pagefind-filter-input"
-                            class:checked={selected_filters[
+                            class="pagefind-ui__filter-value"
+                            class:pagefind-ui__filter-value--checked={selected_filters[
                                 `${filter}:${value}`
                             ]}
                         >
                             <input
+                                class="pagefind-ui__filter-checkbox"
                                 type="checkbox"
                                 id="{filter}-{value}"
                                 name={filter}
@@ -31,8 +34,9 @@
                                 ]}
                                 {value}
                             />
-                            <label for="{filter}-{value}"
-                                >{value} ({count})</label
+                            <label
+                                class="pagefind-ui__filter-label"
+                                for="{filter}-{value}">{value} ({count})</label
                             >
                         </div>
                     {/each}
@@ -40,114 +44,118 @@
             </details>
         {/each}
     {:else}
-        <p class="loading">..........</p>
+        <p class="pagefind-ui__loading">..........</p>
     {/if}
 </fieldset>
 
 <style>
-    .pagefind-filter-block {
-        flex: 1;
-        min-width: 250px;
-    }
-    fieldset {
-        border: 0;
-        padding: 0;
-    }
     legend {
         position: absolute;
         clip: rect(0 0 0 0);
     }
-    details {
+    .pagefind-ui__filter-panel {
+        min-width: min(calc(260px * var(--pagefind-ui-scale)), 100%);
+        gap: calc(40px * var(--pagefind-ui-scale));
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .pagefind-ui__filter-group {
+        border: 0;
+        padding: 0;
+    }
+    .pagefind-ui__filter-block {
         padding: 0;
         display: block;
-        max-height: 300px;
-        border-top: 1px solid #cfcfcf;
-        border-bottom: 1px solid #cfcfcf;
     }
-    details + details {
-        margin-top: -1px;
-    }
-    summary {
+    .pagefind-ui__filter-name {
+        font-size: calc(16px * var(--pagefind-ui-scale));
         position: relative;
         display: flex;
         align-items: center;
-        height: 44px;
         list-style: none;
         font-weight: 700;
-        font-size: 16px;
         cursor: pointer;
     }
-    summary::after {
+    .pagefind-ui__filter-name::after {
         position: absolute;
         content: "";
-        right: 6px;
+        right: calc(6px * var(--pagefind-ui-scale));
         top: 50%;
-        width: 8px;
-        height: 8px;
-        border: solid 2px currentColor;
+        width: calc(8px * var(--pagefind-ui-scale));
+        height: calc(8px * var(--pagefind-ui-scale));
+        border: solid calc(2px * var(--pagefind-ui-scale)) currentColor;
         border-right: 0;
         border-top: 0;
         transform: translateY(-70%) rotateZ(-45deg);
     }
-
-    .pagefind-filter {
+    .pagefind-ui__filter-block[open] .pagefind-ui__filter-name::after {
+        transform: translateY(-70%) rotateZ(-225deg);
+    }
+    .pagefind-ui__filter-group {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        padding: 0 12px 20px;
+        gap: calc(20px * var(--pagefind-ui-scale));
+        padding: calc(30px * var(--pagefind-ui-scale)) 0
+            calc(20px * var(--pagefind-ui-scale));
     }
-    .pagefind-filter-input {
+    .pagefind-ui__filter-value {
         position: relative;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: calc(8px * var(--pagefind-ui-scale));
     }
-    .pagefind-filter-input::before {
+    .pagefind-ui__filter-value::before {
         position: absolute;
         content: "";
         top: 50%;
-        left: 8px;
+        left: calc(8px * var(--pagefind-ui-scale));
         width: 0px;
         height: 0px;
         border: solid 1px #fff;
         opacity: 0;
-        transform: translate(-4.5px, 0.8px) skewX(-5deg) rotateZ(-45deg);
+        transform: translate(
+                calc(4.5px * var(--pagefind-ui-scale) * -1),
+                calc(0.8px * var(--pagefind-ui-scale))
+            )
+            skewX(-5deg) rotateZ(-45deg);
         transform-origin: top left;
         border-top: 0;
         border-right: 0;
         pointer-events: none;
     }
-    .pagefind-filter-input.checked::before {
+    .pagefind-ui__filter-value.pagefind-ui__filter-value--checked::before {
         opacity: 1;
-        width: 9px;
-        height: 4px;
+        width: calc(9px * var(--pagefind-ui-scale));
+        height: calc(4px * var(--pagefind-ui-scale));
         transition: width 0.1s ease-out 0.1s, height 0.1s ease-in;
     }
-    input[type="checkbox"] {
+    .pagefind-ui__filter-checkbox {
         margin: 0;
-        width: 16px;
-        height: 16px;
-        border: solid 1px #cfcfcf;
+        width: calc(16px * var(--pagefind-ui-scale));
+        height: calc(16px * var(--pagefind-ui-scale));
+        border: solid 1px var(--pagefind-ui-border);
         appearance: none;
         -webkit-appearance: none;
-        border-radius: 4px;
-        background-color: #fff;
+        border-radius: calc(var(--pagefind-ui-border-radius) / 2);
+        background-color: var(--pagefind-ui-background);
         cursor: pointer;
     }
-    input[type="checkbox"]:checked {
-        background-color: #034ad8;
-        border: solid 1px #034ad8;
+    .pagefind-ui__filter-checkbox:checked {
+        background-color: var(--pagefind-ui-primary);
+        border: solid 1px var(--pagefind-ui-primary);
     }
-    label {
+    .pagefind-ui__filter-label {
         cursor: pointer;
-        font-size: 16px;
+        font-size: calc(16px * var(--pagefind-ui-scale));
+        font-weight: 400;
     }
-
-    .loading {
-        height: 44px;
+    .pagefind-ui__loading {
+        height: calc(44px * var(--pagefind-ui-scale));
         margin: 0;
-        color: #efefef;
-        background-color: #efefef;
+        color: var(--pagefind-ui-text);
+        background-color: var(--pagefind-ui-text);
+        opacity: 0.1;
         pointer-events: none;
     }
 </style>

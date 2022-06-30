@@ -177,7 +177,7 @@ class Pagefind {
         let ptr = await this.getPtr();
         // Strip special characters to match the indexing operation
         let exact_search = /^\s*".+"\s*$/.test(term);
-        term = term.toLowerCase().trim().replace(/[^\w\s]/g, "").trim();
+        term = term.toLowerCase().trim().replace(/[^\w\s]/g, "").replace(/\s{2,}/g, " ").trim();
 
         let filter_list = [];
         for (let [filter, values] of Object.entries(options.filters)) {

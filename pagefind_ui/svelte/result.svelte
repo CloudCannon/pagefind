@@ -18,20 +18,28 @@
     };
 </script>
 
-<li class="result">
+<li class="pagefind-ui__result">
     {#if data}
-        {#if data.meta.image}
-            <img class="thumb" src={data.meta?.image} alt={data.meta?.title} />
-        {:else}
-            <div class="thumb" />
-        {/if}
-        <div class="details">
-            <p class="title"><a href={data.url}>{data.meta?.title}</a></p>
-            <p class="excerpt">{@html data.excerpt}</p>
+        <div class="pagefind-ui__result-thumb">
+            {#if data.meta.image}
+                <img
+                    class="pagefind-ui__result-image"
+                    src={data.meta?.image}
+                    alt={data.meta?.title}
+                />
+            {/if}
+        </div>
+        <div class="pagefind-ui__result-inner">
+            <p class="pagefind-ui__result-title">
+                <a class="pagefind-ui__result-link" href={data.url}
+                    >{data.meta?.title}</a
+                >
+            </p>
+            <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
             {#if meta.length}
-                <ul>
+                <ul class="pagefind-ui__result-tags">
                     {#each meta as [metaTitle, metaValue]}
-                        <li class="meta">
+                        <li class="pagefind-ui__result-tag">
                             {metaTitle.replace(/^(\w)/, (c) =>
                                 c.toLocaleUpperCase()
                             )}: {metaValue}
@@ -41,83 +49,111 @@
             {/if}
         </div>
     {:else}
-        <div class="thumb" />
-        <div class="details">
-            <p class="title loading">{placeholder(30)}</p>
-            <p class="excerpt loading">{placeholder(40)}</p>
+        <div class="pagefind-ui__result-thumb" />
+        <div class="pagefind-ui__result-inner">
+            <p class="pagefind-ui__result-title pagefind-ui__loading">
+                {placeholder(30)}
+            </p>
+            <p class="pagefind-ui__result-excerpt pagefind-ui__loading">
+                {placeholder(40)}
+            </p>
         </div>
     {/if}
 </li>
 
 <style>
-    .result {
+    .pagefind-ui__result {
         list-style-type: none;
         display: flex;
         align-items: flex-start;
-        gap: min(40px, 3%);
-        padding: 30px 0 40px;
-        border-top: solid 2px #eee;
+        gap: min(calc(40px * var(--pagefind-ui-scale)), 3%);
+        padding: calc(30px * var(--pagefind-ui-scale)) 0
+            calc(40px * var(--pagefind-ui-scale));
+        border-top: solid var(--pagefind-ui-border-width)
+            var(--pagefind-ui-border);
     }
-    .result:last-of-type {
-        border-bottom: solid 2px #eee;
+    .pagefind-ui__result:last-of-type {
+        border-bottom: solid var(--pagefind-ui-border-width)
+            var(--pagefind-ui-border);
     }
-    .thumb {
-        width: min(30%, calc((30% - 100px) * 100000));
-        max-width: 120px;
-        margin-top: 10px;
-        aspect-ratio: 3 / 2;
-        object-fit: cover;
-        background-color: #efefef;
+    .pagefind-ui__result-thumb {
+        width: min(
+            30%,
+            calc((30% - (100px * var(--pagefind-ui-scale))) * 100000)
+        );
+        max-width: calc(120px * var(--pagefind-ui-scale));
+        margin-top: calc(10px * var(--pagefind-ui-scale));
+        aspect-ratio: var(--pagefind-ui-image-ratio);
+        position: relative;
+        border-radius: var(--pagefind-ui-border-radius);
+        overflow: hidden;
     }
-    .details {
+    .pagefind-ui__result-thumb::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--pagefind-ui-text);
+        opacity: 0.1;
+    }
+    .pagefind-ui__result-image {
+        display: block;
+        font-size: 0;
+        width: 100%;
+        height: 100%;
+        aspect-ratio: var(--pagefind-ui-image-ratio);
+        object-fit: var(--pagefind-ui-image-size);
+    }
+    .pagefind-ui__result-inner {
         flex: 1;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        margin-top: 10px;
+        margin-top: calc(10px * var(--pagefind-ui-scale));
     }
-    .title {
+    .pagefind-ui__result-title {
         display: inline-block;
         font-weight: 700;
-        font-size: 21px;
+        font-size: calc(21px * var(--pagefind-ui-scale));
         margin-top: 0;
         margin-bottom: 0;
     }
-    .title a {
-        color: #393939;
+    .pagefind-ui__result-title .pagefind-ui__result-link {
+        color: var(--pagefind-ui-text);
         text-decoration: none;
     }
-    .title a:hover {
+    .pagefind-ui__result-title .pagefind-ui__result-link:hover {
         text-decoration: underline;
     }
-    .excerpt {
+    .pagefind-ui__result-excerpt {
         display: inline-block;
         font-weight: 400;
-        font-size: 16px;
-        margin-top: 4px;
+        font-size: calc(16px * var(--pagefind-ui-scale));
+        margin-top: calc(4px * var(--pagefind-ui-scale));
         margin-bottom: 0;
-        min-width: 250px;
+        min-width: calc(250px * var(--pagefind-ui-scale));
     }
-    .loading {
-        color: #efefef;
-        background-color: #efefef;
+    .pagefind-ui__loading {
+        color: var(--pagefind-ui-text);
+        background-color: var(--pagefind-ui-text);
+        opacity: 0.1;
         pointer-events: none;
     }
-    ul {
+    .pagefind-ui__result-tags {
         list-style-type: none;
         padding: 0;
         display: flex;
-        gap: 20px;
+        gap: calc(20px * var(--pagefind-ui-scale));
         flex-wrap: wrap;
-        margin-top: 20px;
+        margin-top: calc(20px * var(--pagefind-ui-scale));
     }
-    .meta {
-        padding: 4px 8px;
-        font-size: 14px;
-        border-radius: 8px;
-        background-color: #eeeeee;
-    }
-    :global(.pagefind-ui mark) {
-        all: revert;
+    .pagefind-ui__result-tag {
+        padding: calc(4px * var(--pagefind-ui-scale))
+            calc(8px * var(--pagefind-ui-scale));
+        font-size: calc(14px * var(--pagefind-ui-scale));
+        border-radius: var(--pagefind-ui-border-radius);
+        background-color: var(--pagefind-ui-tag);
     }
 </style>

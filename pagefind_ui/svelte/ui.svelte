@@ -4,6 +4,7 @@
     import Reset from "./reset.svelte";
 
     export let base_path = "/_pagefind/";
+    export let reset_styles = true;
     export let pagefind_options = {};
 
     let val = "";
@@ -84,143 +85,161 @@
     };
 </script>
 
-<div class="pagefind-ui pagefind-reset">
+<div class="pagefind-ui" class:pagefind-ui--reset={reset_styles}>
     <form
+        class="pagefind-ui__form"
         role="search"
         aria-label="Search this site"
         action="javascript:void(0);"
     >
         <input
+            class="pagefind-ui__search-input"
             on:focus={init}
             bind:value={val}
             type="text"
             placeholder="Search"
         />
 
-        <div class="pagefind-sub">
-            {#if initializing}
-                <Filters {available_filters} bind:selected_filters />
-            {/if}
+        <div class="pagefind-ui__drawer">
+            {#if searched}
+                {#if initializing}
+                    <Filters {available_filters} bind:selected_filters />
+                {/if}
 
-            <div class="results">
-                {#if searched}
+                <div class="pagefind-ui__results-area">
                     {#if loading}
                         {#if search_term}
-                            <p class="message">
-                                Searching for "{search_term}"...
+                            <p class="pagefind-ui__message">
+                                Searching for "{search_term.replace(
+                                    /^"+|"+$/g,
+                                    ""
+                                )}"...
                             </p>
                         {:else}
-                            <p class="message">Filtering...</p>
+                            <p class="pagefind-ui__message">Filtering...</p>
                         {/if}
                     {:else}
-                        <p class="message">
+                        <p class="pagefind-ui__message">
                             {searchResult.results.length} result{searchResult
                                 .results.length === 1
                                 ? ""
                                 : "s"}
-                            {search_term ? `for "${search_term}"` : ""}
+                            {search_term
+                                ? `for "${search_term.replace(/^"+|"+$/g, "")}"`
+                                : ""}
                         </p>
-                        <ol>
+                        <ol class="pagefind-ui__results">
                             {#each searchResult.results.slice(0, show) as result (result.id)}
                                 <Result {result} />
                             {/each}
                         </ol>
                         {#if searchResult.results.length > show}
-                            <button on:click={showMore}
-                                >Load more results</button
+                            <button
+                                class="pagefind-ui__button"
+                                on:click={showMore}>Load more results</button
                             >
                         {/if}
                     {/if}
-                {/if}
-            </div>
+                </div>
+            {/if}
         </div>
     </form>
 </div>
 
 <style>
+    :root {
+        --pagefind-ui-scale: 1;
+        --pagefind-ui-primary: #034ad8;
+        --pagefind-ui-text: #393939;
+        --pagefind-ui-background: #ffffff;
+        --pagefind-ui-border: #eeeeee;
+        --pagefind-ui-tag: #eeeeee;
+        --pagefind-ui-border-width: 2px;
+        --pagefind-ui-border-radius: 8px;
+        --pagefind-ui-image-size: cover;
+        --pagefind-ui-image-ratio: 3 / 2;
+        --pagefind-ui-font: system, -apple-system, ".SFNSText-Regular",
+            "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue",
+            "Lucida Grande", sans-serif;
+    }
     .pagefind-ui {
         width: 100%;
-        color: #393939;
-        font-family: system, -apple-system, ".SFNSText-Regular", "San Francisco",
-            "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
+        color: var(--pagefind-ui-text);
+        font-family: var(--pagefind-ui-font);
     }
-
-    form {
+    .pagefind-ui__form {
         position: relative;
     }
-
-    input {
+    .pagefind-ui__form::before {
+        background-color: var(--pagefind-ui-text);
+        width: calc(18px * var(--pagefind-ui-scale));
+        height: calc(18px * var(--pagefind-ui-scale));
+        top: calc(23px * var(--pagefind-ui-scale));
+        left: calc(20px * var(--pagefind-ui-scale));
+        content: "";
+        position: absolute;
+        display: block;
+        opacity: 0.7;
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.7549 11.255H11.9649L11.6849 10.985C12.6649 9.845 13.2549 8.365 13.2549 6.755C13.2549 3.165 10.3449 0.255005 6.75488 0.255005C3.16488 0.255005 0.254883 3.165 0.254883 6.755C0.254883 10.345 3.16488 13.255 6.75488 13.255C8.36488 13.255 9.84488 12.665 10.9849 11.685L11.2549 11.965V12.755L16.2549 17.745L17.7449 16.255L12.7549 11.255ZM6.75488 11.255C4.26488 11.255 2.25488 9.245 2.25488 6.755C2.25488 4.26501 4.26488 2.255 6.75488 2.255C9.24488 2.255 11.2549 4.26501 11.2549 6.755C11.2549 9.245 9.24488 11.255 6.75488 11.255Z' fill='%23000000'/%3E%3C/svg%3E%0A");
+        mask-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.7549 11.255H11.9649L11.6849 10.985C12.6649 9.845 13.2549 8.365 13.2549 6.755C13.2549 3.165 10.3449 0.255005 6.75488 0.255005C3.16488 0.255005 0.254883 3.165 0.254883 6.755C0.254883 10.345 3.16488 13.255 6.75488 13.255C8.36488 13.255 9.84488 12.665 10.9849 11.685L11.2549 11.965V12.755L16.2549 17.745L17.7449 16.255L12.7549 11.255ZM6.75488 11.255C4.26488 11.255 2.25488 9.245 2.25488 6.755C2.25488 4.26501 4.26488 2.255 6.75488 2.255C9.24488 2.255 11.2549 4.26501 11.2549 6.755C11.2549 9.245 9.24488 11.255 6.75488 11.255Z' fill='%23000000'/%3E%3C/svg%3E%0A");
+        -webkit-mask-size: 100%;
+        mask-size: 100%;
+        z-index: 9;
+        pointer-events: none;
+    }
+    .pagefind-ui__search-input {
+        height: calc(64px * var(--pagefind-ui-scale));
+        padding: 0 0 0 calc(54px * var(--pagefind-ui-scale));
+        background-color: var(--pagefind-ui-background);
+        border: var(--pagefind-ui-border-width) solid var(--pagefind-ui-border);
+        border-radius: var(--pagefind-ui-border-radius);
+        font-size: calc(21px * var(--pagefind-ui-scale));
         position: relative;
         appearance: none;
         -webkit-appearance: none;
         display: flex;
         width: 100%;
-        height: 64px;
-        background-color: #fff;
-        padding: 0 0 0 54px;
-        border: 2px solid #eeeeee;
-        border-radius: 8px;
         box-sizing: border-box;
         font-weight: 700;
-        font-size: 21px;
     }
-
-    input::placeholder {
+    .pagefind-ui__search-input::placeholder {
         opacity: 0.2;
     }
-
-    form::before {
-        content: "";
-        position: absolute;
-        display: block;
-        background-color: #757575;
-        mask-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.7549 11.255H11.9649L11.6849 10.985C12.6649 9.845 13.2549 8.365 13.2549 6.755C13.2549 3.165 10.3449 0.255005 6.75488 0.255005C3.16488 0.255005 0.254883 3.165 0.254883 6.755C0.254883 10.345 3.16488 13.255 6.75488 13.255C8.36488 13.255 9.84488 12.665 10.9849 11.685L11.2549 11.965V12.755L16.2549 17.745L17.7449 16.255L12.7549 11.255ZM6.75488 11.255C4.26488 11.255 2.25488 9.245 2.25488 6.755C2.25488 4.26501 4.26488 2.255 6.75488 2.255C9.24488 2.255 11.2549 4.26501 11.2549 6.755C11.2549 9.245 9.24488 11.255 6.75488 11.255Z' fill='%23000000'/%3E%3C/svg%3E%0A");
-        width: 18px;
-        height: 18px;
-        top: 23px;
-        left: 20px;
-        z-index: 9;
-        pointer-events: none;
-    }
-
-    .pagefind-sub {
+    .pagefind-ui__drawer {
+        gap: calc(60px * var(--pagefind-ui-scale));
+        margin-top: calc(40px * var(--pagefind-ui-scale));
         display: flex;
         flex-direction: row;
-        gap: 15px;
         flex-wrap: wrap;
-        margin-top: 40px;
     }
-
-    .results {
-        flex: 2;
-        min-width: min(400px, 100%);
+    .pagefind-ui__results-area {
+        min-width: min(calc(400px * var(--pagefind-ui-scale)), 100%);
+        flex: 1000;
     }
-
-    ol {
+    .pagefind-ui__results {
         padding: 0;
     }
-
-    .message {
-        font-size: 16px;
+    .pagefind-ui__message {
+        font-size: calc(16px * var(--pagefind-ui-scale));
+        margin-bottom: calc(40px * var(--pagefind-ui-scale));
         font-weight: 700;
         margin-top: 0;
     }
-
-    button {
-        margin-top: 40px;
-        border: 2px solid #cfcfcf;
-        border-radius: 8px;
-        height: 48px;
-        padding: 0 12px;
-        color: #034ad8;
+    .pagefind-ui__button {
+        margin-top: calc(40px * var(--pagefind-ui-scale));
+        border: var(--pagefind-ui-border-width) solid var(--pagefind-ui-border);
+        border-radius: var(--pagefind-ui-border-radius);
+        height: calc(48px * var(--pagefind-ui-scale));
+        padding: 0 calc(12px * var(--pagefind-ui-scale));
+        font-size: calc(16px * var(--pagefind-ui-scale));
+        color: var(----pagefind-ui-primary);
+        background: var(--pagefind-ui-background);
         font-weight: 700;
-        font-size: 16px;
         cursor: pointer;
-        background: #fff;
     }
-
-    button:hover {
-        border-color: #034ad8;
-        background: #fff;
+    .pagefind-ui__button:hover {
+        border-color: var(--pagefind-ui-primary);
+        color: var(--pagefind-ui-primary);
+        background: var(--pagefind-ui-background);
     }
 </style>
