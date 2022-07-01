@@ -26,6 +26,10 @@ code:not([data-lang]) {
     color: var(--highlight);
 }
 
+code.inline {
+    white-space: nowrap;
+}
+
 h1+p {
     font-size: 1.1em;
 }

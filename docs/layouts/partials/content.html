@@ -1,1 +1,3 @@
-{{ . | replaceRE "(<h[2-6]\\sid=\"([^\"]+)\"\\s?>)(.+)(</h[1-6]+>)" "${1}<a class=\"anchor\" href=\"#${2}\" title=\"Link to ${3}\">#</a>${3}${4}" | safeHTML }}
+{{ $content := . | replaceRE "(<h[2-6]\\sid=\"([^\"]+)\"\\s?>)(.+?)(</h[1-6]+>)" "${1}<a class=\"anchor\" href=\"#${2}\" title=\"Link to ${3}\">#</a>${3}${4}" | safeHTML }}
+{{ $content := $content | replaceRE "<code>([^<]{0,30})</code>" "<code class=\"inline\">${1}</code>" | safeHTML }}
+{{ $content }}
