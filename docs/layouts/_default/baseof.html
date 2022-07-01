@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{ $style := resources.Get "css/site.scss" | toCSS | minify | fingerprint }}
+    <link rel="stylesheet" href="{{ $style.Permalink }}">
+    <title>Pagefind</title>
+</head>
+<body>
+    {{ partial "nav.html" }}
+    <div class="column">
+        <aside>
+            {{ partial "docnav.html" . }}
+        </aside>
+        <main>
+            <h1>{{ .Params.title }}</h1>
+            {{ block "main" . }}{{ end }}
+        </main>
+    </div>
+    <footer>
+        <a href="https://cloudcannon.com" target="_blank">
+            <img class="cloudcannon" src="/cloudcannon.svg" alt="CloudCannon">
+        </a>
+    </footer>
+</body>
+</html>

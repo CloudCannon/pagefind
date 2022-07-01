@@ -1,0 +1,1 @@
+{{ . | replaceRE "(<h[2-6]\\sid=\"([^\"]+)\"\\s?>)(.+)(</h[1-6]+>)" "${1}<a class=\"anchor\" href=\"#${2}\" title=\"Link to ${3}\">#</a>${3}${4}" | safeHTML }}

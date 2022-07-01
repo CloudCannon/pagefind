@@ -1,0 +1,51 @@
+body {
+    // undo water css' body styles
+    max-width: revert;
+    margin: 0;
+    padding: 0 40px;
+    color: var(--text);
+}
+
+details,
+details[open],
+summary {
+    all: revert;
+}
+
+blockquote {
+    display: flex;
+    padding: 0 0 0 1em;
+    opacity: 0.8;
+}
+
+code:not([data-lang]) {
+    color: var(--highlight);
+}
+
+h1+p {
+    font-size: 1.1em;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+    position: relative;
+
+    .anchor {
+        color: var(--text);
+        position: absolute;
+        top: 0;
+        right: 100%;
+        padding-right: 10px;
+        opacity: 0.2;
+        transition: opacity .2s ease;
+        font-size: 1.5ex;
+        line-height: 2em;
+    }
+
+    &:hover .anchor {
+        opacity: 1;
+    }
+}

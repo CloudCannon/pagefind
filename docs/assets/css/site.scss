@@ -1,0 +1,47 @@
+$break: "(max-width: 800px)";
+
+@import "water";
+@import "code";
+@import "elements";
+@import "nav";
+@import "docnav";
+
+:root {
+    --text: #393939;
+    --focus: #393939;
+    --highlight: #b65a09;
+    --primary: #034AD8;
+}
+
+.column {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    gap: 60px;
+    flex-direction: row;
+    padding-top: 40px;
+
+    @media ($break) {
+        flex-direction: column;
+        padding-top: 20px;
+        gap: 20px;
+    }
+
+    aside {
+        max-width: 250px;
+        min-width: 250px;
+        flex: 1;
+
+        @media ($break) {
+            max-width: 100%;
+        }
+    }
+
+    main {
+        flex: 3;
+
+        > :first-child {
+            margin-top: 0;
+        }
+    }
+}

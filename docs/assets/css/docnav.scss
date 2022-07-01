@@ -1,0 +1,91 @@
+.docnav {
+    summary {
+        position: relative;
+        display: block;
+        font-weight: bold;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+        list-style-type: none;
+        height: 30px;
+        cursor: pointer;
+
+        &::after {
+            position: absolute;
+            content: "";
+            right: 6px;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            border: solid 2px currentColor;
+            border-right: 0;
+            border-top: 0;
+            transform: translateY(-70%) rotateZ(-45deg);
+        }
+    }
+
+    &[open] summary {
+        pointer-events: none;
+        cursor: unset;
+
+        @media ($break) {
+            cursor: pointer;
+            pointer-events: all;
+        }
+
+        &:hover {
+            text-decoration: none;
+
+            @media ($break) {
+                text-decoration: underline;
+            }
+        }
+
+        &::after {
+            transform: translateY(-70%) rotateZ(-225deg);
+            opacity: 0;
+
+            @media ($break) {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.docnav-title {
+    margin-top: 0;
+    font-weight: bold;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.docnav-list {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    & & {
+        padding-left: 16px;
+    }
+
+    .active {
+        position: relative;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: calc(1em / 2);
+            left: -16px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text);
+        }
+    }
+
+    a {
+        color: var(--text);
+    }
+}

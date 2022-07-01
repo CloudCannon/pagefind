@@ -1,0 +1,46 @@
+nav.header {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0;
+    gap: 40px;
+
+    .logo {
+        height: 32px;
+    }
+
+    .github {
+        height: 24px;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+    }
+
+    a {
+        color: var(--text);
+        font-weight: 500;
+    }
+}
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 40px;
+
+    a {
+        display: flex;
+        align-items: center;
+    }
+
+    .cloudcannon {
+        height: 16px;
+    }
+}

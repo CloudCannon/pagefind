@@ -1,0 +1,4 @@
+baseURL = 'https://pagefind.app/'
+languageCode = 'en-us'
+title = 'Pagefind'
+markup.highlight.noClasses = false
