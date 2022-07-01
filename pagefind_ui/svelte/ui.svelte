@@ -148,7 +148,7 @@
 
 <style>
     :root {
-        --pagefind-ui-scale: 1;
+        --pagefind-ui-scale: 0.8;
         --pagefind-ui-primary: #393939;
         --pagefind-ui-text: #393939;
         --pagefind-ui-background: #ffffff;
