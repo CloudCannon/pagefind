@@ -41,6 +41,7 @@ $break: "(max-width: 800px)";
 
     main {
         flex: 3;
+        overflow: hidden;
 
         > :first-child {
             margin-top: 0;
