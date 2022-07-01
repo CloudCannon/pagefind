@@ -19,7 +19,7 @@ $break: "(max-width: 800px)";
     max-width: 1000px;
     margin: 0 auto;
     display: flex;
-    gap: 60px;
+    gap: 30px;
     flex-direction: row;
     padding-top: 40px;
 
@@ -40,8 +40,14 @@ $break: "(max-width: 800px)";
     }
 
     main {
+        padding-left: 30px;
         flex: 3;
         overflow: hidden;
+
+        @media ($break) {
+            padding-left: 0;
+            overflow: visible;
+        }
 
         > :first-child {
             margin-top: 0;

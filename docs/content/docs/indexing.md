@@ -1,7 +1,7 @@
 ---
 date: 2022-06-01
-title: "Configuring How Content is Indexed"
-nav_title: "Index Configuration"
+title: "Configuring how content is indexed"
+nav_title: "Customizing the index"
 nav_section: Indexing
 weight: 2
 ---
@@ -42,7 +42,9 @@ If you have a component that you don't want to include in your search index, you
 </main>
 ```
 
-## Indexing Attributes
+> Filters and Metadata will still be used if placed within a `data-pagefind-ignore` element.
+
+## Indexing attributes
 
 Attributes of HTML elements can be added to the main search index with the `data-pagefind-index-attrs` attribute:
 

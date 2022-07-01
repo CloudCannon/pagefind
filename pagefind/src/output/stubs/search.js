@@ -228,6 +228,6 @@ class Pagefind {
 
 const pagefind = new Pagefind();
 
-export const options = async (options) => await pagefind.options(options);
+export const options = (options) => pagefind.options(options);
 export const search = async (term, options) => await pagefind.search(term, options);
 export const filters = async () => await pagefind.filters();

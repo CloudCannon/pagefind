@@ -48,4 +48,4 @@ Loading this in your browser, you should see a search input on your page. Have a
 
 The last required step is to run Pagefind after building your site on your CMS or hosting platform. If you're a CloudCannon user, add a [`.cloudcannon/postbuild`](https://cloudcannon.com/documentation/articles/extending-your-build-process-with-hooks/) file containing the npx command above. For other platforms, setup an equivalent command to run after your site build.
 
-For many use cases, you can stop here and mark it as complete. Or, you can dive deeper into Pagefind and configure it to your liking — check out [Index Configuration](/docs/index-configuration/) to get started.
+For many use cases, you can stop here and mark it as complete. Or, you can dive deeper into Pagefind and configure it to your liking — check out [Customizing the index](/docs/indexing/) to get started.
