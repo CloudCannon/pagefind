@@ -7,10 +7,18 @@ $break: "(max-width: 800px)";
 @import "docnav";
 
 :root {
+    --pagefind-ui-scale: 0.8;
+
     --text: #393939;
     --focus: #393939;
     --highlight: #b65a09;
     --primary: #034AD8;
+}
+
+.search {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 .column {
