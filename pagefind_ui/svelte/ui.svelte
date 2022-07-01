@@ -149,7 +149,7 @@
 <style>
     :root {
         --pagefind-ui-scale: 1;
-        --pagefind-ui-primary: #034ad8;
+        --pagefind-ui-primary: #393939;
         --pagefind-ui-text: #393939;
         --pagefind-ui-background: #ffffff;
         --pagefind-ui-border: #eeeeee;
@@ -207,7 +207,6 @@
     }
     .pagefind-ui__drawer {
         gap: calc(60px * var(--pagefind-ui-scale));
-        margin-top: calc(40px * var(--pagefind-ui-scale));
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
@@ -215,13 +214,18 @@
     .pagefind-ui__results-area {
         min-width: min(calc(400px * var(--pagefind-ui-scale)), 100%);
         flex: 1000;
+        margin-top: calc(20px * var(--pagefind-ui-scale));
     }
     .pagefind-ui__results {
         padding: 0;
     }
     .pagefind-ui__message {
+        box-sizing: content-box;
         font-size: calc(16px * var(--pagefind-ui-scale));
-        margin-bottom: calc(40px * var(--pagefind-ui-scale));
+        height: calc(24px * var(--pagefind-ui-scale));
+        padding: calc(20px * var(--pagefind-ui-scale)) 0;
+        display: flex;
+        align-items: center;
         font-weight: 700;
         margin-top: 0;
     }
@@ -234,6 +238,8 @@
         font-size: calc(16px * var(--pagefind-ui-scale));
         color: var(----pagefind-ui-primary);
         background: var(--pagefind-ui-background);
+        width: 100%;
+        text-align: center;
         font-weight: 700;
         cursor: pointer;
     }

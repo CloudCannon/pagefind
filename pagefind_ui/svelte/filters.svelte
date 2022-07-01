@@ -3,50 +3,53 @@
     export const selected_filters = {};
 </script>
 
-<fieldset class="pagefind-ui__filter-panel">
-    <legend class="pagefind-ui__filter-panel-label">Filters</legend>
-    {#if available_filters}
-        {#each Object.entries(available_filters) as [filter, values]}
-            <details class="pagefind-ui__filter-block">
-                <summary class="pagefind-ui__filter-name"
-                    >{filter.replace(/^(\w)/, (c) =>
-                        c.toLocaleUpperCase()
-                    )}</summary
-                >
-                <fieldset class="pagefind-ui__filter-group">
-                    <legend class="pagefind-ui__filter-group-label"
-                        >{filter}</legend
+{#if !available_filters || Object.entries(available_filters).length}
+    <fieldset class="pagefind-ui__filter-panel">
+        <legend class="pagefind-ui__filter-panel-label">Filters</legend>
+        {#if available_filters}
+            {#each Object.entries(available_filters) as [filter, values]}
+                <details class="pagefind-ui__filter-block">
+                    <summary class="pagefind-ui__filter-name"
+                        >{filter.replace(/^(\w)/, (c) =>
+                            c.toLocaleUpperCase()
+                        )}</summary
                     >
-                    {#each Object.entries(values) as [value, count]}
-                        <div
-                            class="pagefind-ui__filter-value"
-                            class:pagefind-ui__filter-value--checked={selected_filters[
-                                `${filter}:${value}`
-                            ]}
+                    <fieldset class="pagefind-ui__filter-group">
+                        <legend class="pagefind-ui__filter-group-label"
+                            >{filter}</legend
                         >
-                            <input
-                                class="pagefind-ui__filter-checkbox"
-                                type="checkbox"
-                                id="{filter}-{value}"
-                                name={filter}
-                                bind:checked={selected_filters[
+                        {#each Object.entries(values) as [value, count]}
+                            <div
+                                class="pagefind-ui__filter-value"
+                                class:pagefind-ui__filter-value--checked={selected_filters[
                                     `${filter}:${value}`
                                 ]}
-                                {value}
-                            />
-                            <label
-                                class="pagefind-ui__filter-label"
-                                for="{filter}-{value}">{value} ({count})</label
                             >
-                        </div>
-                    {/each}
-                </fieldset>
-            </details>
-        {/each}
-    {:else}
-        <p class="pagefind-ui__loading">..........</p>
-    {/if}
-</fieldset>
+                                <input
+                                    class="pagefind-ui__filter-checkbox"
+                                    type="checkbox"
+                                    id="{filter}-{value}"
+                                    name={filter}
+                                    bind:checked={selected_filters[
+                                        `${filter}:${value}`
+                                    ]}
+                                    {value}
+                                />
+                                <label
+                                    class="pagefind-ui__filter-label"
+                                    for="{filter}-{value}"
+                                    >{value} ({count})</label
+                                >
+                            </div>
+                        {/each}
+                    </fieldset>
+                </details>
+            {/each}
+        {:else}
+            <p class="pagefind-ui__loading">..........</p>
+        {/if}
+    </fieldset>
+{/if}
 
 <style>
     legend {
@@ -55,10 +58,10 @@
     }
     .pagefind-ui__filter-panel {
         min-width: min(calc(260px * var(--pagefind-ui-scale)), 100%);
-        gap: calc(40px * var(--pagefind-ui-scale));
         flex: 1;
         display: flex;
         flex-direction: column;
+        margin-top: calc(20px * var(--pagefind-ui-scale));
     }
     .pagefind-ui__filter-group {
         border: 0;
@@ -67,6 +70,9 @@
     .pagefind-ui__filter-block {
         padding: 0;
         display: block;
+        border-bottom: solid calc(2px * var(--pagefind-ui-scale))
+            var(--pagefind-ui-border);
+        padding: calc(20px * var(--pagefind-ui-scale)) 0;
     }
     .pagefind-ui__filter-name {
         font-size: calc(16px * var(--pagefind-ui-scale));
@@ -76,6 +82,7 @@
         list-style: none;
         font-weight: 700;
         cursor: pointer;
+        height: calc(24px * var(--pagefind-ui-scale));
     }
     .pagefind-ui__filter-name::after {
         position: absolute;
@@ -96,8 +103,7 @@
         display: flex;
         flex-direction: column;
         gap: calc(20px * var(--pagefind-ui-scale));
-        padding: calc(30px * var(--pagefind-ui-scale)) 0
-            calc(20px * var(--pagefind-ui-scale));
+        padding-top: calc(30px * var(--pagefind-ui-scale));
     }
     .pagefind-ui__filter-value {
         position: relative;
