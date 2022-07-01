@@ -15,7 +15,9 @@ To get started, we'll use the search UI that Pagefind provides out of the box. A
 <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
 <div id="search"></div>
 <script>
-    new PagefindUI({ element: "#search" });
+    window.addEventListener('DOMContentLoaded', (event) => {
+        new PagefindUI({ element: "#search" });
+    });
 </script>
 ```
 

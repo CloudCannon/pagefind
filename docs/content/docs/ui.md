@@ -18,7 +18,9 @@ Pagefind UI can be added to any page with the following snippet. The `/_pagefind
 
 <div id="search"></div>
 <script>
-    new PagefindUI({ element: "#search" });
+    window.addEventListener('DOMContentLoaded', (event) => {
+        new PagefindUI({ element: "#search" });
+    });
 </script>
 ```
 
