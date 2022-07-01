@@ -22,6 +22,14 @@ blockquote {
     opacity: 0.8;
 }
 
+/* Fixes iOS font sizing anomaly */
+code {
+    text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
 code:not([data-lang]) {
     color: var(--highlight);
 }
