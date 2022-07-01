@@ -16,7 +16,7 @@ pub struct PagefindIndexes {
     pub word_indexes: HashMap<String, Vec<u8>>,
     pub filter_indexes: HashMap<String, Vec<u8>>,
     pub meta_index: Vec<u8>,
-    pub fragments: HashMap<String, PageFragment>,
+    pub fragments: Vec<(String, PageFragment)>,
 }
 
 pub async fn build_indexes<I>(pages: I, options: &SearchOptions) -> PagefindIndexes
@@ -32,7 +32,8 @@ where
 
     let mut word_map: HashMap<String, PackedWord> = HashMap::new();
     let mut filter_map: HashMap<String, HashMap<String, Vec<usize>>> = HashMap::new();
-    let mut fragments: HashMap<String, PageFragment> = HashMap::new();
+    let mut fragment_hashes: HashMap<String, PageFragment> = HashMap::new();
+    let mut fragments: Vec<(String, PageFragment)> = Vec::new();
 
     for (page_number, mut page) in pages.enumerate() {
         page.fragment.page_number = page_number;
@@ -76,29 +77,31 @@ where
         }
 
         let mut short_hash = &page.fragment.hash[0..=6];
-        // If we hit a collision, extend both hashes until we stop colliding
-        while let Some(collision) = fragments.remove(short_hash) {
-            if short_hash.len() >= page.fragment.hash.len() {
-                fragments.insert(format!("{}0", collision.hash), collision);
+
+        // If we hit a collision, extend one until we stop colliding
+        // TODO: There are some collision issues here.
+        // If two builds match a collision in different orders the hashes will swap,
+        // which could return incorrect data due to files being cached.
+        while let Some(collision) = fragment_hashes.remove(short_hash) {
+            if collision.hash == page.fragment.hash {
+                // These pages are identical. Add both under the same hash.
+                fragments.push((collision.hash.clone(), collision));
             } else {
                 let new_length = short_hash.len();
-                fragments.insert(collision.hash[0..=new_length].to_string(), collision);
                 short_hash = &page.fragment.hash[0..=new_length];
             }
         }
-        fragments.insert(short_hash.to_string(), page.fragment);
+        fragment_hashes.insert(short_hash.to_string(), page.fragment);
     }
 
-    meta.pages = fragments
-        .iter()
-        .map(|(hash, fragment)| MetaPage {
-            hash: hash.clone(),
-            word_count: fragment.data.word_count as u32,
-        })
-        .collect();
+    fragments.extend(fragment_hashes.into_iter());
+    fragments.sort_by_cached_key(|(_, fragment)| fragment.page_number);
 
     meta.pages
-        .sort_by_cached_key(|p| fragments.get(&p.hash).unwrap().page_number);
+        .extend(fragments.iter().map(|(hash, fragment)| MetaPage {
+            hash: hash.clone(),
+            word_count: fragment.data.word_count as u32,
+        }));
 
     // TODO: Change filter indexes to BTree to give them a stable hash.
     let mut filter_indexes = HashMap::new();
