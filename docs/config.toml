@@ -3,3 +3,4 @@ languageCode = 'en-us'
 title = 'Pagefind'
 markup.highlight.noClasses = false
 summaryLength = 30
+disableKinds = ["taxonomyTerm"]
