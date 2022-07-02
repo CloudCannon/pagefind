@@ -16,7 +16,12 @@ clap = { version = "3.2.6", features = ["derive"] }
 kuchiki = "0.8.1"
 wax = "0.4.0"
 futures = "0.3"
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "fs",
+    "time",
+    "macros",
+] }
 pagefind_stem = { version = "0.1.0", features = ["english"] }
 stop-words = "0.6.2"
 hashbrown = { version = "0.12.0", features = ["serde"] }
@@ -38,6 +43,9 @@ twelf = { version = "0.5", default-features = false, features = [
     "yaml",
     "toml",
 ] }
+portpicker = "0.1"
+actix-web = "4"
+actix-files = "0.6"
 
 [dev-dependencies]
 json_dotpath = "1.1.0"
@@ -45,6 +53,3 @@ async-trait = "0.1"
 cucumber = "0.13"
 tempfile = "3.0.2"
 chromiumoxide = "0.3"
-portpicker = "0.1"
-actix-web = "4"
-actix-files = "0.6"

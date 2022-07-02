@@ -4,13 +4,14 @@ use std::{env, path::PathBuf};
 use twelf::config;
 
 #[config]
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct PagefindInboundConfig {
     #[clap(long, short, help = "The location of your built static website")]
     #[clap(required = false)]
     #[serde(default)] // This is actually required, but we validate that later
     pub source: String,
+
     #[clap(
         long,
         short,
@@ -19,13 +20,22 @@ pub struct PagefindInboundConfig {
     #[clap(required = false)]
     #[serde(default = "defaults::default_bundle_dir")]
     pub bundle_dir: String,
+
+    #[clap(
+        long,
+        help = "Serve the source directory after creating the search index"
+    )]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_false")]
+    pub serve: bool,
+
     #[clap(
         long,
         short,
         help = "Print debug logging while indexing the site. Does not impact the web-facing search."
     )]
     #[clap(required = false)]
-    #[serde(default = "defaults::default_verbosity")]
+    #[serde(default = "defaults::default_false")]
     pub verbose: bool,
 }
 
@@ -33,7 +43,7 @@ mod defaults {
     pub fn default_bundle_dir() -> String {
         "_pagefind".into()
     }
-    pub fn default_verbosity() -> bool {
+    pub fn default_false() -> bool {
         false
     }
 }

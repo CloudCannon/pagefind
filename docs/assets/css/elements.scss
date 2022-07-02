@@ -38,6 +38,10 @@ code.inline {
     white-space: nowrap;
 }
 
+td>code.inline {
+    white-space: break-spaces;
+}
+
 h1+p {
     font-size: 1.1em;
 }

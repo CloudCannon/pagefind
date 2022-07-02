@@ -1,4 +1,5 @@
 use pagefind::{PagefindInboundConfig, SearchOptions, SearchState};
+use std::path::PathBuf;
 use std::time::Instant;
 use twelf::reexports::clap::CommandFactory;
 use twelf::Layer;
@@ -52,7 +53,7 @@ async fn main() {
 
     match PagefindInboundConfig::with_layers(&config_layers) {
         Ok(config) => {
-            if let Ok(options) = SearchOptions::load(config) {
+            if let Ok(options) = SearchOptions::load(config.clone()) {
                 let mut runner = SearchState::new(options);
 
                 runner.run().await;
@@ -63,6 +64,10 @@ async fn main() {
                     duration.as_secs(),
                     duration.subsec_millis()
                 );
+
+                if config.serve {
+                    pagefind::serve::serve_dir(PathBuf::from(config.source)).await;
+                }
             }
         }
         Err(e) => {

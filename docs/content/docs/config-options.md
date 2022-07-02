@@ -13,18 +13,25 @@ The Pagefind CLI has the following options:
 ## Required arguments
 
 ### Source
-The location of your built static site
+The location of your built static site.
 
-| CLI Flag   | ENV Variable      | Config Key |
-|------------|-------------------|------------|
-| `--source` | `PAGEFIND_SOURCE` | `source`   |
+| CLI Flag            | ENV Variable      | Config Key |
+|---------------------|-------------------|------------|
+| `--source <SOURCE>` | `PAGEFIND_SOURCE` | `source`   |
 
 ## Optional arguments
 
-### Bundle directory
-The folder to output search files into, relative to source. Defaults to `_pagefind`
+### Serve
+Serve the source directory after creating the search index. Useful for testing search on a local build of your site without having to serve the source directory manually.
 
-| CLI Flag       | ENV Variable          | Config Key   |
-|----------------|-----------------------|--------------|
-| `--bundle-dir` | `PAGEFIND_BUNDLE_DIR` | `bundle_dir` |
+| CLI Flag  | ENV Variable     | Config Key |
+|-----------|------------------|------------|
+| `--serve` | `PAGEFIND_SERVE` | `serve`    |
+
+### Bundle directory
+The folder to output search files into, relative to source. Defaults to `_pagefind`.
+
+| CLI Flag             | ENV Variable          | Config Key   |
+|----------------------|-----------------------|--------------|
+| `--bundle-dir <DIR>` | `PAGEFIND_BUNDLE_DIR` | `bundle_dir` |
 

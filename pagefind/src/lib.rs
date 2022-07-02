@@ -10,6 +10,7 @@ mod fragments;
 mod index;
 mod options;
 mod output;
+pub mod serve;
 mod utils;
 
 pub struct SearchState {
