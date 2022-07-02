@@ -2,7 +2,7 @@
 date: 2022-06-01
 title: "Configuring the Pagefind CLI"
 nav_title: "Configuration options"
-nav_section: CLI configuration
+nav_section: Running Pagefind
 weight: 51
 ---
 
