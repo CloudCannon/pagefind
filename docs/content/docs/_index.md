@@ -29,10 +29,10 @@ Now build your site to an output directory — this guide assumes that you're ru
 
 ## Indexing your site
 
-The easiest way to run pagefind is through npx, where `--source` point to the output directory of your static site generator:
+The easiest way to run pagefind is through npx, where `--source` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
 
 ```bash
-npx -y pagefind --source public
+npx -y pagefind --source public --serve
 ```
 
 You should see some output along the lines of:
@@ -44,10 +44,10 @@ Created 27 index chunks
 Finished in 2.357 seconds
 ```
 
-We can see that a bunch of content was indexed. Since Pagefind has modified your generated static site, we won't be able to see it through your SSG's development server. Instead, you'll need to host your output directory youself — a quick way to do so on most UNIX systems is by running `python3 -m http.server` from your output directory.
+We can see that a bunch of content was indexed, and Pagefind will be running a development server (likely on [:1414](http://localhost:1414)).
 
 Loading this in your browser, you should see a search input on your page. Have a play, and bask in how easy that was to integrate.
 
-The last required step is to run Pagefind after building your site on your CMS or hosting platform. If you're a CloudCannon user, add a [`.cloudcannon/postbuild`](https://cloudcannon.com/documentation/articles/extending-your-build-process-with-hooks/) file containing the npx command above. For other platforms, setup an equivalent command to run after your site build.
+The last required step is to run Pagefind after building your site on your CMS or hosting platform. If you're a CloudCannon user, add a [`.cloudcannon/postbuild`](https://cloudcannon.com/documentation/articles/extending-your-build-process-with-hooks/) file containing the npx command above (minus the `--serve` flag). For other platforms, set up an equivalent command to run after your site build — the end goal is that Pagefind will run after every build of your site before it is deployed.
 
-For many use cases, you can stop here and mark it as complete. Or, you can dive deeper into Pagefind and configure it to your liking — check out [Customizing the index](/docs/indexing/) to get started.
+For many use cases, you can stop here and mark it as complete. Or, you can dive deeper into Pagefind and configure it to your liking — check out [Customizing the index](/docs/indexing/) for some next steps.
