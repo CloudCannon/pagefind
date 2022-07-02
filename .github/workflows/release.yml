@@ -116,11 +116,13 @@ jobs:
             rust: stable
             target: x86_64-unknown-linux-musl
             cross: false
+            musl: true
           - build: macos
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
             cross: false
+            musl: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -142,6 +144,11 @@ jobs:
         run: |
           sudo apt update
           sudo apt install ${{ matrix.linker }}
+      - name: Install Musl Tools
+        if: matrix.musl
+        run: |
+          sudo apt update
+          sudo apt install -y musl-tools musl-dev
       - name: Install Rust
         run: |
           rustup install ${{ matrix.rust }}
