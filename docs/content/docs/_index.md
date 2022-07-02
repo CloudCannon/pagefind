@@ -31,6 +31,8 @@ Now build your site to an output directory — this guide assumes that you're ru
 
 The easiest way to run pagefind is through npx, where `--source` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
 
+> Note that Pagefind itself does not have any server component — the search integration is fully baked into your static site. The `--serve` flag here is a shortcut for running Pagefind, followed by serving your output site through any static web server.
+
 ```bash
 npx -y pagefind --source public --serve
 ```
