@@ -156,8 +156,8 @@
         --pagefind-ui-tag: #eeeeee;
         --pagefind-ui-border-width: 2px;
         --pagefind-ui-border-radius: 8px;
-        --pagefind-ui-image-size: cover;
-        --pagefind-ui-image-ratio: 3 / 2;
+        --pagefind-ui-image-border-radius: 8px;
+        --pagefind-ui-image-box-ratio: 3 / 2;
         --pagefind-ui-font: system, -apple-system, ".SFNSText-Regular",
             "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue",
             "Lucida Grande", sans-serif;

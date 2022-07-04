@@ -49,7 +49,7 @@
             {/if}
         </div>
     {:else}
-        <div class="pagefind-ui__result-thumb" />
+        <div class="pagefind-ui__result-thumb pagefind-ui__loading" />
         <div class="pagefind-ui__result-inner">
             <p class="pagefind-ui__result-title pagefind-ui__loading">
                 {placeholder(30)}
@@ -83,28 +83,20 @@
         );
         max-width: calc(120px * var(--pagefind-ui-scale));
         margin-top: calc(10px * var(--pagefind-ui-scale));
-        aspect-ratio: var(--pagefind-ui-image-ratio);
+        aspect-ratio: var(--pagefind-ui-image-box-ratio);
         position: relative;
-        border-radius: var(--pagefind-ui-border-radius);
-        overflow: hidden;
-    }
-    .pagefind-ui__result-thumb::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: var(--pagefind-ui-text);
-        opacity: 0.1;
     }
     .pagefind-ui__result-image {
         display: block;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
         font-size: 0;
-        width: 100%;
-        height: 100%;
-        aspect-ratio: var(--pagefind-ui-image-ratio);
-        object-fit: var(--pagefind-ui-image-size);
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: var(--pagefind-ui-image-border-radius);
     }
     .pagefind-ui__result-inner {
         flex: 1;
@@ -138,6 +130,7 @@
     .pagefind-ui__loading {
         color: var(--pagefind-ui-text);
         background-color: var(--pagefind-ui-text);
+        border-radius: var(--pagefind-ui-border-radius);
         opacity: 0.1;
         pointer-events: none;
     }
