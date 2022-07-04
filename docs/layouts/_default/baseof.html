@@ -18,8 +18,8 @@
     <meta content="{{.Params.title}} | Pagefind" property="og:title">
     <meta content="{{.Params.title}} | Pagefind" property="twitter:title">
     <meta content="en_US" property="og:locale">
-    <meta content="{{.Summary | plainify}}" name="description">
-    <meta content="{{.Summary | plainify}}" property="og:description">
+    <meta content="{{.Summary | plainify | htmlUnescape}}" name="description">
+    <meta content="{{.Summary | plainify | htmlUnescape}}" property="og:description">
     <link href="{{.Permalink | absURL}}" rel="canonical">
     <meta content="{{.Permalink | absURL}}" property="og:url">
     <meta content="Pagefind" property="og:site_name">
