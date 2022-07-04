@@ -8,7 +8,9 @@ weight: 7
 
 Pagefind runs after your static generator, and outputs a static search bundle to your generated site. Unlike many search libraries, you don't need to build a search index by hand — the index is generated for you from your generated site.
 
-To get started, we'll use the search UI that Pagefind provides out of the box. Add the following snippet to a page of your choice:
+Since Pagefind indexes your site _after_ it builds, we'll do things slightly out of order and add search UI first — so that it already exists on our built site when we go to index it.
+
+Pagefind provides a prebuilt search UI out of the box. Add the following snippet to a page of your choice:
 
 ```html
 <link href="/_pagefind/pagefind-ui.css" rel="stylesheet">
@@ -21,7 +23,7 @@ To get started, we'll use the search UI that Pagefind provides out of the box. A
 </script>
 ```
 
-> The `/_pagefind/pagefind-ui.css` and `/_pagefind/pagefind-ui.js` assets will be created by Pagefind in the next step.
+> The `/_pagefind/pagefind-ui.css` and `/_pagefind/pagefind-ui.js` assets will be created by Pagefind when we index the site.
 
 Now build your site to an output directory — this guide assumes that you're running `hugo` and that your site is output to the `public/` directory. Pagefind works with any set of static HTML files, so adjust these configurations as needed.
 
@@ -46,7 +48,7 @@ Created 27 index chunks
 Finished in 2.357 seconds
 ```
 
-We can see that a bunch of content was indexed, and Pagefind will be running a development server (likely on [:1414](http://localhost:1414)).
+We can see that a bunch of content was indexed, and Pagefind will be running a preview server (likely on [:1414](http://localhost:1414)).
 
 Loading this in your browser, you should see a search input on your page. Have a play, and bask in how easy that was to integrate.
 
