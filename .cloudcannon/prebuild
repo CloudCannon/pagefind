@@ -1,0 +1,1 @@
+export HUGO_PAGEFIND_DOCS_VERSION=$(git describe --tags --abbrev=0)

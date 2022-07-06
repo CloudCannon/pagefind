@@ -3,8 +3,12 @@
         <img class="logo" src="/pagefind.svg" alt="Pagefind Logo">
     </a>
     <ul>
+        
         <li>
-            <a href="https://github.com/cloudcannon/pagefind">
+            <a target="_blank" href="https://github.com/cloudcannon/pagefind">
+            {{ with os.Getenv "HUGO_PAGEFIND_DOCS_VERSION" }}
+                {{ . }}
+            {{ end }}
                 <img class="github" src="/github.svg" alt="Pagefind on Github">
             </a>
         </li>
