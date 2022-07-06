@@ -69,3 +69,17 @@ h6 {
         opacity: 1;
     }
 }
+
+// Space out subheadings on the page
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 3rem;
+}
+
+// Cut the space out from subsequent headings (i.e. h2 followed by h3)
+:is(h1, h2, h3, h4, h5, h6)+ :is(h2, h3, h4, h5, h6) {
+    margin-top: 0;
+}
