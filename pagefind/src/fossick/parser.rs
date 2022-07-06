@@ -21,7 +21,8 @@ lazy_static! {
         "h1", "h2", "h3", "h4", "h5", "h6", "p", "td", "div", "ul", "li", "article", "section"
     );
     static ref REMOVE_SELECTORS: Vec<&'static str> = vec!(
-        "head", "script", "noscript", "label", "form", "svg", "footer", "header", "nav", "iframe"
+        "head", "script", "noscript", "label", "form", "svg", "footer", "header", "nav", "iframe",
+        "template"
     );
 }
 
