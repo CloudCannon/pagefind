@@ -25,7 +25,7 @@
                 <img
                     class="pagefind-ui__result-image"
                     src={data.meta?.image}
-                    alt={data.meta?.title}
+                    alt={data.meta?.image_alt || data.meta?.title}
                 />
             {/if}
         </div>
