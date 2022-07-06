@@ -1,6 +1,6 @@
 <script>
     export let result = { data: async () => {} };
-    const skipMeta = ["title", "image"];
+    const skipMeta = ["title", "image", "image_alt"];
 
     let data;
     let meta = [];
