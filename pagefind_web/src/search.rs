@@ -14,11 +14,7 @@ pub struct PageSearchResult {
 }
 
 impl SearchIndex {
-    pub fn exact_term(
-        &self,
-        term: &str,
-        filter_results: Option<BitSet>,
-    ) -> Vec<PageSearchResult> {
+    pub fn exact_term(&self, term: &str, filter_results: Option<BitSet>) -> Vec<PageSearchResult> {
         debug!({
             format! {"Searching {:?}", term}
         });
@@ -83,6 +79,7 @@ impl SearchIndex {
                         word_locations: (*pos..=i).collect(),
                     };
                     pages.push(search_result);
+                    break 'indexes;
                 }
             } else {
                 let page = &self.pages[page_index];
