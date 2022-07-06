@@ -1,3 +1,4 @@
+use actix_web::dev::ServerHandle;
 use cucumber::gherkin::Table;
 use portpicker::pick_unused_port;
 use std::collections::HashMap;
@@ -12,7 +13,7 @@ use wax::Glob;
 
 use async_trait::async_trait;
 use browser::BrowserTester;
-use cucumber::{World, WorldInit};
+use cucumber::{Cucumber, World, WorldInit};
 
 mod browser;
 mod steps;
@@ -30,18 +31,25 @@ struct TestWorld {
     browser: Option<BrowserTester>,
     assigned_server_port: Option<u16>,
     threads: Vec<JoinHandle<Result<(), std::io::Error>>>,
+    handles: Vec<ServerHandle>,
     env_vars: HashMap<String, String>,
 }
 
 impl Drop for TestWorld {
     fn drop(&mut self) {
         for thread in &self.threads {
-            thread.abort()
+            thread.abort();
         }
     }
 }
 
 impl TestWorld {
+    async fn shutdown(&mut self) {
+        for handle in &self.handles {
+            handle.stop(false).await;
+        }
+    }
+
     fn ensure_port(&mut self) -> u16 {
         if self.assigned_server_port.is_none() {
             self.assigned_server_port = pick_unused_port();
@@ -182,7 +190,18 @@ impl World for TestWorld {
 // This runs before everything else, so you can setup things here
 #[tokio::main]
 async fn main() {
-    TestWorld::run("features").await;
+    Cucumber::new()
+        .steps(TestWorld::collection())
+        .max_concurrent_scenarios(Some(8))
+        .after(|_, _, _, maybe_world| {
+            Box::pin(async move {
+                if let Some(world) = maybe_world {
+                    world.shutdown().await;
+                }
+            })
+        })
+        .run("features")
+        .await;
 }
 
 struct BinaryCommand(String);

@@ -25,7 +25,9 @@ pub async fn serve_dir(dir: PathBuf) {
     {
         Ok(bound) => {
             let server = bound.run();
-            server.await;
+            if let Err(e) = server.await {
+                panic!("Couldn't serve the directory: {e:?}");
+            }
         }
         Err(e) => {
             panic!("Couldn't serve the directory: {e:?}");
