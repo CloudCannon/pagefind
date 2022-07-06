@@ -73,8 +73,8 @@ impl Default for NodeStatus {
 struct DomParsingNode {
     current_value: String,
     parent: Option<Rc<RefCell<DomParsingNode>>>,
-    filter: Option<String>,
-    meta: Option<String>,
+    filter: Option<Vec<String>>,
+    meta: Option<Vec<String>>,
     status: NodeStatus,
 }
 
@@ -162,21 +162,31 @@ impl<'a> DomParser<'a> {
 
                             // Process filters & meta before we continue
                             // (Filters & meta are valid on ignored elements)
-                            if let Some((filter, value)) = node.get_attribute_pair(&node.filter) {
-                                match data.filters.get_mut(&filter) {
-                                    Some(filter_arr) => filter_arr.push(normalize_content(&value)),
-                                    None => {
-                                        data.filters.insert(filter, vec![
-                                            normalize_content(&value)
-                                        ]);
+                            if let Some(filters) = &node.filter {
+                                for filter in filters {
+                                    if let Some((filter, value)) = node.get_attribute_pair(filter) {
+                                        match data.filters.get_mut(&filter) {
+                                            Some(filter_arr) => filter_arr.push(normalize_content(&value)),
+                                            None => {
+                                                data.filters.insert(filter, vec![
+                                                    normalize_content(&value)
+                                                ]);
+                                            }
+                                        }
                                     }
                                 }
                             }
-                            if let Some((meta, value)) = node.get_attribute_pair(&node.meta) {
-                                data.meta.insert(meta, value);
+
+                            if let Some(metas) = &node.meta {
+                                for meta in metas {
+                                    if let Some((meta, value)) = node.get_attribute_pair(meta) {
+                                        data.meta.insert(meta, value);
+                                    }
+                                }
                             }
+
                             // Try to capture the first title on the page (if unset)
-                            if tag_name == "h1" {
+                            if tag_name == "h1" && !data.meta.contains_key("auto_title") {
                                 data.meta.insert("auto_title".into(), normalize_content(&node.current_value));
                             }
 
@@ -251,21 +261,32 @@ impl<'a> DomParser<'a> {
 
                             // Process filters & meta before we continue
                             // TODO: Abstract repitition into function
-                            if let Some((filter, value)) = node.get_attribute_pair(&node.filter) {
-                                match data.filters.get_mut(&filter) {
-                                    Some(filter_arr) => filter_arr.push(normalize_content(&value)),
-                                    None => {
-                                        data.filters.insert(filter, vec![
-                                            normalize_content(&value)
-                                        ]);
+                            if let Some(filters) = &node.filter {
+                                for filter in filters {
+                                    if let Some((filter, value)) = node.get_attribute_pair(filter) {
+                                        match data.filters.get_mut(&filter) {
+                                            Some(filter_arr) => filter_arr.push(normalize_content(&value)),
+                                            None => {
+                                                data.filters.insert(filter, vec![
+                                                    normalize_content(&value)
+                                                ]);
+                                            }
+                                        }
                                     }
                                 }
                             }
-                            if let Some((meta, value)) = node.get_attribute_pair(&node.meta) {
-                                data.meta.insert(meta, value);
+
+                            if let Some(metas) = &node.meta {
+                                for meta in metas {
+                                    if let Some((meta, value)) = node.get_attribute_pair(meta) {
+                                        data.meta.insert(meta, value);
+                                    }
+                                }
                             }
+
                             // Try to capture the first image _after_ a title (if unset)
                             if tag_name == "img"
+                                && !data.meta.contains_key("auto_image")
                                 && (data.meta.contains_key("auto_title") || data.meta.contains_key("title")) {
                                 if let Some(src) = el.get_attribute("src") {
                                     data.meta.insert("auto_image".into(), src);
@@ -363,31 +384,41 @@ fn normalize_content(content: &str) -> String {
     content.to_string()
 }
 
-fn parse_attr_string(input: String, el: &Element) -> String {
-    if let Some(value) = ATTRIBUTE_MATCH.captures(&input) {
-        let name = value.name("name").unwrap().as_str().to_owned();
-        let attr = value.name("attribute").unwrap().as_str().to_owned();
-        format!("{}:{}", name, el.get_attribute(&attr).unwrap_or_default())
-    } else {
-        input
+fn parse_attr_string(input: String, el: &Element) -> Vec<String> {
+    if let Some((attrs, literal)) = input.split_once(':') {
+        let mut attrs = parse_attr_string(attrs.to_owned(), el);
+        if let Some(last) = attrs.last_mut() {
+            last.push(':');
+            last.push_str(literal);
+        }
+        return attrs;
     }
+    input
+        .split(',')
+        .map(|chunk| {
+            let chunk = chunk.trim();
+            if let Some(value) = ATTRIBUTE_MATCH.captures(chunk) {
+                let name = value.name("name").unwrap().as_str().to_owned();
+                let attr = value.name("attribute").unwrap().as_str().to_owned();
+                format!("{}:{}", name, el.get_attribute(&attr).unwrap_or_default())
+            } else {
+                chunk.to_owned()
+            }
+        })
+        .collect()
 }
 
 impl DomParsingNode {
-    fn get_attribute_pair(&self, input: &Option<String>) -> Option<(String, String)> {
-        if let Some(value) = input.as_ref() {
-            match value.split_once(":") {
-                Some((filter, value)) => Some((filter.to_owned(), value.to_owned())),
-                None => {
-                    if self.current_value.is_empty() {
-                        None
-                    } else {
-                        Some((value.to_owned(), self.current_value.to_owned()))
-                    }
+    fn get_attribute_pair(&self, input: &str) -> Option<(String, String)> {
+        match input.split_once(":") {
+            Some((filter, value)) => Some((filter.to_owned(), value.to_owned())),
+            None => {
+                if self.current_value.is_empty() {
+                    None
+                } else {
+                    Some((input.to_owned(), self.current_value.to_owned()))
                 }
             }
-        } else {
-            None
         }
     }
 }
@@ -407,23 +438,22 @@ mod tests {
     #[test]
     fn get_filter_from_node() {
         let mut node = DomParsingNode::default();
-        assert_eq!(node.get_attribute_pair(&None), None);
 
-        assert_eq!(node.get_attribute_pair(&Some("color".into())), None);
+        assert_eq!(node.get_attribute_pair("color"), None);
 
         node.current_value = "White".into();
         assert_eq!(
-            node.get_attribute_pair(&Some("color".into())),
+            node.get_attribute_pair("color"),
             Some(("color".into(), "White".into()))
         );
 
         assert_eq!(
-            node.get_attribute_pair(&Some("color:auburn".into())),
+            node.get_attribute_pair("color:auburn"),
             Some(("color".into(), "auburn".into()))
         );
 
         assert_eq!(
-            node.get_attribute_pair(&Some("color:ye:llow".into())),
+            node.get_attribute_pair("color:ye:llow"),
             Some(("color".into(), "ye:llow".into()))
         );
     }
@@ -504,5 +534,31 @@ mod tests {
         assert_eq!(data.meta.get("headline"), Some(&"Hello World".to_owned()));
         assert_eq!(data.meta.get("adj"), Some(&"hella".to_owned()));
         assert_eq!(data.meta.get("hero"), Some(&"/huzzah.png".to_owned()));
+    }
+
+    #[test]
+    fn return_complex_metadata() {
+        let data = test_raw_parse(vec![
+            "<html><body>",
+            "<img data-pagefind-meta='cat[src], cat-alt[alt]' src='/cat.png' alt='cat pic'>",
+            "<h1 class='why?' data-pagefind-meta='headline, classname[class]'>Hello World</h1>",
+            "<div data-pagefind-meta='self[data-pagefind-meta], type:post'></div>",
+            "<div data-pagefind-meta='incorrect:post, self[data-pagefind-meta]'></div>",
+            "</body></html>",
+        ]);
+
+        assert_eq!(data.meta.get("cat"), Some(&"/cat.png".to_owned()));
+        assert_eq!(data.meta.get("cat-alt"), Some(&"cat pic".to_owned()));
+        assert_eq!(data.meta.get("headline"), Some(&"Hello World".to_owned()));
+        assert_eq!(data.meta.get("classname"), Some(&"why?".to_owned()));
+        assert_eq!(
+            data.meta.get("self"),
+            Some(&"self[data-pagefind-meta], type:post".to_owned())
+        );
+        assert_eq!(data.meta.get("type"), Some(&"post".to_owned()));
+        assert_eq!(
+            data.meta.get("incorrect"),
+            Some(&"post, self[data-pagefind-meta]".to_owned())
+        );
     }
 }

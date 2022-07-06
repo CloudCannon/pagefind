@@ -10,12 +10,13 @@ Pagefind supports returning custom metadata alongside search results with the `d
 
 ## Default metadata
 
-By default, Pagefind will return some metadata about each page:
+Pagefind will return some default metadata about each page:
 
 - `title` will contain the contents of the first `h1` on the page
 - `image` will contain the `src` of the first `img` that follows the `h1`
+- `image_alt` will contain the `alt` of the first `img` that follows the `h1`
 
-Both of these can be overridden by tagging metadata with those keys.
+All of these can be overridden by tagging metadata with the same keys.
 
 ## Tagging an element as metadata
 
@@ -35,6 +36,12 @@ If your metadata exists as an attribute, you can use the syntax `key[html_attrib
 <img data-pagefind-meta="image[src]" src="/hero.png" />
 ```
 
+You can comma separate multiple meta attributes:
+
+```html
+<img data-pagefind-meta="image[src], image_alt[alt]" src="/hero.png" alt="Hero Alt Text" />
+```
+
 ## Tagging metadata inline
 
 If your metadata doesn't already exist on the page, you can simply use the syntax `key:value`
@@ -43,8 +50,35 @@ If your metadata doesn't already exist on the page, you can simply use the synta
 <h1 data-pagefind-meta="date:2022-06-01">Hello World</h1>
 ```
 
+## Defining multiple metadata keys on a single element
+
+You can comma separate multiple metadata keys, with the exception of inline metadata, which may only be the last item in a list.
+
+Usage:
+
+```html
+<a href="/" 
+   title="Homepage"
+   data-pagefind-meta="link_text, link_title[title], other:Freeform text, captured to the end">
+
+   Hello World
+</a>
+```
+
+This will generate the metadata:
+
+```json
+{
+    "link_text": "Hello World",
+    "link_title": "Homepage",
+    "other": "Freeform text, captured to the end"
+}
+```
+
 ## Notes
 
-> The `data-pagefind-meta` attribute does not need to be within the `<body>`, or the `data-pagefind-body` tag. 
+> The `data-pagefind-meta` attribute does not need to be within the `<body>`, or the `data-pagefind-body` tag. This includes default metadata, which will be found even if outside the `data-pagefind-body` tag.
 
 > The `data-pagefind-meta` attribute will still apply if set on or within a `data-pagefind-ignore` element.
+
+> `image_alt` will not be automatically set if you define your own `image` metadata key. If defining your own metadata, `data-pagefind-meta="image[src], image_alt[alt]"` will retrieve both values.

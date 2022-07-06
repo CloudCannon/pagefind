@@ -22,6 +22,7 @@ Feature: Fragments
                 <img src="/cat.png" alt="cat picture" />
                 <p>A post about the 'felines'</p>
                 <p>This post has some <span data-pagefind-meta="adjective">gnarly</span> things to test the fragment formatting.</p>
+                <img data-pagefind-meta="footer[src], footer_alt[alt]" src="/cat-footer.png" alt="cat footer picture" />
             </body>
             </html>
             """
@@ -109,3 +110,17 @@ Feature: Fragments
         Then There should be no logs
         Then The selector "[data-result]" should contain "/kitty.jpg — gnarly"
 
+    Scenario: Search results return complex metadata
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("cat");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-result]').innerText = data.meta.footer + " — " + data.meta.footer_alt;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "/cat-footer.png — cat footer picture"

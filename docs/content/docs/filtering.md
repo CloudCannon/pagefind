@@ -49,6 +49,10 @@ If your value doesn't already exist on the page, you can simply use the syntax `
 <h1 data-pagefind-filter="author:CloudCannon">Hello World</h1>
 ```
 
+## Advanced
+
+The filter syntax follows the same rules as the metadata syntax, see [Defining multiple metadata keys on a single element](/docs/metadata/#defining-multiple-metadata-keys-on-a-single-element) for more detail.
+
 ## Notes
 
 > The `data-pagefind-filter` attribute does not need to be within the `<body>`, or the `data-pagefind-body` tag. 
