@@ -61,5 +61,35 @@ Feature: Build Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
-    @skip
-    Scenario: Selector used for indexing can be configured
+    Scenario: Root selector can be configured
+        Given I have a "public/index.html" file with the body:
+            """
+            <p data-url>Nothing</p>
+            """
+        Given I have a "public/cat/index.html" file with the body:
+            """
+            <h1>Ignored</h1>
+            <div class="content">
+                <h1>Hello</h1>
+            </div>
+            <p data-pagefind-meta="ignored">Also ignored</p>
+            """
+        When I run my program with the flags:
+            | --root-selector "body > .content" |
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("hello");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-url]').innerText = `${data.meta.title}, ${data.content} Ignored is ${data.meta.ignored}.`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "Hello, Hello. Ignored is undefined."

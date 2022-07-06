@@ -28,6 +28,8 @@ To refine indexing further, you can tag your main content area with `data-pagefi
 
 > If `data-pagefind-body` is found anywhere on your site, any pages without this attribute will be removed from your index. This means that if you tag your blog post layout with `data-pagefind-body`, other pages like your homepage will no longer appear in search results. This is usually what you want — if not, just add `data-pagefind-body` there as well.
 
+> Note that metadata and filters that are set outside of this element will still be used. If this is not what you want, see the [root selector](/docs/config-options/#root-selector) configuration option.
+
 ## Removing individual elements from the index
 
 If you have a component that you don't want to include in your search index, you can tag it with `data-pagefind-ignore`:

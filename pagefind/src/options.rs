@@ -23,6 +23,14 @@ pub struct PagefindInboundConfig {
 
     #[clap(
         long,
+        help = "The element Pagefind should treat as the root of the document. Usually you will want to use the data-pagefind-body attribute instead."
+    )]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_root_selector")]
+    pub root_selector: String,
+
+    #[clap(
+        long,
         help = "Serve the source directory after creating the search index"
     )]
     #[clap(required = false)]
@@ -43,6 +51,9 @@ mod defaults {
     pub fn default_bundle_dir() -> String {
         "_pagefind".into()
     }
+    pub fn default_root_selector() -> String {
+        "html".into()
+    }
     pub fn default_false() -> bool {
         false
     }
@@ -54,6 +65,7 @@ pub struct SearchOptions {
     pub working_directory: PathBuf,
     pub source: PathBuf,
     pub bundle_dir: PathBuf,
+    pub root_selector: String,
     pub verbose: bool,
     pub version: &'static str,
 }
@@ -69,6 +81,7 @@ impl SearchOptions {
                 working_directory: env::current_dir().unwrap(),
                 source: PathBuf::from(config.source),
                 bundle_dir: PathBuf::from(config.bundle_dir),
+                root_selector: config.root_selector,
                 verbose: config.verbose,
                 version: env!("CARGO_PKG_VERSION"),
             })

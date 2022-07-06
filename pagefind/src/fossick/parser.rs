@@ -4,7 +4,10 @@ use lol_html::html_content::Element;
 use lol_html::{element, text, HtmlRewriter, Settings};
 use regex::Regex;
 use std::cell::RefCell;
+use std::default::Default;
 use std::rc::Rc;
+
+use crate::SearchOptions;
 
 lazy_static! {
     static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
@@ -99,13 +102,14 @@ macro_rules! enclose {
 }
 
 impl<'a> DomParser<'a> {
-    pub fn new() -> Self {
+    pub fn new(options: &SearchOptions) -> Self {
         let data = Rc::new(RefCell::new(DomParserData::default()));
+        let root = format!("{}, {} *", options.root_selector, options.root_selector);
 
         let rewriter = HtmlRewriter::new(
             Settings {
                 element_content_handlers: vec![
-                    enclose! { (data) element!("html *", move |el| {
+                    enclose! { (data) element!(root, move |el| {
                         let should_ignore_el = el.has_attribute("data-pagefind-ignore") || REMOVE_SELECTORS.contains(&el.tag_name().as_str());
                         let treat_as_body = el.has_attribute("data-pagefind-body");
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
@@ -300,7 +304,7 @@ impl<'a> DomParser<'a> {
                         Ok(())
                     })},
                     // Slap any text we encounter inside the body into the current node's current value
-                    enclose! { (data) text!("html", move |el| {
+                    enclose! { (data) text!(&options.root_selector, move |el| {
                         let data = data.borrow_mut();
                         let mut node = data.current_node.borrow_mut();
                         node.current_value.push_str(el.as_str());
@@ -459,7 +463,17 @@ mod tests {
     }
 
     fn test_raw_parse(input: Vec<&'static str>) -> DomParserResult {
-        let mut rewriter = DomParser::new();
+        let config_args = vec![twelf::Layer::Clap(
+            <crate::PagefindInboundConfig as clap::IntoApp>::command().get_matches_from(vec![
+                "pagefind",
+                "--source",
+                "not_important",
+            ]),
+        )];
+        let config =
+            SearchOptions::load(crate::PagefindInboundConfig::with_layers(&config_args).unwrap())
+                .unwrap();
+        let mut rewriter = DomParser::new(&config);
         for line in input {
             let _ = rewriter.write(line.as_bytes());
         }

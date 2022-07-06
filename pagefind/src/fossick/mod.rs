@@ -1,7 +1,7 @@
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use regex::Regex;
 use pagefind_stem::{Algorithm, Stemmer};
+use regex::Regex;
 use std::io::Error;
 use std::path::{Path, PathBuf};
 use tokio::fs::File;
@@ -44,10 +44,10 @@ impl Fossicker {
         }
     }
 
-    async fn read_file(&mut self) -> Result<(), Error> {
+    async fn read_file(&mut self, options: &SearchOptions) -> Result<(), Error> {
         let file = File::open(&self.file_path).await?;
 
-        let mut rewriter = DomParser::new();
+        let mut rewriter = DomParser::new(options);
 
         let mut br = BufReader::new(file);
         let mut buf = [0; 20000];
@@ -104,7 +104,7 @@ impl Fossicker {
     }
 
     pub async fn fossick(&mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
-        while self.read_file().await.is_err() {
+        while self.read_file(options).await.is_err() {
             sleep(Duration::from_millis(1)).await;
         }
 

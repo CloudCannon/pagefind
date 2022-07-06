@@ -35,3 +35,12 @@ The folder to output search files into, relative to source. Defaults to `_pagefi
 |----------------------|-----------------------|--------------|
 | `--bundle-dir <DIR>` | `PAGEFIND_BUNDLE_DIR` | `bundle_dir` |
 
+### Root selector
+The element that Pagefind should treat as the root of the document. Defaults to `html`.
+
+Note that filters and metadata outside of this selector will **not** be detected, all Pagefind behaviour will be limited to this element and below. In most cases, you should use the `data-pagefind-body` attribute detailed in [Customizing the index](/docs/indexing/).
+
+| CLI Flag                | ENV Variable             | Config Key      |
+|-------------------------|--------------------------|-----------------|
+| `--root-selector <DIR>` | `PAGEFIND_ROOT_SELECTOR` | `root_selector` |
+
