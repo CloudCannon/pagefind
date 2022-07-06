@@ -52,22 +52,31 @@ impl PagefindIndexes {
                 outdir.join("pagefind.js"),
                 vec![js.as_bytes()],
                 Compress::None,
+                WriteBehavior::None,
             ),
             write(
                 outdir.join("pagefind-ui.js"),
                 vec![WEB_UI_JS],
                 Compress::None,
+                WriteBehavior::None,
             ),
             write(
                 outdir.join("pagefind-ui.css"),
                 vec![WEB_UI_CSS],
                 Compress::None,
+                WriteBehavior::None,
             ),
-            write(outdir.join("wasm.pagefind"), vec![WEB_WASM], Compress::GZ),
+            write(
+                outdir.join("wasm.pagefind"),
+                vec![WEB_WASM],
+                Compress::GZ,
+                WriteBehavior::None,
+            ),
             write(
                 outdir.join("pagefind.pf_meta"),
                 vec![&self.meta_index],
                 Compress::GZ,
+                WriteBehavior::None,
             ),
         ];
 
@@ -76,6 +85,7 @@ impl PagefindIndexes {
                 outdir.join(format!("fragment/{}.pf_fragment", hash)),
                 vec![fragment.as_bytes()],
                 Compress::GZ,
+                WriteBehavior::Immutable,
             )
         }));
 
@@ -84,6 +94,7 @@ impl PagefindIndexes {
                 outdir.join(format!("index/{}.pf_index", hash)),
                 vec![index],
                 Compress::GZ,
+                WriteBehavior::Immutable,
             )
         }));
 
@@ -92,6 +103,7 @@ impl PagefindIndexes {
                 outdir.join(format!("filter/{}.pf_filter", hash)),
                 vec![index],
                 Compress::GZ,
+                WriteBehavior::Immutable,
             )
         }));
 
@@ -104,7 +116,22 @@ enum Compress {
     None,
 }
 
-async fn write(filename: PathBuf, contents: Vec<&[u8]>, compression: Compress) {
+enum WriteBehavior {
+    Immutable,
+    None,
+}
+
+async fn write(
+    filename: PathBuf,
+    contents: Vec<&[u8]>,
+    compression: Compress,
+    write_behavior: WriteBehavior,
+) {
+    // For "immutable" (hashed) files, don't re-write them as the contents _should_ be unchanged.
+    if matches!(write_behavior, WriteBehavior::Immutable) && filename.exists() {
+        return;
+    }
+
     if let Some(parent) = filename.parent() {
         create_dir_all(parent).await.unwrap();
     }
