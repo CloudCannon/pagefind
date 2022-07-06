@@ -1,8 +1,7 @@
 use hashbrown::HashMap;
 
 use crate::{
-    fossick::FossickedData, fragments::PageFragment, index::index_metadata::MetaFilter,
-    utils::full_hash, SearchOptions,
+    fossick::FossickedData, index::index_metadata::MetaFilter, utils::full_hash, SearchOptions,
 };
 use index_filter::{FilterIndex, PackedValue};
 use index_metadata::{MetaChunk, MetaIndex, MetaPage};
@@ -16,7 +15,15 @@ pub struct PagefindIndexes {
     pub word_indexes: HashMap<String, Vec<u8>>,
     pub filter_indexes: HashMap<String, Vec<u8>>,
     pub meta_index: Vec<u8>,
-    pub fragments: Vec<(String, PageFragment)>,
+    pub fragments: Vec<(String, String)>,
+}
+
+#[derive(Clone)]
+struct IntermediaryPageData {
+    full_hash: String,
+    encoded_data: String,
+    word_count: usize,
+    page_number: usize,
 }
 
 pub async fn build_indexes<I>(pages: I, options: &SearchOptions) -> PagefindIndexes
@@ -32,8 +39,8 @@ where
 
     let mut word_map: HashMap<String, PackedWord> = HashMap::new();
     let mut filter_map: HashMap<String, HashMap<String, Vec<usize>>> = HashMap::new();
-    let mut fragment_hashes: HashMap<String, PageFragment> = HashMap::new();
-    let mut fragments: Vec<(String, PageFragment)> = Vec::new();
+    let mut fragment_hashes: HashMap<String, IntermediaryPageData> = HashMap::new();
+    let mut fragments: Vec<(usize, (String, IntermediaryPageData))> = Vec::new();
 
     for (page_number, mut page) in pages.enumerate() {
         page.fragment.page_number = page_number;
@@ -76,31 +83,46 @@ where
             }
         }
 
-        let mut short_hash = &page.fragment.hash[0..=6];
+        let encoded_data = serde_json::to_string(&page.fragment.data).unwrap();
+        let encoded_page = IntermediaryPageData {
+            full_hash: full_hash(encoded_data.as_bytes()),
+            word_count: page.fragment.data.word_count,
+            page_number: page.fragment.page_number,
+            encoded_data,
+        };
+
+        let mut short_hash = &encoded_page.full_hash[0..=6];
 
         // If we hit a collision, extend one until we stop colliding
         // TODO: There are some collision issues here.
         // If two builds match a collision in different orders the hashes will swap,
         // which could return incorrect data due to files being cached.
-        while let Some(collision) = fragment_hashes.remove(short_hash) {
-            if collision.hash == page.fragment.hash {
+        while let Some(collision) = fragment_hashes.get(short_hash) {
+            if collision.full_hash == encoded_page.full_hash {
                 // These pages are identical. Add both under the same hash.
-                fragments.push((collision.hash.clone(), collision));
+                fragments.push((
+                    collision.word_count,
+                    (collision.full_hash.clone(), collision.clone()),
+                ));
             } else {
                 let new_length = short_hash.len();
-                short_hash = &page.fragment.hash[0..=new_length];
+                short_hash = &encoded_page.full_hash[0..=new_length];
             }
         }
-        fragment_hashes.insert(short_hash.to_string(), page.fragment);
+        fragment_hashes.insert(short_hash.to_string(), encoded_page);
     }
 
-    fragments.extend(fragment_hashes.into_iter());
-    fragments.sort_by_cached_key(|(_, fragment)| fragment.page_number);
+    fragments.extend(
+        fragment_hashes
+            .into_iter()
+            .map(|(hash, frag)| (frag.word_count, (hash, frag))),
+    );
+    fragments.sort_by_cached_key(|(_, (_, fragment))| fragment.page_number);
 
     meta.pages
-        .extend(fragments.iter().map(|(hash, fragment)| MetaPage {
+        .extend(fragments.iter().map(|(word_count, (hash, _))| MetaPage {
             hash: hash.clone(),
-            word_count: fragment.data.word_count as u32,
+            word_count: *word_count as u32,
         }));
 
     // TODO: Change filter indexes to BTree to give them a stable hash.
@@ -182,7 +204,10 @@ where
         word_indexes,
         filter_indexes,
         meta_index,
-        fragments,
+        fragments: fragments
+            .into_iter()
+            .map(|(_, (hash, frag))| (hash, frag.encoded_data))
+            .collect(),
     }
 }
 

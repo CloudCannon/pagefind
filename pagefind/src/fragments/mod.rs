@@ -13,7 +13,6 @@ pub struct PageFragmentData {
 
 #[derive(Debug)]
 pub struct PageFragment {
-    pub hash: String,
     pub page_number: usize,
     pub data: PageFragmentData,
 }

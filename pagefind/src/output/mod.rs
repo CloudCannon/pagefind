@@ -39,12 +39,6 @@ impl PagefindIndexes {
     pub async fn write_files(self, options: &SearchOptions) {
         let outdir = options.source.join(&options.bundle_dir);
 
-        let fragment_data: Vec<_> = self
-            .fragments
-            .iter()
-            .map(|(hash, fragment)| (hash, serde_json::to_string(&fragment.data).unwrap()))
-            .collect();
-
         let js = minify(&format!("{}\n{}\n{}", WEB_JS, GUNZIP_JS, SEARCH_JS));
 
         let mut files = vec![
@@ -80,7 +74,7 @@ impl PagefindIndexes {
             ),
         ];
 
-        files.extend(fragment_data.iter().map(|(hash, fragment)| {
+        files.extend(self.fragments.iter().map(|(hash, fragment)| {
             write(
                 outdir.join(format!("fragment/{}.pf_fragment", hash)),
                 vec![fragment.as_bytes()],

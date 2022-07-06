@@ -9,7 +9,6 @@ use tokio::io::{AsyncReadExt, BufReader};
 use tokio::time::{sleep, Duration};
 
 use crate::fragments::{PageFragment, PageFragmentData};
-use crate::utils::full_hash;
 use crate::SearchOptions;
 use parser::DomParser;
 
@@ -111,13 +110,11 @@ impl Fossicker {
         let word_data = self.retrieve_words_from_digest();
 
         let data = self.data.as_ref().unwrap();
-        let hash = full_hash(data.digest.as_bytes());
 
         Ok(FossickedData {
             file_path: self.file_path.clone(),
             has_custom_body: data.has_custom_body,
             fragment: PageFragment {
-                hash,
                 page_number: 0,
                 data: PageFragmentData {
                     url: build_url(&self.file_path, options),
