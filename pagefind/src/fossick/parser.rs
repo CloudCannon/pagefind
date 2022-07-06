@@ -175,8 +175,8 @@ impl<'a> DomParser<'a> {
                                 data.meta.insert(meta, value);
                             }
                             // Try to capture the first title on the page (if unset)
-                            if tag_name == "h1" && !data.meta.contains_key("title") {
-                                data.meta.insert("title".into(), normalize_content(&node.current_value));
+                            if tag_name == "h1" {
+                                data.meta.insert("auto_title".into(), normalize_content(&node.current_value));
                             }
 
                             // If we bail out now, the content won't be persisted anywhere
@@ -264,9 +264,14 @@ impl<'a> DomParser<'a> {
                                 data.meta.insert(meta, value);
                             }
                             // Try to capture the first image _after_ a title (if unset)
-                            if tag_name == "img" && data.meta.contains_key("title") && !data.meta.contains_key("image") {
+                            if tag_name == "img"
+                                && (data.meta.contains_key("auto_title") || data.meta.contains_key("title")) {
                                 if let Some(src) = el.get_attribute("src") {
-                                    data.meta.insert("image".into(), src);
+                                    data.meta.insert("auto_image".into(), src);
+
+                                    if let Some(alt) = el.get_attribute("alt") {
+                                        data.meta.insert("auto_image_alt".into(), alt);
+                                    }
                                 }
                             }
                         }
@@ -296,7 +301,7 @@ impl<'a> DomParser<'a> {
     /// Performs any post-processing and returns the summated search results
     pub fn wrap(self) -> DomParserResult {
         drop(self.rewriter); // Clears the extra Rcs on and within data
-        let data = Rc::try_unwrap(self.data).unwrap().into_inner();
+        let mut data = Rc::try_unwrap(self.data).unwrap().into_inner();
         let mut node = data.current_node;
 
         // Fallback: If we are left with a tree, collapse it up into the parents
@@ -323,6 +328,20 @@ impl<'a> DomParser<'a> {
             let new_node = Rc::clone(old_node.parent.as_ref().unwrap());
             drop(old_node);
             node = new_node;
+        }
+
+        if let Some(image) = data.meta.remove("auto_image") {
+            let alt = data.meta.remove("auto_image_alt").unwrap_or_default();
+            if !data.meta.contains_key("image") {
+                data.meta.insert("image".into(), image);
+                data.meta.insert("image_alt".into(), alt);
+            }
+        }
+
+        if let Some(title) = data.meta.remove("auto_title") {
+            if !data.meta.contains_key("title") {
+                data.meta.insert("title".into(), title);
+            }
         }
 
         let node = node.borrow();

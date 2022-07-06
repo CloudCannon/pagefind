@@ -19,7 +19,7 @@ Feature: Fragments
                     Cat Post.
                 </h1>
                 <span data-pagefind-ignore data-pagefind-filter="animal">cats</span>
-                <img src="/cat.png" />
+                <img src="/cat.png" alt="cat picture" />
                 <p>A post about the 'felines'</p>
                 <p>This post has some <span data-pagefind-meta="adjective">gnarly</span> things to test the fragment formatting.</p>
             </body>
@@ -41,12 +41,12 @@ Feature: Fragments
 
                 let data = await search.results[0].data();
                 document.querySelector('[data-result]').innerText = data.meta.title;
-                document.querySelector('[data-result-two]').innerText = data.meta.image;
+                document.querySelector('[data-result-two]').innerText = `${data.meta.image} | ${data.meta.image_alt}`;
             }
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "Cat Post."
-        Then The selector "[data-result-two]" should contain "/cat.png"
+        Then The selector "[data-result-two]" should contain "/cat.png | cat picture"
 
     Scenario: Search results return nicely formatted content
         When I evaluate:
