@@ -197,13 +197,6 @@ jobs:
         working-directory: ./pagefind_ui
         run: npm i && npm run build
 
-      - name: Package Crate
-        working-directory: ./pagefind
-        run: |
-          # Package crate to ensure it works without issue
-          ls -lh ./vendor/
-          cargo package --allow-dirty
-
       - name: Test Web
         working-directory: ./pagefind_web
         run: cargo test --release
