@@ -201,9 +201,13 @@ jobs:
         working-directory: ./pagefind_web
         run: cargo test --release
 
+      - name: Build Testing Binary
+        working-directory: ./pagefind
+        run: cargo build --release
+
       - name: Test Lib
         working-directory: ./pagefind
-        run: cargo test --release --lib
+        run: cargo test --release
 
       - name: Test CLI
         working-directory: ./pagefind
