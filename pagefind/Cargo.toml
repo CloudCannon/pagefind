@@ -6,14 +6,9 @@ include = ["/src", "/vendor", "/features", "/tests"]
 description = "Implement search on any static website."
 license = "MIT"
 
-[[test]]
-name = "cucumber"
-harness = false   # Allows Cucumber to print output instead of libtest
-
 [dependencies]
 anyhow = "1.0"
 clap = { version = "3.2.6", features = ["derive"] }
-kuchiki = "0.8.1"
 wax = "0.4.0"
 futures = "0.3"
 tokio = { version = "1", features = [
@@ -26,7 +21,6 @@ pagefind_stem = { version = "0.1.0", features = ["english"] }
 stop-words = "0.6.2"
 hashbrown = { version = "0.12.0", features = ["serde"] }
 regex = "1.1"
-rmp = "0.8.11"
 minicbor = { version = "0.15.0", features = ["derive"] }
 lol_html = "0.3"
 bit-set = "0.5"
@@ -46,10 +40,3 @@ twelf = { version = "0.5", default-features = false, features = [
 portpicker = "0.1"
 actix-web = "4"
 actix-files = "0.6"
-
-[dev-dependencies]
-json_dotpath = "1.1.0"
-async-trait = "0.1"
-cucumber = "0.13"
-tempfile = "3.0.2"
-chromiumoxide = "0.3"
