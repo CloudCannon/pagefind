@@ -60,6 +60,13 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
 
+      - name: Install humane
+        uses: jaxxstorm/action-install-gh-release@v1.5.0
+        with:
+          repo: cloudcannon/humane
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build WASM
         working-directory: ./pagefind_web
         run: ./local_build.sh
@@ -82,4 +89,4 @@ jobs:
 
       - name: Test CLI
         working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind npx -y humane
+        run: TEST_BINARY=../target/release/pagefind humane

@@ -161,6 +161,13 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
 
+      - name: Install humane
+        uses: jaxxstorm/action-install-gh-release@v1.5.0
+        with:
+          repo: cloudcannon/humane
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
@@ -211,7 +218,7 @@ jobs:
 
       - name: Test CLI
         working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind npx -y humane
+        run: TEST_BINARY=../target/release/pagefind humane
 
       - name: Build
         working-directory: ./pagefind
