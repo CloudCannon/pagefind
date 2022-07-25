@@ -90,4 +90,4 @@ jobs:
 
       - name: Test CLI
         working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind humane
+        run: TEST_BINARY=../target/release/pagefind /tmp/humane
