@@ -164,7 +164,7 @@ jobs:
       - name: Install humane
         uses: XAMPPRocky/get-github-release@v1
         with:
-          matches: unknown-linux-musl
+          matches: ${{matrix.target}}
           owner: cloudcannon
           repo: humane
           token: "${{ secrets.GITHUB_TOKEN }}"
