@@ -61,11 +61,12 @@ jobs:
         uses: browser-actions/setup-chrome@latest
 
       - name: Install humane
-        uses: jaxxstorm/action-install-gh-release@v1.5.0
+        uses: XAMPPRocky/get-github-release@v1
         with:
-          repo: cloudcannon/humane
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          matches: unknown-linux-musl
+          owner: cloudcannon
+          repo: humane
+          token: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Build WASM
         working-directory: ./pagefind_web
