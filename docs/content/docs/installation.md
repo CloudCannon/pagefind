@@ -8,7 +8,7 @@ weight: 49
 
 Pagefind is a static binary with no dynamic dependencies, so in most cases will be simple to install and run.
 
-> Pagefind does not yet have a prebult Windows binary available.
+> Pagefind does not yet have a prebuilt Windows binary available.
 
 ## Running via npx
 
