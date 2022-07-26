@@ -1,5 +1,7 @@
 <script>
+    export let show_images = true;
     export let result = { data: async () => {} };
+
     const skipMeta = ["title", "image", "image_alt"];
 
     let data;
@@ -20,15 +22,17 @@
 
 <li class="pagefind-ui__result">
     {#if data}
-        <div class="pagefind-ui__result-thumb">
-            {#if data.meta.image}
-                <img
-                    class="pagefind-ui__result-image"
-                    src={data.meta?.image}
-                    alt={data.meta?.image_alt || data.meta?.title}
-                />
-            {/if}
-        </div>
+        {#if show_images}
+            <div class="pagefind-ui__result-thumb">
+                {#if data.meta.image}
+                    <img
+                        class="pagefind-ui__result-image"
+                        src={data.meta?.image}
+                        alt={data.meta?.image_alt || data.meta?.title}
+                    />
+                {/if}
+            </div>
+        {/if}
         <div class="pagefind-ui__result-inner">
             <p class="pagefind-ui__result-title">
                 <a class="pagefind-ui__result-link" href={data.url}
@@ -49,7 +53,9 @@
             {/if}
         </div>
     {:else}
-        <div class="pagefind-ui__result-thumb pagefind-ui__loading" />
+        {#if show_images}
+            <div class="pagefind-ui__result-thumb pagefind-ui__loading" />
+        {/if}
         <div class="pagefind-ui__result-inner">
             <p class="pagefind-ui__result-title pagefind-ui__loading">
                 {placeholder(30)}

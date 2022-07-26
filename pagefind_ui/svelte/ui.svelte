@@ -5,6 +5,7 @@
 
     export let base_path = "/_pagefind/";
     export let reset_styles = true;
+    export let show_images = true;
     export let pagefind_options = {};
 
     let val = "";
@@ -130,7 +131,7 @@
                         </p>
                         <ol class="pagefind-ui__results">
                             {#each searchResult.results.slice(0, show) as result (result.id)}
-                                <Result {result} />
+                                <Result {show_images} {result} />
                             {/each}
                         </ol>
                         {#if searchResult.results.length > show}
