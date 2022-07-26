@@ -68,6 +68,17 @@ new PagefindUI({ element: "#search" });
 
 A selector for the HTML element to attach Pagefind UI to. This is the only required argument.
 
+### Show images
+
+```javascript
+new PagefindUI({
+    element: "#search",
+    showImages: false
+});
+```
+
+Whether to show an image alongside each search result. Defaults to `true`.
+
 ### Reset styles
 
 ```javascript
