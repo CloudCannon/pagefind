@@ -50,6 +50,7 @@ struct DomParserData {
     current_node: Rc<RefCell<DomParsingNode>>,
     filters: HashMap<String, Vec<String>>,
     meta: HashMap<String, String>,
+    default_meta: HashMap<String, String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -82,6 +83,7 @@ struct DomParsingNode {
     parent: Option<Rc<RefCell<DomParsingNode>>>,
     filter: Option<Vec<String>>,
     meta: Option<Vec<String>>,
+    default_meta: Option<Vec<String>>,
     status: NodeStatus,
 }
 
@@ -127,6 +129,7 @@ impl<'a> DomParser<'a> {
                         let treat_as_body = el.has_attribute("data-pagefind-body");
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
+                        let default_meta = el.get_attribute("data-pagefind-default-meta").map(|attr| parse_attr_string(attr, el));
                         let index_attrs: Option<Vec<String>> = el.get_attribute("data-pagefind-index-attrs").map(|attr| attr.split(',').map(|a| a.trim().to_string()).collect());
                         let tag_name = el.tag_name();
 
@@ -171,6 +174,7 @@ impl<'a> DomParser<'a> {
                                 },
                                 filter,
                                 meta,
+                                default_meta,
                                 ..DomParsingNode::default()
                             }));
 
@@ -215,6 +219,13 @@ impl<'a> DomParser<'a> {
                                 for meta in metas {
                                     if let Some((meta, value)) = node.get_attribute_pair(meta) {
                                         data.meta.insert(meta, value);
+                                    }
+                                }
+                            }
+                            if let Some(metas) = &node.default_meta {
+                                for meta in metas {
+                                    if let Some((meta, value)) = node.get_attribute_pair(meta) {
+                                        data.default_meta.insert(meta, value);
                                     }
                                 }
                             }
@@ -323,6 +334,13 @@ impl<'a> DomParser<'a> {
                                     }
                                 }
                             }
+                            if let Some(metas) = &node.default_meta {
+                                for meta in metas {
+                                    if let Some((meta, value)) = node.get_attribute_pair(meta) {
+                                        data.default_meta.insert(meta, value);
+                                    }
+                                }
+                            }
 
                             // Try to capture the first image _after_ a title (if unset)
                             if tag_name == "img"
@@ -406,11 +424,14 @@ impl<'a> DomParser<'a> {
             }
         }
 
+        // Merge the collected metadata over top of the defaults, if any
+        data.default_meta.extend(data.meta);
+
         let node = node.borrow();
         DomParserResult {
             digest: normalize_content(&node.current_value),
             filters: data.filters,
-            meta: data.meta,
+            meta: data.default_meta,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
         }
     }

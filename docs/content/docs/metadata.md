@@ -8,9 +8,9 @@ weight: 6
 
 Pagefind supports returning custom metadata alongside search results with the `data-pagefind-meta` attribute.
 
-## Default metadata
+## Automatic metadata
 
-Pagefind will return some default metadata about each page:
+Pagefind will return some automatic metadata about each page:
 
 - `title` will contain the contents of the first `h1` on the page
 - `image` will contain the `src` of the first `img` that follows the `h1`
@@ -75,10 +75,22 @@ This will generate the metadata:
 }
 ```
 
+## Defining default metadata
+
+All of the above tags can also be supplied as a `data-pagefind-default-meta` attribute. All logic is the same, except that automatic metadata and any `data-pagefind-meta` attributes will take priority.
+
+For example, to fall back to a social image if no image is found on the page:
+
+```html
+<head>
+    <meta data-pagefind-default-meta="image[content]" content="/social.png" property="og:image">
+</head>
+```
+
 ## Notes
 
-> The `data-pagefind-meta` attribute does not need to be within the `<body>`, or the `data-pagefind-body` tag. This includes default metadata, which will be found even if outside the `data-pagefind-body` tag.
+> The `data-pagefind-meta` attribute does not need to be within the `<body>`, or the `data-pagefind-body` tag. This includes automatic metadata, which will be found even if outside the `data-pagefind-body` tag.
 
 > The `data-pagefind-meta` attribute will still apply if set on or within a `data-pagefind-ignore` element.
 
-> `image_alt` will not be automatically set if you define your own `image` metadata key. If defining your own metadata, `data-pagefind-meta="image[src], image_alt[alt]"` will retrieve both values.
+> `image_alt` will not be automatically set if you define your own `image` metadata key. If defining your own metadata on an `img` element, `data-pagefind-meta="image[src], image_alt[alt]"` will retrieve both values.

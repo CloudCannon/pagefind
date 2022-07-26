@@ -1,4 +1,4 @@
-Feature: Fragments
+Feature: Metadata
     Background:
         Given I have the environment variables:
             | PAGEFIND_SOURCE | public |
@@ -7,6 +7,7 @@ Feature: Fragments
             <p data-result>Nothing</p>
             <p data-result-two>Nothing</p>
             """
+        # Covering all filter and metadata syntaxes
         Given I have a "public/cat/index.html" file with the content:
             """
             <html>
@@ -23,6 +24,21 @@ Feature: Fragments
                 <p>A post about the 'felines'</p>
                 <p>This post has some <span data-pagefind-meta="adjective">gnarly</span> things to test the fragment formatting.</p>
                 <img data-pagefind-meta="footer[src], footer_alt[alt]" src="/cat-footer.png" alt="cat footer picture" />
+            </body>
+            </html>
+            """
+        # Covering metadata heirarchy
+        Given I have a "public/dog/index.html" file with the content:
+            """
+            <html>
+            <head>
+                <meta data-pagefind-default-meta="image[content]" content="/puppy.jpg" property="og:image">
+                <title data-pagefind-default-meta="title">Website | Dogs</title>
+            </head>
+            <body>
+                <h1>Dog Post.</h1>
+                <span data-pagefind-meta="animal">dog</span>
+                <span data-pagefind-default-meta="animal,vegetable,mineral">generic</span>
             </body>
             </html>
             """
@@ -124,3 +140,24 @@ Feature: Fragments
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "/cat-footer.png — cat footer picture"
+
+    Scenario: Default metadata can be defined
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("dog");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-result]').innerText = [
+                    data.meta.title,
+                    data.meta.image,
+                    data.meta.animal,
+                    data.meta.vegetable,
+                    data.meta.mineral,
+                ].join(' | ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "Dog Post. | /puppy.jpg | dog | generic | generic"
