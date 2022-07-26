@@ -15,11 +15,13 @@ class PagefindUI {
         let selector = opts.element ?? "[data-pagefind-ui]";
         let bundlePath = opts.bundlePath ?? scriptBundlePath;
         let resetStyles = opts.resetStyles ?? true;
+        let showEmptyFilters = opts.showEmptyFilters ?? true;
 
         // Remove the UI-specific config before passing it along to the Pagefind backend
         delete opts["element"];
         delete opts["bundlePath"];
         delete opts["resetStyles"];
+        delete opts["showEmptyFilters"];
 
         const dom = document.querySelector(selector);
         if (dom) {
@@ -28,6 +30,7 @@ class PagefindUI {
                 props: {
                     base_path: bundlePath,
                     reset_styles: resetStyles,
+                    show_empty_filters: showEmptyFilters,
                     pagefind_options: opts,
                 }
             })

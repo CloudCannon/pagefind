@@ -1,5 +1,6 @@
 <script>
     export let available_filters = null;
+    export let show_empty_filters = true;
     export const selected_filters = {};
 
     let initialized = false;
@@ -34,28 +35,30 @@
                             >{filter}</legend
                         >
                         {#each Object.entries(values) as [value, count]}
-                            <div
-                                class="pagefind-ui__filter-value"
-                                class:pagefind-ui__filter-value--checked={selected_filters[
-                                    `${filter}:${value}`
-                                ]}
-                            >
-                                <input
-                                    class="pagefind-ui__filter-checkbox"
-                                    type="checkbox"
-                                    id="{filter}-{value}"
-                                    name={filter}
-                                    bind:checked={selected_filters[
+                            {#if show_empty_filters || count || selected_filters[`${filter}:${value}`]}
+                                <div
+                                    class="pagefind-ui__filter-value"
+                                    class:pagefind-ui__filter-value--checked={selected_filters[
                                         `${filter}:${value}`
                                     ]}
-                                    {value}
-                                />
-                                <label
-                                    class="pagefind-ui__filter-label"
-                                    for="{filter}-{value}"
-                                    >{value} ({count})</label
                                 >
-                            </div>
+                                    <input
+                                        class="pagefind-ui__filter-checkbox"
+                                        type="checkbox"
+                                        id="{filter}-{value}"
+                                        name={filter}
+                                        bind:checked={selected_filters[
+                                            `${filter}:${value}`
+                                        ]}
+                                        {value}
+                                    />
+                                    <label
+                                        class="pagefind-ui__filter-label"
+                                        for="{filter}-{value}"
+                                        >{value} ({count})</label
+                                    >
+                                </div>
+                            {/if}
                         {/each}
                     </fieldset>
                 </details>

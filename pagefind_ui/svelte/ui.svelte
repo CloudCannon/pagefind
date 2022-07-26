@@ -5,6 +5,7 @@
 
     export let base_path = "/_pagefind/";
     export let reset_styles = true;
+    export let show_empty_filters = true;
     export let pagefind_options = {};
 
     let val = "";
@@ -101,7 +102,11 @@
 
         <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
             {#if initializing}
-                <Filters {available_filters} bind:selected_filters />
+                <Filters
+                    {show_empty_filters}
+                    {available_filters}
+                    bind:selected_filters
+                />
             {/if}
 
             {#if searched}

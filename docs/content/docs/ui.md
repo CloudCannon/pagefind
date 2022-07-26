@@ -60,6 +60,17 @@ new PagefindUI({ element: "#search" });
 
 A selector for the HTML element to attach Pagefind UI to. This is the only required argument.
 
+### Show empty filters
+
+```javascript
+new PagefindUI({
+    element: "#search",
+    showEmptyFilters: true
+});
+```
+
+By default, Pagefind UI shows filters with no results alongside the count (0). Pass `false` to hide filters that have no remaining results.
+
 ### Reset styles
 
 ```javascript
