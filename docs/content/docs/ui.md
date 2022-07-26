@@ -48,6 +48,14 @@ Pagefind UI can be styled manually by omitting the `/_pagefind/pagefind-ui.css` 
 
 The classnames within Pagefind UI that begin with `pagefind-ui` should be targeted. These may change, so if you are styling them yourself make sure to test new releases of Pagefind with your stylesheet. Changes to classnames will be highlighted in the release notes, but will not be signalled by a major release.
 
+## Overriding the URL of a result
+
+The Pagefind UI will look for a value under the metadata key `url`, and use that for result links if present. This allows you to override the URL of a single page by tagging metadata on that page, for example:
+
+```html
+<link data-pagefind-meta="url[href]" rel="canonical" href="https://example.com/other-url">
+```
+
 ## PagefindUI options
 
 These options configure Pagefind UI itself. Any extra keys in this object will be passed on to [configure the Pagefind search API](/docs/search-config/).

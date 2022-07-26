@@ -1,6 +1,6 @@
 <script>
     export let result = { data: async () => {} };
-    const skipMeta = ["title", "image", "image_alt"];
+    const skipMeta = ["title", "image", "image_alt", "url"];
 
     let data;
     let meta = [];
@@ -31,8 +31,9 @@
         </div>
         <div class="pagefind-ui__result-inner">
             <p class="pagefind-ui__result-title">
-                <a class="pagefind-ui__result-link" href={data.url}
-                    >{data.meta?.title}</a
+                <a
+                    class="pagefind-ui__result-link"
+                    href={data.meta?.url || data.url}>{data.meta?.title}</a
                 >
             </p>
             <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
