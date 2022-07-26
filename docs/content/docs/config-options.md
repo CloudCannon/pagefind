@@ -44,3 +44,9 @@ Note that filters and metadata outside of this selector will **not** be detected
 |-------------------------|--------------------------|-----------------|
 | `--root-selector <DIR>` | `PAGEFIND_ROOT_SELECTOR` | `root_selector` |
 
+### Glob
+Configures the glob used by Pagefind to discover HTML files. Defaults to `**/*.{html}`.
+
+| CLI Flag        | ENV Variable    | Config Key |
+|-----------------|-----------------|------------|
+| `--glob <GLOB>` | `PAGEFIND_GLOB` | `glob`     |

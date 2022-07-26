@@ -93,3 +93,35 @@ Feature: Build Options
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "Hello, Hello. Ignored is undefined."
+
+    Scenario: File glob can be configured
+        Given I have a "public/index.html" file with the body:
+            """
+            <p data-url>Nothing</p>
+            """
+        Given I have a "public/cat/index.htm" file with the body:
+            """
+            <h1>world</h1>
+            """
+        Given I have a "pagefind.yml" file with the content:
+            """
+            glob: "**/*.{htm,html}"
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("world");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-url]').innerText = data.url;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/cat/index.htm"
