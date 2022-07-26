@@ -34,6 +34,7 @@ const build = async () => {
             sveltePlugin({ compileOptions: { css: false } }),
             sveltefixPlugin
         ],
+        minify: true,
         loader: {},
         define: {},
         bundle: true,
