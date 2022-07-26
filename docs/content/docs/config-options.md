@@ -1,9 +1,9 @@
 ---
 date: 2022-06-01
 title: "Configuring the Pagefind CLI"
-nav_title: "Configuration options"
-nav_section: Running Pagefind
-weight: 51
+nav_title: "Pagefind CLI config"
+nav_section: Installing
+weight: 3
 ---
 
 The Pagefind CLI has the following options:

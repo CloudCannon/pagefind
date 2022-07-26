@@ -2,8 +2,8 @@
 date: 2022-06-01
 title: "Installing and running Pagefind"
 nav_title: "Installation"
-nav_section: Running Pagefind
-weight: 49
+nav_section: Installing
+weight: 1
 ---
 
 Pagefind is a static binary with no dynamic dependencies, so in most cases will be simple to install and run.

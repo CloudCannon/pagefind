@@ -1,9 +1,9 @@
 ---
 date: 2022-06-01
 title: "Pagefind CLI configuration sources"
-nav_title: "Configuration sources"
-nav_section: Running Pagefind
-weight: 50
+nav_title: "Config sources"
+nav_section: Installing
+weight: 2
 ---
 
 Pagefind can be configured through CLI flags, environment variables, or configuration files. Values will be merged from all sources, with CLI flags overriding environment variables, and environment variables overriding configuration files.

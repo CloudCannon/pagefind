@@ -73,7 +73,7 @@ class Pagefind {
             compressed_wasm = await compressed_wasm.arrayBuffer();
             this.wasm = await this.backend(this.decompress(new Uint8Array(compressed_wasm), "Pagefind WebAssembly"));
         } catch (e) {
-            console.error(`Failed to load the Pagefind WASM ${url}:\n${e.toString()}`);
+            console.error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
         }
     }
 
