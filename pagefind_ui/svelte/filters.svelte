@@ -1,6 +1,21 @@
 <script>
     export let available_filters = null;
     export const selected_filters = {};
+
+    let initialized = false;
+    let default_open = false;
+
+    $: if (available_filters && !initialized) {
+        initialized = true;
+        let filters = Object.entries(available_filters);
+        if (filters.length === 1) {
+            let values = Object.entries(filters[0][1]);
+            if (values.length <= 6) {
+                // No need to hide a single filter group with only a few options
+                default_open = true;
+            }
+        }
+    }
 </script>
 
 {#if !available_filters || Object.entries(available_filters).length}
@@ -8,7 +23,7 @@
         <legend class="pagefind-ui__filter-panel-label">Filters</legend>
         {#if available_filters}
             {#each Object.entries(available_filters) as [filter, values]}
-                <details class="pagefind-ui__filter-block">
+                <details class="pagefind-ui__filter-block" open={default_open}>
                     <summary class="pagefind-ui__filter-name"
                         >{filter.replace(/^(\w)/, (c) =>
                             c.toLocaleUpperCase()
