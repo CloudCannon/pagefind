@@ -28,13 +28,20 @@ impl SearchState {
 
     pub async fn walk_for_files(&mut self) {
         println!("Walking source directory...");
-        let glob = Glob::new("**/*.{html}").unwrap();
-        self.files = glob
-            .walk(&self.options.source, usize::MAX)
-            .filter_map(Result::ok)
-            .map(WalkEntry::into_path)
-            .map(Fossicker::new)
-            .collect()
+        if let Ok(glob) = Glob::new(&self.options.glob) {
+            self.files = glob
+                .walk(&self.options.source, usize::MAX)
+                .filter_map(Result::ok)
+                .map(WalkEntry::into_path)
+                .map(Fossicker::new)
+                .collect()
+        } else {
+            eprintln!(
+                "Error: Provided glob \"{}\" did not parse as a valid glob.",
+                self.options.glob
+            );
+            std::process::exit(1);
+        }
     }
 
     pub async fn run(&mut self) {
