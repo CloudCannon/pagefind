@@ -57,7 +57,7 @@ const stubbed_results = [
             meta: {
                 title: `TERM the llama`,
                 image: "https://placekitten.com/900/600",
-                name: "Steve"
+                name: "Steve &ndash; nice person"
             },
             word_count: 100,
             excerpt: `Nullam id dolor id nibh ultricies TERM vehicula ut id elit.`
@@ -135,6 +135,7 @@ const stubbed_filters = (max) => {
             Red: num(max),
             Blue: num(max),
             Green: num(max),
+            "Amb&#39;er": num(max),
         },
         type: {
             Blog: num(max),
