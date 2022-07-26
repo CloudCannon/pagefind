@@ -44,7 +44,21 @@ If you have a component that you don't want to include in your search index, you
 </main>
 ```
 
-> Filters and Metadata will still be used if placed within a `data-pagefind-ignore` element.
+The `data-pagefind-ignore` attribute can optionally take a value of `index` or `all`. Omitting a value implies `index`, which will exclude the element and all children from the search index, but will still process filters and metadata within the element, and will still try to detect a default title or image found within this element.
+
+Specifying `all` will exclude the element and its children from all processing.
+
+```html
+<aside data-pagefind-ignore>
+    <h1>This might still be detected as the page title</h1>
+    <p data-pagefind-meta="a">This metadata will still appear in search results.</p>
+</aside>
+
+<aside data-pagefind-ignore="all">
+    <h1>This cannot be detected as the page title</h1>
+    <p data-pagefind-meta="b">This metadata will not be processed.</p>
+</aside>
+```
 
 ## Indexing attributes
 
