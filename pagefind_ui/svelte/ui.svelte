@@ -6,6 +6,7 @@
     export let base_path = "/_pagefind/";
     export let reset_styles = true;
     export let show_images = true;
+    export let show_empty_filters = true;
     export let pagefind_options = {};
 
     let val = "";
@@ -57,9 +58,8 @@
 
     const search = async (term, raw_filters) => {
         const filters = parseSelectedFilters(raw_filters);
-        if (!term && !Object.keys(filters).length) {
+        if (!term) {
             searched = false;
-            available_filters = initial_filters;
             return;
         }
         search_term = term || "";
@@ -101,12 +101,16 @@
             placeholder="Search"
         />
 
-        <div class="pagefind-ui__drawer">
-            {#if searched}
-                {#if initializing}
-                    <Filters {available_filters} bind:selected_filters />
-                {/if}
+        <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
+            {#if initializing}
+                <Filters
+                    {show_empty_filters}
+                    {available_filters}
+                    bind:selected_filters
+                />
+            {/if}
 
+            {#if searched}
                 <div class="pagefind-ui__results-area">
                     {#if loading}
                         {#if search_term}
@@ -211,6 +215,9 @@
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
+    }
+    .pagefind-ui__hidden {
+        display: none;
     }
     .pagefind-ui__results-area {
         min-width: min(calc(400px * var(--pagefind-ui-scale)), 100%);

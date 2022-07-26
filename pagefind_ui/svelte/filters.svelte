@@ -1,6 +1,22 @@
 <script>
     export let available_filters = null;
+    export let show_empty_filters = true;
     export const selected_filters = {};
+
+    let initialized = false;
+    let default_open = false;
+
+    $: if (available_filters && !initialized) {
+        initialized = true;
+        let filters = Object.entries(available_filters);
+        if (filters.length === 1) {
+            let values = Object.entries(filters[0][1]);
+            if (values.length <= 6) {
+                // No need to hide a single filter group with only a few options
+                default_open = true;
+            }
+        }
+    }
 </script>
 
 {#if !available_filters || Object.entries(available_filters).length}
@@ -8,7 +24,7 @@
         <legend class="pagefind-ui__filter-panel-label">Filters</legend>
         {#if available_filters}
             {#each Object.entries(available_filters) as [filter, values]}
-                <details class="pagefind-ui__filter-block">
+                <details class="pagefind-ui__filter-block" open={default_open}>
                     <summary class="pagefind-ui__filter-name"
                         >{@html filter.replace(/^(\w)/, (c) =>
                             c.toLocaleUpperCase()
@@ -19,28 +35,30 @@
                             >{@html filter}</legend
                         >
                         {#each Object.entries(values) as [value, count]}
-                            <div
-                                class="pagefind-ui__filter-value"
-                                class:pagefind-ui__filter-value--checked={selected_filters[
-                                    `${filter}:${value}`
-                                ]}
-                            >
-                                <input
-                                    class="pagefind-ui__filter-checkbox"
-                                    type="checkbox"
-                                    id="{filter}-{value}"
-                                    name={filter}
-                                    bind:checked={selected_filters[
+                            {#if show_empty_filters || count || selected_filters[`${filter}:${value}`]}
+                                <div
+                                    class="pagefind-ui__filter-value"
+                                    class:pagefind-ui__filter-value--checked={selected_filters[
                                         `${filter}:${value}`
                                     ]}
-                                    {value}
-                                />
-                                <label
-                                    class="pagefind-ui__filter-label"
-                                    for="{filter}-{value}"
-                                    >{@html value} ({count})</label
                                 >
-                            </div>
+                                    <input
+                                        class="pagefind-ui__filter-checkbox"
+                                        type="checkbox"
+                                        id="{filter}-{value}"
+                                        name={filter}
+                                        bind:checked={selected_filters[
+                                            `${filter}:${value}`
+                                        ]}
+                                        {value}
+                                    />
+                                    <label
+                                        class="pagefind-ui__filter-label"
+                                        for="{filter}-{value}"
+                                        >{@html value} ({count})</label
+                                    >
+                                </div>
+                            {/if}
                         {/each}
                     </fieldset>
                 </details>

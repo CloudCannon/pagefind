@@ -79,6 +79,17 @@ new PagefindUI({
 
 Whether to show an image alongside each search result. Defaults to `true`.
 
+### Show empty filters
+
+```javascript
+new PagefindUI({
+    element: "#search",
+    showEmptyFilters: true
+});
+```
+
+By default, Pagefind UI shows filters with no results alongside the count (0). Pass `false` to hide filters that have no remaining results.
+
 ### Reset styles
 
 ```javascript
