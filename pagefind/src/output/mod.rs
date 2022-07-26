@@ -141,6 +141,7 @@ async fn write(
         Compress::GZ => {
             let mut gz = GzEncoder::new(Vec::new(), Compression::best());
             for chunk in contents {
+                gz.write_all(b"pagefind_dcd").unwrap();
                 gz.write_all(chunk).unwrap();
             }
             if let Ok(bytes) = gz.finish() {

@@ -11,6 +11,7 @@ class Pagefind {
         this.loaded_fragments = {};
         this.basePath = "/_pagefind/";
         this.baseUrl = "/";
+        this.decoder = new TextDecoder('utf-8');
         this.init();
     }
 
@@ -38,6 +39,20 @@ class Pagefind {
         this.raw_ptr = this.backend.init_pagefind(new Uint8Array(this.searchMeta));
     }
 
+    decompress(data, file = "unknown file") {
+        if (this.decoder.decode(data.slice(0, 12)) === "pagefind_dcd") {
+            // File is already decompressed
+            return data.slice(12);
+        }
+        data = gunzip(data);
+        if (this.decoder.decode(data.slice(0, 12)) !== "pagefind_dcd") {
+            // Decompressed file does not have the correct signature
+            console.error(`Decompressing ${file} appears to have failed: Missing signature`);
+            return data;
+        }
+        return data.slice(12);
+    }
+
     async loadMeta() {
         try {
             // We always load a fresh copy of the metadata,
@@ -46,7 +61,7 @@ class Pagefind {
             // TODO:     ^^^^^^^^^
             let compressed_meta = await fetch(`${this.basePath}pagefind.pf_meta?ts=${Date.now()}`);
             compressed_meta = await compressed_meta.arrayBuffer();
-            this.searchMeta = gunzip(new Uint8Array(compressed_meta));
+            this.searchMeta = this.decompress(new Uint8Array(compressed_meta), "Pagefind metadata");
         } catch (e) {
             console.error(`Failed to load the meta index:\n${e.toString()}`);
         }
@@ -56,7 +71,7 @@ class Pagefind {
         try {
             let compressed_wasm = await fetch(`${this.basePath}wasm.pagefind`);
             compressed_wasm = await compressed_wasm.arrayBuffer();
-            this.wasm = await this.backend(gunzip(new Uint8Array(compressed_wasm)));
+            this.wasm = await this.backend(this.decompress(new Uint8Array(compressed_wasm), "Pagefind WebAssembly"));
         } catch (e) {
             console.error(`Failed to load the Pagefind WASM ${url}:\n${e.toString()}`);
         }
@@ -66,7 +81,7 @@ class Pagefind {
         try {
             let compressed_chunk = await fetch(url);
             compressed_chunk = await compressed_chunk.arrayBuffer();
-            let chunk = gunzip(new Uint8Array(compressed_chunk));
+            let chunk = this.decompress(new Uint8Array(compressed_chunk), url);
 
             let ptr = await this.getPtr();
             this.raw_ptr = this.backend[method](ptr, chunk);
@@ -94,7 +109,7 @@ class Pagefind {
     async _loadFragment(hash) {
         let compressed_fragment = await fetch(`${this.basePath}fragment/${hash}.pf_fragment`);
         compressed_fragment = await compressed_fragment.arrayBuffer();
-        let fragment = gunzip(new Uint8Array(compressed_fragment));
+        let fragment = this.decompress(new Uint8Array(compressed_fragment), `Fragment ${hash}`);
         return JSON.parse(new TextDecoder().decode(fragment));
     }
 
