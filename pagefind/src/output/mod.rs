@@ -7,7 +7,7 @@ use crate::SearchOptions;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use futures::future::join_all;
-use minifier::{css, js};
+use minifier::js::minify;
 use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncWriteExt;
 use tokio::time::sleep;
@@ -22,12 +22,12 @@ const WEB_JS: &str = include_str!(concat!(
     env!("CARGO_PKG_VERSION"),
     ".js"
 ));
-const WEB_UI_JS: &str = include_str!(concat!(
+const WEB_UI_JS: &[u8] = include_bytes!(concat!(
     "../../vendor/pagefind_ui.",
     env!("CARGO_PKG_VERSION"),
     ".js"
 ));
-const WEB_UI_CSS: &str = include_str!(concat!(
+const WEB_UI_CSS: &[u8] = include_bytes!(concat!(
     "../../vendor/pagefind_ui.",
     env!("CARGO_PKG_VERSION"),
     ".css"
@@ -39,9 +39,7 @@ impl PagefindIndexes {
     pub async fn write_files(self, options: &SearchOptions) {
         let outdir = options.source.join(&options.bundle_dir);
 
-        let js = js::minify(&format!("{}\n{}\n{}", WEB_JS, GUNZIP_JS, SEARCH_JS));
-        let ui_js = js::minify(WEB_UI_JS);
-        let ui_css = css::minify(WEB_UI_CSS).expect("Pagefind CSS is invalid");
+        let js = minify(&format!("{}\n{}\n{}", WEB_JS, GUNZIP_JS, SEARCH_JS));
 
         let mut files = vec![
             write(
@@ -52,13 +50,13 @@ impl PagefindIndexes {
             ),
             write(
                 outdir.join("pagefind-ui.js"),
-                vec![ui_js.as_bytes()],
+                vec![WEB_UI_JS],
                 Compress::None,
                 WriteBehavior::None,
             ),
             write(
                 outdir.join("pagefind-ui.css"),
-                vec![ui_css.as_bytes()],
+                vec![WEB_UI_CSS],
                 Compress::None,
                 WriteBehavior::None,
             ),
