@@ -10,13 +10,13 @@
             {#each Object.entries(available_filters) as [filter, values]}
                 <details class="pagefind-ui__filter-block">
                     <summary class="pagefind-ui__filter-name"
-                        >{filter.replace(/^(\w)/, (c) =>
+                        >{@html filter.replace(/^(\w)/, (c) =>
                             c.toLocaleUpperCase()
                         )}</summary
                     >
                     <fieldset class="pagefind-ui__filter-group">
                         <legend class="pagefind-ui__filter-group-label"
-                            >{filter}</legend
+                            >{@html filter}</legend
                         >
                         {#each Object.entries(values) as [value, count]}
                             <div
@@ -38,7 +38,7 @@
                                 <label
                                     class="pagefind-ui__filter-label"
                                     for="{filter}-{value}"
-                                    >{value} ({count})</label
+                                    >{@html value} ({count})</label
                                 >
                             </div>
                         {/each}
