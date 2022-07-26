@@ -52,10 +52,14 @@ struct DomParserData {
     meta: HashMap<String, String>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum NodeStatus {
     Indexing,
+    // Our content & children should not be index
     Ignored,
+    // Our content & children should be excluded entirely
+    // (including meta / filters)
+    Excluded,
     Body,
     // There was a body element below us,
     // so our content should be ignored.
@@ -110,7 +114,16 @@ impl<'a> DomParser<'a> {
             Settings {
                 element_content_handlers: vec![
                     enclose! { (data) element!(root, move |el| {
-                        let should_ignore_el = el.has_attribute("data-pagefind-ignore") || REMOVE_SELECTORS.contains(&el.tag_name().as_str());
+                        let explicit_ignore_flag = el.get_attribute("data-pagefind-ignore").map(|attr| {
+                            match attr.to_ascii_lowercase().as_str() {
+                                "" | "index" => NodeStatus::Ignored,
+                                "all" => NodeStatus::Excluded,
+                                _ => {
+                                    eprintln!("data-pagefind-ignore value of \"{}\" is not valid. Expected no value, or one of: [index, all]. Assuming 'all' and excluding this element entirely.", attr);
+                                    NodeStatus::Excluded
+                                }
+                            }
+                        });
                         let treat_as_body = el.has_attribute("data-pagefind-body");
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
@@ -119,40 +132,51 @@ impl<'a> DomParser<'a> {
 
                         let status = if treat_as_body {
                             NodeStatus::Body
-                        } else if should_ignore_el {
+                        } else if let Some(explicit_ignore_flag) = explicit_ignore_flag {
+                            explicit_ignore_flag
+                        } else if REMOVE_SELECTORS.contains(&el.tag_name().as_str()) {
                             NodeStatus::Ignored
                         } else {
                             NodeStatus::Indexing
                         };
 
-                        let node = Rc::new(RefCell::new(DomParsingNode{
-                            parent: Some(Rc::clone(&data.borrow().current_node)),
-                            status,
-                            filter,
-                            meta,
-                            ..DomParsingNode::default()
-                        }));
-
-                        if let Some(attrs) = index_attrs {
-                            let parent = &data.borrow().current_node;
-                            for attr in attrs {
-                                let mut value = el.get_attribute(attr.trim()).unwrap_or_default();
-                                if value.chars()
-                                    .last()
-                                    .filter(|c| SENTENCE_CHARS.is_match(&c.to_string()))
-                                    .is_some() {
-                                        value.push('.');
-                                    }
-                                parent.borrow_mut().current_value.push(' ');
-                                parent.borrow_mut().current_value.push_str(&value);
-                                parent.borrow_mut().current_value.push(' ');
+                        if status != NodeStatus::Excluded {
+                            if let Some(attrs) = index_attrs {
+                                let parent = &data.borrow().current_node;
+                                for attr in attrs {
+                                    let mut value = el.get_attribute(attr.trim()).unwrap_or_default();
+                                    if value.chars()
+                                        .last()
+                                        .filter(|c| SENTENCE_CHARS.is_match(&c.to_string()))
+                                        .is_some() {
+                                            value.push('.');
+                                        }
+                                    let mut parent = parent.borrow_mut();
+                                    parent.current_value.push(' ');
+                                    parent.current_value.push_str(&value);
+                                    parent.current_value.push(' ');
+                                }
                             }
                         }
 
-                        {
+                        let node = {
                             let mut data = data.borrow_mut();
+                            let parent_status = data.current_node.borrow().status;
+
+                            let node = Rc::new(RefCell::new(DomParsingNode{
+                                parent: Some(Rc::clone(&data.current_node)),
+                                status: match parent_status {
+                                    NodeStatus::Excluded => parent_status,
+                                    _ => status,
+                                },
+                                filter,
+                                meta,
+                                ..DomParsingNode::default()
+                            }));
+
                             data.current_node = Rc::clone(&node);
-                        }
+                            node
+                        };
 
                         let can_have_content = el.on_end_tag(enclose! { (data, node, tag_name) move |end| {
                             let mut data = data.borrow_mut();
@@ -162,6 +186,12 @@ impl<'a> DomParser<'a> {
                             // make sure to move focus back to the parent node.
                             if let Some(parent) = &node.parent {
                                 data.current_node = Rc::clone(parent);
+                            }
+
+                            // For fully-excluded elements, we want to bail before we
+                            // even get to filters or metadata.
+                            if node.status == NodeStatus::Excluded {
+                                return Ok(());
                             }
 
                             // Process filters & meta before we continue
@@ -235,7 +265,7 @@ impl<'a> DomParser<'a> {
                                 return Ok(());
                             }
                             match node.status {
-                                NodeStatus::Ignored => {},
+                                NodeStatus::Ignored | NodeStatus::Excluded => {},
                                 NodeStatus::Indexing => {
                                     parent.current_value.push_str(&node.current_value);
                                 },
@@ -261,6 +291,12 @@ impl<'a> DomParser<'a> {
                             let node = node.borrow();
                             if let Some(parent) = &node.parent {
                                 data.current_node = Rc::clone(parent);
+                            }
+
+                            // For fully-excluded elements, we want to bail before we
+                            // even get to filters or metadata.
+                            if node.status == NodeStatus::Excluded {
+                                return Ok(());
                             }
 
                             // Process filters & meta before we continue
@@ -338,7 +374,7 @@ impl<'a> DomParser<'a> {
                 let mut parent = node.parent.as_ref().unwrap().borrow_mut();
                 if parent.status != NodeStatus::ParentOfBody {
                     match node.status {
-                        NodeStatus::Ignored => {}
+                        NodeStatus::Ignored | NodeStatus::Excluded => {}
                         NodeStatus::Indexing => {
                             parent.current_value.push_str(&node.current_value);
                         }
