@@ -22,3 +22,5 @@ A [proposal exists](https://github.com/WebAssembly/content-security-policy/blob/
 
 > In the future, hopefully a `wasm-src` attribute / SRI hash validation will be supported in CSP, as proposed in [chrome#961485](https://bugs.chromium.org/p/chromium/issues/detail?id=961485), [chrome#945121](https://bugs.chromium.org/p/chromium/issues/detail?id=945121).  
 [Open an issue](https://github.com/CloudCannon/pagefind/issues) if this is now the case!
+
+If you're using the Pagefind UI snippet as documented you will also need `unsafe-inline`, but this could also be addressed by moving the Pagefind initialization into one of your existing javascript files.
