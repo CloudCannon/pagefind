@@ -102,6 +102,9 @@
         cursor: pointer;
         height: calc(24px * var(--pagefind-ui-scale));
     }
+    .pagefind-ui__filter-name::-webkit-details-marker {
+        display: none;
+    }
     .pagefind-ui__filter-name::after {
         position: absolute;
         content: "";
