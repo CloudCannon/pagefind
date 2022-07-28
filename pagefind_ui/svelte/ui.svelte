@@ -81,7 +81,8 @@
         }
     };
 
-    const showMore = () => {
+    const showMore = (e) => {
+        e?.preventDefault();
         show += 5;
     };
 </script>
@@ -92,6 +93,7 @@
         role="search"
         aria-label="Search this site"
         action="javascript:void(0);"
+        on:submit={(e) => e.preventDefault()}
     >
         <input
             class="pagefind-ui__search-input"
@@ -140,6 +142,7 @@
                         </ol>
                         {#if searchResult.results.length > show}
                             <button
+                                type="button"
                                 class="pagefind-ui__button"
                                 on:click={showMore}>Load more results</button
                             >
