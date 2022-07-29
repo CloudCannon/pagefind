@@ -190,9 +190,10 @@ class Pagefind {
         const log = str => { if (options.verbose) console.log(str) };
         let start = Date.now();
         let ptr = await this.getPtr();
-        // Strip special characters to match the indexing operation
         let exact_search = /^\s*".+"\s*$/.test(term);
-        term = term.toLowerCase().trim().replace(/[^\w\s]/g, "").replace(/\s{2,}/g, " ").trim();
+        // Strip special characters to match the indexing operation
+        // TODO: Maybe move regex over the wasm boundary, or otherwise work to match the Rust regex engine
+        term = term.toLowerCase().trim().replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?]/g, "").replace(/\s{2,}/g, " ").trim();
 
         let filter_list = [];
         for (let [filter, values] of Object.entries(options.filters)) {
