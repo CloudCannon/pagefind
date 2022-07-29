@@ -35,21 +35,28 @@ async function getTarget() {
 
     switch (os.platform()) {
         case 'darwin':
-            return arch === 'arm64' ? 'aarch64-apple-darwin' :
-                'x86_64-apple-darwin';
-        case 'win32':
-            return arch === 'x64' ? 'x86_64-pc-windows-msvc' :
-                arch === 'arm' ? 'aarch64-pc-windows-msvc' :
-                    'i686-pc-windows-msvc';
+            return 'x86_64-apple-darwin';
+        // TODO: Once we build for M1 we can use a native binary.
+        // return arch === 'arm64' ? 'aarch64-apple-darwin' :
+        //     'x86_64-apple-darwin';
+
+        // TODO: We do not yet build for Windows
+        // case 'win32':
+        //     return arch === 'x64' ? 'x86_64-pc-windows-msvc' :
+        //         arch === 'arm' ? 'aarch64-pc-windows-msvc' :
+        //             'i686-pc-windows-msvc';
+
         case 'linux':
-            return arch === 'x64' ? 'x86_64-unknown-linux-musl' :
-                arch === 'arm' ? 'arm-unknown-linux-gnueabihf' :
-                    arch === 'armv7l' ? 'arm-unknown-linux-gnueabihf' :
-                        arch === 'arm64' ? await isMusl() ? 'aarch64-unknown-linux-musl' : 'aarch64-unknown-linux-gnu' :
-                            arch === 'ppc64' ? 'powerpc64le-unknown-linux-gnu' :
-                                arch === 's390x' ? 's390x-unknown-linux-gnu' :
-                                    'i686-unknown-linux-musl'
-        default: throw new Error('Unknown platform: ' + os.platform());
+            return 'x86_64-unknown-linux-musl';
+        // TODO: Support Linux distributions not covered by the x86 musl build
+        // return arch === 'x64' ? 'x86_64-unknown-linux-musl' :
+        //     arch === 'arm' ? 'arm-unknown-linux-gnueabihf' :
+        //         arch === 'armv7l' ? 'arm-unknown-linux-gnueabihf' :
+        //             arch === 'arm64' ? await isMusl() ? 'aarch64-unknown-linux-musl' : 'aarch64-unknown-linux-gnu' :
+        //                 arch === 'ppc64' ? 'powerpc64le-unknown-linux-gnu' :
+        //                     arch === 's390x' ? 's390x-unknown-linux-gnu' :
+        //                         'i686-unknown-linux-musl'
+        default: throw new Error('Unsupported platform: ' + os.platform());
     }
 }
 
