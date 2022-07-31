@@ -6,7 +6,7 @@ weight: 1
 ---
 Pagefind is a fully static search library that aims to perform well on large sites, while using as little of your users' bandwidth as possible, and without hosting any infrastructure.
 
-Pagefind runs after Hugo, Eleventy, Jekyll, Next, Astro, SvelteKit, or **any other SSG**. The installation process is always the same: Pagefind only requires a folder containing the built static files of your website, in most cases no configuration is needed to get started.
+Pagefind runs after Hugo, Eleventy, Jekyll, Next, Astro, SvelteKit, or **any other SSG**. The installation process is always the same: Pagefind only requires a folder containing the built static files of your website, so in most cases no configuration is needed to get started.
 
 After indexing, Pagefind adds a static search bundle to your built files, which exposes a JavaScript search API that can be used anywhere on your site. Pagefind also provides a prebuilt UI that can be used with no configuration (you can see the prebuilt UI at the top of this page).
 
