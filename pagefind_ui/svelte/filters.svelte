@@ -8,10 +8,10 @@
 
     $: if (available_filters && !initialized) {
         initialized = true;
-        let filters = Object.entries(available_filters);
+        let filters = Object.entries(available_filters || {});
         if (filters.length === 1) {
             let values = Object.entries(filters[0][1]);
-            if (values.length <= 6) {
+            if (values?.length <= 6) {
                 // No need to hide a single filter group with only a few options
                 default_open = true;
             }
@@ -34,7 +34,7 @@
                         <legend class="pagefind-ui__filter-group-label"
                             >{@html filter}</legend
                         >
-                        {#each Object.entries(values) as [value, count]}
+                        {#each Object.entries(values || {}) as [value, count]}
                             {#if show_empty_filters || count || selected_filters[`${filter}:${value}`]}
                                 <div
                                     class="pagefind-ui__filter-value"
