@@ -19,53 +19,49 @@
     }
 </script>
 
-{#if !available_filters || Object.entries(available_filters).length}
+{#if available_filters && Object.entries(available_filters).length}
     <fieldset class="pagefind-ui__filter-panel">
         <legend class="pagefind-ui__filter-panel-label">Filters</legend>
-        {#if available_filters}
-            {#each Object.entries(available_filters) as [filter, values]}
-                <details class="pagefind-ui__filter-block" open={default_open}>
-                    <summary class="pagefind-ui__filter-name"
-                        >{@html filter.replace(/^(\w)/, (c) =>
-                            c.toLocaleUpperCase()
-                        )}</summary
+        {#each Object.entries(available_filters) as [filter, values]}
+            <details class="pagefind-ui__filter-block" open={default_open}>
+                <summary class="pagefind-ui__filter-name"
+                    >{@html filter.replace(/^(\w)/, (c) =>
+                        c.toLocaleUpperCase()
+                    )}</summary
+                >
+                <fieldset class="pagefind-ui__filter-group">
+                    <legend class="pagefind-ui__filter-group-label"
+                        >{@html filter}</legend
                     >
-                    <fieldset class="pagefind-ui__filter-group">
-                        <legend class="pagefind-ui__filter-group-label"
-                            >{@html filter}</legend
-                        >
-                        {#each Object.entries(values || {}) as [value, count]}
-                            {#if show_empty_filters || count || selected_filters[`${filter}:${value}`]}
-                                <div
-                                    class="pagefind-ui__filter-value"
-                                    class:pagefind-ui__filter-value--checked={selected_filters[
+                    {#each Object.entries(values || {}) as [value, count]}
+                        {#if show_empty_filters || count || selected_filters[`${filter}:${value}`]}
+                            <div
+                                class="pagefind-ui__filter-value"
+                                class:pagefind-ui__filter-value--checked={selected_filters[
+                                    `${filter}:${value}`
+                                ]}
+                            >
+                                <input
+                                    class="pagefind-ui__filter-checkbox"
+                                    type="checkbox"
+                                    id="{filter}-{value}"
+                                    name={filter}
+                                    bind:checked={selected_filters[
                                         `${filter}:${value}`
                                     ]}
+                                    {value}
+                                />
+                                <label
+                                    class="pagefind-ui__filter-label"
+                                    for="{filter}-{value}"
+                                    >{@html value} ({count})</label
                                 >
-                                    <input
-                                        class="pagefind-ui__filter-checkbox"
-                                        type="checkbox"
-                                        id="{filter}-{value}"
-                                        name={filter}
-                                        bind:checked={selected_filters[
-                                            `${filter}:${value}`
-                                        ]}
-                                        {value}
-                                    />
-                                    <label
-                                        class="pagefind-ui__filter-label"
-                                        for="{filter}-{value}"
-                                        >{@html value} ({count})</label
-                                    >
-                                </div>
-                            {/if}
-                        {/each}
-                    </fieldset>
-                </details>
-            {/each}
-        {:else}
-            <p class="pagefind-ui__loading">..........</p>
-        {/if}
+                            </div>
+                        {/if}
+                    {/each}
+                </fieldset>
+            </details>
+        {/each}
     </fieldset>
 {/if}
 
@@ -176,13 +172,5 @@
         cursor: pointer;
         font-size: calc(16px * var(--pagefind-ui-scale));
         font-weight: 400;
-    }
-    .pagefind-ui__loading {
-        height: calc(44px * var(--pagefind-ui-scale));
-        margin: 0;
-        color: var(--pagefind-ui-text);
-        background-color: var(--pagefind-ui-text);
-        opacity: 0.1;
-        pointer-events: none;
     }
 </style>
