@@ -40,9 +40,9 @@ The element that Pagefind should treat as the root of the document. Defaults to 
 
 Note that filters and metadata outside of this selector will **not** be detected, all Pagefind behaviour will be limited to this element and below. In most cases, you should use the `data-pagefind-body` attribute detailed in [Customizing the index](/docs/indexing/).
 
-| CLI Flag                | ENV Variable             | Config Key      |
-|-------------------------|--------------------------|-----------------|
-| `--root-selector <DIR>` | `PAGEFIND_ROOT_SELECTOR` | `root_selector` |
+| CLI Flag              | ENV Variable             | Config Key      |
+|-----------------------|--------------------------|-----------------|
+| `--root-selector <S>` | `PAGEFIND_ROOT_SELECTOR` | `root_selector` |
 
 ### Glob
 Configures the glob used by Pagefind to discover HTML files. Defaults to `**/*.{html}`.
