@@ -14,7 +14,7 @@ jobs:
   publish-crate:
     name: Publish Crate
     runs-on: ubuntu-20.04
-    needs: publish-to-github
+    needs: publish-github-release
     steps:
       - name: Clone
         uses: actions/checkout@v2
@@ -46,9 +46,7 @@ jobs:
       - name: Prepare Crates
         run: |
           # Update cargo version, 
-          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind/Cargo.toml
-          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_web/Cargo.toml
-          printf ",s/\"version\": \"0.0.0\"/\"version\": \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_ui/package.json
+          node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
           git add ./pagefind_ui/package.json
@@ -80,29 +78,59 @@ jobs:
   publish-npm-package:
     name: Publish NPM package
     runs-on: ubuntu-20.04
-    needs: publish-to-github
+    needs: publish-github-release
     defaults:
       run:
         working-directory: ./wrappers/node
     steps:
       - name: Clone
         uses: actions/checkout@v2
+      - uses: actions/download-artifact@v3
+        with:
+          name: release-checksums
+          path: wrappers/node/checksums
       - name: Prepare package
         run: |
           RELEASE_VERSION=${GITHUB_REF#refs/tags/}
           npm version $(echo $RELEASE_VERSION | cut -c1-)
-          mkdir checksums
-          for TARGET in x86_64-unknown-linux-musl x86_64-apple-darwin
-          do
-            ASSET_NAME="pagefind-$RELEASE_VERSION-$TARGET.tar.gz.sha256"
-            curl -L https://github.com/CloudCannon/pagefind/releases/download/$RELEASE_VERSION/$ASSET_NAME -o checksums/$ASSET_NAME
-          done
       - name: Publish
         run: npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  publish-to-github:
+  publish-github-release:
+    name: Publish to GitHub
+    runs-on: ubuntu-20.04
+    needs: test-and-build
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: release
+          path: build-artifacts
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+      - name: Build Changelog
+        run: |
+          node ./.backstage/changelog.cjs write
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add ./CHANGELOG.md
+          git commit -m "Changelog for $GIT_VERSION"
+          git push
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          body_path: RELEASE.md
+          files: |
+            build-artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-and-build:
     name: Publish to Github and Crates
     runs-on: ${{matrix.os}}
     defaults:
@@ -111,6 +139,12 @@ jobs:
     strategy:
       matrix:
         include:
+          - build: windows
+            os: windows-latest
+            rust: stable
+            target: x86_64-pc-windows-msvc
+            cross: false
+            musl: false
           - build: linux
             os: ubuntu-latest
             rust: stable
@@ -138,6 +172,17 @@ jobs:
             ~/.rustup
             target
           key: ${{ runner.os }}-${{ matrix.rust }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+      - name: Verify Changelog
+        run: |
+          node ./.backstage/changelog.cjs
 
       - name: Install Linker
         if: matrix.cross
@@ -169,9 +214,6 @@ jobs:
           repo: humane
           token: "${{ secrets.GITHUB_TOKEN }}"
 
-      # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
-      - name: Get Version
-        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
       - name: Prepare Git
         run: |
           git config user.email "github@github.com"
@@ -182,9 +224,7 @@ jobs:
       - name: Prepare Crates
         run: |
           # Update cargo version, 
-          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind/Cargo.toml
-          printf ",s/version = \"0.0.0\"/version = \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_web/Cargo.toml
-          printf ",s/\"version\": \"0.0.0\"/\"version\": \"$GIT_VERSION\"/g\nw\n" | ed ./pagefind_ui/package.json
+          node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
           git add ./pagefind_ui/package.json
@@ -265,12 +305,16 @@ jobs:
           fi
           echo "ASSET_PATH=$ASSET_PATH" >> $GITHUB_ENV
           echo "CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
         with:
-          files: |
+          name: release
+          path: |
             ${{ env.ASSET_PATH }}
             ${{ env.CHECKSUM_PATH }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-checksums
+          path: |
+            ${{ env.CHECKSUM_PATH }}
