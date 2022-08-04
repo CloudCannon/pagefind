@@ -24,19 +24,16 @@ jobs:
             rust: beta
             target: x86_64-unknown-linux-musl
             cross: false
-            humanedir: /tmp/humane
           - build: macos
             os: macos-latest
             rust: beta
             target: x86_64-apple-darwin
             cross: false
-            humanedir: /tmp/humane
           - build: windows
             os: windows-latest
             rust: beta
             target: x86_64-pc-windows-msvc
             cross: false
-            humanedir: D:\a\tmp\
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -74,7 +71,6 @@ jobs:
           owner: cloudcannon
           repo: humane
           token: "${{ secrets.GITHUB_TOKEN }}"
-          install_path: ${{ matrix.humanedir }}
 
       - name: Build WASM
         working-directory: ./pagefind_web
@@ -98,4 +94,4 @@ jobs:
 
       - name: Test CLI
         working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind ${{ matrix.humanedir }}/humane
+        run: TEST_BINARY=../target/release/pagefind /tmp/humane
