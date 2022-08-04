@@ -29,11 +29,11 @@ jobs:
             rust: beta
             target: x86_64-apple-darwin
             cross: false
-          - build: windows
-            os: windows-latest
-            rust: beta
-            target: x86_64-pc-windows-msvc
-            cross: false
+          # - build: windows
+          #   os: windows-latest
+          #   rust: beta
+          #   target: x86_64-pc-windows-msvc
+          #   cross: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
