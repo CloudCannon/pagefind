@@ -71,6 +71,7 @@ jobs:
           owner: cloudcannon
           repo: humane
           token: "${{ secrets.GITHUB_TOKEN }}"
+          install_path: ~/humane
 
       - name: Build WASM
         working-directory: ./pagefind_web
@@ -94,4 +95,4 @@ jobs:
 
       - name: Test CLI
         working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind /tmp/humane
+        run: TEST_BINARY=../target/release/pagefind ~/humane
