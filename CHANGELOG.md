@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## 0.6.0 (August 5, 2022)
+
 ### Features & Improvements
 
 * Added prebuilt Windows binaries
