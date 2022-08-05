@@ -9,6 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  HUMANE_VERSION: "0.3.4"
 
 jobs:
   publish-crate:
@@ -106,12 +107,18 @@ jobs:
       run:
         working-directory: ./
     steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+      - name: Swap to main
+        uses: actions/checkout@v2
+        with:
+          ref: main
       - uses: actions/download-artifact@v3
         with:
           name: release
           path: build-artifacts
-      - name: Get Version
-        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
       - name: Build Changelog
         run: |
           node ./.backstage/changelog.cjs write
@@ -180,6 +187,7 @@ jobs:
       # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+
       - name: Verify Changelog
         run: |
           node ./.backstage/changelog.cjs
@@ -207,12 +215,11 @@ jobs:
         uses: browser-actions/setup-chrome@latest
 
       - name: Install humane
-        uses: XAMPPRocky/get-github-release@v1
+        uses: supplypike/setup-bin@v1
         with:
-          matches: ${{matrix.target}}
-          owner: cloudcannon
-          repo: humane
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.target}}.tar.gz"
+          name: "humane"
+          version: ${{env.HUMANE_VERSION}}
 
       - name: Prepare Git
         run: |
@@ -251,15 +258,15 @@ jobs:
 
       - name: Build Testing Binary
         working-directory: ./pagefind
-        run: cargo build --release
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Test Lib
         working-directory: ./pagefind
-        run: cargo test --release
+        run: cargo test --release --target ${{ matrix.target }}
 
       - name: Test CLI
         working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind /tmp/humane
+        run: TEST_BINARY=../target/${{ matrix.target }}/release/pagefind humane
 
       - name: Build
         working-directory: ./pagefind

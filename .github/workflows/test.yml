@@ -2,9 +2,9 @@ name: Test
 
 on:
   push:
-    branches: [feat/windows]
+    branches: [main]
   pull_request:
-    branches: [feat/windows]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
