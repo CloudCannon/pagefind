@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  HUMANE_VERSION: "0.3.4"
 
 jobs:
   test:
@@ -29,11 +30,11 @@ jobs:
             rust: beta
             target: x86_64-apple-darwin
             cross: false
-          # - build: windows
-          #   os: windows-latest
-          #   rust: beta
-          #   target: x86_64-pc-windows-msvc
-          #   cross: false
+          - build: windows
+            os: windows-latest
+            rust: beta
+            target: x86_64-pc-windows-msvc
+            cross: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -65,12 +66,11 @@ jobs:
         uses: browser-actions/setup-chrome@latest
 
       - name: Install humane
-        uses: XAMPPRocky/get-github-release@v1
+        uses: supplypike/setup-bin@v1
         with:
-          matches: ${{matrix.target}}
-          owner: cloudcannon
-          repo: humane
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.target}}.tar.gz"
+          name: "humane"
+          version: ${{env.HUMANE_VERSION}}
 
       - name: Build WASM
         working-directory: ./pagefind_web
@@ -94,4 +94,4 @@ jobs:
 
       - name: Test CLI
         working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind /tmp/humane
+        run: TEST_BINARY=../target/release/pagefind humane
