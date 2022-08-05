@@ -1,2 +1,2 @@
-export HUGO_PAGEFIND_DOCS_VERSION=$(git describe --tags --abbrev=0)
+export HUGO_PAGEFIND_DOCS_VERSION=$(node ./.backstage/get_version.cjs)
 echo "Building documentation for $HUGO_PAGEFIND_DOCS_VERSION"
