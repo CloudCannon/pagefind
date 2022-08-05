@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Oops — fixes the npx wrapper on Windows
+
 ## 0.6.0 (August 5, 2022)
 
 ### Features & Improvements
