@@ -6,9 +6,7 @@ nav_section: Installing
 weight: 1
 ---
 
-Pagefind is a static binary with no dynamic dependencies, so in most cases will be simple to install and run.
-
-> Pagefind does not yet have a prebuilt Windows binary available.
+Pagefind is a static binary with no dynamic dependencies, so in most cases will be simple to install and run. Pagefind is currently supported on Windows, MacOS, and x86-64 Linux distributions.
 
 ## Running via npx
 
