@@ -256,7 +256,7 @@ jobs:
         working-directory: ./pagefind_web
         run: cargo test --release
 
-      - name: Build Testing Binary
+      - name: Build
         working-directory: ./pagefind
         run: cargo build --release --target ${{ matrix.target }}
 
@@ -267,10 +267,6 @@ jobs:
       - name: Test CLI
         working-directory: ./pagefind
         run: TEST_BINARY=../target/${{ matrix.target }}/release/pagefind humane
-
-      - name: Build
-        working-directory: ./pagefind
-        run: RELEASE_VERSION=${GITHUB_REF#refs/tags/} cargo build --release --target ${{ matrix.target }}
 
       - name: Package Artifacts
         run: |
