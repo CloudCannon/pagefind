@@ -115,6 +115,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: main
+          fetch-depth: 0 # Full fetch
       - uses: actions/download-artifact@v3
         with:
           name: release
@@ -126,6 +127,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git add ./CHANGELOG.md
           git commit -m "Changelog for $GIT_VERSION"
+          git push
+          git checkout production-docs
+          git merge --no-ff main -m "Release documentation for $GIT_VERSION"
           git push
       - name: Release
         uses: softprops/action-gh-release@v1
