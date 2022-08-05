@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const version = process.env.GIT_VERSION;
-const version_re = /version\s*[=:]\s*"0.0.0"/;
+const version_re = /"?version"?\s*[=:]\s*"0.0.0"/;
 
 const err = (m) => {
     console.error(m);
@@ -28,5 +28,5 @@ pagefindWebCfg.contents = pagefindWebCfg.contents.replace(version_re, `version =
 fs.writeFileSync(pagefindWebCfg.path, pagefindWebCfg.contents);
 
 let pagefindUiCfg = file("../pagefind_ui/package.json");
-pagefindUiCfg.contents = pagefindUiCfg.contents.replace(version_re, `version: "${version}"`);
+pagefindUiCfg.contents = pagefindUiCfg.contents.replace(version_re, `"version": "${version}"`);
 fs.writeFileSync(pagefindUiCfg.path, pagefindUiCfg.contents);
