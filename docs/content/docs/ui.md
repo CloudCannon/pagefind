@@ -37,7 +37,7 @@ The Pagefind UI is styled using CSS custom properties which can be overridden. T
 --pagefind-ui-tag: #eeeeee;
 --pagefind-ui-border-width: 2px;
 --pagefind-ui-border-radius: 8px;
-----pagefind-ui-image-border-radius: 8px;
+--pagefind-ui-image-border-radius: 8px;
 --pagefind-ui-image-box-ratio: 3 / 2;
 --pagefind-ui-font: sans-serif;
 ```
