@@ -1,2 +1,4 @@
-export HUGO_PAGEFIND_DOCS_VERSION=$(node ./.backstage/get_version.cjs)
+if [ -z "$HUGO_PAGEFIND_DOCS_VERSION" ]; then
+    export HUGO_PAGEFIND_DOCS_VERSION=$(node ./.backstage/get_version.cjs)
+fi
 echo "Building documentation for $HUGO_PAGEFIND_DOCS_VERSION"
