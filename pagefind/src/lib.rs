@@ -15,22 +15,17 @@ mod utils;
 
 pub struct SearchState {
     options: SearchOptions,
-    files: Vec<Fossicker>,
 }
 
 impl SearchState {
     pub fn new(options: SearchOptions) -> Self {
-        Self {
-            options,
-            files: vec![],
-        }
+        Self { options }
     }
 
-    pub async fn walk_for_files(&mut self) {
+    pub async fn walk_for_files(&mut self) -> Vec<Fossicker> {
         println!("Walking source directory...");
         if let Ok(glob) = Glob::new(&self.options.glob) {
-            self.files = glob
-                .walk(&self.options.source, usize::MAX)
+            glob.walk(&self.options.source, usize::MAX)
                 .filter_map(Result::ok)
                 .map(WalkEntry::into_path)
                 .map(Fossicker::new)
@@ -53,12 +48,11 @@ impl SearchState {
         println!("Running from: {:?}", self.options.working_directory);
         println!("Source:       {:?}", self.options.source);
         println!("Bundle Directory:  {:?}", self.options.bundle_dir);
-        self.walk_for_files().await;
+        let files = self.walk_for_files().await;
         println!("Building search indexes...");
 
-        let results: Vec<_> = self
-            .files
-            .iter_mut()
+        let results: Vec<_> = files
+            .into_iter()
             .map(|f| f.fossick(&self.options))
             .collect();
         let all_pages = join_all(results).await;

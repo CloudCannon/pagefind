@@ -51,6 +51,7 @@ struct DomParserData {
     filters: HashMap<String, Vec<String>>,
     meta: HashMap<String, String>,
     default_meta: HashMap<String, String>,
+    language: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -94,6 +95,7 @@ pub struct DomParserResult {
     pub filters: HashMap<String, Vec<String>>,
     pub meta: HashMap<String, String>,
     pub has_custom_body: bool,
+    pub language: Option<String>,
 }
 
 // Some shorthand to clean up our use of Rc<RefCell<*>> in the lol_html macros
@@ -115,6 +117,13 @@ impl<'a> DomParser<'a> {
         let rewriter = HtmlRewriter::new(
             Settings {
                 element_content_handlers: vec![
+                    enclose! { (data) element!("html", move |el| {
+                        if let Some(lang) = el.get_attribute("lang") {
+                            let mut data = data.borrow_mut();
+                            data.language = Some(lang);
+                        }
+                        Ok(())
+                    })},
                     enclose! { (data) element!(root, move |el| {
                         let explicit_ignore_flag = el.get_attribute("data-pagefind-ignore").map(|attr| {
                             match attr.to_ascii_lowercase().as_str() {
@@ -433,6 +442,7 @@ impl<'a> DomParser<'a> {
             filters: data.filters,
             meta: data.default_meta,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
+            language: data.language,
         }
     }
 }

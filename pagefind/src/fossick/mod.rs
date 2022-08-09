@@ -27,6 +27,7 @@ pub struct FossickedData {
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
     pub has_custom_body: bool,
+    pub language: Option<String>,
 }
 
 #[derive(Debug)]
@@ -102,25 +103,27 @@ impl Fossicker {
         map
     }
 
-    pub async fn fossick(&mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
+    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
         while self.read_file(options).await.is_err() {
             sleep(Duration::from_millis(1)).await;
         }
 
         let word_data = self.retrieve_words_from_digest();
 
-        let data = self.data.as_ref().unwrap();
+        let data = self.data.unwrap();
+        let url = build_url(&self.file_path, options);
 
         Ok(FossickedData {
-            file_path: self.file_path.clone(),
+            file_path: self.file_path,
             has_custom_body: data.has_custom_body,
+            language: data.language,
             fragment: PageFragment {
                 page_number: 0,
                 data: PageFragmentData {
-                    url: build_url(&self.file_path, options),
-                    content: data.digest.clone(),
-                    filters: data.filters.clone(),
-                    meta: data.meta.clone(),
+                    url,
+                    content: data.digest,
+                    filters: data.filters,
+                    meta: data.meta,
                     word_count: word_data.len(),
                 },
             },
