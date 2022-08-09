@@ -9,7 +9,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 wasm-bindgen = "0.2"
 bit-set = "0.5"
-pagefind_stem = { version = "0.1.0", features = ["english"] }
+pagefind_stem = "0.2.0"
 minicbor = { version = "0.15.0", features = ["derive"] }
 wee_alloc = "0.4"
 
@@ -17,3 +17,33 @@ wee_alloc = "0.4"
 # Tell `rustc` to optimize for small code size.
 opt-level = "z"
 lto = true
+
+[features]
+ar = ["pagefind_stem/arabic"]
+hy = ["pagefind_stem/armenian"]
+eu = ["pagefind_stem/basque"]
+ca = ["pagefind_stem/catalan"]
+da = ["pagefind_stem/danish"]
+nl = ["pagefind_stem/dutch"]
+en = ["pagefind_stem/english"]
+fi = ["pagefind_stem/finnish"]
+fr = ["pagefind_stem/french"]
+de = ["pagefind_stem/german"]
+el = ["pagefind_stem/greek"]
+hi = ["pagefind_stem/hindi"]
+hu = ["pagefind_stem/hungarian"]
+id = ["pagefind_stem/indonesian"]
+ga = ["pagefind_stem/irish"]
+it = ["pagefind_stem/italian"]
+lt = ["pagefind_stem/lithuanian"]
+ne = ["pagefind_stem/nepali"]
+no = ["pagefind_stem/norwegian"]
+pt = ["pagefind_stem/portuguese"]
+ro = ["pagefind_stem/romanian"]
+ru = ["pagefind_stem/russian"]
+sr = ["pagefind_stem/serbian"]
+es = ["pagefind_stem/spanish"]
+sv = ["pagefind_stem/swedish"]
+ta = ["pagefind_stem/tamil"]
+tr = ["pagefind_stem/turkish"]
+yi = ["pagefind_stem/yiddish"]

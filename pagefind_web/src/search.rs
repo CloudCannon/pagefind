@@ -2,7 +2,7 @@ use std::{borrow::Cow, cmp::Ordering};
 
 use crate::{util::*, PageWord};
 use bit_set::BitSet;
-use pagefind_stem::{Algorithm, Stemmer};
+use pagefind_stem::Stemmer;
 
 use crate::SearchIndex;
 
@@ -203,8 +203,15 @@ impl SearchIndex {
 }
 
 fn stems_from_term(term: &str) -> Vec<Cow<str>> {
-    let en_stemmer = Stemmer::create(Algorithm::English);
-    term.split(' ').map(|word| en_stemmer.stem(word)).collect()
+    let stemmer = Stemmer::try_create_default();
+    term.split(' ')
+        .map(|word| match &stemmer {
+            Ok(stemmer) => stemmer.stem(word),
+            // If we wound up without a stemmer,
+            // charge ahead without stemming.
+            Err(_) => word.into(),
+        })
+        .collect()
 }
 
 fn intersect_maps(mut maps: Vec<BitSet>) -> Option<BitSet> {

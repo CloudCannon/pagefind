@@ -95,7 +95,7 @@ pub struct DomParserResult {
     pub filters: HashMap<String, Vec<String>>,
     pub meta: HashMap<String, String>,
     pub has_custom_body: bool,
-    pub language: Option<String>,
+    pub language: String,
 }
 
 // Some shorthand to clean up our use of Rc<RefCell<*>> in the lol_html macros
@@ -120,7 +120,7 @@ impl<'a> DomParser<'a> {
                     enclose! { (data) element!("html", move |el| {
                         if let Some(lang) = el.get_attribute("lang") {
                             let mut data = data.borrow_mut();
-                            data.language = Some(lang);
+                            data.language = Some(lang.to_lowercase().split('-').next().unwrap().to_string());
                         }
                         Ok(())
                     })},
@@ -442,7 +442,10 @@ impl<'a> DomParser<'a> {
             filters: data.filters,
             meta: data.default_meta,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
-            language: data.language,
+            language: data
+                .language
+                .filter(|lang| !lang.is_empty())
+                .unwrap_or_else(|| "unknown".into()),
         }
     }
 }

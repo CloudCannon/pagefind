@@ -2,6 +2,8 @@
 class Pagefind {
     constructor() {
         this.backend = wasm_bindgen;
+        this.languages = null;
+        this.primaryLanguage = "unknown";
         this.wasm = null;
         this.searchIndex = null;
         this.searchMeta = null;
@@ -34,9 +36,40 @@ class Pagefind {
         } catch (e) {
             console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
         }
-        await Promise.all([this.loadWasm(), this.loadMeta()]);
+        await this.loadEntry();
+        let { language, index } = this.findLanguage();
+
+        await Promise.all([this.loadWasm(language), this.loadMeta(index)]);
         window.tmp_pagefind = this.backend;
         this.raw_ptr = this.backend.init_pagefind(new Uint8Array(this.searchMeta));
+    }
+
+    findLanguage() {
+        if (document?.querySelector) {
+            const langCode = document.querySelector("html").getAttribute("lang") || "unknown";
+            this.primaryLanguage = langCode.split("-")[0];
+        }
+        let language = this.primaryLanguage, index = null;
+        if (this.languages) {
+            index = this.languages[language];
+            if (!index && this.languages["unknown"]) {
+                language = "unknown";
+                index = this.languages["unknown"];
+            }
+            if (!index && this.languages["en"]) {
+                language = "en";
+                index = this.languages["en"];
+            }
+            if (!index && Object.values(this.languages).length) {
+                language = Object.entries(this.languages)[0];
+                index = Object.values(this.languages)[0];
+            }
+            if (!index) {
+                throw new Error("Pagefind Error: No language indexes found.");
+            }
+        }
+
+        return { language, index };
     }
 
     decompress(data, file = "unknown file") {
@@ -53,13 +86,29 @@ class Pagefind {
         return data.slice(12);
     }
 
-    async loadMeta() {
+    async loadEntry() {
         try {
-            // We always load a fresh copy of the metadata,
+            // We always load a fresh copy of the entry metadata,
             // as it ensures we don't try to load an old build's chunks,
-            // and it's (hopefully) a small enough file to not be a worry.
-            // TODO:     ^^^^^^^^^
-            let compressed_meta = await fetch(`${this.basePath}pagefind.pf_meta?ts=${Date.now()}`);
+            let entry_json = await fetch(`${this.basePath}pagefind-entry.json?ts=${Date.now()}`);
+            entry_json = await entry_json.json();
+            this.languages = entry_json.languages;
+            if (entry_json.version !== pagefind_version) {
+                console.warn([
+                    "Pagefind JS version doesn't match the version in your search index.",
+                    `Pagefind JS: ${pagefind_version}. Pagefind index: ${entry_json.version}`,
+                    "If you upgraded Pagefind recently, you likely have a cached pagefind.js file.",
+                    "If you encounter any search errors, try clearing your cache."
+                ].join('\n'));
+            }
+        } catch (e) {
+            console.error(`Failed to load Pagefind metadata:\n${e.toString()}`);
+        }
+    }
+
+    async loadMeta(index) {
+        try {
+            let compressed_meta = await fetch(`${this.basePath}pagefind.${index}.pf_meta`);
             compressed_meta = await compressed_meta.arrayBuffer();
             this.searchMeta = this.decompress(new Uint8Array(compressed_meta), "Pagefind metadata");
         } catch (e) {
@@ -67,11 +116,13 @@ class Pagefind {
         }
     }
 
-    async loadWasm() {
+    async loadWasm(language) {
         try {
-            let compressed_wasm = await fetch(`${this.basePath}wasm.pagefind`);
+            const wasm_url = `${this.basePath}wasm.${language}.pagefind`;
+            let compressed_wasm = await fetch(wasm_url);
             compressed_wasm = await compressed_wasm.arrayBuffer();
-            this.wasm = await this.backend(this.decompress(new Uint8Array(compressed_wasm), "Pagefind WebAssembly"));
+            const final_wasm = this.decompress(new Uint8Array(compressed_wasm), "Pagefind WebAssembly");
+            this.wasm = await this.backend(final_wasm);
         } catch (e) {
             console.error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
         }
@@ -243,5 +294,6 @@ class Pagefind {
 const pagefind = new Pagefind();
 
 export const options = (options) => pagefind.options(options);
+// TODO: Add a language function that can change the language before pagefind is initialised
 export const search = async (term, options) => await pagefind.search(term, options);
 export const filters = async () => await pagefind.filters();

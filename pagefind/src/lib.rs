@@ -1,5 +1,6 @@
 use fossick::Fossicker;
 use futures::future::join_all;
+use hashbrown::HashMap;
 pub use options::{PagefindInboundConfig, SearchOptions};
 use wax::{Glob, WalkEntry};
 
@@ -75,7 +76,27 @@ impl SearchState {
             !d.word_data.is_empty()
         });
 
-        let indexes = build_indexes(pages_with_data, &self.options).await;
-        indexes.write_files(&self.options).await;
+        let mut language_map: HashMap<String, Vec<fossick::FossickedData>> = HashMap::new();
+        for page in pages_with_data {
+            let language = page.language.clone();
+            if let Some(lang_pages) = language_map.get_mut(&language) {
+                lang_pages.push(page);
+            } else {
+                language_map.insert(language, vec![page]);
+            }
+        }
+
+        let indexes: Vec<_> = language_map
+            .into_iter()
+            .map(|(language, pages)| async {
+                let indexes = build_indexes(pages.into_iter(), language, &self.options).await;
+                let index_meta = (indexes.language.clone(), indexes.meta_index.0.clone());
+                indexes.write_files(&self.options).await;
+                index_meta
+            })
+            .collect();
+        let language_indexes = join_all(indexes).await;
+
+        output::write_common(&self.options, language_indexes).await;
     }
 }

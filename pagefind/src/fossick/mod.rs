@@ -27,7 +27,7 @@ pub struct FossickedData {
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
     pub has_custom_body: bool,
-    pub language: Option<String>,
+    pub language: String,
 }
 
 #[derive(Debug)]
