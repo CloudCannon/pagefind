@@ -1,6 +1,6 @@
 [package]
 name = "pagefind_stem"
-version = "0.1.0"
+version = "0.2.0"
 # Imports would have to change for a newer edition,
 # and I don't want to have to edit snowball's rust files
 edition = "2015"
