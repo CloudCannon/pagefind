@@ -165,12 +165,13 @@ where
     }
 
     if TryInto::<u32>::try_into(meta.pages.len()).is_err() {
-        panic!("Too many documents to index");
+        options.logger.error(format!(
+            "Language {} has too many documents to index, must be < {}",
+            language,
+            u32::MAX
+        ));
+        std::process::exit(1);
     }
-
-    println!("Indexed {:?} pages", meta.pages.len());
-    println!("Indexed {:?} words", word_map.len());
-    println!("Indexed {:?} filters", meta.filters.len());
 
     // TODO: Parameterize these chunk sizes via options
     let chunks = chunk_index(word_map, 20000);
@@ -199,8 +200,6 @@ where
         word_indexes.insert(short_hash.to_string(), word_index);
         meta.index_chunks[i].hash = short_hash.into();
     }
-
-    println!("Created {:?} index chunks", word_indexes.len());
 
     let mut meta_index: Vec<u8> = Vec::new();
     let _ = minicbor::encode::<MetaIndex, &mut Vec<u8>>(meta, meta_index.as_mut());

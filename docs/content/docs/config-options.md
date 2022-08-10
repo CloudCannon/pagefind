@@ -59,3 +59,10 @@ See [Multilingual search](/docs/multilingual/) for more details.
 | CLI Flag                  | ENV Variable              | Config Key       |
 |---------------------------|---------------------------|------------------|
 | `--force-language <LANG>` | `PAGEFIND_FORCE_LANGUAGE` | `force_language` |
+
+### Verbose
+Prints extra logging while indexing the site. Only affects the CLI, does not impact web-facing search.
+
+| CLI Flag    | ENV Variable       | Config Key |
+|-------------|--------------------|------------|
+| `--verbose` | `PAGEFIND_VERBOSE` | `verbose`  |

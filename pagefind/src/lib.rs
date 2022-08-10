@@ -9,13 +9,15 @@ use crate::index::build_indexes;
 mod fossick;
 mod fragments;
 mod index;
+#[macro_use]
+mod logging;
 mod options;
 mod output;
 pub mod serve;
 mod utils;
 
 pub struct SearchState {
-    options: SearchOptions,
+    pub options: SearchOptions,
 }
 
 impl SearchState {
@@ -24,7 +26,9 @@ impl SearchState {
     }
 
     pub async fn walk_for_files(&mut self) -> Vec<Fossicker> {
-        println!("Walking source directory...");
+        let log = &self.options.logger;
+
+        log.status("[Walking source directory]");
         if let Ok(glob) = Glob::new(&self.options.glob) {
             glob.walk(&self.options.source, usize::MAX)
                 .filter_map(Result::ok)
@@ -32,25 +36,36 @@ impl SearchState {
                 .map(Fossicker::new)
                 .collect()
         } else {
-            eprintln!(
+            log.error(format!(
                 "Error: Provided glob \"{}\" did not parse as a valid glob.",
                 self.options.glob
-            );
+            ));
             std::process::exit(1);
         }
     }
 
     pub async fn run(&mut self) {
-        if self.options.verbose {
-            println!("Running Pagefind v{} in verbose mode", self.options.version);
-        } else {
-            println!("Running Pagefind v{}", self.options.version);
-        }
-        println!("Running from: {:?}", self.options.working_directory);
-        println!("Source:       {:?}", self.options.source);
-        println!("Bundle Directory:  {:?}", self.options.bundle_dir);
+        let log = &self.options.logger;
+        log.status(&format!("Running Pagefind v{}", self.options.version));
+        log.v_info("Running in verbose mode");
+
+        log.info(format!(
+            "Running from: {:?}",
+            self.options.working_directory
+        ));
+        log.info(format!("Source:       {:?}", self.options.source));
+        log.info(format!("Bundle Directory:  {:?}", self.options.bundle_dir));
+
         let files = self.walk_for_files().await;
-        println!("Building search indexes...");
+        let log = &self.options.logger;
+
+        log.info(format!(
+            "Found {} file{} matching {}",
+            files.len(),
+            plural!(files.len()),
+            self.options.glob
+        ));
+        log.status("[Parsing files]");
 
         let results: Vec<_> = files
             .into_iter()
@@ -60,14 +75,33 @@ impl SearchState {
 
         let used_custom_body = all_pages.iter().flatten().any(|page| page.has_custom_body);
         if used_custom_body {
-            println!(
-                "Found a data-pagefind-body element on the site.\n↳ Ignoring pages without this tag."
-            );
+            log.info("Found a data-pagefind-body element on the site.\n↳ Ignoring pages without this tag.");
         } else {
-            println!(
+            log.info(
                 "Did not find a data-pagefind-body element on the site.\n↳ Indexing all <body> elements on the site."
             );
         }
+
+        if self.options.root_selector == "html" {
+            let pages_without_html = all_pages
+                .iter()
+                .flatten()
+                .filter(|p| !p.has_html_element)
+                .map(|p| format!("  * {:?} has no <html> element", p.fragment.data.url))
+                .collect::<Vec<_>>();
+            if !pages_without_html.is_empty() {
+                log.warn(format!(
+                    "{} page{} found without an <html> element. \n\
+                    Pages without an outer <html> element will not be processed by default. \n\
+                    If adding this element is not possible, use the root selector config to target a different root element.",
+                    pages_without_html.len(),
+                    plural!(pages_without_html.len())
+                ));
+                log.v_warn(pages_without_html.join("\n"));
+            }
+        }
+
+        log.status("[Reading languages]");
 
         let pages_with_data = all_pages.into_iter().flatten().filter(|d| {
             if used_custom_body && !d.has_custom_body {
@@ -86,17 +120,88 @@ impl SearchState {
             }
         }
 
+        log.info(format!(
+            "Discovered {} language{}: {}",
+            language_map.len(),
+            plural!(language_map.len()),
+            language_map.keys().cloned().collect::<Vec<_>>().join(", ")
+        ));
+        log.v_info(
+            language_map
+                .iter()
+                .map(|(k, v)| format!("  * {}: {} page{}", k, v.len(), plural!(v.len())))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+        if let Some(unknown_pages) = language_map.get("unknown") {
+            if language_map.len() > 1 {
+                log.warn(format!(
+                    "{} page{} found without an html lang attribute. \n\
+                    Pages without a known language may not show up in search results.",
+                    unknown_pages.len(),
+                    plural!(unknown_pages.len())
+                ));
+                log.v_warn(
+                    unknown_pages
+                        .iter()
+                        .map(|p| {
+                            format!("  * {:?} has no html lang attribute", p.fragment.data.url)
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                )
+            }
+        }
+
+        log.status("[Building search indexes]");
+
         let indexes: Vec<_> = language_map
             .into_iter()
             .map(|(language, pages)| async {
-                let indexes = build_indexes(pages.into_iter(), language, &self.options).await;
+                build_indexes(pages.into_iter(), language, &self.options).await
+            })
+            .collect();
+        let indexes = join_all(indexes).await;
+
+        let stats = indexes.iter().fold((0, 0, 0), |mut stats, index| {
+            log.v_info(format!(
+                "Language {}: \n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n",
+                index.language,
+                index.fragments.len(),
+                plural!(index.fragments.len()),
+                index.word_indexes.len(),
+                plural!(index.word_indexes.len()),
+                index.filter_indexes.len(),
+                plural!(index.filter_indexes.len())
+            ));
+            stats.0 += index.fragments.len();
+            stats.1 += index.word_indexes.len();
+            stats.2 += index.filter_indexes.len();
+            stats
+        });
+
+        log.info(format!(
+            "Total: \n  Indexed {} language{}\n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}",
+            indexes.len(),
+            plural!(indexes.len()),
+            stats.0,
+            plural!(stats.0),
+            stats.1,
+            plural!(stats.1),
+            stats.2,
+            plural!(stats.2)
+        ));
+
+        let index_entries: Vec<_> = indexes
+            .into_iter()
+            .map(|indexes| async {
                 let index_meta = (indexes.language.clone(), indexes.meta_index.0.clone());
                 indexes.write_files(&self.options).await;
                 index_meta
             })
             .collect();
-        let language_indexes = join_all(indexes).await;
+        let index_entries = join_all(index_entries).await;
 
-        output::write_common(&self.options, language_indexes).await;
+        output::write_common(&self.options, index_entries).await;
     }
 }

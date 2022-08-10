@@ -52,6 +52,7 @@ struct DomParserData {
     meta: HashMap<String, String>,
     default_meta: HashMap<String, String>,
     language: Option<String>,
+    has_html_element: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -95,6 +96,7 @@ pub struct DomParserResult {
     pub filters: HashMap<String, Vec<String>>,
     pub meta: HashMap<String, String>,
     pub has_custom_body: bool,
+    pub has_html_element: bool,
     pub language: String,
 }
 
@@ -110,7 +112,7 @@ macro_rules! enclose {
 }
 
 impl<'a> DomParser<'a> {
-    pub fn new(options: &SearchOptions) -> Self {
+    pub fn new(options: &'a SearchOptions) -> Self {
         let data = Rc::new(RefCell::new(DomParserData::default()));
         let root = format!("{}, {} *", options.root_selector, options.root_selector);
 
@@ -118,8 +120,9 @@ impl<'a> DomParser<'a> {
             Settings {
                 element_content_handlers: vec![
                     enclose! { (data) element!("html", move |el| {
+                        let mut data = data.borrow_mut();
+                        data.has_html_element = true;
                         if let Some(lang) = el.get_attribute("lang") {
-                            let mut data = data.borrow_mut();
                             data.language = Some(lang.to_lowercase().split('-').next().unwrap().to_string());
                         }
                         Ok(())
@@ -130,7 +133,7 @@ impl<'a> DomParser<'a> {
                                 "" | "index" => NodeStatus::Ignored,
                                 "all" => NodeStatus::Excluded,
                                 _ => {
-                                    eprintln!("data-pagefind-ignore value of \"{}\" is not valid. Expected no value, or one of: [index, all]. Assuming 'all' and excluding this element entirely.", attr);
+                                    options.logger.warn(format!("data-pagefind-ignore value of \"{}\" is not valid. Expected no value, or one of: [index, all]. Assuming 'all' and excluding this element entirely.", attr));
                                     NodeStatus::Excluded
                                 }
                             }
@@ -443,6 +446,7 @@ impl<'a> DomParser<'a> {
             filters: data.filters,
             meta: data.default_meta,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
+            has_html_element: data.has_html_element,
             language: data
                 .language
                 .filter(|lang| !lang.is_empty())

@@ -125,7 +125,11 @@ impl PagefindIndexes {
                     WriteBehavior::None,
                 ));
             } else {
-                eprintln!("TODO: Error: No wasm for {}", self.language);
+                options.logger.v_warn(format!(
+                    "Note: Pagefind doesn't support stemming for the language {}. \n\
+                    Searching will still work, but will not match across root words.",
+                    self.language
+                ));
             }
         }
 

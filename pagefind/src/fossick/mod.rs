@@ -27,6 +27,7 @@ pub struct FossickedData {
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
     pub has_custom_body: bool,
+    pub has_html_element: bool,
     pub language: String,
 }
 
@@ -110,6 +111,7 @@ impl Fossicker {
         Ok(FossickedData {
             file_path: self.file_path,
             has_custom_body: data.has_custom_body,
+            has_html_element: data.has_html_element,
             language: data.language,
             fragment: PageFragment {
                 page_number: 0,

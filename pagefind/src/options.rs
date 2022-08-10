@@ -3,6 +3,8 @@ use clap::Parser;
 use std::{env, path::PathBuf};
 use twelf::config;
 
+use crate::logging::{LogLevel, Logger};
+
 #[config]
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
@@ -55,7 +57,7 @@ pub struct PagefindInboundConfig {
     #[clap(
         long,
         short,
-        help = "Print debug logging while indexing the site. Does not impact the web-facing search."
+        help = "Print verbose logging while indexing the site. Does not impact the web-facing search."
     )]
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
@@ -86,8 +88,8 @@ pub struct SearchOptions {
     pub root_selector: String,
     pub glob: String,
     pub force_language: Option<String>,
-    pub verbose: bool,
     pub version: &'static str,
+    pub logger: Logger,
 }
 
 impl SearchOptions {
@@ -97,6 +99,12 @@ impl SearchOptions {
             eprintln!("Provide a --source flag, a PAGEFIND_SOURCE environment variable, or a source key in a Pagefind configuration file.");
             bail!("Missing argument: source");
         } else {
+            let log_level = if config.verbose {
+                LogLevel::Verbose
+            } else {
+                LogLevel::Standard
+            };
+
             Ok(Self {
                 working_directory: env::current_dir().unwrap(),
                 source: PathBuf::from(config.source),
@@ -104,8 +112,8 @@ impl SearchOptions {
                 root_selector: config.root_selector,
                 glob: config.glob,
                 force_language: config.force_language,
-                verbose: config.verbose,
                 version: env!("CARGO_PKG_VERSION"),
+                logger: Logger::new(log_level),
             })
         }
     }
