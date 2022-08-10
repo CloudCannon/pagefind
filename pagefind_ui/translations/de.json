@@ -13,6 +13,6 @@
         "one_result": "[COUNT] Ergebnis für [SEARCH_TERM]",
         "alt_search": "Keine Ergebnisse für [SEARCH_TERM]. Stattdessen werden Ergebnisse für [DIFFERENT_TERM] angezeigt",
         "search_suggestion": "Keine Ergebnisse für [SEARCH_TERM]. Versuchen Sie eine der folgenden Suchen:",
-        "searching": "[SEARCH_TERM]..."
+        "searching": "Suche für [SEARCH_TERM]"
     }
 }
