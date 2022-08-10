@@ -97,6 +97,54 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /pt-br/"
 
+    Scenario: Pagefind keeps dialects separate
+        Given I have a "public/pt-pt/index.html" file with the content:
+            """
+            <!DOCTYPE html>
+            <html lang="pt-pt">
+                <head>
+                    <title>Document</title>
+                </head>
+                <body>
+                    <p>I am a different Portugese document (trust me — quilométricas — see?)</p>
+                </body>
+            </html>
+            """
+        Given I have a "public/index.html" file with the content:
+            """
+            <!DOCTYPE html>
+            <html lang="pt-br">
+                <head>
+                    <title>Document</title>
+                </head>
+                <body>
+                    <p data-result>Nothing</p>
+                </body>
+            </html>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/_pagefind/wasm.unknown.pagefind"
+        Then I should see the file "public/_pagefind/wasm.pt.pagefind"
+        Then I should see "pt" in "public/_pagefind/pagefind-entry.json"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("quilométricos");
+
+                let data = search.results[0] ? await search.results[0].data() : "None";
+                document.querySelector('[data-result]').innerText = `${search.results.length} — ${data.url}`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "1 — /pt-br/"
+
+
     Scenario: Pagefind can be configured to lump all languages together
         Given I have a "public/index.html" file with the content:
             """
