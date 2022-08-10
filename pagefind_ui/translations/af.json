@@ -13,6 +13,6 @@
         "one_result": "[COUNT] resultate vir [SEARCH_TERM]",
         "alt_search": "Geen resultate vir [SEARCH_TERM]. Toon resultate vir [DIFFERENT_TERM] in plaas daarvan",
         "search_suggestion": "Geen resultate vir [SEARCH_TERM]. Probeer eerder een van die volgende terme:",
-        "searching": "[SEARCH_TERM]..."
+        "searching": "Soek vir [SEARCH_TERM]"
     }
 }
