@@ -141,7 +141,7 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
 
 // TODO: These language codes are duplicated with pagefind_web's Cargo.toml
 fn get_stemmer(lang: &str) -> Option<Stemmer> {
-    match lang {
+    match lang.split('-').next().unwrap() {
         "ar" => Some(Stemmer::create(Algorithm::Arabic)),
         "hy" => Some(Stemmer::create(Algorithm::Armenian)),
         "eu" => Some(Stemmer::create(Algorithm::Basque)),

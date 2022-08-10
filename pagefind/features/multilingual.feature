@@ -79,8 +79,8 @@ Feature: Multilingual
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/_pagefind/pagefind.js"
         Then I should see the file "public/_pagefind/wasm.unknown.pagefind"
-        Then I should see the file "public/_pagefind/wasm.pt.pagefind"
-        Then I should see "pt" in "public/_pagefind/pagefind-entry.json"
+        Then I should see the file "public/_pagefind/wasm.pt-br.pagefind"
+        Then I should see "pt-br" in "public/_pagefind/pagefind-entry.json"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
@@ -126,8 +126,10 @@ Feature: Multilingual
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/_pagefind/pagefind.js"
         Then I should see the file "public/_pagefind/wasm.unknown.pagefind"
-        Then I should see the file "public/_pagefind/wasm.pt.pagefind"
-        Then I should see "pt" in "public/_pagefind/pagefind-entry.json"
+        Then I should see the file "public/_pagefind/wasm.pt-pt.pagefind"
+        Then I should see the file "public/_pagefind/wasm.pt-br.pagefind"
+        Then I should see "pt-pt" in "public/_pagefind/pagefind-entry.json"
+        Then I should see "pt-br" in "public/_pagefind/pagefind-entry.json"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
@@ -143,7 +145,6 @@ Feature: Multilingual
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /pt-br/"
-
 
     Scenario: Pagefind can be configured to lump all languages together
         Given I have a "public/index.html" file with the content:
@@ -164,7 +165,7 @@ Feature: Multilingual
         Then I should see the file "public/_pagefind/pagefind.js"
         Then I should see the file "public/_pagefind/wasm.unknown.pagefind"
         Then I should see the file "public/_pagefind/wasm.en.pagefind"
-        Then I should not see the file "public/_pagefind/wasm.pt.pagefind"
+        Then I should not see the file "public/_pagefind/wasm.pt-br.pagefind"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:

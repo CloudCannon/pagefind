@@ -47,29 +47,33 @@ class Pagefind {
     findLanguage() {
         if (document?.querySelector) {
             const langCode = document.querySelector("html").getAttribute("lang") || "unknown";
-            this.primaryLanguage = langCode.split("-")[0];
+            this.primaryLanguage = langCode.toLocaleLowerCase();
         }
-        let language = this.primaryLanguage, index = null;
+        let language = this.primaryLanguage;
         if (this.languages) {
+            let index = this.languages[language];
+            if (index) return { language, index };
+
+            language = language.split("-")[0];
             index = this.languages[language];
-            if (!index && this.languages["unknown"]) {
-                language = "unknown";
-                index = this.languages["unknown"];
-            }
-            if (!index && this.languages["en"]) {
-                language = "en";
-                index = this.languages["en"];
-            }
-            if (!index && Object.values(this.languages).length) {
-                language = Object.entries(this.languages)[0];
-                index = Object.values(this.languages)[0];
-            }
-            if (!index) {
-                throw new Error("Pagefind Error: No language indexes found.");
-            }
+            if (index) return { language, index };
+
+            language = "unknown";
+            index = this.languages["unknown"];
+            if (index) return { language, index };
+
+            language = "en";
+            index = this.languages["en"];
+            if (index) return { language, index };
+
+            language = Object.entries(this.languages)[0];
+            index = Object.values(this.languages)[0];
+            if (index) return { language, index };
+
+            throw new Error("Pagefind Error: No language indexes found.");
         }
 
-        return { language, index };
+        return { language, index: null };
     }
 
     decompress(data, file = "unknown file") {

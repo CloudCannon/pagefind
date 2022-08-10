@@ -113,9 +113,10 @@ impl PagefindIndexes {
         )];
 
         if self.language != "unknown" {
+            let base_language = self.language.split('-').next().unwrap();
             if let Some(wasm) = WEB_WASM_FILES.get_file(format!(
                 "pagefind_web_bg.{}.{}.wasm.gz",
-                self.language,
+                base_language,
                 env!("CARGO_PKG_VERSION")
             )) {
                 files.push(write(
@@ -127,7 +128,7 @@ impl PagefindIndexes {
             } else {
                 options.logger.v_warn(format!(
                     "Note: Pagefind doesn't support stemming for the language {}. \n\
-                    Searching will still work, but will not match across root words.",
+                    Search will still work, but will not match across root words.",
                     self.language
                 ));
             }

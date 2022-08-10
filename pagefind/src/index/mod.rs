@@ -96,7 +96,7 @@ where
             encoded_data,
         };
 
-        let mut short_hash = &encoded_page.full_hash[0..=9];
+        let mut short_hash = &encoded_page.full_hash[0..=(language.len() + 7)];
 
         // If we hit a collision, extend one until we stop colliding
         // TODO: There are some collision issues here.
@@ -145,7 +145,7 @@ where
             filter_index.as_mut(),
         );
         let hash = format!("{}_{}", language, full_hash(&filter_index));
-        let mut short_hash = &hash[0..=9];
+        let mut short_hash = &hash[0..=(language.len() + 7)];
 
         // If we hit a collision, extend one hash until we stop colliding
         // TODO: DRY
@@ -186,7 +186,7 @@ where
         );
 
         let hash = format!("{}_{}", language, full_hash(&word_index));
-        let mut short_hash = &hash[0..=9];
+        let mut short_hash = &hash[0..=(language.len() + 7)];
 
         // If we hit a collision, extend one hash until we stop colliding
         while word_indexes.contains_key(short_hash) {
@@ -204,7 +204,11 @@ where
     let mut meta_index: Vec<u8> = Vec::new();
     let _ = minicbor::encode::<MetaIndex, &mut Vec<u8>>(meta, meta_index.as_mut());
 
-    let meta_hash = format!("{}_{}", language, &full_hash(&meta_index)[0..=6]);
+    let meta_hash = format!(
+        "{}_{}",
+        language,
+        &full_hash(&meta_index)[0..=(language.len() + 7)]
+    );
 
     PagefindIndexes {
         word_indexes,

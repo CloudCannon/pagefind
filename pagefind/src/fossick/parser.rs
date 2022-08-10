@@ -123,7 +123,7 @@ impl<'a> DomParser<'a> {
                         let mut data = data.borrow_mut();
                         data.has_html_element = true;
                         if let Some(lang) = el.get_attribute("lang") {
-                            data.language = Some(lang.to_lowercase().split('-').next().unwrap().to_string());
+                            data.language = Some(lang.to_lowercase());
                         }
                         Ok(())
                     })},
@@ -489,7 +489,7 @@ fn parse_attr_string(input: String, el: &Element) -> Vec<String> {
 
 impl DomParsingNode {
     fn get_attribute_pair(&self, input: &str) -> Option<(String, String)> {
-        match input.split_once(":") {
+        match input.split_once(':') {
             Some((filter, value)) => Some((filter.to_owned(), value.to_owned())),
             None => {
                 if self.current_value.is_empty() {
