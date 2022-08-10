@@ -96,3 +96,39 @@ Feature: Multilingual
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /pt-br/"
+
+    Scenario: Pagefind can be configured to lump all languages together
+        Given I have a "public/index.html" file with the content:
+            """
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <title>Document</title>
+                </head>
+                <body>
+                    <p data-result>Nothing</p>
+                </body>
+            </html>
+            """
+        When I run my program with the flags:
+            | --force-language "en" |
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/_pagefind/wasm.unknown.pagefind"
+        Then I should see the file "public/_pagefind/wasm.en.pagefind"
+        Then I should not see the file "public/_pagefind/wasm.pt.pagefind"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("documenting");
+
+                let data = await Promise.all(search.results.map(result => result.data()));
+                document.querySelector('[data-result]').innerText = `${search.results.length} — ${data.map(d => d.url).sort().join(', ')}`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "2 — /en/, /pt-br/"

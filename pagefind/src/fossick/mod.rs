@@ -60,7 +60,12 @@ impl Fossicker {
             }
         }
 
-        self.data = Some(rewriter.wrap());
+        let mut data = rewriter.wrap();
+        if let Some(forced_language) = &options.force_language {
+            data.language = forced_language.clone();
+        }
+
+        self.data = Some(data);
 
         Ok(())
     }

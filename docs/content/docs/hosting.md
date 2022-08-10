@@ -3,7 +3,7 @@ date: 2022-06-01
 title: "Hosting Pagefind"
 nav_title: "Hosting Pagefind"
 nav_section: Notes
-weight: 80
+weight: 81
 ---
 
 Pagefind outputs a static bundle directory to your built site, and no hosting configuration is required.

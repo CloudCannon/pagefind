@@ -39,6 +39,13 @@ pub struct PagefindInboundConfig {
 
     #[clap(
         long,
+        help = "Ignore any detected languages and index the whole site as a single language. Expects an ISO 639-1 code."
+    )]
+    #[clap(required = false)]
+    pub force_language: Option<String>,
+
+    #[clap(
+        long,
         help = "Serve the source directory after creating the search index"
     )]
     #[clap(required = false)]
@@ -78,6 +85,7 @@ pub struct SearchOptions {
     pub bundle_dir: PathBuf,
     pub root_selector: String,
     pub glob: String,
+    pub force_language: Option<String>,
     pub verbose: bool,
     pub version: &'static str,
 }
@@ -95,6 +103,7 @@ impl SearchOptions {
                 bundle_dir: PathBuf::from(config.bundle_dir),
                 root_selector: config.root_selector,
                 glob: config.glob,
+                force_language: config.force_language,
                 verbose: config.verbose,
                 version: env!("CARGO_PKG_VERSION"),
             })

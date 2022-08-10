@@ -437,6 +437,7 @@ impl<'a> DomParser<'a> {
         data.default_meta.extend(data.meta);
 
         let node = node.borrow();
+
         DomParserResult {
             digest: normalize_content(&node.current_value),
             filters: data.filters,
