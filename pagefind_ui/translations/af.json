@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Jan Claasen",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Soek",
+        "clear_search": "Opruim",
+        "load_more": "Laai nog resultate",
+        "search_label": "Soek hierdie webwerf",
+        "filters_label": "Filters",
+        "zero_results": "Geen resultate vir [SEARCH_TERM]",
+        "many_results": "[COUNT] resultate vir [SEARCH_TERM]",
+        "one_result": "[COUNT] resultate vir [SEARCH_TERM]",
+        "alt_search": "Geen resultate vir [SEARCH_TERM]. Toon resultate vir [DIFFERENT_TERM] in plaas daarvan",
+        "search_suggestion": "Geen resultate vir [SEARCH_TERM]. Probeer eerder een van die volgende terme:",
+        "searching": "[SEARCH_TERM]..."
+    }
+}

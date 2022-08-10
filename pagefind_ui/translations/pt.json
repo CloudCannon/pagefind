@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Jonatah",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Pesquisar",
+        "clear_search": "Limpar",
+        "load_more": "Ver mais resultados",
+        "search_label": "Pesquisar",
+        "filters_label": "Filtros",
+        "zero_results": "Nenhum resultado encontrado para [SEARCH_TERM]",
+        "many_results": "[COUNT] resultados encontrados para [SEARCH_TERM]",
+        "one_result": "[COUNT] resultado encontrado para [SEARCH_TERM]",
+        "alt_search": "Nenhum resultado encontrado para [SEARCH_TERM]. Exibindo resultados para [DIFFERENT_TERM]",
+        "search_suggestion": "Nenhum resultado encontrado para [SEARCH_TERM]. Tente uma das seguintes pesquisas:",
+        "searching": "[SEARCH_TERM]..."
+    }
+}

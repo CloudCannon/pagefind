@@ -1,5 +1,6 @@
 import esbuild from 'esbuild';
 import path from 'path';
+import ImportGlobPlugin from "esbuild-plugin-import-glob";
 import sveltePlugin from "esbuild-svelte";
 import { createRequire } from "module";
 import { fileURLToPath } from 'url';
@@ -31,6 +32,7 @@ const build = async () => {
         entryPoints: [path.join(__dirname, 'ui.js')],
         entryNames: `pagefind_[name].${version}`,
         plugins: [
+            ImportGlobPlugin.default(),
             sveltePlugin({ compileOptions: { css: false } }),
             sveltefixPlugin
         ],
@@ -49,6 +51,7 @@ const serve = async () => {
         outdir: path.join(__dirname, "dev_files/_pagefind"),
         entryPoints: [path.join(__dirname, 'ui.js')],
         plugins: [
+            ImportGlobPlugin.default(),
             sveltePlugin({ compileOptions: { css: false } }),
             sveltefixPlugin
         ],

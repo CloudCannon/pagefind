@@ -11,6 +11,7 @@
   "license": "MIT",
   "devDependencies": {
     "esbuild": "^0.14.42",
+    "esbuild-plugin-import-glob": "^0.1.1",
     "esbuild-svelte": "^0.7.1",
     "svelte": "^3.48.0"
   }
