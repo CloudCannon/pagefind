@@ -42,6 +42,7 @@
     onMount(() => {
         let lang =
             document?.querySelector?.("html")?.getAttribute?.("lang") || "en";
+        lang = lang.toLocaleLowerCase();
         if (availableTranslations[lang]) {
             translations = availableTranslations[lang];
         } else {
