@@ -17,6 +17,7 @@ pub struct PagefindIndexes {
     pub meta_index: (String, Vec<u8>),
     pub fragments: Vec<(String, String)>,
     pub language: String,
+    pub word_count: usize,
 }
 
 #[derive(Clone)]
@@ -174,6 +175,7 @@ where
     }
 
     // TODO: Parameterize these chunk sizes via options
+    let word_count = word_map.len();
     let chunks = chunk_index(word_map, 20000);
     meta.index_chunks = chunk_meta(&chunks);
 
@@ -219,6 +221,7 @@ where
             .map(|(_, (hash, frag))| (hash, frag.encoded_data))
             .collect(),
         language,
+        word_count,
     }
 }
 

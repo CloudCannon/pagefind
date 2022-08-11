@@ -196,13 +196,13 @@ impl SearchState {
                 index.language,
                 index.fragments.len(),
                 plural!(index.fragments.len()),
-                index.word_indexes.len(),
-                plural!(index.word_indexes.len()),
+                index.word_count,
+                plural!(index.word_count),
                 index.filter_indexes.len(),
                 plural!(index.filter_indexes.len())
             ));
             stats.0 += index.fragments.len();
-            stats.1 += index.word_indexes.len();
+            stats.1 += index.word_count;
             stats.2 += index.filter_indexes.len();
             stats
         });
