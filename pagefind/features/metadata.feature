@@ -2,10 +2,15 @@ Feature: Metadata
     Background:
         Given I have the environment variables:
             | PAGEFIND_SOURCE | public |
-        Given I have a "public/index.html" file with the body:
+        Given I have a "public/index.html" file with the content:
             """
-            <p data-result>Nothing</p>
-            <p data-result-two>Nothing</p>
+            <html>
+            <head></head>
+            <body>
+                <p data-result>Nothing</p>
+                <p data-result-two>Nothing</p>
+            </body>
+            </html>
             """
         # Covering all filter and metadata syntaxes
         Given I have a "public/cat/index.html" file with the content:

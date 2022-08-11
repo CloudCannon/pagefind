@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Christopher Wingate",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Søk",
+        "clear_search": "Fjern",
+        "load_more": "Last flere resultater",
+        "search_label": "Søk på denne siden",
+        "filters_label": "Filtre",
+        "zero_results": "Ingen resultater for [SEARCH_TERM]",
+        "many_results": "[COUNT] resultater for [SEARCH_TERM]",
+        "one_result": "[COUNT] resultat for [SEARCH_TERM]",
+        "alt_search": "Ingen resultater for [SEARCH_TERM]. Viser resultater for [DIFFERENT_TERM] i stedet",
+        "search_suggestion": "Ingen resultater for [SEARCH_TERM]. Prøv en av disse søkeordene i stedet:",
+        "searching": "Søker etter [SEARCH_TERM]"
+    }
+}

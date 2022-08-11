@@ -1,6 +1,7 @@
 <script>
     export let available_filters = null;
     export let show_empty_filters = true;
+    export let translations;
     export const selected_filters = {};
 
     let initialized = false;
@@ -21,7 +22,9 @@
 
 {#if available_filters && Object.entries(available_filters).length}
     <fieldset class="pagefind-ui__filter-panel">
-        <legend class="pagefind-ui__filter-panel-label">Filters</legend>
+        <legend class="pagefind-ui__filter-panel-label"
+            >{translations.strings.filters_label}</legend
+        >
         {#each Object.entries(available_filters) as [filter, values]}
             <details class="pagefind-ui__filter-block" open={default_open}>
                 <summary class="pagefind-ui__filter-name"

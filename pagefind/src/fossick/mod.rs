@@ -1,3 +1,5 @@
+#[cfg(feature = "extended")]
+use charabia::Segment;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use pagefind_stem::{Algorithm, Stemmer};
@@ -27,6 +29,8 @@ pub struct FossickedData {
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
     pub has_custom_body: bool,
+    pub has_html_element: bool,
+    pub language: String,
 }
 
 #[derive(Debug)]
@@ -59,68 +63,102 @@ impl Fossicker {
             }
         }
 
-        self.data = Some(rewriter.wrap());
+        let mut data = rewriter.wrap();
+        if let Some(forced_language) = &options.force_language {
+            data.language = forced_language.clone();
+        }
+
+        self.data = Some(data);
 
         Ok(())
     }
 
-    fn retrieve_words_from_digest(&mut self) -> HashMap<String, Vec<u32>> {
+    fn parse_digest(&mut self) -> (String, HashMap<String, Vec<u32>>) {
         let mut map: HashMap<String, Vec<u32>> = HashMap::new();
-        let en_stemmer = Stemmer::create(Algorithm::English); // TODO: i18n
+        let data = self.data.as_ref().unwrap();
+        let stemmer = get_stemmer(&data.language);
 
-        // TODO: Reconsider stopwords. Removing them for now as they seem to remove too much,
-        // let mut words_to_remove = stop_words::get(stop_words::LANGUAGE::English);
-        // words_to_remove.retain(|w| w.len() < 5);
+        #[cfg(feature = "extended")]
+        let mut content = String::with_capacity(data.digest.len());
 
-        // TODO: Read newlines and jump the word_index up some amount,
+        #[cfg(not(feature = "extended"))]
+        let content = data.digest.replace('\u{200B}', ""); // TODO: Use separate parse_digest methods based on features
+
+        // TODO: Consider reading newlines and jump the word_index up some amount,
         // so that separate bodies of text don't return exact string
-        // matches across the boundaries.
+        // matches across the boundaries. Or otherwise use some marker byte for the boundary.
 
-        for (word_index, word) in self
-            .data
-            .as_ref()
-            .unwrap()
-            .digest
-            .to_lowercase()
-            .split_whitespace()
-            .enumerate()
-        {
-            let mut word = SPECIAL_CHARS.replace_all(word, "").into_owned();
-            word = en_stemmer.stem(&word).into_owned();
-            // if words_to_remove.contains(&word) {
-            //     continue; // Removing stopwords for now...
-            // }
-            if !word.is_empty() {
-                if let Some(repeat) = map.get_mut(&word) {
+        // TODO: Configure this or use segmenting across all languages
+
+        #[cfg(feature = "extended")]
+        let should_segment = matches!(data.language.split('-').next().unwrap(), "zh" | "ja");
+
+        #[cfg(feature = "extended")]
+        let segments = if should_segment {
+            // Run a segmenter only for any languages which require it.
+            data.digest.as_str().segment_str()
+        } else {
+            content.push_str(&data.digest.replace('\u{200B}', ""));
+            // Currently hesistant to run segmentation during indexing
+            // that we can't also run during search, since we don't
+            // ship a segmenter to the browser. This logic is easier
+            // to replicate in the JavaScript that parses a search query.
+            Box::new(data.digest.split_whitespace())
+        };
+
+        #[cfg(not(feature = "extended"))]
+        let segments = data.digest.split_whitespace();
+
+        for (word_index, word) in segments.enumerate() {
+            let mut normalized_word = SPECIAL_CHARS
+                .replace_all(word, "")
+                .into_owned()
+                .to_lowercase();
+
+            #[cfg(feature = "extended")]
+            if should_segment {
+                content.push_str(&word.replace('\u{200B}', ""));
+                content.push('\u{200B}');
+            }
+
+            if !normalized_word.is_empty() {
+                if let Some(stemmer) = &stemmer {
+                    normalized_word = stemmer.stem(&normalized_word).into_owned();
+                }
+
+                if let Some(repeat) = map.get_mut(&normalized_word) {
                     repeat.push(word_index.try_into().unwrap());
                 } else {
-                    map.insert(word, vec![word_index.try_into().unwrap()]);
+                    map.insert(normalized_word, vec![word_index.try_into().unwrap()]);
                 }
             }
         }
 
-        map
+        (content, map)
     }
 
-    pub async fn fossick(&mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
+    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
         while self.read_file(options).await.is_err() {
             sleep(Duration::from_millis(1)).await;
         }
 
-        let word_data = self.retrieve_words_from_digest();
+        let (content, word_data) = self.parse_digest();
 
-        let data = self.data.as_ref().unwrap();
+        let data = self.data.unwrap();
+        let url = build_url(&self.file_path, options);
 
         Ok(FossickedData {
-            file_path: self.file_path.clone(),
+            file_path: self.file_path,
             has_custom_body: data.has_custom_body,
+            has_html_element: data.has_html_element,
+            language: data.language,
             fragment: PageFragment {
                 page_number: 0,
                 data: PageFragmentData {
-                    url: build_url(&self.file_path, options),
-                    content: data.digest.clone(),
-                    filters: data.filters.clone(),
-                    meta: data.meta.clone(),
+                    url,
+                    content,
+                    filters: data.filters,
+                    meta: data.meta,
                     word_count: word_data.len(),
                 },
             },
@@ -138,6 +176,41 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
         "/{}",
         url.to_str().unwrap().to_owned().replace("index.html", "")
     )
+}
+
+// TODO: These language codes are duplicated with pagefind_web's Cargo.toml
+fn get_stemmer(lang: &str) -> Option<Stemmer> {
+    match lang.split('-').next().unwrap() {
+        "ar" => Some(Stemmer::create(Algorithm::Arabic)),
+        "hy" => Some(Stemmer::create(Algorithm::Armenian)),
+        "eu" => Some(Stemmer::create(Algorithm::Basque)),
+        "ca" => Some(Stemmer::create(Algorithm::Catalan)),
+        "da" => Some(Stemmer::create(Algorithm::Danish)),
+        "nl" => Some(Stemmer::create(Algorithm::Dutch)),
+        "en" => Some(Stemmer::create(Algorithm::English)),
+        "fi" => Some(Stemmer::create(Algorithm::Finnish)),
+        "fr" => Some(Stemmer::create(Algorithm::French)),
+        "de" => Some(Stemmer::create(Algorithm::German)),
+        "el" => Some(Stemmer::create(Algorithm::Greek)),
+        "hi" => Some(Stemmer::create(Algorithm::Hindi)),
+        "hu" => Some(Stemmer::create(Algorithm::Hungarian)),
+        "id" => Some(Stemmer::create(Algorithm::Indonesian)),
+        "ga" => Some(Stemmer::create(Algorithm::Irish)),
+        "it" => Some(Stemmer::create(Algorithm::Italian)),
+        "lt" => Some(Stemmer::create(Algorithm::Lithuanian)),
+        "ne" => Some(Stemmer::create(Algorithm::Nepali)),
+        "no" => Some(Stemmer::create(Algorithm::Norwegian)),
+        "pt" => Some(Stemmer::create(Algorithm::Portuguese)),
+        "ro" => Some(Stemmer::create(Algorithm::Romanian)),
+        "ru" => Some(Stemmer::create(Algorithm::Russian)),
+        "sr" => Some(Stemmer::create(Algorithm::Serbian)),
+        "es" => Some(Stemmer::create(Algorithm::Spanish)),
+        "sv" => Some(Stemmer::create(Algorithm::Swedish)),
+        "ta" => Some(Stemmer::create(Algorithm::Tamil)),
+        "tr" => Some(Stemmer::create(Algorithm::Turkish)),
+        "yi" => Some(Stemmer::create(Algorithm::Yiddish)),
+        _ => None,
+    }
 }
 
 #[cfg(test)]

@@ -51,6 +51,8 @@ struct DomParserData {
     filters: HashMap<String, Vec<String>>,
     meta: HashMap<String, String>,
     default_meta: HashMap<String, String>,
+    language: Option<String>,
+    has_html_element: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -94,6 +96,8 @@ pub struct DomParserResult {
     pub filters: HashMap<String, Vec<String>>,
     pub meta: HashMap<String, String>,
     pub has_custom_body: bool,
+    pub has_html_element: bool,
+    pub language: String,
 }
 
 // Some shorthand to clean up our use of Rc<RefCell<*>> in the lol_html macros
@@ -108,20 +112,28 @@ macro_rules! enclose {
 }
 
 impl<'a> DomParser<'a> {
-    pub fn new(options: &SearchOptions) -> Self {
+    pub fn new(options: &'a SearchOptions) -> Self {
         let data = Rc::new(RefCell::new(DomParserData::default()));
         let root = format!("{}, {} *", options.root_selector, options.root_selector);
 
         let rewriter = HtmlRewriter::new(
             Settings {
                 element_content_handlers: vec![
+                    enclose! { (data) element!("html", move |el| {
+                        let mut data = data.borrow_mut();
+                        data.has_html_element = true;
+                        if let Some(lang) = el.get_attribute("lang") {
+                            data.language = Some(lang.to_lowercase());
+                        }
+                        Ok(())
+                    })},
                     enclose! { (data) element!(root, move |el| {
                         let explicit_ignore_flag = el.get_attribute("data-pagefind-ignore").map(|attr| {
                             match attr.to_ascii_lowercase().as_str() {
                                 "" | "index" => NodeStatus::Ignored,
                                 "all" => NodeStatus::Excluded,
                                 _ => {
-                                    eprintln!("data-pagefind-ignore value of \"{}\" is not valid. Expected no value, or one of: [index, all]. Assuming 'all' and excluding this element entirely.", attr);
+                                    options.logger.warn(format!("data-pagefind-ignore value of \"{}\" is not valid. Expected no value, or one of: [index, all]. Assuming 'all' and excluding this element entirely.", attr));
                                     NodeStatus::Excluded
                                 }
                             }
@@ -428,11 +440,17 @@ impl<'a> DomParser<'a> {
         data.default_meta.extend(data.meta);
 
         let node = node.borrow();
+
         DomParserResult {
             digest: normalize_content(&node.current_value),
             filters: data.filters,
             meta: data.default_meta,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
+            has_html_element: data.has_html_element,
+            language: data
+                .language
+                .filter(|lang| !lang.is_empty())
+                .unwrap_or_else(|| "unknown".into()),
         }
     }
 }
@@ -471,7 +489,7 @@ fn parse_attr_string(input: String, el: &Element) -> Vec<String> {
 
 impl DomParsingNode {
     fn get_attribute_pair(&self, input: &str) -> Option<(String, String)> {
-        match input.split_once(":") {
+        match input.split_once(':') {
             Some((filter, value)) => Some((filter.to_owned(), value.to_owned())),
             None => {
                 if self.current_value.is_empty() {

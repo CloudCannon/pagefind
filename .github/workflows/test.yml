@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.3.4"
+  HUMANE_VERSION: "0.3.7"
 
 jobs:
   test:
@@ -86,11 +86,11 @@ jobs:
 
       - name: Build Testing Binary
         working-directory: ./pagefind
-        run: cargo build --release
+        run: cargo build --release --features extended
 
       - name: Test Lib
         working-directory: ./pagefind
-        run: cargo test --release --lib
+        run: cargo test --release --lib --features extended
 
       - name: Test CLI
         working-directory: ./pagefind
