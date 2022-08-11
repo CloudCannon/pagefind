@@ -26,6 +26,8 @@ If word stemming is unsupported, search results won't match across root words. I
 
 > Feel free to [open an issue](https://github.com/CloudCannon/pagefind/issues/new) if there's a language you would like better support for, or [contribute a translation](https://github.com/CloudCannon/pagefind/tree/main/pagefind_ui/translations) for Pagefind UI in your language.
 
+> Pagefind does not yet support segmenting words for languages without whitespace between words. These languages will only index well if whitespace exists between words, or each individual word is wrapped in an element such as a `<span>`.
+
 | Language          | UI Translations | Word Stemming |
 |-------------------|-----------------|---------------|
 | Afrikaans — `af`  | ✅               | ❌             |
