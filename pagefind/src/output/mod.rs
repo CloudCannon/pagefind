@@ -53,7 +53,13 @@ const SEARCH_JS: &str = include_str!(concat!(
     "/src/output/stubs/search.js"
 ));
 
-pub async fn write_common(options: &SearchOptions, language_indexes: Vec<(String, String)>) {
+pub struct LanguageMeta {
+    pub language: String,
+    pub hash: String,
+    pub wasm: Option<String>,
+}
+
+pub async fn write_common(options: &SearchOptions, language_indexes: Vec<LanguageMeta>) {
     let outdir = options.source.join(&options.bundle_dir);
 
     let js_version = format!("const pagefind_version = \"{PAGEFIND_VERSION}\";");
@@ -61,7 +67,15 @@ pub async fn write_common(options: &SearchOptions, language_indexes: Vec<(String
 
     let entry_meta = entry::PagefindEntryMeta {
         version: PAGEFIND_VERSION,
-        languages: HashMap::from_iter(language_indexes),
+        languages: HashMap::from_iter(language_indexes.into_iter().map(|i| {
+            (
+                i.language,
+                entry::PagefindEntryLanguage {
+                    hash: i.hash,
+                    wasm: i.wasm,
+                },
+            )
+        })),
     };
     let encoded_entry_meta = serde_json::to_string(&entry_meta).unwrap();
 
@@ -102,8 +116,9 @@ pub async fn write_common(options: &SearchOptions, language_indexes: Vec<(String
 }
 
 impl PagefindIndexes {
-    pub async fn write_files(self, options: &SearchOptions) {
+    pub async fn write_files(self, options: &SearchOptions) -> LanguageMeta {
         let outdir = options.source.join(&options.bundle_dir);
+        let mut wasm_file = None;
 
         let mut files = vec![write(
             outdir.join(format!("pagefind.{}.pf_meta", &self.meta_index.0)),
@@ -119,6 +134,7 @@ impl PagefindIndexes {
                 base_language,
                 env!("CARGO_PKG_VERSION")
             )) {
+                wasm_file = Some(self.language.to_string());
                 files.push(write(
                     outdir.join(format!("wasm.{}.pagefind", self.language)),
                     vec![wasm.contents()],
@@ -162,6 +178,12 @@ impl PagefindIndexes {
         }));
 
         join_all(files).await;
+
+        LanguageMeta {
+            language: self.language,
+            hash: self.meta_index.0,
+            wasm: wasm_file,
+        }
     }
 }
 

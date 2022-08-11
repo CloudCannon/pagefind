@@ -194,11 +194,7 @@ impl SearchState {
 
         let index_entries: Vec<_> = indexes
             .into_iter()
-            .map(|indexes| async {
-                let index_meta = (indexes.language.clone(), indexes.meta_index.0.clone());
-                indexes.write_files(&self.options).await;
-                index_meta
-            })
+            .map(|indexes| async { indexes.write_files(&self.options).await })
             .collect();
         let index_entries = join_all(index_entries).await;
 

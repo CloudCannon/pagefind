@@ -38,8 +38,9 @@ class Pagefind {
         }
         await this.loadEntry();
         let { language, index } = this.findLanguage();
+        let lang_wasm = index.wasm ? index.wasm : "unknown";
 
-        await Promise.all([this.loadWasm(language), this.loadMeta(index)]);
+        await Promise.all([this.loadWasm(lang_wasm), this.loadMeta(index.hash)]);
         window.tmp_pagefind = this.backend;
         this.raw_ptr = this.backend.init_pagefind(new Uint8Array(this.searchMeta));
     }
