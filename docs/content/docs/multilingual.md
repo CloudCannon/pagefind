@@ -62,7 +62,7 @@ If word stemming is unsupported, search results won't match across root words. I
 
 ## Specialized languages
 
-> This section currently applies to Chinese and Japanese languages. Additionally, specialized languages are only supported in Pagefind's extended release, which is the default when running `npx pagefind`.
+> This section currently applies to Chinese and Japanese languages. Specialized languages are only supported in Pagefind's extended release, which is the default when running `npx pagefind`.
 
 Currently when indexing, Pagefind does not support stemming for specialized languages, but does support segmentation for words not separated by whitespace.
 
