@@ -224,7 +224,7 @@ function untar(zipPath, destinationDir) {
 }
 
 async function unzipPagefind(zipPath, destinationDir) {
-    const expectedName = path.join(destinationDir, 'pagefind');
+    const expectedName = path.join(destinationDir, 'pagefind_extended');
 
     if (await fsExists(expectedName)) {
         await fsUnlink(expectedName);
@@ -244,7 +244,7 @@ async function unzipPagefind(zipPath, destinationDir) {
         return expectedName + '.exe';
     }
 
-    throw new Error(`Expecting pagefind or pagefind.exe unzipped into ${destinationDir}, didn't find one.`);
+    throw new Error(`Expecting pagefind_extended or pagefind_extended.exe unzipped into ${destinationDir}, didn't find one.`);
 }
 
 async function cleanCache() {
@@ -279,7 +279,7 @@ module.exports = async opts => {
         return Promise.reject(new Error('Missing target'));
     }
 
-    const assetName = ['pagefind', opts.version, opts.target].join('-') + '.tar.gz';
+    const assetName = ['pagefind_extended', opts.version, opts.target].join('-') + '.tar.gz';
 
     if (!await fsExists(tmpDir)) {
         await fsMkdir(tmpDir, { recursive: true });
@@ -293,7 +293,7 @@ module.exports = async opts => {
         console.log('Deleting invalid download cache');
         try {
             await fsUnlink(assetDownloadPath);
-            const expectedName = path.join(opts.destDir, 'pagefind');
+            const expectedName = path.join(opts.destDir, 'pagefind_extended');
 
             if (await fsExists(expectedName)) {
                 await fsUnlink(expectedName);
