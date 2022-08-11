@@ -12,4 +12,5 @@ pub struct PagefindEntryMeta {
 pub struct PagefindEntryLanguage {
     pub hash: String,
     pub wasm: Option<String>,
+    pub page_count: usize,
 }

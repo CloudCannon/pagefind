@@ -51,6 +51,7 @@ class Pagefind {
             this.primaryLanguage = langCode.toLocaleLowerCase();
         }
         let language = this.primaryLanguage;
+
         if (this.languages) {
             let index = this.languages[language];
             if (index) return { language, index };
@@ -63,12 +64,10 @@ class Pagefind {
             index = this.languages["unknown"];
             if (index) return { language, index };
 
-            language = "en";
-            index = this.languages["en"];
-            if (index) return { language, index };
+            let topLang = Object.entries(this.languages).sort(([, a], [, b]) => b.page_count - a.page_count)[0];
 
-            language = Object.entries(this.languages)[0];
-            index = Object.values(this.languages)[0];
+            language = topLang[0];
+            index = topLang[1];
             if (index) return { language, index };
 
             throw new Error("Pagefind Error: No language indexes found.");

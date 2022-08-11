@@ -54,6 +54,7 @@ const SEARCH_JS: &str = include_str!(concat!(
 ));
 
 pub struct LanguageMeta {
+    pub page_count: usize,
     pub language: String,
     pub hash: String,
     pub wasm: Option<String>,
@@ -73,6 +74,7 @@ pub async fn write_common(options: &SearchOptions, language_indexes: Vec<Languag
                 entry::PagefindEntryLanguage {
                     hash: i.hash,
                     wasm: i.wasm,
+                    page_count: i.page_count,
                 },
             )
         })),
@@ -180,6 +182,7 @@ impl PagefindIndexes {
         join_all(files).await;
 
         LanguageMeta {
+            page_count: self.fragments.len(),
             language: self.language,
             hash: self.meta_index.0,
             wasm: wasm_file,

@@ -182,7 +182,7 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "2 — /en/, /pt-br/"
 
-    Scenario: Pagefind searches for omitted languages with no stemming
+    Scenario: Pagefind merges omitted languages into the primary language
         Given I have a "public/index.html" file with the content:
             """
             <!DOCTYPE html>
@@ -211,7 +211,7 @@ Feature: Multilingual
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/_pagefind/pagefind.js"
         Then I should see the file "public/_pagefind/wasm.unknown.pagefind"
-        Then I should see "unknown" in "public/_pagefind/pagefind-entry.json"
+        Then I should not see "unknown" in "public/_pagefind/pagefind-entry.json"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
@@ -219,15 +219,14 @@ Feature: Multilingual
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let search = await pagefind.search("document");
-                let stem_search = await pagefind.search("documenting");
+                let search = await pagefind.search("documenting");
 
-                let data = search.results[0] ? await search.results[0].data() : "None";
-                document.querySelector('[data-result]').innerText = `${search.results.length} — ${data.url} — ${stem_search.results.length}`;
+                let data = await Promise.all(search.results.map(result => result.data()));
+                document.querySelector('[data-result]').innerText = `${data.map(d => d.url).sort().join(', ')}`;
             }
             """
         Then There should be no logs
-        Then The selector "[data-result]" should contain "1 — /mystery/ — 0"
+        Then The selector "[data-result]" should contain "/en/, /mystery/"
 
     Scenario: Pagefind searches for unknown languages with no stemming
         Given I have a "public/index.html" file with the content:

@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use fossick::Fossicker;
 use futures::future::join_all;
 use hashbrown::HashMap;
@@ -133,14 +135,31 @@ impl SearchState {
                 .collect::<Vec<_>>()
                 .join("\n"),
         );
-        if let Some(unknown_pages) = language_map.get("unknown") {
+
+        let primary_language = language_map
+            .iter()
+            .filter(|(k, _)| k.as_str() != "unknown")
+            .max_by(|(lang_a, pages_a), (lang_b, pages_b)| {
+                let size = pages_a.len().cmp(&pages_b.len());
+                if matches!(size, Ordering::Equal) {
+                    return lang_b.cmp(lang_a);
+                }
+                size
+            })
+            .map(|(k, _)| k.clone())
+            .unwrap_or_else(|| "unknown".into());
+
+        if let Some(mut unknown_pages) = language_map.remove("unknown") {
             if language_map.len() > 1 {
                 log.warn(format!(
                     "{} page{} found without an html lang attribute. \n\
-                    Pages without a known language may not show up in search results.",
+                    Merging these pages with the {} language, as that is the main language on this site. \n\
+                    Run Pagefind with --verbose for more information.",
                     unknown_pages.len(),
-                    plural!(unknown_pages.len())
+                    plural!(unknown_pages.len()),
+                    primary_language
                 ));
+
                 log.v_warn(
                     unknown_pages
                         .iter()
@@ -149,7 +168,15 @@ impl SearchState {
                         })
                         .collect::<Vec<_>>()
                         .join("\n"),
-                )
+                );
+
+                if let Some(primary) = language_map.get_mut(&primary_language) {
+                    primary.append(&mut unknown_pages);
+                } else {
+                    language_map.insert(primary_language, unknown_pages);
+                }
+            } else {
+                language_map.insert(primary_language, unknown_pages);
             }
         }
 
