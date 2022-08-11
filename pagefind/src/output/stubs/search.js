@@ -37,7 +37,7 @@ class Pagefind {
             console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
         }
         await this.loadEntry();
-        let { language, index } = this.findLanguage();
+        let index = this.findIndex();
         let lang_wasm = index.wasm ? index.wasm : "unknown";
 
         await Promise.all([this.loadWasm(lang_wasm), this.loadMeta(index.hash)]);
@@ -45,35 +45,27 @@ class Pagefind {
         this.raw_ptr = this.backend.init_pagefind(new Uint8Array(this.searchMeta));
     }
 
-    findLanguage() {
+    findIndex() {
         if (document?.querySelector) {
             const langCode = document.querySelector("html").getAttribute("lang") || "unknown";
             this.primaryLanguage = langCode.toLocaleLowerCase();
         }
-        let language = this.primaryLanguage;
 
         if (this.languages) {
-            let index = this.languages[language];
-            if (index) return { language, index };
+            let index = this.languages[this.primaryLanguage];
+            if (index) return index;
 
-            language = language.split("-")[0];
-            index = this.languages[language];
-            if (index) return { language, index };
+            index = this.languages[this.primaryLanguage.split("-")[0]];
+            if (index) return index;
 
-            language = "unknown";
             index = this.languages["unknown"];
-            if (index) return { language, index };
+            if (index) return index;
 
-            let topLang = Object.entries(this.languages).sort(([, a], [, b]) => b.page_count - a.page_count)[0];
-
-            language = topLang[0];
-            index = topLang[1];
-            if (index) return { language, index };
-
-            throw new Error("Pagefind Error: No language indexes found.");
+            let topLang = Object.values(this.languages).sort((a, b) => b.page_count - a.page_count);
+            if (topLang[0]) return topLang[0]
         }
 
-        return { language, index: null };
+        throw new Error("Pagefind Error: No language indexes found.");
     }
 
     decompress(data, file = "unknown file") {
