@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cargo build --release
+cargo build --release --features extended
 if [ -z "$1" ]; then
     TEST_BINARY=../target/release/pagefind npx -y humane@latest
 else

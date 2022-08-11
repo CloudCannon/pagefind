@@ -48,7 +48,13 @@ impl SearchState {
 
     pub async fn run(&mut self) {
         let log = &self.options.logger;
+        #[cfg(not(feature = "extended"))]
         log.status(&format!("Running Pagefind v{}", self.options.version));
+        #[cfg(feature = "extended")]
+        log.status(&format!(
+            "Running Pagefind v{} (Extended)",
+            self.options.version
+        ));
         log.v_info("Running in verbose mode");
 
         log.info(format!(
@@ -201,6 +207,20 @@ impl SearchState {
                 index.filter_indexes.len(),
                 plural!(index.filter_indexes.len())
             ));
+
+            #[cfg(not(feature = "extended"))]
+            match index.language.split('-').next() {
+                Some("zh") => log.warn("⚠ Indexing Chinese in non-extended mode. \n\
+                                        In this mode, Pagefind will not segment words that are not whitespace separated. \n\
+                                        Running the extended Pagefind binary will include this segmentation. \n\
+                                        Either download the pagefind_extended binary, or run npx pagefind-extended."),
+                Some("ja") => log.warn("⚠ Indexing Japanese in non-extended mode. \n\
+                                        In this mode, Pagefind will not segment words that are not whitespace separated. \n\
+                                        Running the extended Pagefind binary will include this segmentation. \n\
+                                        Either download the pagefind_extended binary, or run npx pagefind-extended."),
+                _ => {}
+            };
+
             stats.0 += index.fragments.len();
             stats.1 += index.word_count;
             stats.2 += index.filter_indexes.len();

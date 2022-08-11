@@ -49,6 +49,7 @@ pagefind_stem = { version = "0.1.0", features = [
     "yiddish",
 ] }
 stop-words = "0.6.2"
+charabia = { version = "0.5.1", optional = true }
 hashbrown = { version = "0.12.0", features = ["serde"] }
 regex = "1.1"
 minicbor = { version = "0.15.0", features = ["derive"] }
@@ -71,3 +72,7 @@ twelf = { version = "0.5", default-features = false, features = [
 portpicker = "0.1"
 actix-web = "4"
 actix-files = "0.6"
+
+[features]
+
+extended = ["dep:charabia"]

@@ -1,3 +1,5 @@
+#[cfg(feature = "extended")]
+use charabia::Segment;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use pagefind_stem::{Algorithm, Stemmer};
@@ -71,31 +73,68 @@ impl Fossicker {
         Ok(())
     }
 
-    fn retrieve_words_from_digest(&mut self) -> HashMap<String, Vec<u32>> {
+    fn parse_digest(&mut self) -> (String, HashMap<String, Vec<u32>>) {
         let mut map: HashMap<String, Vec<u32>> = HashMap::new();
         let data = self.data.as_ref().unwrap();
         let stemmer = get_stemmer(&data.language);
+
+        #[cfg(feature = "extended")]
+        let mut content = String::with_capacity(data.digest.len());
+
+        #[cfg(not(feature = "extended"))]
+        let content = data.digest.replace('\u{200B}', ""); // TODO: Use separate parse_digest methods based on features
 
         // TODO: Consider reading newlines and jump the word_index up some amount,
         // so that separate bodies of text don't return exact string
         // matches across the boundaries. Or otherwise use some marker byte for the boundary.
 
-        for (word_index, word) in data.digest.to_lowercase().split_whitespace().enumerate() {
-            let mut word = SPECIAL_CHARS.replace_all(word, "").into_owned();
-            if let Some(stemmer) = &stemmer {
-                word = stemmer.stem(&word).into_owned();
+        // TODO: Configure this or use segmenting across all languages
+
+        #[cfg(feature = "extended")]
+        let should_segment = matches!(data.language.split('-').next().unwrap(), "zh" | "ja");
+
+        #[cfg(feature = "extended")]
+        let segments = if should_segment {
+            // Run a segmenter only for any languages which require it.
+            data.digest.as_str().segment_str()
+        } else {
+            content.push_str(&data.digest.replace('\u{200B}', ""));
+            // Currently hesistant to run segmentation during indexing
+            // that we can't also run during search, since we don't
+            // ship a segmenter to the browser. This logic is easier
+            // to replicate in the JavaScript that parses a search query.
+            Box::new(data.digest.split_whitespace())
+        };
+
+        #[cfg(not(feature = "extended"))]
+        let segments = data.digest.split_whitespace();
+
+        for (word_index, word) in segments.enumerate() {
+            let mut normalized_word = SPECIAL_CHARS
+                .replace_all(word, "")
+                .into_owned()
+                .to_lowercase();
+
+            #[cfg(feature = "extended")]
+            if should_segment {
+                content.push_str(&word.replace('\u{200B}', ""));
+                content.push('\u{200B}');
             }
 
-            if !word.is_empty() {
-                if let Some(repeat) = map.get_mut(&word) {
+            if !normalized_word.is_empty() {
+                if let Some(stemmer) = &stemmer {
+                    normalized_word = stemmer.stem(&normalized_word).into_owned();
+                }
+
+                if let Some(repeat) = map.get_mut(&normalized_word) {
                     repeat.push(word_index.try_into().unwrap());
                 } else {
-                    map.insert(word, vec![word_index.try_into().unwrap()]);
+                    map.insert(normalized_word, vec![word_index.try_into().unwrap()]);
                 }
             }
         }
 
-        map
+        (content, map)
     }
 
     pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
@@ -103,7 +142,7 @@ impl Fossicker {
             sleep(Duration::from_millis(1)).await;
         }
 
-        let word_data = self.retrieve_words_from_digest();
+        let (content, word_data) = self.parse_digest();
 
         let data = self.data.unwrap();
         let url = build_url(&self.file_path, options);
@@ -117,7 +156,7 @@ impl Fossicker {
                 page_number: 0,
                 data: PageFragmentData {
                     url,
-                    content: data.digest,
+                    content,
                     filters: data.filters,
                     meta: data.meta,
                     word_count: word_data.len(),
