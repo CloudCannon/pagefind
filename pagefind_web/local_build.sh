@@ -8,6 +8,12 @@ set -e
 #
 ##
 
+if [[ -z "${GIT_VERSION}" ]]; then
+  WASM_VERSION="0.0.0"
+else
+  WASM_VERSION="${GIT_VERSION}"
+fi
+
 rm ../pagefind/vendor/wasm/* || true
 mkdir -p ../pagefind/vendor/wasm
 
@@ -17,11 +23,11 @@ if [ "$1" = "debug" ]; then
 else
     wasm-pack build --release -t no-modules 
 fi
-mv pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.0.0.0.js
+mv pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$WASM_VERSION.js
 # Append pagefind_dcd to the decompressed wasm as a magic word read by the frontend
-printf 'pagefind_dcd' > ../pagefind/vendor/wasm/pagefind_web_bg.unknown.0.0.0.wasm
-cat pkg/pagefind_web_bg.wasm >> ../pagefind/vendor/wasm/pagefind_web_bg.unknown.0.0.0.wasm
-gzip --best ../pagefind/vendor/wasm/pagefind_web_bg.unknown.0.0.0.wasm
+printf 'pagefind_dcd' > ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
+cat pkg/pagefind_web_bg.wasm >> ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
+gzip --best ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
 
 # Build the language-specific wasm files,
 # naively grabbing all features from this crate's Cargo.toml
@@ -33,9 +39,9 @@ grep -e pagefind_stem/ Cargo.toml | while read line ; do
     fi
 
     # Append pagefind_dcd to the decompressed wasm as a magic word read by the frontend
-    printf 'pagefind_dcd' > ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.0.0.0.wasm
-    cat pkg/pagefind_web_bg.wasm >> ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.0.0.0.wasm
-    gzip --best ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.0.0.0.wasm
+    printf 'pagefind_dcd' > ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.$WASM_VERSION.wasm
+    cat pkg/pagefind_web_bg.wasm >> ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.$WASM_VERSION.wasm
+    gzip --best ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.$WASM_VERSION.wasm
 done
 
 ls -lh ../pagefind/vendor/wasm/
