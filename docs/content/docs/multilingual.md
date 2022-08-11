@@ -20,13 +20,9 @@ Setting the [force language](/docs/config-options/#force-language) option when i
 
 ## Language support
 
-Pagefind will work automatically for any language, explicit language support only improves the quality of search results and the Pagefind UI.
+Pagefind will work automatically for any language. Explicit language support improves the quality of search results and the Pagefind UI.
 
 If word stemming is unsupported, search results won't match across root words. If UI translations are unsupported, the Pagefind UI will be shown in English.
-
-> Feel free to [open an issue](https://github.com/CloudCannon/pagefind/issues/new) if there's a language you would like better support for, or [contribute a translation](https://github.com/CloudCannon/pagefind/tree/main/pagefind_ui/translations) for Pagefind UI in your language.
-
-> Pagefind does not yet support segmenting words for languages without whitespace between words. These languages will only index well if whitespace exists between words, or each individual word is wrapped in an element such as a `<span>`.
 
 | Language          | UI Translations | Word Stemming |
 |-------------------|-----------------|---------------|
@@ -35,7 +31,7 @@ If word stemming is unsupported, search results won't match across root words. I
 | Armenian — `hy`   | ❌               | ✅             |
 | Basque — `eu`     | ❌               | ✅             |
 | Catalan — `ca`    | ❌               | ✅             |
-| Chinese — `zh`    | ✅               | ❌             |
+| Chinese — `zh`    | ✅               | See below     |
 | Danish — `da`     | ❌               | ✅             |
 | Dutch — `nl`      | ❌               | ✅             |
 | English — `en`    | ✅               | ✅             |
@@ -48,7 +44,7 @@ If word stemming is unsupported, search results won't match across root words. I
 | Indonesian — `id` | ❌               | ✅             |
 | Irish — `ga`      | ❌               | ✅             |
 | Italian — `it`    | ❌               | ✅             |
-| Japanese — `ja`   | ✅               | ❌             |
+| Japanese — `ja`   | ✅               | See below     |
 | Lithuanian — `lt` | ❌               | ✅             |
 | Nepali — `ne`     | ❌               | ✅             |
 | Norwegian — `no`  | ✅               | ✅             |
@@ -61,3 +57,15 @@ If word stemming is unsupported, search results won't match across root words. I
 | Tamil — `ta`      | ❌               | ✅             |
 | Turkish — `tr`    | ❌               | ✅             |
 | Yiddish — `yi`    | ❌               | ✅             |
+
+> Feel free to [open an issue](https://github.com/CloudCannon/pagefind/issues/new) if there's a language you would like better support for, or [contribute a translation](https://github.com/CloudCannon/pagefind/tree/main/pagefind_ui/translations) for Pagefind UI in your language.
+
+## Specialized languages
+
+> This section currently applies to Chinese and Japanese languages. Additionally, specialized languages are only supported in Pagefind's extended release, which is the default when running `npx pagefind`.
+
+Currently when indexing, Pagefind does not support stemming for specialized languages, but does support segmentation for words not separated by whitespace.
+
+Pagefind does not _yet_ support segmentation of the search query, so searching in the browser requires that words in the search query are separated by whitespace.
+
+In practice, this means that on a page tagged as a `zh-` language, `每個月都` will be indexed as the words `每個`, `月`, and `都`. When searching in the browser, searching for `每個`, `月`, or `都` individually will work. Additionally, searching `每個 月 都` will return results, and searching `"每個 月 都"` in quotes will match `每個月都` exactly, but searching for `每個月都` will not return results. Work to improve this is underway and will hopefully remove this limitation in the future.
