@@ -169,24 +169,26 @@ class Pagefind {
         }
         let fragment = await this.loaded_fragments[hash];
 
+        if (!fragment.raw_content) {
+            fragment.raw_content = fragment.content;
+            fragment.content = fragment.content.replace(/\u200B/g, '');
+        }
+
+        let is_zws_delimited = fragment.raw_content.includes('\u200B');
         let fragment_words = [];
-        if (fragment.content.includes('\u200B')) {
+        if (is_zws_delimited) {
             // If segmentation was run on the backend, count words by ZWS boundaries
-            fragment_words = fragment.content.split('\u200B');
+            fragment_words = fragment.raw_content.split('\u200B');
         } else {
-            fragment_words = fragment.content.split(/[\r\n\s]+/g);
+            fragment_words = fragment.raw_content.split(/[\r\n\s]+/g);
         }
         for (let word of locations) {
             fragment_words[word] = `<mark>${fragment_words[word]}</mark>`;
         }
-        fragment.excerpt = fragment_words.slice(excerpt[0], excerpt[0] + excerpt[1]).join(' ').trim();
+        fragment.excerpt = fragment_words.slice(excerpt[0], excerpt[0] + excerpt[1]).join(is_zws_delimited ? '' : ' ').trim();
         if (!fragment.raw_url) {
             fragment.raw_url = fragment.url;
             fragment.url = this.fullUrl(fragment.raw_url);
-        }
-        if (!fragment.raw_content) {
-            fragment.raw_content = fragment.content;
-            fragment.content = fragment.content.replace(/\u200B/g, '');
         }
         return fragment;
     }
