@@ -252,7 +252,7 @@ jobs:
 
       - name: Test Web
         working-directory: ./pagefind_web
-        run: cargo test --release --features extended
+        run: cargo test --release
 
       - name: Build
         working-directory: ./pagefind
