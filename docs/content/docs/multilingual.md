@@ -68,4 +68,8 @@ Currently when indexing, Pagefind does not support stemming for specialized lang
 
 Pagefind does not _yet_ support segmentation of the search query, so searching in the browser requires that words in the search query are separated by whitespace.
 
-In practice, this means that on a page tagged as a `zh-` language, `每個月都` will be indexed as the words `每個`, `月`, and `都`. When searching in the browser, searching for `每個`, `月`, or `都` individually will work. Additionally, searching `每個 月 都` will return results, and searching `"每個 月 都"` in quotes will match `每個月都` exactly, but searching for `每個月都` will not return results. Work to improve this is underway and will hopefully remove this limitation in the future.
+In practice, this means that on a page tagged as a `zh-` language, `每個月都` will be indexed as the words `每個`, `月`, and `都`. 
+
+When searching in the browser, searching for `每個`, `月`, or `都` individually will work. Additionally, searching `每個 月 都` will return results containing each word in any order, and searching `"每個 月 都"` in quotes will match `每個月都` exactly.
+
+Searching for `每個月都` will return zero results, as Pagefind is not able to segment it into words in the browser. Work to improve this is underway and will hopefully remove this limitation in the future.
