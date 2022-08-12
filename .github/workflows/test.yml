@@ -9,6 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   HUMANE_VERSION: "0.3.7"
+  WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
   test:
@@ -58,10 +59,12 @@ jobs:
       - name: Install Rust
         run: |
           rustup install ${{ matrix.rust }}
+
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
         with:
-          version: "latest"
+          version: ${{env.WASM_PACK_VERSION}}
+
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
 

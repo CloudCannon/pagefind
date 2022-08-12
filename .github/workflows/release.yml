@@ -10,6 +10,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   HUMANE_VERSION: "0.3.7"
+  WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
   publish-crate:
@@ -31,10 +32,12 @@ jobs:
       - name: Setup
         run: |
           rustup install stable
+
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
         with:
-          version: "latest"
+          version: ${{env.WASM_PACK_VERSION}}
+
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
       - name: Prepare Git
