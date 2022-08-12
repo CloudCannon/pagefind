@@ -23,6 +23,8 @@
 ### Fixes & Tweaks
 
 * Improved Pagefind logging and added a `--verbose` flag with extra information
+* Added warnings when Pagefind encounters pages without outer `<html>` elements
+* Added a console warning when Pagefind detects that a cached `pagefind.js` file was loaded alongside a search index from a newer release
 
 ## v0.6.1 (August 5, 2022)
 
