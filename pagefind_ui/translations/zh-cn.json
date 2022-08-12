@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Amber Song",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "搜索",
+        "clear_search": "清除",
+        "load_more": "加载更多结果",
+        "search_label": "站内搜索",
+        "filters_label": "筛选",
+        "zero_results": "未找到 [SEARCH_TERM] 的相关结果",
+        "many_results": "找到 [COUNT] 个 [SEARCH_TERM] 的相关结果",
+        "one_result": "找到 [COUNT] 个 [SEARCH_TERM] 的相关结果",
+        "alt_search": "未找到 [SEARCH_TERM] 的相关结果。改为显示 [DIFFERENT_TERM] 的相关结果",
+        "search_suggestion": "未找到 [SEARCH_TERM] 的相关结果。请尝试以下搜索。",
+        "searching": "正在搜索 [SEARCH_TERM]..."
+    }
+}

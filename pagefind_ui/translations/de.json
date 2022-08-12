@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Jan Claasen",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Suche",
+        "clear_search": "Löschen",
+        "load_more": "Mehr Ergebnisse laden",
+        "search_label": "Suche diese Seite",
+        "filters_label": "Filter",
+        "zero_results": "Keine Ergebnisse für [SEARCH_TERM]",
+        "many_results": "[COUNT] Ergebnisse für [SEARCH_TERM]",
+        "one_result": "[COUNT] Ergebnis für [SEARCH_TERM]",
+        "alt_search": "Keine Ergebnisse für [SEARCH_TERM]. Stattdessen werden Ergebnisse für [DIFFERENT_TERM] angezeigt",
+        "search_suggestion": "Keine Ergebnisse für [SEARCH_TERM]. Versuchen Sie eine der folgenden Suchen:",
+        "searching": "Suche für [SEARCH_TERM]"
+    }
+}

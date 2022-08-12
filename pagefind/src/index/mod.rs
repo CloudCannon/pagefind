@@ -14,8 +14,10 @@ mod index_words;
 pub struct PagefindIndexes {
     pub word_indexes: HashMap<String, Vec<u8>>,
     pub filter_indexes: HashMap<String, Vec<u8>>,
-    pub meta_index: Vec<u8>,
+    pub meta_index: (String, Vec<u8>),
     pub fragments: Vec<(String, String)>,
+    pub language: String,
+    pub word_count: usize,
 }
 
 #[derive(Clone)]
@@ -26,7 +28,11 @@ struct IntermediaryPageData {
     page_number: usize,
 }
 
-pub async fn build_indexes<I>(pages: I, options: &SearchOptions) -> PagefindIndexes
+pub async fn build_indexes<I>(
+    pages: I,
+    language: String,
+    options: &SearchOptions,
+) -> PagefindIndexes
 where
     I: Iterator<Item = FossickedData>,
 {
@@ -85,13 +91,13 @@ where
 
         let encoded_data = serde_json::to_string(&page.fragment.data).unwrap();
         let encoded_page = IntermediaryPageData {
-            full_hash: full_hash(encoded_data.as_bytes()),
+            full_hash: format!("{}_{}", language, full_hash(encoded_data.as_bytes())),
             word_count: page.fragment.data.word_count,
             page_number: page.fragment.page_number,
             encoded_data,
         };
 
-        let mut short_hash = &encoded_page.full_hash[0..=6];
+        let mut short_hash = &encoded_page.full_hash[0..=(language.len() + 7)];
 
         // If we hit a collision, extend one until we stop colliding
         // TODO: There are some collision issues here.
@@ -139,8 +145,8 @@ where
             },
             filter_index.as_mut(),
         );
-        let hash = full_hash(&filter_index);
-        let mut short_hash = &hash[0..=6];
+        let hash = format!("{}_{}", language, full_hash(&filter_index));
+        let mut short_hash = &hash[0..=(language.len() + 7)];
 
         // If we hit a collision, extend one hash until we stop colliding
         // TODO: DRY
@@ -160,14 +166,16 @@ where
     }
 
     if TryInto::<u32>::try_into(meta.pages.len()).is_err() {
-        panic!("Too many documents to index");
+        options.logger.error(format!(
+            "Language {} has too many documents to index, must be < {}",
+            language,
+            u32::MAX
+        ));
+        std::process::exit(1);
     }
 
-    println!("Indexed {:?} pages", meta.pages.len());
-    println!("Indexed {:?} words", word_map.len());
-    println!("Indexed {:?} filters", meta.filters.len());
-
     // TODO: Parameterize these chunk sizes via options
+    let word_count = word_map.len();
     let chunks = chunk_index(word_map, 20000);
     meta.index_chunks = chunk_meta(&chunks);
 
@@ -179,9 +187,9 @@ where
             word_index.as_mut(),
         );
 
-        let hash = full_hash(&word_index);
+        let hash = format!("{}_{}", language, full_hash(&word_index));
+        let mut short_hash = &hash[0..=(language.len() + 7)];
 
-        let mut short_hash = &hash[0..=6];
         // If we hit a collision, extend one hash until we stop colliding
         while word_indexes.contains_key(short_hash) {
             let new_length = short_hash.len() + 1;
@@ -195,19 +203,25 @@ where
         meta.index_chunks[i].hash = short_hash.into();
     }
 
-    println!("Created {:?} index chunks", word_indexes.len());
-
     let mut meta_index: Vec<u8> = Vec::new();
     let _ = minicbor::encode::<MetaIndex, &mut Vec<u8>>(meta, meta_index.as_mut());
+
+    let meta_hash = format!(
+        "{}_{}",
+        language,
+        &full_hash(&meta_index)[0..=(language.len() + 7)]
+    );
 
     PagefindIndexes {
         word_indexes,
         filter_indexes,
-        meta_index,
+        meta_index: (meta_hash, meta_index),
         fragments: fragments
             .into_iter()
             .map(|(_, (hash, frag))| (hash, frag.encoded_data))
             .collect(),
+        language,
+        word_count,
     }
 }
 

@@ -9,6 +9,21 @@
 
 ## Unreleased
 
+## v0.7.0 (August 12, 2022)
+
+### Features & Improvements
+
+* Multilingual support
+  * Pagefind now works out of the box for multilingual sites
+  * Pagefind UI is now translated into `af`, `de`, `en`, `ja`, `no`, `pt`, `ru`, & `zh`
+  * See the [multilingual documentation](https://pagefind.app/docs/multilingual/) for more information on this feature release
+  * This release adds a `pagefind_extended` binary release, which is larger than the `pagefind` release but includes support for indexing Chinese and Japanese languages
+    * `pagefind_extended` is now the default when running `npx pagefind`. The smaller `pagefind` release is still available via the [GitHub Release](https://github.com/CloudCannon/pagefind/releases) attachments
+
+### Fixes & Tweaks
+
+* Improved Pagefind logging and added a `--verbose` flag with extra information
+
 ## v0.6.1 (August 5, 2022)
 
 * Oops — fixes the npx wrapper on Windows

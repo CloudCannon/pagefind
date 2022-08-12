@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Liam Bigelow <liam@cloudcannon.com>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Search",
+        "clear_search": "Clear",
+        "load_more": "Load more results",
+        "search_label": "Search this site",
+        "filters_label": "Filters",
+        "zero_results": "No results for [SEARCH_TERM]",
+        "many_results": "[COUNT] results for [SEARCH_TERM]",
+        "one_result": "[COUNT] result for [SEARCH_TERM]",
+        "alt_search": "No results for [SEARCH_TERM]. Showing results for [DIFFERENT_TERM] instead",
+        "search_suggestion": "No results for [SEARCH_TERM]. Try one of the following searches:",
+        "searching": "Searching for [SEARCH_TERM]..."
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Aleksandr Gordeev",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Поиск",
+        "clear_search": "Очистить поле",
+        "load_more": "Загрузить еще",
+        "search_label": "Поиск по сайту",
+        "filters_label": "Фильтры",
+        "zero_results": "Ничего не найдено по запросу: [SEARCH_TERM]",
+        "many_results": "[COUNT] результатов по запросу: [SEARCH_TERM]",
+        "one_result": "[COUNT] результат по запросу: [SEARCH_TERM]",
+        "alt_search": "Ничего не найдено по запросу: [SEARCH_TERM]. Показаны результаты по запросу: [DIFFERENT_TERM]",
+        "search_suggestion": "Ничего не найдено по запросу: [SEARCH_TERM]. Попробуйте один из следующих вариантов",
+        "searching": "Поиск по запросу: [SEARCH_TERM]"
+    }
+}

@@ -32,7 +32,7 @@ async fn main() {
             configs.join(", ")
         );
         eprintln!("Pagefind only supports loading one configuration file format, please ensure only one file exists.");
-        return;
+        std::process::exit(1);
     }
 
     for config in configs {
@@ -43,7 +43,8 @@ async fn main() {
         } else if config.ends_with("yaml") || config.ends_with("yml") {
             Layer::Yaml
         } else {
-            panic!("Unknown config file format");
+            eprintln!("Unknown config file format {}", config);
+            std::process::exit(1);
         };
         config_layers.push(layer_fn(config.into()));
     }
@@ -59,11 +60,12 @@ async fn main() {
                 runner.run().await;
 
                 let duration = start.elapsed();
-                println!(
+
+                runner.options.logger.status(&format!(
                     "Finished in {}.{} seconds",
                     duration.as_secs(),
                     duration.subsec_millis()
-                );
+                ));
 
                 if config.serve {
                     pagefind::serve::serve_dir(PathBuf::from(config.source)).await;
@@ -95,6 +97,7 @@ async fn main() {
                     eprintln!("Unknown Error");
                 }
             }
+            std::process::exit(1);
         }
     }
 }

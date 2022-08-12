@@ -50,3 +50,19 @@ Configures the glob used by Pagefind to discover HTML files. Defaults to `**/*.{
 | CLI Flag        | ENV Variable    | Config Key |
 |-----------------|-----------------|------------|
 | `--glob <GLOB>` | `PAGEFIND_GLOB` | `glob`     |
+
+### Force Language
+Ignores any detected languages and creates a single index for the entire site as the provided language. Expects an ISO 639-1 code, such as `en` or `pt`.
+
+See [Multilingual search](/docs/multilingual/) for more details.
+
+| CLI Flag                  | ENV Variable              | Config Key       |
+|---------------------------|---------------------------|------------------|
+| `--force-language <LANG>` | `PAGEFIND_FORCE_LANGUAGE` | `force_language` |
+
+### Verbose
+Prints extra logging while indexing the site. Only affects the CLI, does not impact web-facing search.
+
+| CLI Flag    | ENV Variable       | Config Key |
+|-------------|--------------------|------------|
+| `--verbose` | `PAGEFIND_VERBOSE` | `verbose`  |

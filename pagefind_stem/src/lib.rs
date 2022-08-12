@@ -66,8 +66,27 @@ use std::borrow::Cow;
 
 mod snowball;
 
+use snowball::algorithms::get_algorithm;
 pub use snowball::algorithms::Algorithm;
 use snowball::SnowballEnv;
+
+mod errors {
+    use std::fmt;
+
+    #[derive(Debug)]
+    pub struct NoAlgorithm;
+
+    impl fmt::Display for NoAlgorithm {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "pagefind_stem was compiled with no algorithm feature flags set. Nothing to do."
+            )
+        }
+    }
+
+    impl std::error::Error for NoAlgorithm {}
+}
 
 /// Wrapps a usable interface around the actual stemmer implementation
 pub struct Stemmer {
@@ -79,6 +98,16 @@ impl Stemmer {
     pub fn create(lang: Algorithm) -> Self {
         Self {
             stemmer: lang.into(),
+        }
+    }
+
+    /// Try to create a new stemmer from whatever algorithm this crate was compiled with.
+    /// Returns an error if this crate was compiled with no feature flags.
+    /// Returns an algorithm at random if this crate was compiled with multiple feature flags.
+    pub fn try_create_default() -> Result<Self, errors::NoAlgorithm> {
+        match get_algorithm() {
+            Some(algo) => Ok(Self { stemmer: algo }),
+            None => Err(errors::NoAlgorithm),
         }
     }
 

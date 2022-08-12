@@ -1,7 +1,22 @@
 <script>
+    import { onMount } from "svelte";
+
     import Result from "./result.svelte";
     import Filters from "./filters.svelte";
     import Reset from "./reset.svelte";
+
+    import * as translationFiles from "../translations/*.json";
+
+    const availableTranslations = {},
+        languages = translationFiles.filenames.map(
+            (file) => file.match(/(\w+)\.json$/)[1]
+        );
+    for (let i = 0; i < languages.length; i++) {
+        availableTranslations[languages[i]] = {
+            language: languages[i],
+            ...translationFiles.default[i],
+        };
+    }
 
     export let base_path = "/_pagefind/";
     export let reset_styles = true;
@@ -22,6 +37,21 @@
     let initial_filters = null;
     let available_filters = null;
     let selected_filters = {};
+    let translations = availableTranslations["en"];
+
+    onMount(() => {
+        let lang =
+            document?.querySelector?.("html")?.getAttribute?.("lang") || "en";
+        lang = lang.toLocaleLowerCase();
+        if (availableTranslations[lang]) {
+            translations = availableTranslations[lang];
+        } else {
+            lang = lang.split("-")[0];
+            if (availableTranslations[lang]) {
+                translations = availableTranslations[lang];
+            }
+        }
+    });
 
     $: search(val, selected_filters);
 
@@ -91,7 +121,7 @@
     <form
         class="pagefind-ui__form"
         role="search"
-        aria-label="Search this site"
+        aria-label={translations.strings.search_label}
         action="javascript:void(0);"
         on:submit={(e) => e.preventDefault()}
     >
@@ -100,7 +130,7 @@
             on:focus={init}
             bind:value={val}
             type="text"
-            placeholder="Search"
+            placeholder={translations.strings.placeholder}
         />
 
         <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
@@ -108,6 +138,7 @@
                 <Filters
                     {show_empty_filters}
                     {available_filters}
+                    {translations}
                     bind:selected_filters
                 />
             {/if}
@@ -117,23 +148,38 @@
                     {#if loading}
                         {#if search_term}
                             <p class="pagefind-ui__message">
-                                Searching for "{search_term.replace(
-                                    /^"+|"+$/g,
-                                    ""
-                                )}"...
+                                {translations.strings.searching.replace(
+                                    /\[SEARCH_TERM\]/,
+                                    search_term
+                                )}
                             </p>
-                        {:else}
-                            <p class="pagefind-ui__message">Filtering...</p>
                         {/if}
                     {:else}
                         <p class="pagefind-ui__message">
-                            {searchResult.results.length} result{searchResult
-                                .results.length === 1
-                                ? ""
-                                : "s"}
-                            {search_term
-                                ? `for "${search_term.replace(/^"+|"+$/g, "")}"`
-                                : ""}
+                            {#if searchResult.results.length === 0}
+                                {translations.strings.zero_results.replace(
+                                    /\[SEARCH_TERM\]/,
+                                    search_term
+                                )}
+                            {:else if searchResult.results.length === 1}
+                                {translations.strings.one_result
+                                    .replace(/\[SEARCH_TERM\]/, search_term)
+                                    .replace(
+                                        /\[COUNT\]/,
+                                        new Intl.NumberFormat(
+                                            translations.language
+                                        ).format(1)
+                                    )}
+                            {:else}
+                                {translations.strings.many_results
+                                    .replace(/\[SEARCH_TERM\]/, search_term)
+                                    .replace(
+                                        /\[COUNT\]/,
+                                        new Intl.NumberFormat(
+                                            translations.language
+                                        ).format(searchResult.results.length)
+                                    )}
+                            {/if}
                         </p>
                         <ol class="pagefind-ui__results">
                             {#each searchResult.results.slice(0, show) as result (result.id)}
@@ -144,7 +190,8 @@
                             <button
                                 type="button"
                                 class="pagefind-ui__button"
-                                on:click={showMore}>Load more results</button
+                                on:click={showMore}
+                                >{translations.strings.load_more}</button
                             >
                         {/if}
                     {/if}

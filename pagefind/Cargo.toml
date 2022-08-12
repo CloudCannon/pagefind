@@ -9,6 +9,7 @@ license = "MIT"
 [dependencies]
 anyhow = "1.0"
 clap = { version = "3.2.6", features = ["derive"] }
+console = "0.15.1"
 wax = "0.4.0"
 futures = "0.3"
 tokio = { version = "1", features = [
@@ -17,8 +18,38 @@ tokio = { version = "1", features = [
     "time",
     "macros",
 ] }
-pagefind_stem = { version = "0.1.0", features = ["english"] }
+pagefind_stem = { version = "0.1.0", features = [
+    "arabic",
+    "armenian",
+    "basque",
+    "catalan",
+    "danish",
+    "dutch",
+    "english",
+    "finnish",
+    "french",
+    "german",
+    "greek",
+    "hindi",
+    "hungarian",
+    "indonesian",
+    "irish",
+    "italian",
+    "lithuanian",
+    "nepali",
+    "norwegian",
+    "portuguese",
+    "romanian",
+    "russian",
+    "serbian",
+    "spanish",
+    "swedish",
+    "tamil",
+    "turkish",
+    "yiddish",
+] }
 stop-words = "0.6.2"
+charabia = { version = "0.5.1", optional = true }
 hashbrown = { version = "0.12.0", features = ["serde"] }
 regex = "1.1"
 minicbor = { version = "0.15.0", features = ["derive"] }
@@ -30,6 +61,7 @@ sha-1 = "0.10"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 lazy_static = "1.4.0"
+include_dir = "0.7.2"
 twelf = { version = "0.5", default-features = false, features = [
     "env",
     "clap",
@@ -40,3 +72,7 @@ twelf = { version = "0.5", default-features = false, features = [
 portpicker = "0.1"
 actix-web = "4"
 actix-files = "0.6"
+
+[features]
+
+extended = ["dep:charabia"]

@@ -37,9 +37,21 @@ The Pagefind UI is styled using CSS custom properties which can be overridden. T
 --pagefind-ui-tag: #eeeeee;
 --pagefind-ui-border-width: 2px;
 --pagefind-ui-border-radius: 8px;
-----pagefind-ui-image-border-radius: 8px;
+--pagefind-ui-image-border-radius: 8px;
 --pagefind-ui-image-box-ratio: 3 / 2;
 --pagefind-ui-font: sans-serif;
+```
+
+If your website features a dark/light toggle using a classname, a good idea is to set the colour variables alongside that class. For example, the following snippet will swap Pagefind to a darker theme when the page body contains a `dark` class:
+
+```css
+body.dark {
+  --pagefind-ui-primary: #eeeeee;
+  --pagefind-ui-text: #eeeeee;
+  --pagefind-ui-background: #152028;
+  --pagefind-ui-border: #152028;
+  --pagefind-ui-tag: #152028;
+}
 ```
 
 ## Styling Pagefind UI yourself
