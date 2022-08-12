@@ -1,1 +1,1 @@
-npx -y pagefind --source docs/public
+npx -y pagefind@latest --source docs/public
