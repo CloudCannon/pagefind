@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.7.0 (August 12, 2022)
+
 ### Features & Improvements
 
 * Multilingual support
