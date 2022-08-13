@@ -9,6 +9,11 @@
 
 ## Unreleased
 
+## v0.7.1 (August 13, 2022)
+
+* Added French translations for Pagefind UI — thanks [@nfriedli](https://github.com/nfriedli)! 
+* Fixed standard & extended release archives attached to GitHub releases to be correctly assigned
+
 ## v0.7.0 (August 12, 2022)
 
 ### Features & Improvements
@@ -23,6 +28,8 @@
 ### Fixes & Tweaks
 
 * Improved Pagefind logging and added a `--verbose` flag with extra information
+* Added warnings when Pagefind encounters pages without outer `<html>` elements
+* Added a console warning when Pagefind detects that a cached `pagefind.js` file was loaded alongside a search index from a newer release
 
 ## v0.6.1 (August 5, 2022)
 
