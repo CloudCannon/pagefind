@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Nicolas Friedli <nicolas@theologique.ch>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Rechercher",
+        "clear_search": "Nettoyer",
+        "load_more": "Charger plus de résultats",
+        "search_label": "Recherche sur ce site",
+        "filters_label": "Filtres",
+        "zero_results": "Pas de résultat pour [SEARCH_TERM]",
+        "many_results": "[COUNT] résultats pour [SEARCH_TERM]",
+        "one_result": "[COUNT] résultat pour [SEARCH_TERM]",
+        "alt_search": "Pas de résultat pour [SEARCH_TERM]. Montre les résultats pour [DIFFERENT_TERM] à la place",
+        "search_suggestion": "Pas de résultat pour [SEARCH_TERM]. Essayer une des recherches suivantes:",
+        "searching": "Recherche [SEARCH_TERM]..."
+    }
+}
