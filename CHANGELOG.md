@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Added French translations for Pagefind UI — thanks @nfriedli! 
+
 ## v0.7.0 (August 12, 2022)
 
 ### Features & Improvements
