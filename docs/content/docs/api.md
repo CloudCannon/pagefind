@@ -128,3 +128,27 @@ If all filters have been loaded with `await pagefind.filters()`, counts will als
     }
 }
 ```
+
+## Preloading search terms
+
+If you have a debounced search input, Pagefind won't start loading indexes until you run your search query. To speed up your search query when it runs, you can use the `pagefind.preload` function as the user is typing. 
+
+```js
+pagefind.preload("h");
+```
+
+This function takes the same arguments as the `search` function and downloads the required indexes, stopping short of running the search query. Since indexes are chunked alphabetically, running `pagefind.preload("h")` will likely load the index required to search for `hello` by the time the user has finished typing. Multiple calls to `preload` will not cause redundant network requests.
+
+In vanilla javascript, this might look like the following:
+
+```js
+const search = (term) => { /* your main search code */ };
+const debouncedSearch = _.debounce(search, 300);
+
+inputElement.addEventListener('input', (e) => {
+    pagefind.preload(e.target.value);
+    debouncedSearch(e.target.value);
+})
+```
+
+The `preload` function can also be passed the same filtering options as the `search` function, and will preload any necessary filter indexes.

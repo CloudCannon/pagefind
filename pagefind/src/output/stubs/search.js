@@ -240,7 +240,12 @@ class Pagefind {
         return this.parseFilters(results);
     }
 
-    async search(term, options) {
+    async preload(term, options = {}) {
+        options.preload = true;
+        await this.search(term, options);
+    }
+
+    async search(term, options = {}) {
         options = {
             verbose: false,
             filters: {},
@@ -270,6 +275,10 @@ class Pagefind {
         let chunks = this.backend.request_indexes(ptr, term).split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
         let filter_chunks = this.backend.request_filter_indexes(ptr, filter_list).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
         await Promise.all([...chunks, ...filter_chunks]);
+
+        if (options.preload) {
+            return;
+        }
 
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
@@ -304,4 +313,5 @@ const pagefind = new Pagefind();
 export const options = (options) => pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
 export const search = async (term, options) => await pagefind.search(term, options);
+export const preload = async (term, options) => await pagefind.preload(term, options);
 export const filters = async () => await pagefind.filters();
