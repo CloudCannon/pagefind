@@ -300,10 +300,18 @@ class Pagefind {
             }
         });
 
+        const searchTime = Date.now() - searchStart;
+        const realTime = Date.now() - start;
+
         log(`Found ${results.length} result${results.length == 1 ? '' : 's'} for "${term}" in ${Date.now() - searchStart}ms (${Date.now() - start}ms realtime)`);
         return {
             results: resultsInterface,
             filters: filterObj,
+            timings: {
+                preload: realTime - searchTime,
+                search: searchTime,
+                total: realTime
+            }
         };
     }
 }

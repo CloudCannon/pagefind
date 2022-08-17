@@ -9,6 +9,10 @@
 
 ## Unreleased
 
+### Features & Improvements
+* Added a preload function to the JS search API. See the [Preload documentation](https://pagefind.app/docs/api/#preloading-search-terms) for more information
+* Added a `timings` object to the JS search API response 
+
 ## v0.7.1 (August 13, 2022)
 
 * Added French translations for Pagefind UI — thanks [@nfriedli](https://github.com/nfriedli)! 
