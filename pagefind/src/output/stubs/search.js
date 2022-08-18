@@ -354,6 +354,10 @@ class Pagefind {
     }
 
     async mergeIndex(indexPath, options = {}) {
+        if (this.primary.basePath.startsWith(indexPath)) {
+            console.warn(`Skipping mergeIndex ${indexPath} that appears to be the same as the primary index (${this.primary.basePath})`);
+            return;
+        }
         let newInstance = new PagefindInstance({
             primary: false,
             basePath: indexPath
