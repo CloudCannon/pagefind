@@ -9,7 +9,7 @@ use crate::SearchIndex;
 pub struct PageSearchResult {
     pub page: String,
     pub page_index: usize,
-    pub word_frequency: f32, // TODO: tf-idf implementation? Paired with the dictionary-in-meta approach
+    pub page_score: f32, // TODO: tf-idf implementation? Paired with the dictionary-in-meta approach
     pub word_locations: Vec<u32>,
 }
 
@@ -75,7 +75,7 @@ impl SearchIndex {
                     let search_result = PageSearchResult {
                         page: page.hash.clone(),
                         page_index,
-                        word_frequency: 1.0,
+                        page_score: 1.0,
                         word_locations: (*pos..=i).collect(),
                     };
                     pages.push(search_result);
@@ -86,7 +86,7 @@ impl SearchIndex {
                 let search_result = PageSearchResult {
                     page: page.hash.clone(),
                     page_index,
-                    word_frequency: 1.0,
+                    page_score: 1.0,
                     word_locations: word_locations[0].clone(),
                 };
                 pages.push(search_result);
@@ -152,27 +152,27 @@ impl SearchIndex {
             });
 
             let page = &self.pages[page_index];
-            let mut word_frequency = word_locations.len() as f32 / page.word_count as f32;
+            let mut page_score = word_locations.len() as f32 / page.word_count as f32;
             for (len, map) in unique_maps.iter() {
                 // Boost pages that match shorter words, as they are closer
                 // to the term that was searched. Combine the weight with
                 // a word frequency to boost high quality results.
                 if map.contains(page_index) {
-                    word_frequency += 1.0 / *len as f32;
+                    page_score += 1.0 / *len as f32;
                     debug!({
-                        format! {"{} contains a word {} longer than the search term, boosting by {} to {}", page.hash, len, 1.0 / *len as f32, word_frequency}
+                        format! {"{} contains a word {} longer than the search term, boosting by {} to {}", page.hash, len, 1.0 / *len as f32, page_score}
                     });
                 }
             }
             let search_result = PageSearchResult {
                 page: page.hash.clone(),
                 page_index,
-                word_frequency,
+                page_score,
                 word_locations,
             };
 
             debug!({
-                format! {"Page {} has {} matching terms (in {} total words), and has the boosted word frequency of {:?}", search_result.page, search_result.word_locations.len(), page.word_count, search_result.word_frequency}
+                format! {"Page {} has {} matching terms (in {} total words), and has the boosted word frequency of {:?}", search_result.page, search_result.word_locations.len(), page.word_count, search_result.page_score}
             });
 
             pages.push(search_result);
@@ -180,8 +180,8 @@ impl SearchIndex {
 
         debug!({ "Sorting by word frequency" });
         pages.sort_unstable_by(|a, b| {
-            b.word_frequency
-                .partial_cmp(&a.word_frequency)
+            b.page_score
+                .partial_cmp(&a.page_score)
                 .unwrap_or(Ordering::Equal)
         });
 

@@ -1,20 +1,45 @@
 
-class Pagefind {
-    constructor() {
+const asyncSleep = async (ms = 100) => {
+    return new Promise(r => setTimeout(r, ms));
+};
+
+class PagefindInstance {
+    constructor(opts = {}) {
         this.backend = wasm_bindgen;
-        this.languages = null;
-        this.primaryLanguage = "unknown";
+        this.decoder = new TextDecoder('utf-8');
         this.wasm = null;
-        this.searchIndex = null;
-        this.searchMeta = null;
-        this.raw_ptr = null;
+
+        this.basePath = opts.basePath || "/_pagefind/";
+        if (opts.primary === true) {
+            this.initPrimary();
+        }
+
+        if (/[^\/]$/.test(this.basePath)) {
+            this.basePath = `${this.basePath}/`;
+        }
+        this.baseUrl = opts.baseUrl || this.defaultBasePath();
+
         this.loaded_chunks = {};
         this.loaded_filters = {};
         this.loaded_fragments = {};
-        this.basePath = "/_pagefind/";
-        this.baseUrl = "/";
-        this.decoder = new TextDecoder('utf-8');
-        this.init();
+
+        this.raw_ptr = null;
+        this.searchMeta = null;
+        this.languages = null;
+
+    }
+
+    initPrimary() {
+        try {
+            this.basePath = new URL(import.meta.url).pathname.match(/^(.*\/)pagefind.js.*$/)[1];
+        } catch (e) {
+            console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
+        }
+    }
+
+    defaultBasePath() {
+        let default_base = this.basePath.match(/^(.*\/)_pagefind/)?.[1];
+        return default_base || "/";
     }
 
     options(options) {
@@ -26,46 +51,6 @@ class Pagefind {
                 console.warn(`Unknown Pagefind option ${k}. Allowed options: [${opts.join(', ')}]`);
             }
         }
-    }
-
-    async init() {
-        try {
-            this.basePath = new URL(import.meta.url).pathname.match(/^(.*\/)pagefind.js.*$/)[1];
-            let default_base = this.basePath.match(/^(.*\/)_pagefind/)?.[1];
-            this.baseUrl = default_base || this.baseUrl;
-        } catch (e) {
-            console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
-        }
-        await this.loadEntry();
-        let index = this.findIndex();
-        let lang_wasm = index.wasm ? index.wasm : "unknown";
-
-        await Promise.all([this.loadWasm(lang_wasm), this.loadMeta(index.hash)]);
-        window.tmp_pagefind = this.backend;
-        this.raw_ptr = this.backend.init_pagefind(new Uint8Array(this.searchMeta));
-    }
-
-    findIndex() {
-        if (document?.querySelector) {
-            const langCode = document.querySelector("html").getAttribute("lang") || "unknown";
-            this.primaryLanguage = langCode.toLocaleLowerCase();
-        }
-
-        if (this.languages) {
-            let index = this.languages[this.primaryLanguage];
-            if (index) return index;
-
-            index = this.languages[this.primaryLanguage.split("-")[0]];
-            if (index) return index;
-
-            index = this.languages["unknown"];
-            if (index) return index;
-
-            let topLang = Object.values(this.languages).sort((a, b) => b.page_count - a.page_count);
-            if (topLang[0]) return topLang[0]
-        }
-
-        throw new Error("Pagefind Error: No language indexes found.");
     }
 
     decompress(data, file = "unknown file") {
@@ -80,6 +65,19 @@ class Pagefind {
             return data;
         }
         return data.slice(12);
+    }
+
+    async init(language, opts) {
+        await this.loadEntry();
+        let index = this.findIndex(language);
+        let lang_wasm = index.wasm ? index.wasm : "unknown";
+
+        let resources = [this.loadMeta(index.hash)];
+        if (opts.load_wasm === true) {
+            resources.push(this.loadWasm(lang_wasm));
+        }
+        await Promise.all(resources);
+        this.raw_ptr = this.backend.init_pagefind(new Uint8Array(this.searchMeta));
     }
 
     async loadEntry() {
@@ -99,7 +97,23 @@ class Pagefind {
             }
         } catch (e) {
             console.error(`Failed to load Pagefind metadata:\n${e.toString()}`);
+            throw new Error("Failed to load Pagefind metadata");
         }
+    }
+
+    findIndex(language) {
+        if (this.languages) {
+            let index = this.languages[language];
+            if (index) return index;
+
+            index = this.languages[language.split("-")[0]];
+            if (index) return index;
+
+            let topLang = Object.values(this.languages).sort((a, b) => b.page_count - a.page_count);
+            if (topLang[0]) return topLang[0]
+        }
+
+        throw new Error("Pagefind Error: No language indexes found.");
     }
 
     async loadMeta(index) {
@@ -160,9 +174,6 @@ class Pagefind {
         return JSON.parse(new TextDecoder().decode(fragment));
     }
 
-    // TODO: Due for a rework (chunking + compression)
-    // TODO: Large test "fishing" has the wrong mark
-    // TODO: Large test "hades" returns some strange results
     async loadFragment(hash, excerpt = [0, 0], locations = []) {
         if (!this.loaded_fragments[hash]) {
             this.loaded_fragments[hash] = this._loadFragment(hash);
@@ -197,13 +208,9 @@ class Pagefind {
         return `/${this.baseUrl}/${raw}`.replace(/\/+/g, "/");
     }
 
-    async sleep(ms = 100) {
-        return new Promise(r => setTimeout(r, ms));
-    }
-
     async getPtr() {
         while (this.raw_ptr === null) {
-            await this.sleep(50);
+            await asyncSleep(50);
         }
         if (!this.raw_ptr) {
             console.error("Pagefind: WASM Error (No pointer)");
@@ -289,11 +296,12 @@ class Pagefind {
         results = results.length ? results.split(" ") : [];
 
         let resultsInterface = results.map(result => {
-            let [hash, excerpt, locations] = result.split('@');
+            let [hash, score, excerpt, locations] = result.split('@');
             locations = locations.split(',').map(l => parseInt(l));
             excerpt = excerpt.split(',').map(l => parseInt(l));
             return {
                 id: hash,
+                score: parseFloat(score),
                 words: locations,
                 excerpt_range: excerpt,
                 data: async () => await this.loadFragment(hash, excerpt, locations)
@@ -316,8 +324,95 @@ class Pagefind {
     }
 }
 
+class Pagefind {
+    constructor() {
+        this.backend = wasm_bindgen;
+        this.primaryLanguage = "unknown";
+
+        this.primary = new PagefindInstance({
+            primary: true
+        });
+        this.instances = [this.primary];
+
+        this.init();
+    }
+
+    options(options) {
+        // Using .options() only affects the primary Pagefind instance.
+        this.primary.options(options);
+    }
+
+    async init() {
+        if (document?.querySelector) {
+            const langCode = document.querySelector("html").getAttribute("lang") || "unknown";
+            this.primaryLanguage = langCode.toLocaleLowerCase();
+        }
+
+        await this.primary.init(this.primaryLanguage, {
+            load_wasm: true
+        });
+    }
+
+    async mergeIndex(indexPath, options = {}) {
+        let newInstance = new PagefindInstance({
+            primary: false,
+            basePath: indexPath
+        });
+        this.instances.push(newInstance);
+
+        // Secondary instances rely on the primary instance having
+        // loaded the webassembly, so we must wait for that to succeed.
+        while (this.primary.wasm === null) {
+            await asyncSleep(50);
+        }
+
+        await newInstance.init(this.primaryLanguage, {
+            load_wasm: false
+        });
+        newInstance.options(options);
+    }
+
+    mergeFilters(filters) {
+        const merged = {};
+        for (const searchFilter of filters) {
+            for (const [filterKey, values] of Object.entries(searchFilter)) {
+                if (!merged[filterKey]) {
+                    merged[filterKey] = values;
+                    continue;
+                } else {
+                    const filter = merged[filterKey];
+                    for (const [valueKey, count] of Object.entries(filter)) {
+                        filter[valueKey] = (filter[valueKey] || 0) + count;
+                    }
+                }
+            }
+        }
+        return merged;
+    }
+
+    async filters() {
+        let filters = await Promise.all(this.instances.map(i => i.filters()));
+        return this.mergeFilters(filters);
+    }
+
+    async preload(term, options = {}) {
+        await Promise.all(this.instances.map(i => i.preload(term, options)));
+    }
+
+    async search(term, options = {}) {
+        let search = await Promise.all(this.instances.map(i => i.search(term, options)));
+
+        const filters = this.mergeFilters(search.map(s => s.filters));
+        const results = search.map(s => s.results).flat().sort((a, b) => b.score - a.score);
+        const timings = search.map(s => s.timings);
+
+        return { results, filters, timings };
+    }
+}
+
 const pagefind = new Pagefind();
 
+export const mergeIndex = async (indexPath, options) => await pagefind.mergeIndex(indexPath, options);
 export const options = (options) => pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
 export const search = async (term, options) => await pagefind.search(term, options);

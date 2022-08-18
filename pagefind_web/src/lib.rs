@@ -225,8 +225,9 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> 
         .into_iter()
         .map(|result| {
             format!(
-                "{}@{},{}@{}",
+                "{}@{}@{},{}@{}",
                 &result.page,
+                result.page_score,
                 calculate_excerpt(&result.word_locations, 30),
                 30,
                 result
