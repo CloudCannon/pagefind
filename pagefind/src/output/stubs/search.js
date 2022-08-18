@@ -370,7 +370,7 @@ class Pagefind {
             await asyncSleep(50);
         }
 
-        await newInstance.init(this.primaryLanguage, {
+        await newInstance.init(options.language || this.primaryLanguage, {
             load_wasm: false
         });
         newInstance.options(options);
