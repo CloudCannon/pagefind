@@ -23,6 +23,7 @@
     export let show_images = true;
     export let show_empty_filters = true;
     export let pagefind_options = {};
+    export let merge_index = [];
     export let trigger_search_term = "";
 
     let val = "";
@@ -66,6 +67,14 @@
         if (!pagefind) {
             pagefind = await import(`${base_path}pagefind.js`);
             pagefind.options(pagefind_options || {});
+            for (const index of merge_index) {
+                if (!index.url) {
+                    throw new Error("mergeIndex requires a URL parameter");
+                }
+                const url = index.url;
+                delete index["url"];
+                await pagefind.mergeIndex(url, index);
+            }
             loadFilters();
         }
     };

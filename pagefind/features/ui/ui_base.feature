@@ -35,12 +35,12 @@ Feature: Base UI Tests
         Then I should see the file "public/_pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
-        Then There should be no logs
         When I evaluate:
             """
             async function() {
                 window.pui.triggerSearch("world");
-                await new Promise(r => setTimeout(r, 200));
+                await new Promise(r => setTimeout(r, 200)); // TODO: await el in humane
             }
             """
+        Then There should be no logs
         Then The selector ".pagefind-ui__result-link" should contain "world"
