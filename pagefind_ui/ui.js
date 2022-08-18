@@ -12,6 +12,8 @@ try {
 
 class PagefindUI {
     constructor(opts) {
+        this._pfs = null;
+
         let selector = opts.element ?? "[data-pagefind-ui]";
         let bundlePath = opts.bundlePath ?? scriptBundlePath;
         let resetStyles = opts.resetStyles ?? true;
@@ -27,7 +29,7 @@ class PagefindUI {
 
         const dom = document.querySelector(selector);
         if (dom) {
-            new PagefindSvelte({
+            this._pfs = new PagefindSvelte({
                 target: dom,
                 props: {
                     base_path: bundlePath,
@@ -40,6 +42,10 @@ class PagefindUI {
         } else {
             console.error(`Pagefind UI couldn't find the selector ${selector}`);
         }
+    }
+
+    triggerSearch(term) {
+        this._pfs.$$set({ "trigger_search_term": term });
     }
 }
 

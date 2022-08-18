@@ -23,8 +23,13 @@
     export let show_images = true;
     export let show_empty_filters = true;
     export let pagefind_options = {};
+    export let trigger_search_term = "";
 
     let val = "";
+    $: if (trigger_search_term) {
+        val = trigger_search_term;
+        trigger_search_term = "";
+    }
     let pagefind;
     let initializing = false;
 
