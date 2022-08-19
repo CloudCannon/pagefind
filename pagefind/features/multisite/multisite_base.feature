@@ -1,4 +1,4 @@
-Feature: Cross Site Search
+Feature: Multisite Search
 
     Background:
         Given I have a "root/index.html" file with the body:

@@ -373,6 +373,7 @@ class Pagefind {
         await newInstance.init(options.language || this.primaryLanguage, {
             load_wasm: false
         });
+        delete options["language"];
         newInstance.options(options);
     }
 
