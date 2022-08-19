@@ -70,11 +70,11 @@ Feature: Multisite Search
                 let pui = new PagefindUI({
                     element: "#search",
                     mergeIndex: [{
-                        url: "/website_b/_pagefind/"
+                        bundlePath: "/website_b/_pagefind/"
                     }]
                 });
                 pui.triggerSearch("web");
-                await new Promise(r => setTimeout(r, 200)); // TODO: await el in humane
+                await new Promise(r => setTimeout(r, 500)); // TODO: await el in humane
             }
             """
         Then There should be no logs

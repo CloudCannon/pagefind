@@ -68,11 +68,13 @@
             pagefind = await import(`${base_path}pagefind.js`);
             pagefind.options(pagefind_options || {});
             for (const index of merge_index) {
-                if (!index.url) {
-                    throw new Error("mergeIndex requires a URL parameter");
+                if (!index.bundlePath) {
+                    throw new Error(
+                        "mergeIndex requires a bundlePath parameter"
+                    );
                 }
-                const url = index.url;
-                delete index["url"];
+                const url = index.bundlePath;
+                delete index["bundlePath"];
                 await pagefind.mergeIndex(url, index);
             }
             loadFilters();
