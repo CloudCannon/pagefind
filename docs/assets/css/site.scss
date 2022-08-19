@@ -5,12 +5,14 @@ $break: "max-width: 800px";
 @import "elements";
 @import "nav";
 @import "docnav";
+@import "banner";
 
 :root {
     --pagefind-ui-scale: 0.8;
 
-    --text: #393939;
-    --focus: #393939;
+    --text: #000;
+    --flip-text: #fff;
+    --focus: #000;
     --highlight: #b65a09;
     --primary: #034AD8;
 }
