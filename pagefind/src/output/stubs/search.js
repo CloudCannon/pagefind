@@ -18,6 +18,7 @@ class PagefindInstance {
             this.basePath = `${this.basePath}/`;
         }
         this.baseUrl = opts.baseUrl || this.defaultBasePath();
+        this.indexWeight = opts.indexWeight ?? 1;
 
         this.loaded_chunks = {};
         this.loaded_filters = {};
@@ -43,7 +44,7 @@ class PagefindInstance {
     }
 
     options(options) {
-        const opts = ["basePath", "baseUrl"];
+        const opts = ["basePath", "baseUrl", "indexWeight"];
         for (const [k, v] of Object.entries(options)) {
             if (opts.includes(k)) {
                 this[k] = v;
@@ -301,7 +302,7 @@ class PagefindInstance {
             excerpt = excerpt.split(',').map(l => parseInt(l));
             return {
                 id: hash,
-                score: parseFloat(score),
+                score: parseFloat(score) * this.indexWeight,
                 words: locations,
                 excerpt_range: excerpt,
                 data: async () => await this.loadFragment(hash, excerpt, locations)

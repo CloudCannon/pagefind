@@ -1,53 +1,24 @@
-Feature: Multisite Search Languages
+Feature: Multisite Result Scoring
 
     Background:
         Given I have a "root/index.html" file with the body:
             """
             <p data-result>Nothing</p>
             """
-        Given I have a "root/website_a/en/1/index.html" file with the content:
+        Given I have a "root/website_a/twowebs/index.html" file with the body:
             """
-            <!DOCTYPE html>
-            <html lang="en">
-                <head></head>
-                <body>
-                    <h1>Website site A English</h1>
-                </body>
-            </html>
+            <h1>my page on the web web</h1>
             """
-        # Make Website B predominantly pt-br
-        Given I have a "root/website_b/pt/1/index.html" file with the content:
+        Given I have a "root/website_b/oneweb/index.html" file with the body:
             """
-            <!DOCTYPE html>
-            <html lang="pt-br">
-                <head></head>
-                <body>
-                    <h1>Website site B Portugese</h1>
-                </body>
-            </html>
+            <h1>my page on the web</h1>
             """
-        Given I have a "root/website_b/pt/2/index.html" file with the content:
+        Given I have a "root/website_b/threewebs/index.html" file with the body:
             """
-            <!DOCTYPE html>
-            <html lang="pt-br">
-                <head></head>
-                <body>
-                    <h1>Website site B Portugese</h1>
-                </body>
-            </html>
-            """
-        Given I have a "root/website_b/en/1/index.html" file with the content:
-            """
-            <!DOCTYPE html>
-            <html lang="en">
-                <head></head>
-                <body>
-                    <h1>Website site B English</h1>
-                </body>
-            </html>
+            <h1>my page on the web web web</h1>
             """
 
-    Scenario: Pagefind picks the same language across multiple sites
+    Scenario: Pages are scored correctly across indexes
         When I run my program with the flags:
             | --source root/website_a |
         Then I should see "Running Pagefind" in stdout
@@ -64,16 +35,16 @@ Feature: Multisite Search Languages
                 let pagefind = await import("/website_a/_pagefind/pagefind.js");
                 await pagefind.mergeIndex("/website_b/_pagefind/");
 
-                let search = await pagefind.search("web"); // <-- TODO search for "website"
+                let search = await pagefind.search("web");
 
                 let pages = await Promise.all(search.results.map(r => r.data()));
                 document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
             }
             """
         Then There should be no logs
-        Then The selector "[data-result]" should contain "/website_a/en/1/, /website_b/en/1/"
+        Then The selector "[data-result]" should contain "/website_b/threewebs/, /website_a/twowebs/, /website_b/oneweb/"
 
-    Scenario: Language of merged indexes can be selected
+    Scenario: Multiple indexes can be weighted separately
         When I run my program with the flags:
             | --source root/website_a |
         Then I should see "Running Pagefind" in stdout
@@ -89,7 +60,7 @@ Feature: Multisite Search Languages
             async function() {
                 let pagefind = await import("/website_a/_pagefind/pagefind.js");
                 await pagefind.mergeIndex("/website_b/_pagefind/", {
-                    language: "pt-br"
+                    indexWeight: 2
                 });
 
                 let search = await pagefind.search("web");
@@ -99,4 +70,4 @@ Feature: Multisite Search Languages
             }
             """
         Then There should be no logs
-        Then The selector "[data-result]" should contain "/website_a/en/1/, /website_b/pt/1/, /website_b/pt/2/"
+        Then The selector "[data-result]" should contain "/website_b/threewebs/, /website_b/oneweb/, /website_a/twowebs/"
