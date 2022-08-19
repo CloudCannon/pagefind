@@ -1,0 +1,7 @@
+{
+  "name": "docs",
+  "private": true,
+  "dependencies": {
+    "alpinejs": "^3.10.3"
+  }
+}
