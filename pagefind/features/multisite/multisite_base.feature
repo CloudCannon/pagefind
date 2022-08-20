@@ -16,10 +16,6 @@ Feature: Multisite Search
 
     # TODO Tests:
     # Loading https://example.com/docs/_pagefind/... gives the baseURL of `/docs/`
-    # Sorting the scores of merged indexes correctly
-    # Merging filters of multiple sites
-    # Mapping new filters onto each index
-    # Pagefind UI configuration
 
     Scenario: Pagefind can search across multiple sites
         When I run my program with the flags:

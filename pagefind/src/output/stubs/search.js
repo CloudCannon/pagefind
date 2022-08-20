@@ -19,6 +19,7 @@ class PagefindInstance {
         }
         this.baseUrl = opts.baseUrl || this.defaultBasePath();
         this.indexWeight = opts.indexWeight ?? 1;
+        this.indexFilter = opts.indexFilter ?? {};
 
         this.loaded_chunks = {};
         this.loaded_filters = {};
@@ -43,10 +44,14 @@ class PagefindInstance {
         return default_base || "/";
     }
 
-    options(options) {
-        const opts = ["basePath", "baseUrl", "indexWeight"];
+    async options(options) {
+        const opts = ["basePath", "baseUrl", "indexWeight", "indexFilter"];
         for (const [k, v] of Object.entries(options)) {
-            if (opts.includes(k)) {
+            if (k === "indexFilter") {
+                let filters = this.stringifyFilters(v);
+                let ptr = await this.getPtr();
+                this.raw_ptr = this.backend.add_synthetic_filter(ptr, filters);
+            } else if (opts.includes(k)) {
                 this[k] = v;
             } else {
                 console.warn(`Unknown Pagefind option ${k}. Allowed options: [${opts.join(', ')}]`);
@@ -235,6 +240,21 @@ class PagefindInstance {
         return output;
     }
 
+    stringifyFilters(obj = {}) {
+        let filter_list = [];
+        for (let [filter, values] of Object.entries(obj)) {
+            if (Array.isArray(values)) {
+                for (let value of values) {
+                    filter_list.push(`${filter}:${value}`);
+                }
+            } else {
+                filter_list.push(`${filter}:${values}`);
+            }
+        }
+
+        return filter_list.join("__PF_FILTER_DELIM__");
+    }
+
     async filters() {
         let ptr = await this.getPtr();
 
@@ -267,18 +287,7 @@ class PagefindInstance {
         // TODO: Maybe move regex over the wasm boundary, or otherwise work to match the Rust regex engine
         term = term.toLowerCase().trim().replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?]/g, "").replace(/\s{2,}/g, " ").trim();
 
-        let filter_list = [];
-        for (let [filter, values] of Object.entries(options.filters)) {
-            if (Array.isArray(values)) {
-                for (let value of values) {
-                    filter_list.push(`${filter}:${value}`);
-                }
-            } else {
-                filter_list.push(`${filter}:${values}`);
-            }
-        }
-
-        filter_list = filter_list.join("__PF_FILTER_DELIM__");
+        const filter_list = this.stringifyFilters(options.filters);
 
         let chunks = this.backend.request_indexes(ptr, term).split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
         let filter_chunks = this.backend.request_filter_indexes(ptr, filter_list).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
@@ -338,9 +347,9 @@ class Pagefind {
         this.init();
     }
 
-    options(options) {
+    async options(options) {
         // Using .options() only affects the primary Pagefind instance.
-        this.primary.options(options);
+        await this.primary.options(options);
     }
 
     async init() {
@@ -419,7 +428,7 @@ class Pagefind {
 const pagefind = new Pagefind();
 
 export const mergeIndex = async (indexPath, options) => await pagefind.mergeIndex(indexPath, options);
-export const options = (options) => pagefind.options(options);
+export const options = async (options) => await pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
 export const search = async (term, options) => await pagefind.search(term, options);
 export const preload = async (term, options) => await pagefind.preload(term, options);

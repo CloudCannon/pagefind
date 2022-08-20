@@ -108,6 +108,17 @@ pub fn load_filter_chunk(ptr: *mut SearchIndex, chunk_bytes: &[u8]) -> *mut Sear
 }
 
 #[wasm_bindgen]
+pub fn add_synthetic_filter(ptr: *mut SearchIndex, filter: &str) -> *mut SearchIndex {
+    debug!({
+        format! {"Creating a synthetic index filter for {:?}", filter}
+    });
+
+    let mut search_index = unsafe { Box::from_raw(ptr) };
+    search_index.decode_synthetic_filter(filter);
+    Box::into_raw(search_index)
+}
+
+#[wasm_bindgen]
 pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
     debug!({
         format! {"Finding the index chunks needed for {:?}", query}
@@ -151,7 +162,7 @@ pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
     let filters = filters.split("__PF_FILTER_DELIM__");
 
     for filter in filters {
-        if let Some((filter, _)) = filter.split_once(":") {
+        if let Some((filter, _)) = filter.split_once(':') {
             if let Some(hash) = search_index.filter_chunks.get(filter) {
                 debug!({
                     format! {"Need {:?} for {:?}", hash, filter}

@@ -40,7 +40,7 @@ impl SearchIndex {
         let mut maps = Vec::new();
 
         for filter in filters {
-            if let Some((filter, value)) = filter.split_once(":") {
+            if let Some((filter, value)) = filter.split_once(':') {
                 debug!({
                     format! {"Filtering for {}: {}", filter, value}
                 });
