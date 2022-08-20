@@ -64,7 +64,7 @@ Pagefind options can be passed to the additional index as a second argument:
 // Running on blog.example.com
 
 const pagefind = await import("/_pagefind/pagefind.js");
-+pagefind.options({/* ... options for the blog.example.com index */})
++await pagefind.options({/* ... options for the blog.example.com index */})
 await pagefind.mergeIndex(
   "https://docs.example.com/_pagefind",
 +  {/* ... options for the docs.example.com index */}

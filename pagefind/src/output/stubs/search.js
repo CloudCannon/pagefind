@@ -384,7 +384,7 @@ class Pagefind {
             load_wasm: false
         });
         delete options["language"];
-        newInstance.options(options);
+        await newInstance.options(options);
     }
 
     mergeFilters(filters) {

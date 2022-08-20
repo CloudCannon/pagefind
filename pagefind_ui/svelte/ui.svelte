@@ -66,7 +66,7 @@
         initializing = true;
         if (!pagefind) {
             pagefind = await import(`${base_path}pagefind.js`);
-            pagefind.options(pagefind_options || {});
+            await pagefind.options(pagefind_options || {});
             for (const index of merge_index) {
                 if (!index.bundlePath) {
                     throw new Error(

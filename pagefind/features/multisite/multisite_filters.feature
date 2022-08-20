@@ -73,7 +73,7 @@ Feature: Multisite Filters
             """
             async function() {
                 let pagefind = await import("/website_a/_pagefind/pagefind.js");
-                pagefind.options({
+                await pagefind.options({
                     indexFilter: {
                         site: "A"
                     }

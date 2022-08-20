@@ -24,12 +24,12 @@ new PagefindUI({
 
 ## Configuring via the Pagefind API
 
-If interfacing with Pagefind directly, options can be passed via `pagefind.options()`:
+If interfacing with Pagefind directly, options can be passed via awaiting `pagefind.options()`:
 
 {{< diffcode >}}
 ```js
 const pagefind = await import("/_pagefind/pagefind.js");
-+pagefind.options({
++await pagefind.options({
 +    baseUrl: "/",
 +    // ... more search options
 +});
