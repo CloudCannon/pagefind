@@ -17,6 +17,9 @@ class PagefindInstance {
         if (/[^\/]$/.test(this.basePath)) {
             this.basePath = `${this.basePath}/`;
         }
+        if (window?.location?.origin && this.basePath.startsWith(window.location.origin)) {
+            this.basePath = this.basePath.replace(window.location.origin, '');
+        }
 
         this.baseUrl = opts.baseUrl || this.defaultBasePath();
         if (!/^(\/|https?:\/\/)/.test(this.baseUrl)) {
@@ -38,7 +41,7 @@ class PagefindInstance {
 
     initPrimary() {
         try {
-            this.basePath = new URL(import.meta.url).pathname.match(/^(.*\/)pagefind.js.*$/)[1];
+            this.basePath = import.meta.url.match(/^(.*\/)pagefind.js.*$/)[1];
         } catch (e) {
             console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
         }
@@ -99,12 +102,20 @@ class PagefindInstance {
             entry_json = await entry_json.json();
             this.languages = entry_json.languages;
             if (entry_json.version !== pagefind_version) {
-                console.warn([
-                    "Pagefind JS version doesn't match the version in your search index.",
-                    `Pagefind JS: ${pagefind_version}. Pagefind index: ${entry_json.version}`,
-                    "If you upgraded Pagefind recently, you likely have a cached pagefind.js file.",
-                    "If you encounter any search errors, try clearing your cache."
-                ].join('\n'));
+                if (this.primary) {
+                    console.warn([
+                        "Pagefind JS version doesn't match the version in your search index.",
+                        `Pagefind JS: ${pagefind_version}. Pagefind index: ${entry_json.version}`,
+                        "If you upgraded Pagefind recently, you likely have a cached pagefind.js file.",
+                        "If you encounter any search errors, try clearing your cache."
+                    ].join('\n'));
+                } else {
+                    console.warn([
+                        "Merging a Pagefind index from a different version than the main Pagefind instance.",
+                        `Main Pagefind JS: ${pagefind_version}. Merged index (${this.basePath}): ${entry_json.version}`,
+                        "If you encounter any search errors, make sure that both sites are running the same version of Pagefind."
+                    ].join('\n'));
+                }
             }
         } catch (e) {
             console.error(`Failed to load Pagefind metadata:\n${e.toString()}`);
@@ -236,9 +247,13 @@ class PagefindInstance {
         for (const block of str.split("__PF_FILTER_DELIM__")) {
             let [filter, values] = block.split(/:(.*)$/);
             output[filter] = {};
-            for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
-                let [, value, count] = valueBlock.match(/^(.*):(\d+)$/);
-                output[filter][value] = count;
+            if (values) {
+                for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
+                    if (valueBlock) {
+                        let [, value, count] = valueBlock.match(/^(.*):(\d+)$/);
+                        output[filter][value] = count;
+                    }
+                }
             }
         }
 
@@ -285,20 +300,28 @@ class PagefindInstance {
             ...options,
         };
         const log = str => { if (options.verbose) console.log(str) };
+        log(`Starting search on ${this.basePath}`);
         let start = Date.now();
         let ptr = await this.getPtr();
         let exact_search = /^\s*".+"\s*$/.test(term);
+        if (exact_search) {
+            log(`Running an exact search`);
+        }
         // Strip special characters to match the indexing operation
         // TODO: Maybe move regex over the wasm boundary, or otherwise work to match the Rust regex engine
         term = term.toLowerCase().trim().replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?]/g, "").replace(/\s{2,}/g, " ").trim();
+        log(`Normalized search term to ${term}`);
 
         const filter_list = this.stringifyFilters(options.filters);
+        log(`Stringified filters to ${filter_list}`);
 
         let chunks = this.backend.request_indexes(ptr, term).split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
         let filter_chunks = this.backend.request_filter_indexes(ptr, filter_list).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
         await Promise.all([...chunks, ...filter_chunks]);
+        log(`Loaded necessary chunks to run search`);
 
         if (options.preload) {
+            log(`Preload — bailing out of search operation now.`);
             return;
         }
 
@@ -306,12 +329,15 @@ class PagefindInstance {
         ptr = await this.getPtr();
         let searchStart = Date.now();
         let result = this.backend.search(ptr, term, filter_list, exact_search);
+        log(`Got the raw search result: ${result}`);
         let [results, filters] = result.split(/:(.*)$/);
         let filterObj = this.parseFilters(filters);
+        log(`Remaining filters: ${JSON.stringify(result)}`);
         results = results.length ? results.split(" ") : [];
 
         let resultsInterface = results.map(result => {
             let [hash, score, excerpt, locations] = result.split('@');
+            log(`Processing result: \n  hash:${hash}\n  score:${score}\n  excerpt:${excerpt}\n  locations:${locations}`);
             locations = locations.split(',').map(l => parseInt(l));
             excerpt = excerpt.split(',').map(l => parseInt(l));
             return {
