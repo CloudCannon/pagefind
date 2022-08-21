@@ -1,8 +1,5 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 use std::collections::HashMap;
 
 use excerpt::calculate_excerpt;
@@ -217,8 +214,9 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> 
 
     if let Some(generator_version) = search_index.generator_version.as_ref() {
         if generator_version != search_index.web_version {
-            let _ = Box::into_raw(search_index);
-            return "ERROR: Version mismatch".into();
+            // TODO: Return this as a warning alongside a search result if possible
+            // let _ = Box::into_raw(search_index);
+            // return "ERROR: Version mismatch".into();
         }
     }
 

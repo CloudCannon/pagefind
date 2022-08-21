@@ -10,8 +10,7 @@ crate-type = ["cdylib", "rlib"]
 wasm-bindgen = "0.2"
 bit-set = "0.5"
 pagefind_stem = "0.2.0"
-minicbor = { version = "0.15.0", features = ["derive"] }
-wee_alloc = "0.4"
+minicbor = "0.15.0"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.
