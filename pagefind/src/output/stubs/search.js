@@ -10,14 +10,19 @@ class PagefindInstance {
         this.wasm = null;
 
         this.basePath = opts.basePath || "/_pagefind/";
-        if (opts.primary === true) {
+        this.primary = opts.primary || false;
+        if (this.primary) {
             this.initPrimary();
         }
-
         if (/[^\/]$/.test(this.basePath)) {
             this.basePath = `${this.basePath}/`;
         }
+
         this.baseUrl = opts.baseUrl || this.defaultBasePath();
+        if (!/^(\/|https?:\/\/)/.test(this.baseUrl)) {
+            this.baseUrl = `/${this.baseUrl}`;
+        }
+
         this.indexWeight = opts.indexWeight ?? 1;
         this.indexFilter = opts.indexFilter ?? {};
 
@@ -211,7 +216,7 @@ class PagefindInstance {
     }
 
     fullUrl(raw) {
-        return `/${this.baseUrl}/${raw}`.replace(/\/+/g, "/");
+        return `${this.baseUrl}/${raw}`.replace(/\/+/g, "/");
     }
 
     async getPtr() {
