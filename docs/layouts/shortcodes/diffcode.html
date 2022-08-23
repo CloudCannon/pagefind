@@ -1,0 +1,19 @@
+
+{{ $diffBlock := (.Inner | replaceRE "(?m:^```\\w+)" "```diff") }}
+{{ $diffBlock := (index (split $diffBlock "```") 1) }}
+{{ $diffBlock =  ($diffBlock | replaceRE "(?m:^([+-])?.*$)" "$1") }}
+{{ $diffBlock =  ($diffBlock | replaceRE "(?m:^$)" "." | replaceRE "\n" "") }}
+
+{{ $lines := split $diffBlock "" }}
+
+{{ $mainBlock :=  (.Inner | replaceRE "(?m:^[+-])" "") | markdownify }}
+
+{{ range $i, $l := (split $mainBlock `class="line"`)}}
+    {{ if gt $i 0}}
+        class="line"
+        {{ if eq (index $lines $i) "+" }}
+        data-add="true"
+        {{ end }}
+    {{ end }}
+    {{$l | safeHTML}}
+{{ end }}

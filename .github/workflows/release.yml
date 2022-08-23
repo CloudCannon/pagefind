@@ -59,13 +59,7 @@ jobs:
 
       - name: Build WASM
         working-directory: ./pagefind_web
-        run: |
-          wasm-pack build --release -t no-modules
-          mkdir -p ../pagefind/vendor
-          cp pkg/pagefind_web_bg.wasm ../pagefind/vendor/pagefind_web_bg.$GIT_VERSION.wasm
-          cp pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$GIT_VERSION.js
-          ls -lh ../pagefind/vendor/
-          pwd
+        run: ./local_build.sh
 
       - name: Build UI
         working-directory: ./pagefind_ui

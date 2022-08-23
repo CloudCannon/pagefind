@@ -64,9 +64,14 @@ The classnames within Pagefind UI that begin with `pagefind-ui` should be target
 
 The Pagefind UI will look for a value under the metadata key `url`, and use that for result links if present. This allows you to override the URL of a single page by tagging metadata on that page, for example:
 
+{{< diffcode >}}
 ```html
-<link data-pagefind-meta="url[href]" rel="canonical" href="https://example.com/other-url">
+<link 
++    data-pagefind-meta="url[href]"
+    rel="canonical" 
+    href="https://example.com/other-url">
 ```
+{{< /diffcode >}}
 
 ## PagefindUI options
 
@@ -82,44 +87,52 @@ A selector for the HTML element to attach Pagefind UI to. This is the only requi
 
 ### Show images
 
+{{< diffcode >}}
 ```javascript
 new PagefindUI({
     element: "#search",
-    showImages: false
++    showImages: false
 });
 ```
+{{< /diffcode >}}
 
 Whether to show an image alongside each search result. Defaults to `true`.
 
 ### Show empty filters
 
+{{< diffcode >}}
 ```javascript
 new PagefindUI({
     element: "#search",
-    showEmptyFilters: true
++    showEmptyFilters: true
 });
 ```
+{{< /diffcode >}}
 
 By default, Pagefind UI shows filters with no results alongside the count (0). Pass `false` to hide filters that have no remaining results.
 
 ### Reset styles
 
+{{< diffcode >}}
 ```javascript
 new PagefindUI({
     element: "#search",
-    resetStyles: false
++    resetStyles: false
 });
 ```
+{{< /diffcode >}}
 
 By default, Pagefind UI applies a CSS reset to itself. Pass `false` to omit this and inherit from your site styles.
 
 ### Bundle path
 
+{{< diffcode >}}
 ```javascript
 new PagefindUI({
     element: "#search",
-    bundlePath: "/subpath/_pagefind/"
++    bundlePath: "/subpath/_pagefind/"
 });
 ```
+{{< /diffcode >}}
 
 Overrides the bundle directory. In most cases this should be automatically detected from the URL of `pagefind-ui.js`. Set this if search isn't working and you are seeing a console warning that this path could not be detected.

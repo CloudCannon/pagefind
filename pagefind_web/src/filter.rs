@@ -40,7 +40,7 @@ impl SearchIndex {
         let mut maps = Vec::new();
 
         for filter in filters {
-            if let Some((filter, value)) = filter.split_once(":") {
+            if let Some((filter, value)) = filter.split_once(':') {
                 debug!({
                     format! {"Filtering for {}: {}", filter, value}
                 });
@@ -58,11 +58,15 @@ impl SearchIndex {
                         }
                         maps.push(set);
                     } else {
+                        // Filter does not exist, push in a set of 0 pages to force no results
+                        maps.push(BitSet::new());
                         debug!({
                             format! {"No value exists for {}", value}
                         });
                     }
                 } else {
+                    // Filter does not exist, push in a set of 0 pages to force no results
+                    maps.push(BitSet::new());
                     debug!({
                         format! {"No map exists for {}", filter}
                     });

@@ -42,6 +42,29 @@ td>code.inline {
     white-space: break-spaces;
 }
 
+pre>code {
+    padding: 15px;
+}
+
+// Styles for our diffcode shortcode
+[data-add] {
+    position: relative;
+
+    &::before {
+        content: "+";
+        position: absolute;
+        right: calc(100% + 3px);
+        color: #6ac86aa6;
+        font-weight: bold;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    &>span {
+        background-color: #ddffddcf;
+    }
+}
+
 h1+p {
     font-size: 1.1em;
 }

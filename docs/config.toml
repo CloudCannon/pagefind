@@ -1,6 +1,12 @@
 baseURL = 'https://pagefind.app/'
 languageCode = 'en-us'
 title = 'Pagefind'
-markup.highlight.noClasses = false
 summaryLength = 30
 disableKinds = ["taxonomyTerm"]
+
+[markup]
+highlight.noClasses = false
+
+[markup.goldmark.renderer]
+# ensures html inside markdown is allowed to render
+unsafe = true

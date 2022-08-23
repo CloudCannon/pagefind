@@ -162,7 +162,6 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /theodore/"
 
-    @skip
     Scenario: Non-existent filters return no results
         When I evaluate:
             """
@@ -181,7 +180,6 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "0"
 
-    @skip
     Scenario: Non-existent values return no results
         When I evaluate:
             """
