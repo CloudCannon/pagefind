@@ -456,7 +456,8 @@ impl<'a> DomParser<'a> {
 }
 
 fn normalize_content(content: &str) -> String {
-    let content = TRIM_NEWLINES.replace_all(content, "");
+    let content = html_escape::decode_html_entities(content);
+    let content = TRIM_NEWLINES.replace_all(&content, "");
     let content = NEWLINES.replace_all(&content, " ");
     let content = EXTRANEOUS_SPACES.replace_all(&content, " ");
 
