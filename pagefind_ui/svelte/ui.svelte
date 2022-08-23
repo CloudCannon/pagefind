@@ -23,8 +23,14 @@
     export let show_images = true;
     export let show_empty_filters = true;
     export let pagefind_options = {};
+    export let merge_index = [];
+    export let trigger_search_term = "";
 
     let val = "";
+    $: if (trigger_search_term) {
+        val = trigger_search_term;
+        trigger_search_term = "";
+    }
     let pagefind;
     let initializing = false;
 
@@ -60,7 +66,17 @@
         initializing = true;
         if (!pagefind) {
             pagefind = await import(`${base_path}pagefind.js`);
-            pagefind.options(pagefind_options || {});
+            await pagefind.options(pagefind_options || {});
+            for (const index of merge_index) {
+                if (!index.bundlePath) {
+                    throw new Error(
+                        "mergeIndex requires a bundlePath parameter"
+                    );
+                }
+                const url = index.bundlePath;
+                delete index["bundlePath"];
+                await pagefind.mergeIndex(url, index);
+            }
             loadFilters();
         }
     };

@@ -22,7 +22,7 @@ Feature: Search Options
             """
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
-                pagefind.options({
+                await pagefind.options({
                     baseUrl: "/docs/"
                 });
 

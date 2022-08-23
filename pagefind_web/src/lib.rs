@@ -1,8 +1,5 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 use std::collections::HashMap;
 
 use excerpt::calculate_excerpt;
@@ -108,6 +105,17 @@ pub fn load_filter_chunk(ptr: *mut SearchIndex, chunk_bytes: &[u8]) -> *mut Sear
 }
 
 #[wasm_bindgen]
+pub fn add_synthetic_filter(ptr: *mut SearchIndex, filter: &str) -> *mut SearchIndex {
+    debug!({
+        format! {"Creating a synthetic index filter for {:?}", filter}
+    });
+
+    let mut search_index = unsafe { Box::from_raw(ptr) };
+    search_index.decode_synthetic_filter(filter);
+    Box::into_raw(search_index)
+}
+
+#[wasm_bindgen]
 pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
     debug!({
         format! {"Finding the index chunks needed for {:?}", query}
@@ -151,7 +159,7 @@ pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
     let filters = filters.split("__PF_FILTER_DELIM__");
 
     for filter in filters {
-        if let Some((filter, _)) = filter.split_once(":") {
+        if let Some((filter, _)) = filter.split_once(':') {
             if let Some(hash) = search_index.filter_chunks.get(filter) {
                 debug!({
                     format! {"Need {:?} for {:?}", hash, filter}
@@ -206,8 +214,9 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> 
 
     if let Some(generator_version) = search_index.generator_version.as_ref() {
         if generator_version != search_index.web_version {
-            let _ = Box::into_raw(search_index);
-            return "ERROR: Version mismatch".into();
+            // TODO: Return this as a warning alongside a search result if possible
+            // let _ = Box::into_raw(search_index);
+            // return "ERROR: Version mismatch".into();
         }
     }
 
@@ -225,8 +234,9 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> 
         .into_iter()
         .map(|result| {
             format!(
-                "{}@{},{}@{}",
+                "{}@{}@{},{}@{}",
                 &result.page,
+                result.page_score,
                 calculate_excerpt(&result.word_locations, 30),
                 30,
                 result
