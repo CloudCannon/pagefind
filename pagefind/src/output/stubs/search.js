@@ -312,6 +312,18 @@ class PagefindInstance {
         term = term.toLowerCase().trim().replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?\-]/g, "").replace(/\s{2,}/g, " ").trim();
         log(`Normalized search term to ${term}`);
 
+        if (!term?.length) {
+            return {
+                results: [],
+                filters: {},
+                timings: {
+                    preload: Date.now() - start,
+                    search: Date.now() - start,
+                    total: Date.now() - start
+                }
+            };
+        }
+
         const filter_list = this.stringifyFilters(options.filters);
         log(`Stringified filters to ${filter_list}`);
 

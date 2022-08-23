@@ -78,3 +78,29 @@ Feature: Character Tests
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain '/ds/'
+
+    Scenario: Pagefind does not return results for queries that normalize to nothing
+        Given I have a "public/bundaberg/index.html" file with the body:
+            """
+            <h1>Invert can before opening</h1>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                // Preload some pages that Pagefind might then return as "all pages"
+                await pagefind.preload("can");
+                let search = await pagefind.search("*");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerText = `[${pages.length}]`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '[0]'
