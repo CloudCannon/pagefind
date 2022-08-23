@@ -9,9 +9,21 @@
 
 ## Unreleased
 
+### Important Changes
+* For those using the JS API directly, the `pagefind.options` function is now async. This will not break current usage, but using newer options may require `await pagefind.options({ ... })` for them to be applied
+
 ### Features & Improvements
-* Added a preload function to the JS search API. See the [Preload documentation](https://pagefind.app/docs/api/#preloading-search-terms) for more information
-* Added a `timings` object to the JS search API response 
+* Added Multisite search support, allowing you to search multiple indexes from one Pagefind instance. See the new [Multisite documentation](https://pagefind.app/docs/multisite/) for more information
+* Added a preload function to the JS search API, allowing you to warm Pagefind up before a search, or while the user is typing. See the [Preload documentation](https://pagefind.app/docs/api/#preloading-search-terms) for more information
+* Added a `timings` object to the JS search API response
+
+### Fixes & Tweaks
+* Passing a non-existent filter to the search function would previously be silently ignored. This will now return zero results
+* Setting your baseURL to an external domain such as `https://example.com` would previously be prepended with a `/`. This is now handled correctly and will link off-site
+* Pagefind would previously index search entities such as `&quot;` without unescaping them. This is now fixed and these characters will be skipped
+* Searching for only punctuation would previously return all pages currently loaded into the Pagefind index. This will now return zero results
+* Fixed a regression causing searches for hyphenated-phrases to return zero results
+* Fixed Pagefind UI failing to match complex language codes such as `zh-hans-tw` to less complex translation files such as `zh-tw`
 
 ## v0.7.1 (August 13, 2022)
 
