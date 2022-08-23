@@ -58,3 +58,33 @@ Defaults to "/". If hosting a site on a subpath, `baseUrl` can be provided, and 
 ```
 
 Overrides the bundle directory. In most cases this should be automatically detected by the import URL. Set this if search isn't working and you are seeing a console warning that this path could not be detected.
+
+### Language
+
+```json
+{
+    "language": "pt-br"
+}
+```
+
+Load a specific language index. Only applies to indexes being merged with [multisite search](/docs/multisite).
+
+### Index weight
+
+```json
+{
+    "indexWeight": 2
+}
+```
+
+Multiplies the scores of all results from this index by the given factor. Only applicable when using [multisite search](/docs/multisite).
+
+### Index weight
+
+```json
+{
+    "indexWeight": 2
+}
+```
+
+Multiplies the scores of all results from this index by the given factor. Only applicable when using [multisite search](/docs/multisite).

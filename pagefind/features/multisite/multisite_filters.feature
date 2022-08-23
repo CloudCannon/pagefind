@@ -74,12 +74,12 @@ Feature: Multisite Filters
             async function() {
                 let pagefind = await import("/website_a/_pagefind/pagefind.js");
                 await pagefind.options({
-                    indexFilter: {
+                    mergeFilter: {
                         site: "A"
                     }
                 });
                 await pagefind.mergeIndex("/website_b/_pagefind/", {
-                    indexFilter: {
+                    mergeFilter: {
                         site: ["B", "C"]
                     }
                 });

@@ -64,7 +64,7 @@ Pagefind options can be passed to the additional index as a second argument:
 // Running on blog.example.com
 
 const pagefind = await import("/_pagefind/pagefind.js");
-+await pagefind.options({/* ... options for the blog.example.com index */})
++await pagefind.options({/* ... options for the blog.example.com index */});
 await pagefind.mergeIndex(
   "https://docs.example.com/_pagefind",
 +  {/* ... options for the docs.example.com index */}
@@ -74,23 +74,56 @@ await pagefind.mergeIndex(
 
 ## Changing the weighting of individual indexes
 
-When searching across multiple sites you may want to rank each index higher or lower than the others. This can be achieved by passing an `indexWeight` option:
+When searching across multiple sites you may want to rank each index higher or lower than the others. This can be achieved by passing an `indexWeight` option for each index:
 
 {{< diffcode >}}
 ```js
 // UI:
 new PagefindUI({
     element: "#search",
++   indexWeight: 2,
     mergeIndex: [{
         bundlePath: "https://docs.example.com/_pagefind",
-+        indexWeight: 2
++        indexWeight: 0.5
     }]
 })
 
 // JS API:
 const pagefind = await import("/_pagefind/pagefind.js");
++await pagefind.options({ indexWeight: 2 });
 await pagefind.mergeIndex("https://docs.example.com/_pagefind", {
-+    indexWeight: 2
++    indexWeight: 0.5
+});
+```
+{{< /diffcode >}}
+
+## Filtering results by index
+
+When searching across multiple sites you may want to filter to each index, without having to tag every page on each site with the filter. This can be achieved with the `mergeFilter` option on each index:
+
+{{< diffcode >}}
+```js
+// UI:
+new PagefindUI({
+    element: "#search",
++    mergeFilter: {
++        resource: "Blog"
++    },
+    mergeIndex: [{
+        bundlePath: "https://docs.example.com/_pagefind",
++        mergeFilter: {
++            resource: "Documentation"
++        }
+    }]
+})
+
+// JS API:
+const pagefind = await import("/_pagefind/pagefind.js");
++await pagefind.options({ mergeFilter: { resource: "Blog" } });
+await pagefind.mergeIndex("https://docs.example.com/_pagefind", {
++    mergeFilter: {
++        resource: "Documentation"
++    }
 });
 ```
 {{< /diffcode >}}

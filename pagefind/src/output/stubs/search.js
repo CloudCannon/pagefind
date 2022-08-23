@@ -27,7 +27,7 @@ class PagefindInstance {
         }
 
         this.indexWeight = opts.indexWeight ?? 1;
-        this.indexFilter = opts.indexFilter ?? {};
+        this.mergeFilter = opts.mergeFilter ?? {};
 
         this.loaded_chunks = {};
         this.loaded_filters = {};
@@ -53,9 +53,9 @@ class PagefindInstance {
     }
 
     async options(options) {
-        const opts = ["basePath", "baseUrl", "indexWeight", "indexFilter"];
+        const opts = ["basePath", "baseUrl", "indexWeight", "mergeFilter"];
         for (const [k, v] of Object.entries(options)) {
-            if (k === "indexFilter") {
+            if (k === "mergeFilter") {
                 let filters = this.stringifyFilters(v);
                 let ptr = await this.getPtr();
                 this.raw_ptr = this.backend.add_synthetic_filter(ptr, filters);
