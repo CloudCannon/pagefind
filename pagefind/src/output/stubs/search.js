@@ -309,7 +309,7 @@ class PagefindInstance {
         }
         // Strip special characters to match the indexing operation
         // TODO: Maybe move regex over the wasm boundary, or otherwise work to match the Rust regex engine
-        term = term.toLowerCase().trim().replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?]/g, "").replace(/\s{2,}/g, " ").trim();
+        term = term.toLowerCase().trim().replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?\-]/g, "").replace(/\s{2,}/g, " ").trim();
         log(`Normalized search term to ${term}`);
 
         const filter_list = this.stringifyFilters(options.filters);

@@ -54,3 +54,27 @@ Feature: Character Tests
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain 'The "bees"'
+
+    Scenario: Pagefind can search for a hyphenated phrase
+        Given I have a "public/ds/index.html" file with the body:
+            """
+            <h1>The beet-root</h1>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("beet-root");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '/ds/'
