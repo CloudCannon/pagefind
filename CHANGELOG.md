@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.8.0 (August 23, 2022)
+
 ### Important Changes
 * For those using the JS API directly, the `pagefind.options` function is now async. This will not break current usage, but using newer options may require `await pagefind.options({ ... })` for them to be applied
 
