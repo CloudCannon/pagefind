@@ -1,5 +1,6 @@
 <script>
     import { onMount } from "svelte";
+    import { parse as parseBCP47 } from "bcp-47";
 
     import Result from "./result.svelte";
     import Filters from "./filters.svelte";
@@ -9,7 +10,7 @@
 
     const availableTranslations = {},
         languages = translationFiles.filenames.map(
-            (file) => file.match(/(\w+)\.json$/)[1]
+            (file) => file.match(/([^\/]+)\.json$/)[1]
         );
     for (let i = 0; i < languages.length; i++) {
         availableTranslations[languages[i]] = {
@@ -48,15 +49,17 @@
     onMount(() => {
         let lang =
             document?.querySelector?.("html")?.getAttribute?.("lang") || "en";
-        lang = lang.toLocaleLowerCase();
-        if (availableTranslations[lang]) {
-            translations = availableTranslations[lang];
-        } else {
-            lang = lang.split("-")[0];
-            if (availableTranslations[lang]) {
-                translations = availableTranslations[lang];
-            }
-        }
+        let parsedLang = parseBCP47(lang.toLocaleLowerCase());
+
+        translations =
+            availableTranslations[
+                `${parsedLang.language}-${parsedLang.script}-${parsedLang.region}`
+            ] ||
+            availableTranslations[
+                `${parsedLang.language}-${parsedLang.region}`
+            ] ||
+            availableTranslations[`${parsedLang.language}`] ||
+            availableTranslations["en"];
     });
 
     $: search(val, selected_filters);
