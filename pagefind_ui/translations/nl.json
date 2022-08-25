@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Paul van Brouwershaven",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Zoeken",
+        "clear_search": "Reset",
+        "load_more": "Meer resultaten laden",
+        "search_label": "Doorzoek deze site",
+        "filters_label": "Filters",
+        "zero_results": "Geen resultaten voor [SEARCH_TERM]",
+        "many_results": "[COUNT] resultaten voor [SEARCH_TERM]",
+        "one_result": "[COUNT] resultaat voor [SEARCH_TERM]",
+        "alt_search": "Geen resultaten voor [SEARCH_TERM]. In plaats daarvan worden resultaten voor [DIFFERENT_TERM] weergegeven",
+        "search_suggestion": "Geen resultaten voor [SEARCH_TERM]. Probeer een van de volgende zoekopdrachten:",
+        "searching": "Zoeken naar [SEARCH_TERM]..."
+    }
+}
