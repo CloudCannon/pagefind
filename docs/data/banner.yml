@@ -1,13 +1,4 @@
 html: >-
-  Join <a href="https://www.youtube.com/watch?v=wb6tD2gDv2c" target="_blank">Static Feedback</a>
-  <span x-init="
-    ts = new Date(1661454000000);
-    hours = Math.floor((ts - Date.now()) / (1000 * 60 * 60));
-    days = Math.floor((ts - Date.now()) / (1000 * 60 * 60 * 24));
-    time = days > 1 ? `in ${days} days`
-      : days === 1 ? 'tomorrow'
-      : days === 0 ? (hours > 1 ? `in ${hours} hours` : `now`)
-      : '';" x-text="time"></span>
-  for a discussion of Pagefind, the installation process, and its development so far.
-id: static_feedback
+  None
+id: none
 show_until: 1661454000000
