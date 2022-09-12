@@ -59,7 +59,11 @@ impl Fossicker {
                 break;
             }
             if let Err(error) = rewriter.write(&buf[..read]) {
-                panic!("HTML parse encountered an error: {:#?}", error);
+                println!(
+                    "Failed to parse file {} — skipping this file. Error:\n{error}",
+                    self.file_path.to_str().unwrap_or("[unknown file]")
+                );
+                return Ok(());
             }
         }
 
@@ -75,6 +79,10 @@ impl Fossicker {
 
     fn parse_digest(&mut self) -> (String, HashMap<String, Vec<u32>>) {
         let mut map: HashMap<String, Vec<u32>> = HashMap::new();
+        // TODO: push this error handling up a level and return an Err from parse_digest
+        if self.data.as_ref().is_none() {
+            return ("".into(), map); // empty page result, will be dropped from search
+        }
         let data = self.data.as_ref().unwrap();
         let stemmer = get_stemmer(&data.language);
 
@@ -143,6 +151,10 @@ impl Fossicker {
         }
 
         let (content, word_data) = self.parse_digest();
+
+        if self.data.is_none() {
+            return Err(());
+        }
 
         let data = self.data.unwrap();
         let url = build_url(&self.file_path, options);
