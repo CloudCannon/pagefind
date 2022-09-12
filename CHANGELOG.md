@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.8.1 (September 12, 2022)
+
 * Pagefind now gracefully skips pages that fail HTML parsing, and provides more context when these errors are hit.
 
 ## v0.8.0 (August 23, 2022)
