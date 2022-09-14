@@ -239,6 +239,15 @@ impl SearchState {
             plural!(stats.2)
         ));
 
+        if stats.1 == 0 {
+            log.error(
+                "Error: Pagefind wasn't able to build an index. \n\
+                Most likely, the directory passed to Pagefind was empty \
+                or did not contain any html files.",
+            );
+            std::process::exit(1);
+        }
+
         let index_entries: Vec<_> = indexes
             .into_iter()
             .map(|indexes| async { indexes.write_files(&self.options).await })

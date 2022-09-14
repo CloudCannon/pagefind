@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Pagefind now throws an error if a completely empty index is produced for whatever reason
+
 ## v0.8.1 (September 12, 2022)
 
 * Pagefind now gracefully skips pages that fail HTML parsing, and provides more context when these errors are hit.
