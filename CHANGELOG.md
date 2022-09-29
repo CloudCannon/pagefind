@@ -10,6 +10,7 @@
 ## Unreleased
 
 * Pagefind now throws an error if a completely empty index is produced for whatever reason
+* Fixed a bug where having exactly one known and one unknown language would drop the known language pages
 
 ## v0.8.1 (September 12, 2022)
 

@@ -156,7 +156,7 @@ impl SearchState {
             .unwrap_or_else(|| "unknown".into());
 
         if let Some(mut unknown_pages) = language_map.remove("unknown") {
-            if language_map.len() > 1 {
+            if !language_map.is_empty() {
                 log.warn(format!(
                     "{} page{} found without an html lang attribute. \n\
                     Merging these pages with the {} language, as that is the main language on this site. \n\
