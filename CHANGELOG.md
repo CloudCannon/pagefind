@@ -9,6 +9,11 @@
 
 ## Unreleased
 
+### Important Changes
+* Removed `<header>` from the list of elements that Pagefind automatically ignores
+  * If this element contains content you do not want to be indexed, you will now need to add `data-pagefind-ignore`
+
+### Fixes & Tweaks
 * Pagefind now throws an error if a completely empty index is produced for whatever reason
 * Fixed a bug where having exactly one known and one unknown language would drop the known language pages
 
