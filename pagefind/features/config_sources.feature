@@ -41,7 +41,7 @@ Feature: Config Sources
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/_pagefind/pagefind.js"
 
-    Scenario: Settings can be pulled from commandline flags
+    Scenario: Settings can be pulled from command-line flags
         Given I have a "public/index.html" file with the body:
             """
             <h1>Hello.</h1>
