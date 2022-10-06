@@ -32,7 +32,7 @@ Feature: Metadata
             </body>
             </html>
             """
-        # Covering metadata heirarchy
+        # Covering metadata hierarchy
         Given I have a "public/dog/index.html" file with the content:
             """
             <html>
@@ -85,7 +85,7 @@ Feature: Metadata
         Then There should be no logs
         Then The selector "[data-result]" should contain "Cat Post. A post about the 'felines'. This post has some gnarly things to test the fragment formatting."
 
-    Scenario: Search results return highlighted search exerpt
+    Scenario: Search results return highlighted search excerpt
         When I evaluate:
             """
             async function() {
