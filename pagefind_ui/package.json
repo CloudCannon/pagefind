@@ -10,7 +10,7 @@
   "author": "Cloudcannon",
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "^0.14.42",
+    "esbuild": "^0.15.10",
     "esbuild-plugin-import-glob": "^0.1.1",
     "esbuild-svelte": "^0.7.1",
     "svelte": "^3.51.0"
