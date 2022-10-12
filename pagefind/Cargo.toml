@@ -57,7 +57,7 @@ lol_html = "0.3"
 html-escape = "0.2.11"
 bit-set = "0.5"
 flate2 = "1.0"
-minifier = "0.0.43"
+minifier = "0.2.2"
 sha-1 = "0.10"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
