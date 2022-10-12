@@ -64,7 +64,10 @@ pub async fn write_common(options: &SearchOptions, language_indexes: Vec<Languag
     let outdir = options.source.join(&options.bundle_dir);
 
     let js_version = format!("const pagefind_version = \"{PAGEFIND_VERSION}\";");
-    let js = minify(&format!("{js_version}\n{WEB_JS}\n{GUNZIP_JS}\n{SEARCH_JS}"));
+    let mut js = vec![];
+    minify(&format!("{js_version}\n{WEB_JS}\n{GUNZIP_JS}\n{SEARCH_JS}"))
+        .write(&mut js)
+        .expect("Minifying Pagefind JS failed");
 
     let entry_meta = entry::PagefindEntryMeta {
         version: PAGEFIND_VERSION,
@@ -84,7 +87,7 @@ pub async fn write_common(options: &SearchOptions, language_indexes: Vec<Languag
     let files = vec![
         write(
             outdir.join("pagefind.js"),
-            vec![js.as_bytes()],
+            vec![&js],
             Compress::None,
             WriteBehavior::None,
         ),
