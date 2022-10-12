@@ -1,0 +1,32 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/pagefind"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "cargo"
+    directory: "/pagefind_stem"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "cargo"
+    directory: "/pagefind_web"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "npm"
+    directory: "/pagefind_ui"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "npm"
+    directory: "/wrappers/node"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
