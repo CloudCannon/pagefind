@@ -117,6 +117,17 @@ pub fn add_synthetic_filter(ptr: *mut SearchIndex, filter: &str) -> *mut SearchI
 
 #[wasm_bindgen]
 pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
+    let indexes = try_request_indexes(ptr, query, false);
+    if indexes.is_empty() {
+        debug!({
+            "No index chunks found with strict boundaries. Loading all possible extension chunks."
+        });
+        return try_request_indexes(ptr, query, true);
+    }
+    indexes
+}
+
+fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bool) -> String {
     debug!({
         format! {"Finding the index chunks needed for {:?}", query}
     });
@@ -126,10 +137,16 @@ pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
     let terms = query.split(' ');
 
     for term in terms {
-        let term_index = search_index
-            .chunks
-            .iter()
-            .find(|chunk| term >= &chunk.from && term <= &chunk.to);
+        let term_index = search_index.chunks.iter().find(|chunk| {
+            if load_all_possible {
+                // Trim chunk boundaries down to the length of the search term
+                // so that we load any chunk that may contain an extension of the search term
+                term >= &chunk.from.chars().take(term.len()).collect::<String>()
+                    && term <= &chunk.to.chars().take(term.len()).collect::<String>()
+            } else {
+                term >= &chunk.from && term <= &chunk.to
+            }
+        });
         if let Some(index) = term_index {
             debug!({
                 format! {"Need {:?} for {:?}", index.hash, term}
