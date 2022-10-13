@@ -26,6 +26,7 @@ lazy_static! {
     static ref REMOVE_SELECTORS: Vec<&'static str> = vec!(
         "head", "script", "noscript", "label", "form", "svg", "footer", "nav", "iframe", "template"
     );
+    static ref SPACE_SELECTORS: Vec<&'static str> = vec!("br");
 }
 
 // We aren't transforming HTML, just parsing, so we dump the output.
@@ -170,6 +171,12 @@ impl<'a> DomParser<'a> {
                                     parent.current_value.push_str(&value);
                                     parent.current_value.push(' ');
                                 }
+                            }
+                            // Handle adding spaces between words separated by <br/> tags and the like
+                            if SPACE_SELECTORS.contains(&el.tag_name().as_str()) {
+                                let parent = &data.borrow().current_node;
+                                let mut parent = parent.borrow_mut();
+                                parent.current_value.push(' ');
                             }
                         }
 
