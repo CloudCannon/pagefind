@@ -303,6 +303,8 @@ class PagefindInstance {
         log(`Starting search on ${this.basePath}`);
         let start = Date.now();
         let ptr = await this.getPtr();
+        let filter_only = term === null;
+        term = term ?? "";
         let exact_search = /^\s*".+"\s*$/.test(term);
         if (exact_search) {
             log(`Running an exact search`);
@@ -312,7 +314,7 @@ class PagefindInstance {
         term = term.toLowerCase().trim().replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?\-]/g, "").replace(/\s{2,}/g, " ").trim();
         log(`Normalized search term to ${term}`);
 
-        if (!term?.length) {
+        if (!term?.length && !filter_only) {
             return {
                 results: [],
                 filters: {},

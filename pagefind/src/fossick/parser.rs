@@ -49,6 +49,7 @@ pub struct DomParser<'a> {
 struct DomParserData {
     current_node: Rc<RefCell<DomParsingNode>>,
     filters: HashMap<String, Vec<String>>,
+    sort: HashMap<String, String>,
     meta: HashMap<String, String>,
     default_meta: HashMap<String, String>,
     language: Option<String>,
@@ -84,6 +85,7 @@ struct DomParsingNode {
     current_value: String,
     parent: Option<Rc<RefCell<DomParsingNode>>>,
     filter: Option<Vec<String>>,
+    sort: Option<Vec<String>>,
     meta: Option<Vec<String>>,
     default_meta: Option<Vec<String>>,
     status: NodeStatus,
@@ -94,6 +96,7 @@ struct DomParsingNode {
 pub struct DomParserResult {
     pub digest: String,
     pub filters: HashMap<String, Vec<String>>,
+    pub sort: HashMap<String, String>,
     pub meta: HashMap<String, String>,
     pub has_custom_body: bool,
     pub has_html_element: bool,
@@ -142,6 +145,7 @@ impl<'a> DomParser<'a> {
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
                         let default_meta = el.get_attribute("data-pagefind-default-meta").map(|attr| parse_attr_string(attr, el));
+                        let sort = el.get_attribute("data-pagefind-sort").map(|attr| parse_attr_string(attr, el));
                         let index_attrs: Option<Vec<String>> = el.get_attribute("data-pagefind-index-attrs").map(|attr| attr.split(',').map(|a| a.trim().to_string()).collect());
                         let tag_name = el.tag_name();
 
@@ -193,6 +197,7 @@ impl<'a> DomParser<'a> {
                                 filter,
                                 meta,
                                 default_meta,
+                                sort,
                                 ..DomParsingNode::default()
                             }));
 
@@ -229,6 +234,14 @@ impl<'a> DomParser<'a> {
                                                 ]);
                                             }
                                         }
+                                    }
+                                }
+                            }
+
+                            if let Some(sorts) = &node.sort {
+                                for sort in sorts {
+                                    if let Some((sort, value)) = node.get_attribute_pair(sort) {
+                                        data.sort.insert(sort, value);
                                     }
                                 }
                             }
@@ -345,6 +358,14 @@ impl<'a> DomParser<'a> {
                                 }
                             }
 
+                            if let Some(sorts) = &node.sort {
+                                for sort in sorts {
+                                    if let Some((sort, value)) = node.get_attribute_pair(sort) {
+                                        data.sort.insert(sort, value);
+                                    }
+                                }
+                            }
+
                             if let Some(metas) = &node.meta {
                                 for meta in metas {
                                     if let Some((meta, value)) = node.get_attribute_pair(meta) {
@@ -450,6 +471,7 @@ impl<'a> DomParser<'a> {
         DomParserResult {
             digest: normalize_content(&node.current_value),
             filters: data.filters,
+            sort: data.sort,
             meta: data.default_meta,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
             has_html_element: data.has_html_element,
