@@ -3,7 +3,7 @@ use minicbor::Encode;
 /// The pagefind.pf_meta file loaded on init
 
 /// All metadata we need to glue together search queries & results
-#[derive(Encode)]
+#[derive(Encode, Debug)]
 pub struct MetaIndex {
     #[n(0)]
     pub version: String,
@@ -13,6 +13,8 @@ pub struct MetaIndex {
     pub index_chunks: Vec<MetaChunk>,
     #[n(3)]
     pub filters: Vec<MetaFilter>,
+    #[n(4)]
+    pub sorts: Vec<MetaSort>,
 }
 
 /// Communicates the _pagefind/index/*.pf_index file we need to load
@@ -27,7 +29,7 @@ pub struct MetaChunk {
     pub hash: String,
 }
 
-#[derive(Encode)]
+#[derive(Encode, Debug)]
 pub struct MetaPage {
     #[n(0)]
     pub hash: String,
@@ -35,10 +37,18 @@ pub struct MetaPage {
     pub word_count: u32,
 }
 
-#[derive(Encode)]
+#[derive(Encode, Debug)]
 pub struct MetaFilter {
     #[n(0)]
     pub filter: String,
     #[n(1)]
     pub hash: String,
+}
+
+#[derive(Encode, Debug)]
+pub struct MetaSort {
+    #[n(0)]
+    pub sort: String,
+    #[n(1)]
+    pub pages: Vec<usize>,
 }

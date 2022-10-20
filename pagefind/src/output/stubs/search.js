@@ -275,6 +275,23 @@ class PagefindInstance {
         return filter_list.join("__PF_FILTER_DELIM__");
     }
 
+    stringifySorts(obj = {}) {
+        let sorts = Object.entries(obj);
+        // We currently only support one sort directive,
+        // so we'll grab the first sort provided in the object.
+        for (let [sort, direction] of sorts) {
+            if (sorts.length > 1) {
+                console.warn(`Pagefind was provided multiple sort options in this search, but can only operate on one. Using the ${sort} sort.`);
+            }
+            if (direction !== "asc" && direction !== "desc") {
+                console.warn(`Pagefind was provided a sort with unknown direction ${direction}. Supported: [asc, desc]`);
+            }
+            return `${sort}:${direction}`;
+        }
+
+        return ``;
+    }
+
     async filters() {
         let ptr = await this.getPtr();
 
@@ -297,6 +314,7 @@ class PagefindInstance {
         options = {
             verbose: false,
             filters: {},
+            sort: {},
             ...options,
         };
         const log = str => { if (options.verbose) console.log(str) };
@@ -326,6 +344,9 @@ class PagefindInstance {
             };
         }
 
+        let sort_list = this.stringifySorts(options.sort);
+        log(`Stringified sort to ${sort_list}`);
+
         const filter_list = this.stringifyFilters(options.filters);
         log(`Stringified filters to ${filter_list}`);
 
@@ -342,7 +363,7 @@ class PagefindInstance {
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let result = this.backend.search(ptr, term, filter_list, exact_search);
+        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search);
         log(`Got the raw search result: ${result}`);
         let [results, filters] = result.split(/:(.*)$/);
         let filterObj = this.parseFilters(filters);

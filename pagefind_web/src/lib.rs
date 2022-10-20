@@ -38,6 +38,7 @@ pub struct SearchIndex {
     filter_chunks: HashMap<String, String>,
     words: HashMap<String, Vec<PageWord>>,
     filters: HashMap<String, HashMap<String, Vec<u32>>>,
+    sorts: HashMap<String, Vec<u32>>,
 }
 
 #[cfg(debug_assertions)]
@@ -64,6 +65,7 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
         filter_chunks: HashMap::new(),
         words: HashMap::new(),
         filters: HashMap::new(),
+        sorts: HashMap::new(),
     };
 
     match search_index.decode_metadata(metadata_bytes) {
@@ -226,7 +228,7 @@ pub fn filters(ptr: *mut SearchIndex) -> String {
 }
 
 #[wasm_bindgen]
-pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> String {
+pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exact: bool) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
 
     if let Some(generator_version) = search_index.generator_version.as_ref() {
@@ -238,7 +240,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> 
     }
 
     let filter_set = search_index.filter(filter);
-    let results = if exact {
+    let mut results = if exact {
         search_index.exact_term(query, filter_set)
     } else {
         search_index.search_term(query, filter_set)
@@ -246,6 +248,25 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, exact: bool) -> 
 
     let filter_string =
         search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
+
+    if let Some((sort, direction)) = sort.split_once(':') {
+        debug!({ format!("Trying to sort by {sort} ({direction})") });
+        if let Some(sorted_pages) = search_index.sorts.get(sort) {
+            debug!({ format!("Found {} pages sorted by {sort}", sorted_pages.len()) });
+            results.retain(|result| sorted_pages.contains(&(result.page_index as u32)));
+
+            for result in results.iter_mut() {
+                result.page_score = sorted_pages
+                    .iter()
+                    .position(|p| p == &(result.page_index as u32))
+                    .expect("Sorted pages should contain all remaining results")
+                    as f32;
+                if direction == "asc" {
+                    result.page_score = 0.0 - result.page_score;
+                }
+            }
+        }
+    }
 
     let result_string = results
         .into_iter()
