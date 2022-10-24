@@ -73,6 +73,7 @@ twelf = { version = "0.7", default-features = false, features = [
 portpicker = "0.1"
 actix-web = "4"
 actix-files = "0.6"
+lexical-core = "0.8.5"
 
 [features]
 

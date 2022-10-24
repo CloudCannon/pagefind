@@ -28,6 +28,7 @@ pub struct FossickedData {
     pub file_path: PathBuf,
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
+    pub sort: HashMap<String, String>,
     pub has_custom_body: bool,
     pub has_html_element: bool,
     pub language: String,
@@ -165,7 +166,7 @@ impl Fossicker {
             has_html_element: data.has_html_element,
             language: data.language,
             fragment: PageFragment {
-                page_number: 0,
+                page_number: 0, // This page number is updated later once determined
                 data: PageFragmentData {
                     url,
                     content,
@@ -175,6 +176,7 @@ impl Fossicker {
                 },
             },
             word_data,
+            sort: data.sort,
         })
     }
 }

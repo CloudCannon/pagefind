@@ -62,7 +62,6 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
 
-
     Scenario: Filter counts are returned for a given search term
         When I evaluate:
             """
@@ -129,6 +128,25 @@ Feature: Filtering
                 let pagefind = await import("/_pagefind/pagefind.js");
 
                 let search = await pagefind.search("Cat", {
+                    filters: {
+                        color: "White"
+                    }
+                });
+                let data = await Promise.all(search.results.map(result => result.data()));
+
+                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/cheeka/, /theodore/"
+
+    Scenario: Filtering without search term returns only filter
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search(null, {
                     filters: {
                         color: "White"
                     }

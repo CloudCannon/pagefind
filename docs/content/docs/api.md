@@ -144,6 +144,53 @@ If all filters have been loaded with `await pagefind.filters()`, counts will als
 }
 ```
 
+## Sorting results
+
+If pages on your site have been tagged with [sort attributes](/docs/sorts/), a `sort` object can be provided to Pagefind when searching:
+
+{{< diffcode >}}
+```js
+const search = await pagefind.search("static", {
++    sort: {
++        date: "asc"
++    }
+});
+```
+{{< /diffcode >}}
+
+This object should contain one key, matching a `data-pagefind-sort` attribute, and specify either `asc` for ascending or `desc` for descending sort order.
+
+This will override any page relevance sorting, and will return all matching results sorted by the given attribute.
+
+## Filtering without search
+
+If the search term passed to Pagefind is the value `null`, Pagefind will return all results. For example, the following snippet will return all pages in the index, sorted by their date.
+
+{{< diffcode >}}
+```js
+const search = await pagefind.search(null, {
+    sort: {
+        date: "asc"
+    }
+});
+```
+{{< /diffcode >}}
+
+Filters will still be applied, allowing Pagefind to be used as a filtering tool instead of a searching tool:
+
+{{< diffcode >}}
+```js
+const search = await pagefind.search(null, {
+    filters: {
+        category: "Posts"
+    },
+    sort: {
+        date: "asc"
+    }
+});
+```
+{{< /diffcode >}}
+
 ## Preloading search terms
 
 If you have a debounced search input, Pagefind won't start loading indexes until you run your search query. To speed up your search query when it runs, you can use the `pagefind.preload` function as the user is typing. 
