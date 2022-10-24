@@ -20,6 +20,7 @@ class PagefindUI {
         let showImages = opts.showImages ?? true;
         let showEmptyFilters = opts.showEmptyFilters ?? true;
         let mergeIndex = opts.mergeIndex ?? [];
+        let translations = opts.translations ?? [];
 
         // Remove the UI-specific config before passing it along to the Pagefind backend
         delete opts["element"];
@@ -28,6 +29,7 @@ class PagefindUI {
         delete opts["showImages"];
         delete opts["showEmptyFilters"];
         delete opts["mergeIndex"];
+        delete opts["translations"];
 
         const dom = document.querySelector(selector);
         if (dom) {
@@ -39,6 +41,7 @@ class PagefindUI {
                     show_images: showImages,
                     show_empty_filters: showEmptyFilters,
                     merge_index: mergeIndex,
+                    translations,
                     pagefind_options: opts
                 }
             })
