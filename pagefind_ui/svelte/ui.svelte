@@ -23,6 +23,7 @@
     export let reset_styles = true;
     export let show_images = true;
     export let show_empty_filters = true;
+    export let debounce_timeout_ms = 300;
     export let pagefind_options = {};
     export let merge_index = [];
     export let trigger_search_term = "";
@@ -67,7 +68,7 @@
             availableTranslations["en"];
     });
 
-    $: search(val, selected_filters);
+    $: debounce(val, selected_filters);
 
     const init = async () => {
         if (initializing) return;
@@ -109,6 +110,19 @@
             });
         return filter;
     };
+
+    let timer;
+    const debounce = (term, raw_filters) => {
+        const func = () => search(term, raw_filters);
+        console.log(".");
+        if (debounce_timeout_ms > 0 && term) {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => { console.log("!"); func();}, debounce_timeout_ms);
+        } else {
+            console.log("!!");
+            func();
+        }
+    }
 
     const search = async (term, raw_filters) => {
         const filters = parseSelectedFilters(raw_filters);
