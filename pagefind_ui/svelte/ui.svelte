@@ -26,6 +26,7 @@
     export let pagefind_options = {};
     export let merge_index = [];
     export let trigger_search_term = "";
+    export let translations = {};
 
     let val = "";
     $: if (trigger_search_term) {
@@ -44,14 +45,18 @@
     let initial_filters = null;
     let available_filters = null;
     let selected_filters = {};
-    let translations = availableTranslations["en"];
+    let automatic_translations = availableTranslations["en"];
+
+    const translate = (key) => {
+        return translations[key] ?? automatic_translations[key] ?? "";
+    };
 
     onMount(() => {
         let lang =
             document?.querySelector?.("html")?.getAttribute?.("lang") || "en";
         let parsedLang = parseBCP47(lang.toLocaleLowerCase());
 
-        translations =
+        automatic_translations =
             availableTranslations[
                 `${parsedLang.language}-${parsedLang.script}-${parsedLang.region}`
             ] ||
@@ -140,7 +145,7 @@
     <form
         class="pagefind-ui__form"
         role="search"
-        aria-label={translations.strings.search_label}
+        aria-label={translate("search_label")}
         action="javascript:void(0);"
         on:submit={(e) => e.preventDefault()}
     >
@@ -149,7 +154,7 @@
             on:focus={init}
             bind:value={val}
             type="text"
-            placeholder={translations.strings.placeholder}
+            placeholder={translate("placeholder")}
         />
 
         <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
@@ -157,7 +162,7 @@
                 <Filters
                     {show_empty_filters}
                     {available_filters}
-                    {translations}
+                    {translate}
                     bind:selected_filters
                 />
             {/if}
@@ -167,7 +172,7 @@
                     {#if loading}
                         {#if search_term}
                             <p class="pagefind-ui__message">
-                                {translations.strings.searching.replace(
+                                {translate("searching").replace(
                                     /\[SEARCH_TERM\]/,
                                     search_term
                                 )}
@@ -176,12 +181,12 @@
                     {:else}
                         <p class="pagefind-ui__message">
                             {#if searchResult.results.length === 0}
-                                {translations.strings.zero_results.replace(
+                                {translate("zero_results").replace(
                                     /\[SEARCH_TERM\]/,
                                     search_term
                                 )}
                             {:else if searchResult.results.length === 1}
-                                {translations.strings.one_result
+                                {translate("one_result")
                                     .replace(/\[SEARCH_TERM\]/, search_term)
                                     .replace(
                                         /\[COUNT\]/,
@@ -190,7 +195,7 @@
                                         ).format(1)
                                     )}
                             {:else}
-                                {translations.strings.many_results
+                                {translate("many_results")
                                     .replace(/\[SEARCH_TERM\]/, search_term)
                                     .replace(
                                         /\[COUNT\]/,
@@ -210,7 +215,7 @@
                                 type="button"
                                 class="pagefind-ui__button"
                                 on:click={showMore}
-                                >{translations.strings.load_more}</button
+                                >{translate("load_more")}</button
                             >
                         {/if}
                     {/if}
