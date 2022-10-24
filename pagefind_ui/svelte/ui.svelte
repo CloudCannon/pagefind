@@ -114,12 +114,10 @@
     let timer;
     const debounce = (term, raw_filters) => {
         const func = () => search(term, raw_filters);
-        console.log(".");
         if (debounce_timeout_ms > 0 && term) {
             if (timer) clearTimeout(timer);
-            timer = setTimeout(() => { console.log("!"); func();}, debounce_timeout_ms);
+            timer = setTimeout(func, debounce_timeout_ms);
         } else {
-            console.log("!!");
             func();
         }
     }
