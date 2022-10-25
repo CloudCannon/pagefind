@@ -125,7 +125,7 @@
             if (timer) clearTimeout(timer);
             timer = setTimeout(executeSearchFunc, debounce_timeout_ms);
             await waitForApiInit();
-            await pagefind.preload(term, { filters });
+            pagefind.preload(term, { filters });
         } else {
             executeSearchFunc();
         }
