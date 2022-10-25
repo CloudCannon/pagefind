@@ -15,7 +15,7 @@
     for (let i = 0; i < languages.length; i++) {
         availableTranslations[languages[i]] = {
             language: languages[i],
-            ...translationFiles.default[i],
+            ...translationFiles.default[i].strings,
         };
     }
 
@@ -49,6 +49,7 @@
     let automatic_translations = availableTranslations["en"];
 
     const translate = (key) => {
+        console.debug(translations[key] ?? automatic_translations[key] ?? "");
         return translations[key] ?? automatic_translations[key] ?? "";
     };
 
