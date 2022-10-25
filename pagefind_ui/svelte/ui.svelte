@@ -133,7 +133,7 @@
 
     const waitForApiInit = async () => {
         while (!pagefind) {
-            await init();
+            init();
             await new Promise((resolve) => setTimeout(resolve, 50));
         }
     };
