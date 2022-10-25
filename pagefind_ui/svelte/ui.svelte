@@ -68,7 +68,7 @@
             availableTranslations["en"];
     });
 
-    $: debounce(val, selected_filters);
+    $: debouncedSearch(val, selected_filters);
 
     const init = async () => {
         if (initializing) return;
@@ -112,29 +112,38 @@
     };
 
     let timer;
-    const debounce = (term, raw_filters) => {
-        const func = () => search(term, raw_filters);
-        if (debounce_timeout_ms > 0 && term) {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(func, debounce_timeout_ms);
-        } else {
-            func();
-        }
-    }
-
-    const search = async (term, raw_filters) => {
-        const filters = parseSelectedFilters(raw_filters);
+    const debouncedSearch = async (term, raw_filters) => {
         if (!term) {
             searched = false;
             return;
         }
+
+        const filters = parseSelectedFilters(raw_filters);
+        const executeSearchFunc = () => search(term, filters);
+
+        if (debounce_timeout_ms > 0 && term) {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(executeSearchFunc, debounce_timeout_ms);
+            await waitForApiInit();
+            await pagefind.preload(term, { filters });
+        } else {
+            executeSearchFunc();
+        }
+    }
+
+    const waitForApiInit = async () => {
+        while (!pagefind) {
+            await init();
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+    };
+
+    const search = async (term, filters) => {
         search_term = term || "";
         loading = true;
         searched = true;
-        while (!pagefind) {
-            init();
-            await new Promise((resolve) => setTimeout(resolve, 50));
-        }
+        await waitForApiInit();
+
         const local_search_id = ++search_id;
         const results = await pagefind.search(term, { filters });
         if (search_id === local_search_id) {

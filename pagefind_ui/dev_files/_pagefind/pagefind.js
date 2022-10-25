@@ -202,4 +202,5 @@ const pagefind = new Pagefind();
 
 export const options = async () => { };
 export const search = async (term, options) => await pagefind.search(term, options);
+export const preload = async () => { };
 export const filters = async () => await pagefind.filters();
