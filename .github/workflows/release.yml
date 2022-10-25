@@ -148,7 +148,7 @@ jobs:
         uses: octokit/request-action@v2.x
         id: merge_docs
         with:
-          route: PUT /repos/{owner}/{repo}/merges
+          route: POST /repos/{owner}/{repo}/merges
           owner: cloudcannon
           repo: pagefind
           base: production-docs
