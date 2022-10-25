@@ -144,12 +144,18 @@ jobs:
           content: ${{ env.CHANGELOG }}
         env:
           GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
-
-      # - name: Merge
-      #   run: |
-      #     git checkout production-docs
-      #     git merge --no-ff main -m "Release documentation for $GIT_VERSION"
-      #     git push
+      - name: Release documentation branch
+        uses: octokit/request-action@v2.x
+        id: merge_docs
+        with:
+          route: PUT /repos/{owner}/{repo}/merges
+          owner: cloudcannon
+          repo: pagefind
+          base: production-docs
+          head: main
+          commit_message: Release documentation for ${{ env.GIT_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
       - name: Release
         uses: softprops/action-gh-release@v1
