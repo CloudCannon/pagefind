@@ -49,7 +49,6 @@
     let automatic_translations = availableTranslations["en"];
 
     const translate = (key) => {
-        console.debug(translations[key] ?? automatic_translations[key] ?? "");
         return translations[key] ?? automatic_translations[key] ?? "";
     };
 
