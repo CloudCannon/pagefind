@@ -251,7 +251,7 @@ class PagefindInstance {
                 for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
                     if (valueBlock) {
                         let [, value, count] = valueBlock.match(/^(.*):(\d+)$/);
-                        output[filter][value] = count;
+                        output[filter][value] = parseInt(count) ?? count;
                     }
                 }
             }
