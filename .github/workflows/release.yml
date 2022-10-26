@@ -331,22 +331,20 @@ jobs:
           RELEASE_VERSION=${GITHUB_REF#refs/tags/}
 
           EXEC_NAME="pagefind"
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            EXEC_NAME="pagefind.exe"
-          fi
           ASSET_NAME="$EXEC_NAME-$RELEASE_VERSION-${{ matrix.target }}.tar.gz"
           ASSET_PATH="$src/$ASSET_NAME"
 
           EXTENDED_EXEC_NAME="pagefind_extended"
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            EXTENDED_EXEC_NAME="pagefind_extended.exe"
-          fi
           EXTENDED_ASSET_NAME="$EXTENDED_EXEC_NAME-$RELEASE_VERSION-${{ matrix.target }}.tar.gz"
           EXTENDED_ASSET_PATH="$src/$EXTENDED_ASSET_NAME"
 
           CHECKSUM_PATH="$ASSET_PATH.sha256"
           EXTENDED_CHECKSUM_PATH="$EXTENDED_ASSET_PATH.sha256"
 
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            EXEC_NAME="pagefind.exe"
+            EXTENDED_EXEC_NAME="pagefind_extended.exe"
+          fi
           tar czf $ASSET_PATH $EXEC_NAME
           tar czf $EXTENDED_ASSET_PATH $EXTENDED_EXEC_NAME
 
