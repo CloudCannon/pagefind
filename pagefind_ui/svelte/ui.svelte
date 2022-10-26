@@ -115,6 +115,7 @@
     const debouncedSearch = async (term, raw_filters) => {
         if (!term) {
             searched = false;
+            if (timer) clearTimeout(timer);
             return;
         }
 
@@ -129,7 +130,7 @@
         } else {
             executeSearchFunc();
         }
-    }
+    };
 
     const waitForApiInit = async () => {
         while (!pagefind) {
