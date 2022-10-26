@@ -197,13 +197,13 @@ jobs:
             cross: false
             musl: false
             run_tests: true
-          - build: macos-m1
-            os: macos-latest
-            rust: stable
-            target: aarch64-apple-darwin
-            cross: false
-            musl: false
-            run_tests: false
+          # - build: macos-m1
+          #   os: macos-latest
+          #   rust: stable
+          #   target: aarch64-apple-darwin
+          #   cross: false
+          #   musl: false
+          #   run_tests: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
