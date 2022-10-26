@@ -215,3 +215,21 @@ Feature: Filtering
             """
         Then There should be no logs
         Then The selector "[data-results]" should contain "0"
+
+    Scenario: Filtering on a search term with no results returns nothing
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("Pontification", {
+                    filters: {
+                        color: "Orange"
+                    }
+                });
+
+                document.querySelector('[data-results]').innerText = search.results.length;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "0"

@@ -104,7 +104,9 @@ impl SearchIndex {
         let mut maps = Vec::new();
         let mut unique_maps = Vec::new();
         let mut words = Vec::new();
-        for term in stems_from_term(term) {
+        let split_term = stems_from_term(term);
+
+        for term in split_term.iter() {
             let mut word_maps = Vec::new();
             for (word, word_index) in self.find_word_extensions(&term) {
                 words.extend(word_index);
@@ -118,6 +120,11 @@ impl SearchIndex {
             if let Some(result) = union_maps(word_maps) {
                 maps.push(result);
             }
+        }
+        // In the case where a search term was passed, but not found,
+        // make sure we cause the entire search to return no results.
+        if !split_term.is_empty() && maps.is_empty() {
+            maps.push(BitSet::new());
         }
 
         if let Some(filter) = filter_results {
