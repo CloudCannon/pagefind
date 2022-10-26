@@ -36,6 +36,10 @@ If your sort value doesn't already exist on the page, you can simply use the syn
 
 The sort syntax follows the same rules as the metadata syntax, see [Defining multiple metadata keys on a single element](/docs/metadata/#defining-multiple-metadata-keys-on-a-single-element) for more detail.
 
+## Sorting results
+
+See the [sorting API documentation](/docs/api/#sorting-results) for interacting with these tagged sorts when searching.
+
 ## Notes
 
 > If all values tagged by a given sort key can be parsed as numbers (integers or floats) then Pagefind will sort them numerically. If any values are not parsable, all values will be sorted alphabetically. 

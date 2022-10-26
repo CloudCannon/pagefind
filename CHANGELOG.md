@@ -13,9 +13,24 @@
 * Removed `<header>` from the list of elements that Pagefind automatically ignores
   * If this element contains content you do not want to be indexed, you will now need to add `data-pagefind-ignore`
 
+### Features & Improvements
+* Added sorting functionality to Pagefind, see the [Sorting documentation](https://pagefind.app/docs/sorts/) and the [JS API Sorting usage](https://pagefind.app/docs/api/#sorting-results)
+* Added the functionality to filter an index without searching, by passing `null` as the search query
+* Added support for custom Pagefind UI strings, see [Using custom Pagefind UI strings](https://pagefind.app/docs/ui/#using-custom-pagefind-ui-strings)
+* Added a default debounce to the user input for Pagefind UI, and a corresponding `debounceTimeoutMs` option, see [Debounce user input](https://pagefind.app/docs/ui/#debounce-user-input)
+  * Many thanks to @dprothero for the contribution! 💝
+* Added a hook to process results before showing them in Pagefind UI, see the [processResult documentation](https://pagefind.app/docs/ui/#process-result)
+
 ### Fixes & Tweaks
+* Fixed running Pagefind on Windows via the npx wrapper
 * Pagefind now throws an error if a completely empty index is produced for whatever reason
 * Fixed a bug where having exactly one known and one unknown language would drop the known language pages
+* Fixed issue where `two<br/>words` would be indexed as `twowords` rather than the correct `two words`
+* Added `<style>` to the list of elements that Pagefind automatically ignores
+* Fixed the Pagefind UI `showEmptyFilters` option to work as expected
+* Fixed issue where adding a filter to a search with zero results would return all results for the filter
+* Fixed uncommon bug around chunk boundaries
+  * For example: If your first search index chunk started with the word `hello` and you searched for `h`, Pagefind would previously not load the `hello` chunk and would instead return zero results.
 
 ## v0.8.1 (September 12, 2022)
 
