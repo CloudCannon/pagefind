@@ -10,7 +10,7 @@ Pagefind can be configured through CLI flags, environment variables, or configur
 
 ## Config files
 
-Pagefind will look for a `pagefind.toml`, `pagefind.yml`, or `pagefind.json` file in the directory that you have run the command in.
+Pagefind will look for a `pagefind.toml`, `pagefind.yml`, `pagefind.yaml`, or `pagefind.json` file in the directory that you have run the command in.
 
 ```yaml
 # pagefind.yml
