@@ -104,8 +104,16 @@ jobs:
       run:
         working-directory: ./
     steps:
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ secrets.CC_OSS_BOT_ID }}
+          application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
       - name: Clone
         uses: actions/checkout@v2
+        with:
+          token: ${{ steps.get_workflow_token.outputs.token }}
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
       - name: Swap to main
@@ -113,21 +121,42 @@ jobs:
         with:
           ref: main
           fetch-depth: 0 # Full fetch
+          token: ${{ steps.get_workflow_token.outputs.token }}
       - uses: actions/download-artifact@v3
         with:
           name: release
           path: build-artifacts
-      - name: Build Changelog
+      - name: Build CHANGELOG
         run: |
           node ./.backstage/changelog.cjs write
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          git add ./CHANGELOG.md
-          git commit -m "Changelog for $GIT_VERSION"
-          git push
-          git checkout production-docs
-          git merge --no-ff main -m "Release documentation for $GIT_VERSION"
-          git push
+          echo CHANGELOG=\"$(base64 -w 0 -i CHANGELOG.md)\" >> $GITHUB_ENV
+          echo SHA=\"$( git rev-parse main:CHANGELOG.md )\" >> $GITHUB_ENV
+      - name: Commit new CHANGELOG
+        uses: octokit/request-action@v2.x
+        id: push_changes
+        with:
+          route: PUT /repos/{owner}/{repo}/contents/CHANGELOG.md
+          owner: cloudcannon
+          repo: pagefind
+          branch: main
+          message: Changelog for ${{ env.GIT_VERSION }}
+          sha: ${{ env.SHA }}
+          content: ${{ env.CHANGELOG }}
+        env:
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+      - name: Release documentation branch
+        uses: octokit/request-action@v2.x
+        id: merge_docs
+        with:
+          route: POST /repos/{owner}/{repo}/merges
+          owner: cloudcannon
+          repo: pagefind
+          base: production-docs
+          head: main
+          commit_message: Release documentation for ${{ env.GIT_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -136,7 +165,7 @@ jobs:
           files: |
             build-artifacts/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
   test-and-build:
     name: Publish to Github and Crates
@@ -153,18 +182,28 @@ jobs:
             target: x86_64-pc-windows-msvc
             cross: false
             musl: false
+            run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-musl
             cross: false
             musl: true
+            run_tests: true
           - build: macos
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
             cross: false
             musl: false
+            run_tests: true
+          - build: macos-m1
+            os: macos-latest
+            rust: stable
+            target: aarch64-apple-darwin
+            cross: false
+            musl: false
+            run_tests: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
