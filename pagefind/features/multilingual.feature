@@ -22,7 +22,7 @@ Feature: Multilingual
                     <title>Document</title>
                 </head>
                 <body>
-                    <p>I am a Portugese document (trust me — quilométricas — see?)</p>
+                    <p>I am a Portuguese document (trust me — quilométricas — see?)</p>
                 </body>
             </html>
             """

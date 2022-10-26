@@ -60,6 +60,10 @@ Pagefind UI can be styled manually by omitting the `/_pagefind/pagefind-ui.css` 
 
 The classnames within Pagefind UI that begin with `pagefind-ui` should be targeted. These may change, so if you are styling them yourself make sure to test new releases of Pagefind with your stylesheet. Changes to classnames will be highlighted in the release notes, but will not be signalled by a major release.
 
+## Using custom Pagefind UI strings
+
+Pagefind UI will attempt to use translated text based on the language tag of the active page. If built in tanslations are not found, the UI will fall back to English text. Custom text can instead be supplied using the [translations](#translations) option.
+
 ## Overriding the URL of a result
 
 The Pagefind UI will look for a value under the metadata key `url`, and use that for result links if present. This allows you to override the URL of a single page by tagging metadata on that page, for example:
@@ -85,6 +89,24 @@ new PagefindUI({ element: "#search" });
 
 A selector for the HTML element to attach Pagefind UI to. This is the only required argument.
 
+### Translations
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    translations: {
++        placeholder: "Search my website",
++        zero_results: "Couldn't find [SEARCH_TERM]"
++    }
+});
+```
+{{< /diffcode >}}
+
+A set of custom ui strings to use instead of the automatically detected language strings. See the [translations/en.json](https://github.com/CloudCannon/pagefind/blob/main/pagefind_ui/translations/en.json) file for all available keys and their initial values.
+
+The items in square brackets such as `SEARCH_TERM` will be substituted dynamically when the text is used.
+
 ### Show images
 
 {{< diffcode >}}
@@ -97,6 +119,22 @@ new PagefindUI({
 {{< /diffcode >}}
 
 Whether to show an image alongside each search result. Defaults to `true`.
+
+### Process result
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    processResult: function (result) {
++        result.meta.image = someCustomFunction(result.meta.image);
++        return result;
++    }
+});
+```
+{{< /diffcode >}}
+
+Provides a function that Pagefind UI calls before displaying each result. This can be used to fix relative URLs, rewrite titles, or any other modifications you might like to make to the raw result object returned by Pagefind. 
 
 ### Show empty filters
 
@@ -136,3 +174,16 @@ new PagefindUI({
 {{< /diffcode >}}
 
 Overrides the bundle directory. In most cases this should be automatically detected from the URL of `pagefind-ui.js`. Set this if search isn't working and you are seeing a console warning that this path could not be detected.
+
+### Debounce user input
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    debounceTimeoutMs: 500
+});
+```
+{{< /diffcode >}}
+
+The number of milliseconds to wait after a user stops typing before performing a search. Defaults to `300`. If you wish to disable this, set to `0`.

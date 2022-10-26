@@ -6,8 +6,13 @@ use minicbor::{decode, Decoder};
 {} = fixed length array
 {
     String,                 // pagefind generator version
-    [ String, ... ],        // ordered page hashes
-    [ String, ... ],        // stop words
+    [
+        {
+            String,         // page hash
+            u32,            // word count
+        }
+        ...
+    ]
     [
         {
             String,         // start word of index chunk
@@ -22,6 +27,12 @@ use minicbor::{decode, Decoder};
             String,         // hash of filter chunk
         },
         ...
+    ],
+    [
+        {
+            String,         // sort key
+            [ usize, ... ], // sorted page numbers
+        }
     ]
 }
 */
@@ -68,6 +79,24 @@ impl SearchIndex {
             consume_fixed_arr!(decoder);
             self.filter_chunks
                 .insert(consume_string!(decoder), consume_string!(decoder));
+        }
+
+        debug!({ "Reading sorts array" });
+        let sorts = consume_arr_len!(decoder);
+        debug!({ format!("Reading {:#?} sorts", sorts) });
+        for _ in 0..sorts {
+            consume_fixed_arr!(decoder);
+            let sort_key = consume_string!(decoder);
+
+            debug!({ format!("Reading array of page numbers sorted by {:#?}", sort_key) });
+            let page_num_num = consume_arr_len!(decoder);
+            debug!({ format!("Reading {:#?} page numbers", page_num_num) });
+            let mut sorted_pages = Vec::with_capacity(page_num_num as usize);
+            for _ in 0..page_num_num {
+                sorted_pages.push(consume_num!(decoder));
+            }
+
+            self.sorts.insert(sort_key, sorted_pages);
         }
 
         debug!({ "Finished decoding metadata" });

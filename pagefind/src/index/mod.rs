@@ -7,6 +7,8 @@ use index_filter::{FilterIndex, PackedValue};
 use index_metadata::{MetaChunk, MetaIndex, MetaPage};
 use index_words::{PackedPage, PackedWord, WordIndex};
 
+use self::index_metadata::MetaSort;
+
 mod index_filter;
 mod index_metadata;
 mod index_words;
@@ -16,6 +18,7 @@ pub struct PagefindIndexes {
     pub filter_indexes: HashMap<String, Vec<u8>>,
     pub meta_index: (String, Vec<u8>),
     pub fragments: Vec<(String, String)>,
+    pub sorts: Vec<String>,
     pub language: String,
     pub word_count: usize,
 }
@@ -28,32 +31,99 @@ struct IntermediaryPageData {
     page_number: usize,
 }
 
-pub async fn build_indexes<I>(
-    pages: I,
+#[derive(Debug)]
+enum SortType {
+    String,
+    Number,
+}
+
+pub async fn build_indexes(
+    mut pages: Vec<FossickedData>,
     language: String,
     options: &SearchOptions,
-) -> PagefindIndexes
-where
-    I: Iterator<Item = FossickedData>,
-{
+) -> PagefindIndexes {
     let mut meta = MetaIndex {
         version: options.version.into(),
         pages: Vec::new(),
         index_chunks: Vec::new(),
         filters: Vec::new(),
+        sorts: Vec::new(),
     };
+
+    /*
+        - Collect all sort keys
+        - Sort `pages` by one of them and set `default_sort`
+        - Do the main enumerate loop as an iter_mut and set page numbers
+        - Later on, for each other sort key:
+            - Sort the `pages` array and output the page numbers to `alternate_sorts`
+    */
 
     let mut word_map: HashMap<String, PackedWord> = HashMap::new();
     let mut filter_map: HashMap<String, HashMap<String, Vec<usize>>> = HashMap::new();
     let mut fragment_hashes: HashMap<String, IntermediaryPageData> = HashMap::new();
     let mut fragments: Vec<(usize, (String, IntermediaryPageData))> = Vec::new();
 
-    for (page_number, mut page) in pages.enumerate() {
+    for (page_number, mut page) in pages.iter_mut().enumerate() {
         page.fragment.page_number = page_number;
+    }
 
+    // Get all possible sort keys
+    let mut sorts: Vec<_> = pages
+        .iter()
+        .flat_map(|page| page.sort.keys().cloned())
+        .collect();
+    sorts.sort_unstable();
+    sorts.dedup();
+
+    // Determine the best sorting parser that fits all available values for each given key
+    let mut sort_types: HashMap<String, SortType> = HashMap::new();
+    for sort in sorts.iter() {
+        let mut sort_values = pages.iter().flat_map(|page| page.sort.get(sort));
+        sort_types.insert(
+            sort.clone(),
+            if sort_values.all(|v| parse_int_sort(v).is_some() || parse_float_sort(v).is_some()) {
+                SortType::Number
+            } else {
+                SortType::String
+            },
+        );
+    }
+
+    for (sort_key, sort_type) in sort_types {
+        let mut page_values: Vec<_> = pages
+            .iter()
+            .flat_map(|page| {
+                page.sort
+                    .get(&sort_key)
+                    .map(|v| (v, page.fragment.page_number))
+            })
+            .collect();
+        options.logger.v_info(format!(
+            "Prebuilding sort order for {sort_key}, processed as type: {sort_type:#?}"
+        ));
+        match sort_type {
+            SortType::String => page_values.sort_by_key(|p| p.0),
+            SortType::Number => page_values.sort_by(|p1, p2| {
+                let p1 = parse_int_sort(p1.0)
+                    .map(|i| i as f32)
+                    .unwrap_or_else(|| parse_float_sort(p1.0).unwrap_or_default());
+                let p2 = parse_int_sort(p2.0)
+                    .map(|i| i as f32)
+                    .unwrap_or_else(|| parse_float_sort(p2.0).unwrap_or_default());
+
+                p1.total_cmp(&p2)
+            }),
+        }
+        meta.sorts.push(MetaSort {
+            sort: sort_key,
+            pages: page_values.into_iter().map(|p| p.1).collect(),
+        });
+    }
+
+    for page in pages.into_iter() {
         for (word, positions) in page.word_data {
             let packed_page = PackedPage {
-                page_number,
+                page_number: page.fragment.page_number,
                 locs: positions.clone(),
             };
 
@@ -75,14 +145,14 @@ where
             for value in values {
                 match filter_map.get_mut(filter) {
                     Some(value_map) => match value_map.get_mut(value) {
-                        Some(page_array) => page_array.push(page_number),
+                        Some(page_array) => page_array.push(page.fragment.page_number),
                         None => {
-                            value_map.insert(value.clone(), vec![page_number]);
+                            value_map.insert(value.clone(), vec![page.fragment.page_number]);
                         }
                     },
                     None => {
                         let mut value_map = HashMap::new();
-                        value_map.insert(value.clone(), vec![page_number]);
+                        value_map.insert(value.clone(), vec![page.fragment.page_number]);
                         filter_map.insert(filter.clone(), value_map);
                     }
                 }
@@ -215,6 +285,7 @@ where
     PagefindIndexes {
         word_indexes,
         filter_indexes,
+        sorts,
         meta_index: (meta_hash, meta_index),
         fragments: fragments
             .into_iter()
@@ -286,6 +357,14 @@ fn get_prefixes((a, b): (&str, &str)) -> (String, String) {
     let b_prefix = b.chars().take(common_prefix_length + 1).collect::<String>();
 
     (a_prefix, b_prefix)
+}
+
+fn parse_int_sort(value: &str) -> Option<i32> {
+    lexical_core::parse::<i32>(value.as_bytes()).ok()
+}
+
+fn parse_float_sort(value: &str) -> Option<f32> {
+    lexical_core::parse::<f32>(value.as_bytes()).ok()
 }
 
 #[cfg(test)]

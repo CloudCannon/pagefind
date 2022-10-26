@@ -62,7 +62,6 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
 
-
     Scenario: Filter counts are returned for a given search term
         When I evaluate:
             """
@@ -141,6 +140,47 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "/cheeka/, /theodore/"
 
+    Scenario: Filtering without search term returns only filter
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search(null, {
+                    filters: {
+                        color: "White"
+                    }
+                });
+                let data = await Promise.all(search.results.map(result => result.data()));
+
+                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/cheeka/, /theodore/"
+
+    Scenario: Filtering without search term returns an unprocessed excerpt
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                // Run a search so that some index words are loaded
+                let unused = await pagefind.search("cat");
+
+                let search = await pagefind.search(null, {
+                    filters: {
+                        color: ["Black", "White"]
+                    }
+                });
+                let data = await Promise.all(search.results.map(result => result.data()));
+
+                document.querySelector('[data-results]').innerText = data.map(d => d.excerpt).join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "Black White Cat."
+
     @skip
     # Currently only an AND filtering is supported. Need to restructure to support boolean logic
     Scenario: Filtering to multiple values
@@ -189,6 +229,24 @@ Feature: Filtering
                 let search = await pagefind.search("Cat", {
                     filters: {
                         color: "Green"
+                    }
+                });
+
+                document.querySelector('[data-results]').innerText = search.results.length;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "0"
+
+    Scenario: Filtering on a search term with no results returns nothing
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("Pontification", {
+                    filters: {
+                        color: "Orange"
                     }
                 });
 

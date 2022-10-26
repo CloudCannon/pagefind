@@ -1,7 +1,8 @@
 <script>
     export let show_images = true;
+    export let process_result = null;
     export let result = { data: async () => {} };
-    
+
     const skipMeta = ["title", "image", "image_alt", "url"];
 
     let data;
@@ -9,6 +10,7 @@
 
     const load = async (r) => {
         data = await r.data();
+        data = process_result?.(data) ?? data;
         meta = Object.entries(data.meta).filter(
             ([key]) => !skipMeta.includes(key)
         );
@@ -37,7 +39,8 @@
             <p class="pagefind-ui__result-title">
                 <a
                     class="pagefind-ui__result-link"
-                    href={data.meta?.url || data.url}>{@html data.meta?.title}</a
+                    href={data.meta?.url || data.url}
+                    >{@html data.meta?.title}</a
                 >
             </p>
             <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>

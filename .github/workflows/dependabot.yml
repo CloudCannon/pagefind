@@ -1,0 +1,27 @@
+name: auto-merge
+
+on:
+  pull_request_target
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ secrets.CC_OSS_BOT_ID }}
+          application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
+      - uses: fastify/github-action-merge-dependabot@v3.0.0
+        with:
+          github-token: ${{ steps.get_workflow_token.outputs.token }}
+          target: minor
+          approve-only: true
+      - name: Enable auto-merge for Dependabot PR
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}

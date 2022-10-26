@@ -15,17 +15,20 @@
     for (let i = 0; i < languages.length; i++) {
         availableTranslations[languages[i]] = {
             language: languages[i],
-            ...translationFiles.default[i],
+            ...translationFiles.default[i].strings,
         };
     }
 
     export let base_path = "/_pagefind/";
     export let reset_styles = true;
     export let show_images = true;
+    export let process_result = null;
     export let show_empty_filters = true;
+    export let debounce_timeout_ms = 300;
     export let pagefind_options = {};
     export let merge_index = [];
     export let trigger_search_term = "";
+    export let translations = {};
 
     let val = "";
     $: if (trigger_search_term) {
@@ -44,14 +47,18 @@
     let initial_filters = null;
     let available_filters = null;
     let selected_filters = {};
-    let translations = availableTranslations["en"];
+    let automatic_translations = availableTranslations["en"];
+
+    const translate = (key) => {
+        return translations[key] ?? automatic_translations[key] ?? "";
+    };
 
     onMount(() => {
         let lang =
             document?.querySelector?.("html")?.getAttribute?.("lang") || "en";
         let parsedLang = parseBCP47(lang.toLocaleLowerCase());
 
-        translations =
+        automatic_translations =
             availableTranslations[
                 `${parsedLang.language}-${parsedLang.script}-${parsedLang.region}`
             ] ||
@@ -62,7 +69,7 @@
             availableTranslations["en"];
     });
 
-    $: search(val, selected_filters);
+    $: debouncedSearch(val, selected_filters);
 
     const init = async () => {
         if (initializing) return;
@@ -105,19 +112,40 @@
         return filter;
     };
 
-    const search = async (term, raw_filters) => {
-        const filters = parseSelectedFilters(raw_filters);
+    let timer;
+    const debouncedSearch = async (term, raw_filters) => {
         if (!term) {
             searched = false;
+            if (timer) clearTimeout(timer);
             return;
         }
-        search_term = term || "";
-        loading = true;
-        searched = true;
+
+        const filters = parseSelectedFilters(raw_filters);
+        const executeSearchFunc = () => search(term, filters);
+
+        if (debounce_timeout_ms > 0 && term) {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(executeSearchFunc, debounce_timeout_ms);
+            await waitForApiInit();
+            pagefind.preload(term, { filters });
+        } else {
+            executeSearchFunc();
+        }
+    };
+
+    const waitForApiInit = async () => {
         while (!pagefind) {
             init();
             await new Promise((resolve) => setTimeout(resolve, 50));
         }
+    };
+
+    const search = async (term, filters) => {
+        search_term = term || "";
+        loading = true;
+        searched = true;
+        await waitForApiInit();
+
         const local_search_id = ++search_id;
         const results = await pagefind.search(term, { filters });
         if (search_id === local_search_id) {
@@ -140,7 +168,7 @@
     <form
         class="pagefind-ui__form"
         role="search"
-        aria-label={translations.strings.search_label}
+        aria-label={translate("search_label")}
         action="javascript:void(0);"
         on:submit={(e) => e.preventDefault()}
     >
@@ -149,7 +177,7 @@
             on:focus={init}
             bind:value={val}
             type="text"
-            placeholder={translations.strings.placeholder}
+            placeholder={translate("placeholder")}
         />
 
         <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
@@ -157,7 +185,7 @@
                 <Filters
                     {show_empty_filters}
                     {available_filters}
-                    {translations}
+                    {translate}
                     bind:selected_filters
                 />
             {/if}
@@ -167,7 +195,7 @@
                     {#if loading}
                         {#if search_term}
                             <p class="pagefind-ui__message">
-                                {translations.strings.searching.replace(
+                                {translate("searching").replace(
                                     /\[SEARCH_TERM\]/,
                                     search_term
                                 )}
@@ -176,12 +204,12 @@
                     {:else}
                         <p class="pagefind-ui__message">
                             {#if searchResult.results.length === 0}
-                                {translations.strings.zero_results.replace(
+                                {translate("zero_results").replace(
                                     /\[SEARCH_TERM\]/,
                                     search_term
                                 )}
                             {:else if searchResult.results.length === 1}
-                                {translations.strings.one_result
+                                {translate("one_result")
                                     .replace(/\[SEARCH_TERM\]/, search_term)
                                     .replace(
                                         /\[COUNT\]/,
@@ -190,7 +218,7 @@
                                         ).format(1)
                                     )}
                             {:else}
-                                {translations.strings.many_results
+                                {translate("many_results")
                                     .replace(/\[SEARCH_TERM\]/, search_term)
                                     .replace(
                                         /\[COUNT\]/,
@@ -202,7 +230,11 @@
                         </p>
                         <ol class="pagefind-ui__results">
                             {#each searchResult.results.slice(0, show) as result (result.id)}
-                                <Result {show_images} {result} />
+                                <Result
+                                    {show_images}
+                                    {process_result}
+                                    {result}
+                                />
                             {/each}
                         </ol>
                         {#if searchResult.results.length > show}
@@ -210,7 +242,7 @@
                                 type="button"
                                 class="pagefind-ui__button"
                                 on:click={showMore}
-                                >{translations.strings.load_more}</button
+                                >{translate("load_more")}</button
                             >
                         {/if}
                     {/if}

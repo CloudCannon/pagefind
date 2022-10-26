@@ -32,7 +32,7 @@ impl SearchState {
 
         log.status("[Walking source directory]");
         if let Ok(glob) = Glob::new(&self.options.glob) {
-            glob.walk(&self.options.source, usize::MAX)
+            glob.walk(&self.options.source)
                 .filter_map(Result::ok)
                 .map(WalkEntry::into_path)
                 .map(Fossicker::new)
@@ -156,7 +156,7 @@ impl SearchState {
             .unwrap_or_else(|| "unknown".into());
 
         if let Some(mut unknown_pages) = language_map.remove("unknown") {
-            if language_map.len() > 1 {
+            if !language_map.is_empty() {
                 log.warn(format!(
                     "{} page{} found without an html lang attribute. \n\
                     Merging these pages with the {} language, as that is the main language on this site. \n\
@@ -190,22 +190,22 @@ impl SearchState {
 
         let indexes: Vec<_> = language_map
             .into_iter()
-            .map(|(language, pages)| async {
-                build_indexes(pages.into_iter(), language, &self.options).await
-            })
+            .map(|(language, pages)| async { build_indexes(pages, language, &self.options).await })
             .collect();
         let indexes = join_all(indexes).await;
 
-        let stats = indexes.iter().fold((0, 0, 0), |mut stats, index| {
+        let stats = indexes.iter().fold((0, 0, 0, 0), |mut stats, index| {
             log.v_info(format!(
-                "Language {}: \n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n",
+                "Language {}: \n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n  Indexed {} sort{}\n",
                 index.language,
                 index.fragments.len(),
                 plural!(index.fragments.len()),
                 index.word_count,
                 plural!(index.word_count),
                 index.filter_indexes.len(),
-                plural!(index.filter_indexes.len())
+                plural!(index.filter_indexes.len()),
+                index.sorts.len(),
+                plural!(index.sorts.len())
             ));
 
             #[cfg(not(feature = "extended"))]
@@ -224,11 +224,12 @@ impl SearchState {
             stats.0 += index.fragments.len();
             stats.1 += index.word_count;
             stats.2 += index.filter_indexes.len();
+            stats.3 += index.sorts.len();
             stats
         });
 
         log.info(format!(
-            "Total: \n  Indexed {} language{}\n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}",
+            "Total: \n  Indexed {} language{}\n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n  Indexed {} sort{}",
             indexes.len(),
             plural!(indexes.len()),
             stats.0,
@@ -236,8 +237,19 @@ impl SearchState {
             stats.1,
             plural!(stats.1),
             stats.2,
-            plural!(stats.2)
+            plural!(stats.2),
+            stats.3,
+            plural!(stats.3)
         ));
+
+        if stats.1 == 0 {
+            log.error(
+                "Error: Pagefind wasn't able to build an index. \n\
+                Most likely, the directory passed to Pagefind was empty \
+                or did not contain any html files.",
+            );
+            std::process::exit(1);
+        }
 
         let index_entries: Vec<_> = indexes
             .into_iter()
