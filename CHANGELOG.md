@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.9.0 (October 26, 2022)
+
 ### Important Changes
 * Removed `<header>` from the list of elements that Pagefind automatically ignores
   * If this element contains content you do not want to be indexed, you will now need to add `data-pagefind-ignore`
