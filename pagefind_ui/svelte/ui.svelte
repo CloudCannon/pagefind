@@ -15,7 +15,7 @@
     for (let i = 0; i < languages.length; i++) {
         availableTranslations[languages[i]] = {
             language: languages[i],
-            ...translationFiles.default[i],
+            ...translationFiles.default[i].strings,
         };
     }
 
@@ -23,6 +23,7 @@
     export let reset_styles = true;
     export let show_images = true;
     export let show_empty_filters = true;
+    export let debounce_timeout_ms = 300;
     export let pagefind_options = {};
     export let merge_index = [];
     export let trigger_search_term = "";
@@ -67,7 +68,7 @@
             availableTranslations["en"];
     });
 
-    $: search(val, selected_filters);
+    $: debouncedSearch(val, selected_filters);
 
     const init = async () => {
         if (initializing) return;
@@ -110,19 +111,40 @@
         return filter;
     };
 
-    const search = async (term, raw_filters) => {
-        const filters = parseSelectedFilters(raw_filters);
+    let timer;
+    const debouncedSearch = async (term, raw_filters) => {
         if (!term) {
             searched = false;
+            if (timer) clearTimeout(timer);
             return;
         }
-        search_term = term || "";
-        loading = true;
-        searched = true;
+
+        const filters = parseSelectedFilters(raw_filters);
+        const executeSearchFunc = () => search(term, filters);
+
+        if (debounce_timeout_ms > 0 && term) {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(executeSearchFunc, debounce_timeout_ms);
+            await waitForApiInit();
+            pagefind.preload(term, { filters });
+        } else {
+            executeSearchFunc();
+        }
+    };
+
+    const waitForApiInit = async () => {
         while (!pagefind) {
             init();
             await new Promise((resolve) => setTimeout(resolve, 50));
         }
+    };
+
+    const search = async (term, filters) => {
+        search_term = term || "";
+        loading = true;
+        searched = true;
+        await waitForApiInit();
+
         const local_search_id = ++search_id;
         const results = await pagefind.search(term, { filters });
         if (search_id === local_search_id) {

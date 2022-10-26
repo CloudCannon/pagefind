@@ -158,3 +158,16 @@ new PagefindUI({
 {{< /diffcode >}}
 
 Overrides the bundle directory. In most cases this should be automatically detected from the URL of `pagefind-ui.js`. Set this if search isn't working and you are seeing a console warning that this path could not be detected.
+
+### Debounce user input
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    debounceTimeoutMs: 500
+});
+```
+{{< /diffcode >}}
+
+The number of milliseconds to wait after a user stops typing before performing a search. Defaults to `300`. If you wish to disable this, set to `0`.

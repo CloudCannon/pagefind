@@ -19,6 +19,7 @@ class PagefindUI {
         let resetStyles = opts.resetStyles ?? true;
         let showImages = opts.showImages ?? true;
         let showEmptyFilters = opts.showEmptyFilters ?? true;
+        let debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
         let mergeIndex = opts.mergeIndex ?? [];
         let translations = opts.translations ?? [];
 
@@ -28,6 +29,7 @@ class PagefindUI {
         delete opts["resetStyles"];
         delete opts["showImages"];
         delete opts["showEmptyFilters"];
+        delete opts["debounceTimeoutMs"];
         delete opts["mergeIndex"];
         delete opts["translations"];
 
@@ -40,6 +42,7 @@ class PagefindUI {
                     reset_styles: resetStyles,
                     show_images: showImages,
                     show_empty_filters: showEmptyFilters,
+                    debounce_timeout_ms: debounceTimeoutMs,
                     merge_index: mergeIndex,
                     translations,
                     pagefind_options: opts

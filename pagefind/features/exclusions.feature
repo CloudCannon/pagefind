@@ -58,6 +58,7 @@ Feature: Exclusions
                 </label>
             </form>
             <p>Hooray!</p>
+            <style> * { color: red; } </style>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
