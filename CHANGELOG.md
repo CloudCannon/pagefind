@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.9.1 (October 26, 2022)
+
 * Fix Windows release assets once more
 
 ## v0.9.0 (October 26, 2022)
