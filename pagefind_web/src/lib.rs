@@ -120,7 +120,7 @@ pub fn add_synthetic_filter(ptr: *mut SearchIndex, filter: &str) -> *mut SearchI
 #[wasm_bindgen]
 pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
     let indexes = try_request_indexes(ptr, query, false);
-    if indexes.is_empty() {
+    if indexes.is_empty() && !query.trim().is_empty() {
         debug!({
             "No index chunks found with strict boundaries. Loading all possible extension chunks."
         });

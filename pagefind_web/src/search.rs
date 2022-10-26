@@ -210,6 +210,9 @@ impl SearchIndex {
 }
 
 fn stems_from_term(term: &str) -> Vec<Cow<str>> {
+    if term.trim().is_empty() {
+        return vec![];
+    }
     let stemmer = Stemmer::try_create_default();
     term.split(' ')
         .map(|word| match &stemmer {
