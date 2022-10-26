@@ -32,7 +32,7 @@ impl SearchState {
 
         log.status("[Walking source directory]");
         if let Ok(glob) = Glob::new(&self.options.glob) {
-            glob.walk(&self.options.source, usize::MAX)
+            glob.walk(&self.options.source)
                 .filter_map(Result::ok)
                 .map(WalkEntry::into_path)
                 .map(Fossicker::new)
