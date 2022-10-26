@@ -22,6 +22,7 @@
     export let base_path = "/_pagefind/";
     export let reset_styles = true;
     export let show_images = true;
+    export let process_result = null;
     export let show_empty_filters = true;
     export let debounce_timeout_ms = 300;
     export let pagefind_options = {};
@@ -229,7 +230,11 @@
                         </p>
                         <ol class="pagefind-ui__results">
                             {#each searchResult.results.slice(0, show) as result (result.id)}
-                                <Result {show_images} {result} />
+                                <Result
+                                    {show_images}
+                                    {process_result}
+                                    {result}
+                                />
                             {/each}
                         </ol>
                         {#if searchResult.results.length > show}

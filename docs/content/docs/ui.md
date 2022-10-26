@@ -120,6 +120,22 @@ new PagefindUI({
 
 Whether to show an image alongside each search result. Defaults to `true`.
 
+### Process result
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    processResult: function (result) {
++        result.meta.image = someCustomFunction(result.meta.image);
++        return result;
++    }
+});
+```
+{{< /diffcode >}}
+
+Provides a function that Pagefind UI calls before displaying each result. This can be used to fix relative URLs, rewrite titles, or any other modifications you might like to make to the raw result object returned by Pagefind. 
+
 ### Show empty filters
 
 {{< diffcode >}}
