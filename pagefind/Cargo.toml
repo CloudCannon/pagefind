@@ -18,7 +18,7 @@ tokio = { version = "1", features = [
     "time",
     "macros",
 ] }
-pagefind_stem = { version = "0.1.0", features = [
+pagefind_stem = { version = "0.2.0", features = [
     "arabic",
     "armenian",
     "basque",
