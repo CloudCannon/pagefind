@@ -48,7 +48,7 @@ pagefind_stem = { version = "0.2.0", features = [
     "turkish",
     "yiddish",
 ] }
-charabia = { version = "0.5.1", optional = true }
+charabia = { version = "0.6.0", optional = true }
 hashbrown = { version = "0.12.0", features = ["serde"] }
 regex = "1.1"
 minicbor = { version = "0.18.0", features = ["alloc", "derive"] }
