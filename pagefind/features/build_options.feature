@@ -125,3 +125,47 @@ Feature: Build Options
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/index.htm"
+
+    Scenario: Complex exclusionary file glob can be configured
+        Given I have a "public/index.html" file with the body:
+            """
+            <p data-result>Nothing</p>
+            """
+        Given I have a "public/cat/index.htm" file with the body:
+            """
+            <h1>cat index</h1>
+            """
+        Given I have a "public/cat/cat.html" file with the body:
+            """
+            <h1>cat cat</h1>
+            """
+        Given I have a "public/kitty/cat/index.html" file with the body:
+            """
+            <h1>kitty cat index</h1>
+            """
+        Given I have a "public/cat.html" file with the body:
+            """
+            <h1>cat</h1>
+            """
+        Given I have a "pagefind.yml" file with the content:
+            """
+            glob: "{cat/index.htm,kitty/**/*.html,cat.html}"
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("cat");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).sort().join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "/cat.html, /cat/index.htm, /kitty/cat/"
