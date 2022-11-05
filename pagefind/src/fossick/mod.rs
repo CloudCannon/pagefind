@@ -1,3 +1,4 @@
+use async_compression::tokio::bufread::GzipDecoder;
 #[cfg(feature = "extended")]
 use charabia::Segment;
 use hashbrown::HashMap;
@@ -7,6 +8,7 @@ use regex::Regex;
 use std::io::Error;
 use std::path::{Path, PathBuf};
 use tokio::fs::File;
+use tokio::io::AsyncBufReadExt;
 use tokio::io::{AsyncReadExt, BufReader};
 use tokio::time::{sleep, Duration};
 
@@ -55,16 +57,39 @@ impl Fossicker {
 
         let mut br = BufReader::new(file);
         let mut buf = [0; 20000];
-        while let Ok(read) = br.read(&mut buf).await {
-            if read == 0 {
-                break;
+
+        let is_gzip = if let Ok(read) = br.fill_buf().await {
+            read.len() >= 3 && read[0] == 0x1F && read[1] == 0x8B && read[2] == 0x08
+        } else {
+            false
+        };
+
+        if is_gzip {
+            let mut br = GzipDecoder::new(br);
+            while let Ok(read) = br.read(&mut buf).await {
+                if read == 0 {
+                    break;
+                }
+                if let Err(error) = rewriter.write(&buf[..read]) {
+                    println!(
+                        "Failed to parse file {} — skipping this file. Error:\n{error}",
+                        self.file_path.to_str().unwrap_or("[unknown file]")
+                    );
+                    return Ok(());
+                }
             }
-            if let Err(error) = rewriter.write(&buf[..read]) {
-                println!(
-                    "Failed to parse file {} — skipping this file. Error:\n{error}",
-                    self.file_path.to_str().unwrap_or("[unknown file]")
-                );
-                return Ok(());
+        } else {
+            while let Ok(read) = br.read(&mut buf).await {
+                if read == 0 {
+                    break;
+                }
+                if let Err(error) = rewriter.write(&buf[..read]) {
+                    println!(
+                        "Failed to parse file {} — skipping this file. Error:\n{error}",
+                        self.file_path.to_str().unwrap_or("[unknown file]")
+                    );
+                    return Ok(());
+                }
             }
         }
 
