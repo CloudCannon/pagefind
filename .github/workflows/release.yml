@@ -28,7 +28,7 @@ jobs:
             ~/.cargo/git
             ~/.rustup
             target
-          key: ${{ runner.os }}-stable
+          key: ${{ runner.os }}-stable-min165
       - name: Setup
         run: |
           rustup install stable

@@ -50,7 +50,7 @@ jobs:
             ~/.cargo/git
             ~/.rustup
             target
-          key: ${{ runner.os }}-${{ matrix.rust }}
+          key: ${{ runner.os }}-${{ matrix.rust }}-min165
 
       - uses: actions/setup-node@v3
         with:
