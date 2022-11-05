@@ -4,6 +4,7 @@ use charabia::Segment;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use pagefind_stem::{Algorithm, Stemmer};
+use path_slash::PathExt as _;
 use regex::Regex;
 use std::io::Error;
 use std::path::{Path, PathBuf};
@@ -207,13 +208,18 @@ impl Fossicker {
 }
 
 fn build_url(page_url: &Path, options: &SearchOptions) -> String {
-    let url = page_url
-        .strip_prefix(&options.source)
-        .expect("File was found that does not start with the source directory");
+    let trimmed = page_url.strip_prefix(&options.source);
+    let Ok(url) = trimmed else {
+        options.logger.error(format!(
+            "File was found that does not start with the source directory: {}",
+            trimmed.err().unwrap()
+        ));
+        return "/unknown/".to_string();
+    };
 
     format!(
         "/{}",
-        url.to_str().unwrap().to_owned().replace("index.html", "")
+        url.to_slash_lossy().to_owned().replace("index.html", "")
     )
 }
 
@@ -274,5 +280,20 @@ mod tests {
 
         let p: PathBuf = "hello/world/about.html".into();
         assert_eq!(&build_url(&p, &opts), "/about.html");
+
+        let p: PathBuf = "hello/world/about/index.htm".into();
+        assert_eq!(&build_url(&p, &opts), "/about/index.htm");
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn windows_url() {
+        std::env::set_var("PAGEFIND_SOURCE", "C:\\hello\\world");
+        let config =
+            PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
+        let opts = SearchOptions::load(config).unwrap();
+
+        let p: PathBuf = "C:\\hello\\world\\about\\index.htm".into();
+        assert_eq!(&build_url(&p, &opts), "/about/index.htm");
     }
 }
