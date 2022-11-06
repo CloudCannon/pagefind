@@ -47,6 +47,30 @@ Feature: Metadata
             </body>
             </html>
             """
+        # Covering fallback titles
+        Given I have a "public/kea/index.html" file with the content:
+            """
+            <html>
+            <head>
+                <title>Website | Kea</title>
+            </head>
+            <body>
+                <p>NZ Kea Post.</p>
+            </body>
+            </html>
+            """
+        Given I have a "public/kaka/index.html" file with the content:
+            """
+            <html>
+            <head>
+                <title>Website | Kaka</title>
+            </head>
+            <body>
+                <h1></h1>
+                <p>NZ Kaka Post.</p>
+            </body>
+            </html>
+            """
         When I run my program
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/_pagefind/pagefind.js"
@@ -166,3 +190,18 @@ Feature: Metadata
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "Dog Post. | /puppy.jpg | dog | generic | generic"
+
+    Scenario: Title metadata falls back to the title element
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("NZ");
+
+                let data = await Promise.all(search.results.map(result => result.data()));
+                document.querySelector('[data-result]').innerText = data.map(d => d.meta.title).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "Website | Kaka, Website | Kea"
