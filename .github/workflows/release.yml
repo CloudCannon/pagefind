@@ -9,7 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.3.7"
+  HUMANE_VERSION: "0.5.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
             ~/.cargo/git
             ~/.rustup
             target
-          key: ${{ runner.os }}-stable
+          key: ${{ runner.os }}-stable-min165
       - name: Setup
         run: |
           rustup install stable

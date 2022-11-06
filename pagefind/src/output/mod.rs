@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use crate::index::PagefindIndexes;
 use crate::SearchOptions;
-use flate2::write::GzEncoder;
-use flate2::Compression;
+use flate2::write::GzEncoder; // TODO: Replace flate2 with async-compression since we
+use flate2::Compression; //   // require that crate for the input compression anyway.
 use futures::future::join_all;
 use hashbrown::HashMap;
 use include_dir::{include_dir, Dir};

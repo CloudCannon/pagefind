@@ -263,8 +263,12 @@ impl<'a> DomParser<'a> {
                             }
 
                             // Try to capture the first title on the page (if unset)
-                            if tag_name == "h1" && !data.meta.contains_key("auto_title") {
+                            if tag_name == "h1" && !data.meta.contains_key("auto_title") && !node.current_value.trim().is_empty() {
                                 data.meta.insert("auto_title".into(), normalize_content(&node.current_value));
+                            }
+                            // Try to capture the actual title of the page as a fallback for later
+                            if tag_name == "title" && !data.meta.contains_key("auto_page_title") {
+                                data.meta.insert("auto_page_title".into(), normalize_content(&node.current_value));
                             }
 
                             // If we bail out now, the content won't be persisted anywhere
@@ -459,6 +463,11 @@ impl<'a> DomParser<'a> {
         }
 
         if let Some(title) = data.meta.remove("auto_title") {
+            if !data.meta.contains_key("title") {
+                data.meta.insert("title".into(), title);
+            }
+        }
+        if let Some(title) = data.meta.remove("auto_page_title") {
             if !data.meta.contains_key("title") {
                 data.meta.insert("title".into(), title);
             }

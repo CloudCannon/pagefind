@@ -19,7 +19,7 @@ Feature: Graceful Pagefind Errors
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see "Failed to parse file public/dog/index.html" in stdout
+        Then I should see "Failed to parse file" in stdout
         Then I should see the file "public/_pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
