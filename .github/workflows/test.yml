@@ -59,6 +59,7 @@ jobs:
       - name: Install Rust
         run: |
           rustup install ${{ matrix.rust }}
+          rustup default ${{ matrix.rust }}
 
       - name: Check versions
         run: |
