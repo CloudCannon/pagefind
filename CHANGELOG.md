@@ -9,6 +9,10 @@
 
 ## Unreleased
 
+* Pagefind can now automatically read gzipped HTML files as its source
+* Pagefind's automatic metadata now falls back to the `title` of a page if there is no `h1` element
+* Fixed a couple of inconsistent url formatting issues on Windows
+
 ## v0.9.1 (October 26, 2022)
 
 * Fix Windows release assets once more
