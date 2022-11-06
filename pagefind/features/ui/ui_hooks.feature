@@ -30,7 +30,7 @@ Feature: UI Hooks
             """
             async function() {
                 window.pui.triggerSearch("search");
-                await new Promise(r => setTimeout(r, 500)); // TODO: await el in humane
+                await new Promise(r => setTimeout(r, 1500)); // TODO: await el in humane
 
                 // TODO: Add more web test steps to humane instead of throwing js
                 let el = document.querySelector(".pagefind-ui__result-image");

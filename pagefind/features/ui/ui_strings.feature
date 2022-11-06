@@ -29,7 +29,7 @@ Feature: UI Test Strings
             """
             async function() {
                 window.pui.triggerSearch("garbage");
-                await new Promise(r => setTimeout(r, 500)); // TODO: await el in humane
+                await new Promise(r => setTimeout(r, 1500)); // TODO: await el in humane
             }
             """
         Then There should be no logs
@@ -66,7 +66,7 @@ Feature: UI Test Strings
             """
             async function() {
                 window.pui.triggerSearch("garbage");
-                await new Promise(r => setTimeout(r, 500)); // TODO: await el in humane
+                await new Promise(r => setTimeout(r, 1500)); // TODO: await el in humane
             }
             """
         Then There should be no logs
