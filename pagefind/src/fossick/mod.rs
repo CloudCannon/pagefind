@@ -211,8 +211,10 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
     let trimmed = page_url.strip_prefix(&options.source);
     let Ok(url) = trimmed else {
         options.logger.error(format!(
-            "File was found that does not start with the source directory: {}",
-            trimmed.err().unwrap()
+            "File was found that does not start with the source directory: {}\nSource: {:?}\nFile: {:?}",
+            trimmed.err().unwrap(),
+            options.source,
+            page_url
         ));
         return "/unknown/".to_string();
     };
