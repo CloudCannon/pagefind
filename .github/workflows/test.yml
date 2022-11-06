@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.3.7"
+  HUMANE_VERSION: "0.5.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
@@ -50,7 +50,7 @@ jobs:
             ~/.cargo/git
             ~/.rustup
             target
-          key: ${{ runner.os }}-${{ matrix.rust }}
+          key: ${{ runner.os }}-${{ matrix.rust }}-min165
 
       - uses: actions/setup-node@v3
         with:
@@ -59,6 +59,12 @@ jobs:
       - name: Install Rust
         run: |
           rustup install ${{ matrix.rust }}
+          rustup default ${{ matrix.rust }}
+
+      - name: Check versions
+        run: |
+          cargo --version
+          rustc --version
 
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
