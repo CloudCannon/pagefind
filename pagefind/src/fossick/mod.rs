@@ -267,6 +267,7 @@ mod tests {
 
     use super::*;
 
+    #[cfg(not(target_os = "windows"))]
     #[test]
     fn building_url() {
         std::env::set_var("PAGEFIND_SOURCE", "hello/world");
@@ -289,11 +290,17 @@ mod tests {
 
     #[cfg(target_os = "windows")]
     #[test]
-    fn windows_url() {
+    fn building_windows_urls() {
         std::env::set_var("PAGEFIND_SOURCE", "C:\\hello\\world");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
         let opts = SearchOptions::load(config).unwrap();
+
+        let p: PathBuf = "C:\\hello\\world\\index.html".into();
+        assert_eq!(&build_url(&p, &opts), "/");
+
+        let p: PathBuf = "C:\\hello\\world\\about\\index.html".into();
+        assert_eq!(&build_url(&p, &opts), "/about/");
 
         let p: PathBuf = "C:\\hello\\world\\about\\index.htm".into();
         assert_eq!(&build_url(&p, &opts), "/about/index.htm");
