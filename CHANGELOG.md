@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.9.3 (November 7, 2022)
+
 * When the search term `null` is passed, Pagefind returns all results with filters applied.
   * In the case of a `null` search and an empty filters object, Pagefind would previously return **zero** results.
   * Pagefind will now return **all** results in this case.
