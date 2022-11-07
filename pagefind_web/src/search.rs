@@ -129,6 +129,12 @@ impl SearchIndex {
 
         if let Some(filter) = filter_results {
             maps.push(filter);
+        } else if maps.is_empty() {
+            let mut all_filter = BitSet::new();
+            for i in 0..self.pages.len() {
+                all_filter.insert(i);
+            }
+            maps.push(all_filter);
         }
 
         let results = match intersect_maps(maps) {
