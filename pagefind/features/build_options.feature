@@ -73,15 +73,15 @@ Feature: Build Options
         # {{humane_temp_dir}} will be replaced with an absolute path here,
         # making the bundle-dir value absolute
         When I run my program with the flags:
-            | --bundle-dir {{humane_temp_dir}}/public/_search |
+            | --bundle-dir {{humane_temp_dir}}/other/_search |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_search/pagefind.js"
-        When I serve the "public" directory
-        When I load "/"
+        Then I should see the file "other/_search/pagefind.js"
+        When I serve the "." directory
+        When I load "/public/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_search/pagefind.js");
+                let pagefind = await import("/other/_search/pagefind.js");
 
                 let search = await pagefind.search("world");
 
