@@ -61,6 +61,37 @@ Feature: Build Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
+    Scenario: Output path can be configured with an absolute path
+        Given I have a "public/index.html" file with the body:
+            """
+            <p data-url>Nothing</p>
+            """
+        Given I have a "public/cat/index.html" file with the body:
+            """
+            <h1>world</h1>
+            """
+        # {{humane_temp_dir}} will be replaced with an absolute path here,
+        # making the bundle-dir value absolute
+        When I run my program with the flags:
+            | --bundle-dir {{humane_temp_dir}}/other/_search |
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "other/_search/pagefind.js"
+        When I serve the "." directory
+        When I load "/public/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/other/_search/pagefind.js");
+
+                let search = await pagefind.search("world");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-url]').innerText = data.url;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/cat/"
+
     Scenario: Root selector can be configured
         Given I have a "public/index.html" file with the body:
             """

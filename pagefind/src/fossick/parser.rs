@@ -60,7 +60,7 @@ struct DomParserData {
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum NodeStatus {
     Indexing,
-    // Our content & children should not be index
+    // Our content & children should not be indexed
     Ignored,
     // Our content & children should be excluded entirely
     // (including meta / filters)
@@ -119,6 +119,9 @@ impl<'a> DomParser<'a> {
     pub fn new(options: &'a SearchOptions) -> Self {
         let data = Rc::new(RefCell::new(DomParserData::default()));
         let root = format!("{}, {} *", options.root_selector, options.root_selector);
+        let mut custom_exclusions = options.exclude_selectors.clone();
+        custom_exclusions.extend(REMOVE_SELECTORS.iter().map(|s| s.to_string()));
+        let custom_exclusions = custom_exclusions.join(", ");
 
         let rewriter = HtmlRewriter::new(
             Settings {
@@ -154,8 +157,6 @@ impl<'a> DomParser<'a> {
                             NodeStatus::Body
                         } else if let Some(explicit_ignore_flag) = explicit_ignore_flag {
                             explicit_ignore_flag
-                        } else if REMOVE_SELECTORS.contains(&el.tag_name().as_str()) {
-                            NodeStatus::Ignored
                         } else {
                             NodeStatus::Indexing
                         };
@@ -399,6 +400,13 @@ impl<'a> DomParser<'a> {
                                 }
                             }
                         }
+                        Ok(())
+                    })},
+                    // If we hit a selector that should be excluded, mark whatever the current node is as such
+                    enclose! { (data) element!(custom_exclusions, move |_el| {
+                        let data = data.borrow_mut();
+                        let mut node = data.current_node.borrow_mut();
+                        node.status = NodeStatus::Ignored;
                         Ok(())
                     })},
                     // Slap any text we encounter inside the body into the current node's current value

@@ -9,6 +9,14 @@
 
 ## Unreleased
 
+## v0.10.0 (November 15, 2022)
+
+### Features & Improvements
+* Added the ability to exclude custom selectors via Pagefind config. See the [exclude selectors](/docs/config-options/#exclude-selectors) documentation
+
+### Fixes & Tweaks
+* Fixed an issue where running a multi-site search through Pagefind UI wouldn't wait for all search indexes to be ready
+
 ## v0.9.3 (November 7, 2022)
 
 * When the search term `null` is passed, Pagefind returns all results with filters applied.

@@ -44,6 +44,24 @@ Note that filters and metadata outside of this selector will **not** be detected
 |-----------------------|--------------------------|-----------------|
 | `--root-selector <S>` | `PAGEFIND_ROOT_SELECTOR` | `root_selector` |
 
+### Exclude selectors
+Pass extra element selectors that Pagefind should ignore when indexing. For example, in `pagefind.yml`:
+
+```yml
+exclude_selectors:
+  - "#my_navigation"
+  - "blockquote > span"
+  - "[id^='prefix-']"
+```
+
+All children will also be ignored, so using a `#my_navigation *` selector is not required — in other words, the semantics are the same as the [data-pagefind-ignore](/docs/indexing/#removing-individual-elements-from-the-index) attribute.
+
+Note that currently Pagefind only supports lists of options via configuration files. If using the `--exclude-selectors` CLI flag or the `PAGEFIND_EXCLUDE_SELECTORS` environment variable, only one selector may be supplied. The selector may be a comma-separated CSS selector though, so the above example can be passed as `--exclude-selectors "#my_navigation, blockquote > span, [id^='prefix-']"`.
+
+| CLI Flag                  | ENV Variable                 | Config Key          |
+|---------------------------|------------------------------|---------------------|
+| `--exclude-selectors <S>` | `PAGEFIND_EXCLUDE_SELECTORS` | `exclude_selectors` |
+
 ### Glob
 Configures the glob used by Pagefind to discover HTML files. Defaults to `**/*.{html}`.
 
