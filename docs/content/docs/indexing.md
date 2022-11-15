@@ -60,6 +60,8 @@ Specifying `all` will exclude the element and its children from all processing.
 </aside>
 ```
 
+> To remove elements without changing your templating, see the [exclude selectors](/docs/config-options/#exclude-selectors) CLI option.
+
 ## Indexing attributes
 
 Attributes of HTML elements can be added to the main search index with the `data-pagefind-index-attrs` attribute:

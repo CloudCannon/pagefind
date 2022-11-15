@@ -60,7 +60,7 @@ struct DomParserData {
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum NodeStatus {
     Indexing,
-    // Our content & children should not be index
+    // Our content & children should not be indexed
     Ignored,
     // Our content & children should be excluded entirely
     // (including meta / filters)
@@ -119,6 +119,7 @@ impl<'a> DomParser<'a> {
     pub fn new(options: &'a SearchOptions) -> Self {
         let data = Rc::new(RefCell::new(DomParserData::default()));
         let root = format!("{}, {} *", options.root_selector, options.root_selector);
+        let custom_exclusions = options.exclude_selectors.join(", ");
 
         let rewriter = HtmlRewriter::new(
             Settings {
@@ -399,6 +400,13 @@ impl<'a> DomParser<'a> {
                                 }
                             }
                         }
+                        Ok(())
+                    })},
+                    // If we hit a selector that should be excluded, mark whatever the current node is as such
+                    enclose! { (data) element!(custom_exclusions, move |_el| {
+                        let data = data.borrow_mut();
+                        let mut node = data.current_node.borrow_mut();
+                        node.status = NodeStatus::Ignored;
                         Ok(())
                     })},
                     // Slap any text we encounter inside the body into the current node's current value

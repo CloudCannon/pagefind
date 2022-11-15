@@ -33,6 +33,14 @@ pub struct PagefindInboundConfig {
 
     #[clap(
         long,
+        help = "Custom selectors that Pagefind should ignore when indexing. Usually you will want to use the data-pagefind-ignore attribute instead."
+    )]
+    #[clap(required = false)]
+    #[serde(default)]
+    pub exclude_selectors: Vec<String>,
+
+    #[clap(
+        long,
         help = "The file glob Pagefind uses to find HTML files. Defaults to \"**/*.{html}\""
     )]
     #[clap(required = false)]
@@ -86,6 +94,7 @@ pub struct SearchOptions {
     pub source: PathBuf,
     pub bundle_dir: PathBuf,
     pub root_selector: String,
+    pub exclude_selectors: Vec<String>,
     pub glob: String,
     pub force_language: Option<String>,
     pub version: &'static str,
@@ -110,6 +119,7 @@ impl SearchOptions {
                 source: PathBuf::from(config.source),
                 bundle_dir: PathBuf::from(config.bundle_dir),
                 root_selector: config.root_selector,
+                exclude_selectors: config.exclude_selectors,
                 glob: config.glob,
                 force_language: config.force_language,
                 version: env!("CARGO_PKG_VERSION"),
