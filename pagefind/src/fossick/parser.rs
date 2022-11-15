@@ -119,7 +119,9 @@ impl<'a> DomParser<'a> {
     pub fn new(options: &'a SearchOptions) -> Self {
         let data = Rc::new(RefCell::new(DomParserData::default()));
         let root = format!("{}, {} *", options.root_selector, options.root_selector);
-        let custom_exclusions = options.exclude_selectors.join(", ");
+        let mut custom_exclusions = options.exclude_selectors.clone();
+        custom_exclusions.extend(REMOVE_SELECTORS.iter().map(|s| s.to_string()));
+        let custom_exclusions = custom_exclusions.join(", ");
 
         let rewriter = HtmlRewriter::new(
             Settings {
@@ -155,8 +157,6 @@ impl<'a> DomParser<'a> {
                             NodeStatus::Body
                         } else if let Some(explicit_ignore_flag) = explicit_ignore_flag {
                             explicit_ignore_flag
-                        } else if REMOVE_SELECTORS.contains(&el.tag_name().as_str()) {
-                            NodeStatus::Ignored
                         } else {
                             NodeStatus::Indexing
                         };
