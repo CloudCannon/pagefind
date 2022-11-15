@@ -49,7 +49,7 @@ pagefind_stem = { version = "0.2.0", features = [
     "yiddish",
 ] }
 charabia = { version = "0.6.0", optional = true }
-hashbrown = { version = "0.12.0", features = ["serde"] }
+hashbrown = { version = "0.13.1", features = ["serde"] }
 regex = "1.1"
 minicbor = { version = "0.18.0", features = ["alloc", "derive"] }
 lol_html = "0.3"
