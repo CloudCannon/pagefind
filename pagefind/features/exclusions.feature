@@ -119,3 +119,47 @@ Feature: Exclusions
             """
         Then There should be no logs
         Then The selector "[data-search]" should contain "Nested content — Nested content — None"
+
+    Scenario: Custom selectors can be excluded as an option
+        Given I have a "public/index.html" file with the body:
+            """
+            <p data-search-one></p>
+            <p data-search-two></p>
+            """
+        Given I have a "public/cat/index.html" file with the body:
+            """
+            <p>Hello World, from Pagefind</p>
+            <div id="gb">
+                <p>Goodbye <span>World</span>!</p>
+            </div>
+            <div id="not-gb">
+                <div>Hoorah!</div>
+                <p>Hooray! <div>🙂</div></p>
+            </div>
+            """
+        Given I have a "pagefind.yml" file with the content:
+            """
+            exclude_selectors:
+              - '[id^="g"]'
+              - 'div > div'
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let searchone = await pagefind.search("hello");
+                let searchonedata = await searchone.results[0].data();
+                document.querySelector('[data-search-one]').innerText = searchonedata.content;
+
+                let searchtwo = await pagefind.search("goodbye");
+                document.querySelector('[data-search-two]').innerText = `${searchtwo.results.length} result(s)`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-search-one]" should contain "Hello World, from Pagefind. Hooray! 🙂"
+        Then The selector "[data-search-two]" should contain "0 result(s)"
