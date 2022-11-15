@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.10.0 (November 15, 2022)
+
 ### Features & Improvements
 * Added the ability to exclude custom selectors via Pagefind config. See the [exclude selectors](/docs/config-options/#exclude-selectors) documentation
 
