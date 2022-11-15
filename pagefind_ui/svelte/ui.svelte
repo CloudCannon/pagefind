@@ -75,8 +75,8 @@
         if (initializing) return;
         initializing = true;
         if (!pagefind) {
-            pagefind = await import(`${base_path}pagefind.js`);
-            await pagefind.options(pagefind_options || {});
+            let imported_pagefind = await import(`${base_path}pagefind.js`);
+            await imported_pagefind.options(pagefind_options || {});
             for (const index of merge_index) {
                 if (!index.bundlePath) {
                     throw new Error(
@@ -85,8 +85,9 @@
                 }
                 const url = index.bundlePath;
                 delete index["bundlePath"];
-                await pagefind.mergeIndex(url, index);
+                await imported_pagefind.mergeIndex(url, index);
             }
+            pagefind = imported_pagefind;
             loadFilters();
         }
     };
