@@ -77,9 +77,9 @@ jobs:
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
 
-      - name: Verify Changelog
-        run: |
-          node ./.backstage/changelog.cjs
+      # - name: Verify Changelog
+      #   run: |
+      #     node ./.backstage/changelog.cjs
 
       - name: Install Linker
         if: matrix.cross
