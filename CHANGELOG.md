@@ -9,6 +9,9 @@
 
 ## Unreleased
 
+* Changed HTML parsing to a non-strict mode that will no longer error when encountering parsing ambiguities
+* Updated the npm wrapper to respect an exit code returned from the main Pagefind binary
+
 ## v0.10.0 (November 15, 2022)
 
 ### Features & Improvements
