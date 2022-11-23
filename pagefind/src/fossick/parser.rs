@@ -417,6 +417,7 @@ impl<'a> DomParser<'a> {
                         Ok(())
                     })},
                 ],
+                strict: false,
                 ..Settings::default()
             },
             EmptySink::default(),
