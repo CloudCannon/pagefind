@@ -180,30 +180,35 @@ jobs:
             os: windows-latest
             rust: stable
             target: x86_64-pc-windows-msvc
+            humane_target: x86_64-pc-windows-msvc
             cross: false
             run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-musl
+            humane_target: x86_64-unknown-linux-musl
             cross: false
             run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: aarch64-unknown-linux-musl
+            humane_target: x86_64-unknown-linux-musl
             cross: false
             run_tests: false
           - build: macos
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
+            humane_target: x86_64-apple-darwin
             cross: false
             run_tests: true
           - build: macos-m1
             os: macos-latest
             rust: stable
             target: aarch64-apple-darwin
+            humane_target: x86_64-apple-darwin
             cross: false
             run_tests: false
     steps:
@@ -265,7 +270,7 @@ jobs:
       - name: Install humane
         uses: supplypike/setup-bin@v1
         with:
-          uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.target}}.tar.gz"
+          uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.humane_target}}.tar.gz"
           name: "humane"
           version: ${{env.HUMANE_VERSION}}
 
