@@ -9,6 +9,13 @@
 
 ## Unreleased
 
+* Updated only deployment targets:
+  * Pagefind now distributes an `aarch64-apple-darwin` build for M1 macOS machines
+    * This will provide a speed benefit on these machines by skipping the Rosetta 2 emulation
+  * Pagefind now distributes an `aarch64-unknown-linux-musl` build for ARM Linux machines
+    * Useful for ARM Docker images on M1 macOS
+* Updated the npm/npx wrapper to reflect the newly available binaries
+
 ## v0.10.1 (November 23, 2022)
 
 * Changed HTML parsing to a non-strict mode that will no longer error when encountering parsing ambiguities
