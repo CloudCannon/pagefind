@@ -167,8 +167,7 @@ jobs:
       - name: Create Standard Release
         run: |
           EXEC_NAME="pagefind"
-          ASSET_NAME="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
-          ASSET_PATH="$src/$ASSET_NAME"
+          ASSET_PATH="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
           CHECKSUM_PATH="$ASSET_PATH.sha256"
 
           if [ "$RUNNER_OS" == "Windows" ]; then
@@ -179,13 +178,13 @@ jobs:
 
           case $RUNNER_OS in
               Windows)
-                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
                   ;;
               Linux)
-                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
                   ;;
               macOS)
-                  shasum -a 256 $ASSET_NAME > $CHECKSUM_PATH
+                  shasum -a 256 $ASSET_PATH > $CHECKSUM_PATH
                   ;;
           esac
 
@@ -200,8 +199,7 @@ jobs:
       - name: Create Extended Release
         run: |
           EXEC_NAME="pagefind_extended"
-          ASSET_NAME="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
-          ASSET_PATH="$src/$ASSET_NAME"
+          ASSET_PATH="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
           CHECKSUM_PATH="$ASSET_PATH.sha256"
 
           if [ "$RUNNER_OS" == "Windows" ]; then
@@ -212,13 +210,13 @@ jobs:
 
           case $RUNNER_OS in
               Windows)
-                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
                   ;;
               Linux)
-                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
                   ;;
               macOS)
-                  shasum -a 256 $ASSET_NAME > $CHECKSUM_PATH
+                  shasum -a 256 $ASSET_PATH > $CHECKSUM_PATH
                   ;;
           esac
 
