@@ -181,29 +181,31 @@ jobs:
             rust: stable
             target: x86_64-pc-windows-msvc
             cross: false
-            musl: false
             run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-musl
             cross: false
-            musl: true
             run_tests: true
+          - build: linux
+            os: ubuntu-latest
+            rust: stable
+            target: aarch64-unknown-linux-musl
+            cross: false
+            run_tests: false
           - build: macos
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
             cross: false
-            musl: false
             run_tests: true
-          # - build: macos-m1
-          #   os: macos-latest
-          #   rust: stable
-          #   target: aarch64-apple-darwin
-          #   cross: false
-          #   musl: false
-          #   run_tests: false
+          - build: macos-m1
+            os: macos-latest
+            rust: stable
+            target: aarch64-apple-darwin
+            cross: false
+            run_tests: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -237,11 +239,19 @@ jobs:
         run: |
           sudo apt update
           sudo apt install ${{ matrix.linker }}
-      - name: Install Musl Tools
-        if: matrix.musl
+      - name: Install MUSL Tooling
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt update
+          sudo apt update -y
           sudo apt install -y musl-tools musl-dev
+      - name: Install aarch64 Tooling
+        if: matrix.target == 'aarch64-unknown-linux-musl'
+        run: |
+          sudo apt update -y
+          sudo apt install -y clang gcc-aarch64-linux-gnu         
+          echo "TARGET_CC=clang" >> $GITHUB_ENV
+          echo "CFLAGS_aarch64_unknown_linux_musl=--sysroot=/usr/aarch64-linux-gnu" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/aarch64-linux-gnu/bin/ld" >> $GITHUB_ENV
       - name: Install Rust
         run: |
           rustup install ${{ matrix.rust }}
@@ -251,8 +261,6 @@ jobs:
         uses: jetli/wasm-pack-action@v0.3.0
         with:
           version: "latest"
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@latest
 
       - name: Install humane
         uses: supplypike/setup-bin@v1
@@ -287,6 +295,7 @@ jobs:
         run: npm i && npm run build
 
       - name: Test Web
+        if: matrix.run_tests == true
         working-directory: ./pagefind_web
         run: cargo test --release
 
@@ -295,10 +304,12 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }} --features extended
 
       - name: Test Lib
+        if: matrix.run_tests == true
         working-directory: ./pagefind
         run: cargo test --release --target ${{ matrix.target }} --features extended
 
       - name: Test CLI
+        if: matrix.run_tests == true
         working-directory: ./pagefind
         run: TEST_BINARY=../target/${{ matrix.target }}/release/pagefind humane
 
@@ -310,72 +321,71 @@ jobs:
         working-directory: ./pagefind
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Package Artifacts
+
+      - name: Create Standard Release
         run: |
-          src=$(pwd)
-          stage=
-          case $RUNNER_OS in
-              Windows)
-                  stage=$(mktemp -d)
-                  ;;
-              Linux)
-                  stage=$(mktemp -d)
-                  ;;
-              macOS)
-                  stage=$(mktemp -d -t tmp)
-                  ;;
-          esac
-          cp target/${{ matrix.target }}/release/pagefind $stage/
-          cp target/${{ matrix.target }}/release/pagefind_extended $stage/
-          cd $stage
-          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
-
           EXEC_NAME="pagefind"
-          ASSET_NAME="$EXEC_NAME-$RELEASE_VERSION-${{ matrix.target }}.tar.gz"
-          ASSET_PATH="$src/$ASSET_NAME"
-
-          EXTENDED_EXEC_NAME="pagefind_extended"
-          EXTENDED_ASSET_NAME="$EXTENDED_EXEC_NAME-$RELEASE_VERSION-${{ matrix.target }}.tar.gz"
-          EXTENDED_ASSET_PATH="$src/$EXTENDED_ASSET_NAME"
-
+          ASSET_PATH="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
           CHECKSUM_PATH="$ASSET_PATH.sha256"
-          EXTENDED_CHECKSUM_PATH="$EXTENDED_ASSET_PATH.sha256"
 
           if [ "$RUNNER_OS" == "Windows" ]; then
             EXEC_NAME="pagefind.exe"
-            EXTENDED_EXEC_NAME="pagefind_extended.exe"
           fi
-          tar czf $ASSET_PATH $EXEC_NAME
-          tar czf $EXTENDED_ASSET_PATH $EXTENDED_EXEC_NAME
 
-          cd $src
+          tar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
+
           case $RUNNER_OS in
               Windows)
-                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
-                  sha256sum $EXTENDED_ASSET_NAME > $EXTENDED_CHECKSUM_PATH
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
                   ;;
               Linux)
-                  sha256sum $ASSET_NAME > $CHECKSUM_PATH
-                  sha256sum $EXTENDED_ASSET_NAME > $EXTENDED_CHECKSUM_PATH
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
                   ;;
               macOS)
-                  shasum -a 256 $ASSET_NAME > $CHECKSUM_PATH
-                  shasum -a 256 $EXTENDED_ASSET_NAME > $EXTENDED_CHECKSUM_PATH
+                  shasum -a 256 $ASSET_PATH > $CHECKSUM_PATH
                   ;;
           esac
+
           if [ "$RUNNER_OS" == "Windows" ]; then
               ASSET_PATH=$(echo "$ASSET_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
               CHECKSUM_PATH=$(echo "$CHECKSUM_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
-
-              EXTENDED_ASSET_PATH=$(echo "$EXTENDED_ASSET_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
-              EXTENDED_CHECKSUM_PATH=$(echo "$EXTENDED_CHECKSUM_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
           fi
 
           echo "ASSET_PATH=$ASSET_PATH" >> $GITHUB_ENV
           echo "CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV
 
-          echo "EXTENDED_ASSET_PATH=$EXTENDED_ASSET_PATH" >> $GITHUB_ENV
-          echo "EXTENDED_CHECKSUM_PATH=$EXTENDED_CHECKSUM_PATH" >> $GITHUB_ENV
+      - name: Create Extended Release
+        run: |
+          EXEC_NAME="pagefind_extended"
+          ASSET_PATH="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
+          CHECKSUM_PATH="$ASSET_PATH.sha256"
+
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            EXEC_NAME="pagefind_extended.exe"
+          fi
+
+          tar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
+
+          case $RUNNER_OS in
+              Windows)
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
+                  ;;
+              Linux)
+                  sha256sum $ASSET_PATH > $CHECKSUM_PATH
+                  ;;
+              macOS)
+                  shasum -a 256 $ASSET_PATH > $CHECKSUM_PATH
+                  ;;
+          esac
+
+          if [ "$RUNNER_OS" == "Windows" ]; then
+              ASSET_PATH=$(echo "$ASSET_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
+              CHECKSUM_PATH=$(echo "$CHECKSUM_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
+          fi
+
+          echo "EXTENDED_ASSET_PATH=$ASSET_PATH" >> $GITHUB_ENV
+          echo "EXTENDED_CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
