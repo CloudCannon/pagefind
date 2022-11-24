@@ -35,23 +35,21 @@ async function getTarget() {
 
     switch (os.platform()) {
         case 'darwin':
-            return 'x86_64-apple-darwin';
-            // TODO: Waiting for GitHub actions to build on M1.
             return arch === 'arm64' ? 'aarch64-apple-darwin' :
                 'x86_64-apple-darwin';
         case 'win32':
             return arch === 'x64' ? 'x86_64-pc-windows-msvc' :
-                arch === 'arm' ? 'aarch64-pc-windows-msvc' :
-                    'i686-pc-windows-msvc';
+                arch === 'arm' ? 'UNSUPPORTED aarch64-pc-windows-msvc' :
+                    'UNSUPPORTED i686-pc-windows-msvc';
         case 'linux':
             return arch === 'x64' ? 'x86_64-unknown-linux-musl' :
-                arch === 'arm' ? 'arm-unknown-linux-gnueabihf' :
-                    arch === 'armv7l' ? 'arm-unknown-linux-gnueabihf' :
-                        arch === 'arm64' ? await isMusl() ? 'aarch64-unknown-linux-musl' : 'aarch64-unknown-linux-gnu' :
-                            arch === 'ppc64' ? 'powerpc64le-unknown-linux-gnu' :
-                                arch === 's390x' ? 's390x-unknown-linux-gnu' :
-                                    'i686-unknown-linux-musl'
-        default: throw new Error('Unsupported platform: ' + os.platform());
+                arch === 'arm' ? 'UNSUPPORTED arm-unknown-linux-gnueabihf' :
+                    arch === 'armv7l' ? 'UNSUPPORTED arm-unknown-linux-gnueabihf' :
+                        arch === 'arm64' ? 'aarch64-unknown-linux-musl' :
+                            arch === 'ppc64' ? 'UNSUPPORTED powerpc64le-unknown-linux-gnu' :
+                                arch === 's390x' ? 'UNSUPPORTED s390x-unknown-linux-gnu' :
+                                    'UNSUPPORTED i686-unknown-linux-musl'
+        default: return `UNSUPPORTED ${os.platform()}`
     }
 }
 
@@ -67,6 +65,9 @@ async function main() {
         target: await getTarget(),
         destDir: BIN_PATH
     };
+    if (opts.target.startsWith("UNSUPPORTED")) {
+        throw new Error('Unsupported platform: ' + os.platform());
+    }
     try {
         await download(opts);
     } catch (err) {
