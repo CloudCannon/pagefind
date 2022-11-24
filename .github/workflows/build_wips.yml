@@ -38,9 +38,9 @@ jobs:
           - build: linux
             os: ubuntu-latest
             rust: stable
-            target: x86_64-unknown-linux-musl
+            target: aarch64-unknown-linux-musl
             cross: false
-            run_tests: true
+            run_tests: false
           - build: macos
             os: macos-latest
             rust: stable
