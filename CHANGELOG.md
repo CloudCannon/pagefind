@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.10.2 (November 24, 2022)
+
 * Updated only deployment targets:
   * Pagefind now distributes an `aarch64-apple-darwin` build for M1 macOS machines
     * This will provide a speed benefit on these machines by skipping the Rosetta 2 emulation
