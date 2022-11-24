@@ -265,7 +265,7 @@ jobs:
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
         with:
-          version: "latest"
+          version: ${{env.WASM_PACK_VERSION}}
 
       - name: Install humane
         uses: supplypike/setup-bin@v1
