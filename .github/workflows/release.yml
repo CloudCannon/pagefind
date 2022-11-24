@@ -325,7 +325,7 @@ jobs:
       - name: Create Standard Release
         run: |
           EXEC_NAME="pagefind"
-          ASSET_PATH="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
+          ASSET_PATH="$EXEC_NAME-v$GIT_VERSION-${{ matrix.target }}.tar.gz"
           CHECKSUM_PATH="$ASSET_PATH.sha256"
 
           if [ "$RUNNER_OS" == "Windows" ]; then
@@ -357,7 +357,7 @@ jobs:
       - name: Create Extended Release
         run: |
           EXEC_NAME="pagefind_extended"
-          ASSET_PATH="$EXEC_NAME-$GIT_VERSION-${{ matrix.target }}.tar.gz"
+          ASSET_PATH="$EXEC_NAME-v$GIT_VERSION-${{ matrix.target }}.tar.gz"
           CHECKSUM_PATH="$ASSET_PATH.sha256"
 
           if [ "$RUNNER_OS" == "Windows" ]; then
