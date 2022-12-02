@@ -351,11 +351,6 @@ jobs:
                   ;;
           esac
 
-          if [ "$RUNNER_OS" == "Windows" ]; then
-              ASSET_PATH=$(echo "$ASSET_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
-              CHECKSUM_PATH=$(echo "$CHECKSUM_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
-          fi
-
           echo "ASSET_PATH=$ASSET_PATH" >> $GITHUB_ENV
           echo "CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV
 
@@ -382,11 +377,6 @@ jobs:
                   shasum -a 256 $ASSET_PATH > $CHECKSUM_PATH
                   ;;
           esac
-
-          if [ "$RUNNER_OS" == "Windows" ]; then
-              ASSET_PATH=$(echo "$ASSET_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
-              CHECKSUM_PATH=$(echo "$CHECKSUM_PATH" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
-          fi
 
           echo "EXTENDED_ASSET_PATH=$ASSET_PATH" >> $GITHUB_ENV
           echo "EXTENDED_CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV

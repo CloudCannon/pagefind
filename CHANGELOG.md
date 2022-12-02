@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Fixed the Windows deployment target
+
 ## v0.10.2 (November 24, 2022)
 
 * Updated only deployment targets:
