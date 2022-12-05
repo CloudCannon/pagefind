@@ -23,6 +23,8 @@ class PagefindUI {
         let debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
         let mergeIndex = opts.mergeIndex ?? [];
         let translations = opts.translations ?? [];
+        let inputId = opts.inputId ?? null;
+        let enableInputAriaLabel = opts.enableInputAriaLabel ?? true;
 
         // Remove the UI-specific config before passing it along to the Pagefind backend
         delete opts["element"];
@@ -34,6 +36,8 @@ class PagefindUI {
         delete opts["debounceTimeoutMs"];
         delete opts["mergeIndex"];
         delete opts["translations"];
+        delete opts["inputId"];
+        delete opts["enableInputAriaLabel"];
 
         const dom = document.querySelector(selector);
         if (dom) {
@@ -48,7 +52,9 @@ class PagefindUI {
                     debounce_timeout_ms: debounceTimeoutMs,
                     merge_index: mergeIndex,
                     translations,
-                    pagefind_options: opts
+                    pagefind_options: opts,
+                    input_id: inputId,
+                    enable_input_aria_label: enableInputAriaLabel
                 }
             })
         } else {

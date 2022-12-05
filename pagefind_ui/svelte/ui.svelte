@@ -29,6 +29,8 @@
     export let merge_index = [];
     export let trigger_search_term = "";
     export let translations = {};
+    export let input_id = null;
+    export let enable_input_aria_label = true;
 
     let val = "";
     $: if (trigger_search_term) {
@@ -173,6 +175,8 @@
         on:submit={(e) => e.preventDefault()}
     >
         <input
+            id={input_id}
+            aria-label={(!input_id || enable_input_aria_label) && translate("search_label")}
             class="pagefind-ui__search-input"
             on:focus={init}
             bind:value={val}
@@ -180,7 +184,11 @@
             placeholder={translate("placeholder")}
         />
 
-        <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
+        <div
+            class="pagefind-ui__drawer"
+            class:pagefind-ui__hidden={!searched}
+            aria-live="polite"
+        >
             {#if initializing}
                 <Filters
                     {show_empty_filters}
