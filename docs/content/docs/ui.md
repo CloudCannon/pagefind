@@ -187,3 +187,21 @@ new PagefindUI({
 {{< /diffcode >}}
 
 The number of milliseconds to wait after a user stops typing before performing a search. Defaults to `300`. If you wish to disable this, set to `0`.
+
+### Accessible input label
+
+By default, the input element has an `aria-label` that is defined through the translation key `search_label`. See how you can override it in the [translations section](#translations).
+
+Instead of this `aria-label`, you might want to use a label element pointing to the input. In order to do that you will need to set a custom `id` attribute to the input, through the property `inputId`. Once it is set, you can disable the `aria-label` that is added by default to the input, by setting `enableInputAriaLabel` to `false`.
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    inputId: "my_custom_id",
++    enableInputAriaLabel: false
+});
+```
+{{< /diffcode >}}
+
+Note: disabling the `aria-label` won’t work if you do not define an `inputId`, as it would leave the input without a label, which must be avoided.
