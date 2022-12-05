@@ -169,7 +169,6 @@
     <form
         class="pagefind-ui__form"
         role="search"
-        aria-label={translate("search_label")}
         action="javascript:void(0);"
         on:submit={(e) => e.preventDefault()}
     >
