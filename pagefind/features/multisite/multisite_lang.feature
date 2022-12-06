@@ -95,7 +95,7 @@ Feature: Multisite Search Languages
                 let search = await pagefind.search("web");
 
                 let pages = await Promise.all(search.results.map(r => r.data()));
-                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).sort().join(", ");
             }
             """
         Then There should be no logs
