@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.10.4 (December 6, 2022)
+
 * Fixed a corner case where a `data-pagefind-body` tag wouldn't be honored on pages with DOM nodes outside the main `html` element
 
 ## v0.10.3 (December 2, 2022)
