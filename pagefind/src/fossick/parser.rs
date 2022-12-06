@@ -121,7 +121,11 @@ impl<'a> DomParser<'a> {
         let root = format!("{}, {} *", options.root_selector, options.root_selector);
         let mut custom_exclusions = options.exclude_selectors.clone();
         custom_exclusions.extend(REMOVE_SELECTORS.iter().map(|s| s.to_string()));
-        let custom_exclusions = custom_exclusions.join(", ");
+        let custom_exclusions = custom_exclusions
+            .iter()
+            .map(|e| format!("{} {}", options.root_selector, e))
+            .collect::<Vec<_>>()
+            .join(", ");
 
         let rewriter = HtmlRewriter::new(
             Settings {
