@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Pablo Villaverde <https://github.com/pvillaverde>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Buscar",
+        "clear_search": "Limpiar",
+        "load_more": "Ver más resultados",
+        "search_label": "Buscar en este sitio",
+        "filters_label": "Filtros",
+        "zero_results": "No se encontraron resultados para [SEARCH_TERM]",
+        "many_results": "[COUNT] resultados encontrados para [SEARCH_TERM]",
+        "one_result": "[COUNT] resultado encontrado para [SEARCH_TERM]",
+        "alt_search": "No se encontraron resultados para [SEARCH_TERM]. Mostrando en su lugar resultados para [DIFFERENT_TERM]",
+        "search_suggestion": "No se encontraron resultados para [SEARCH_TERM]. Prueba una de las siguientes búsquedas:",
+        "searching": "Buscando [SEARCH_TERM]..."
+    }
+}
