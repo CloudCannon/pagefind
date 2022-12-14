@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.10.5 (December 14, 2022)
+
 * Fixed an issue where merging an index from a fully-qualified domain name would mangle the mapped URLs
 
 ## v0.10.4 (December 6, 2022)
