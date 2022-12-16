@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Pablo Villaverde <https://github.com/pvillaverde>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Cerca",
+        "clear_search": "Netejar",
+        "load_more": "Veure mées resultats",
+        "search_label": "Cerca en aquest lloc",
+        "filters_label": "Filtres",
+        "zero_results": "No es van trobar resultats per [SEARCH_TERM]",
+        "many_results": "[COUNT] resultats trobats per [SEARCH_TERM]",
+        "one_result": "[COUNT] resultat trobat per [SEARCH_TERM]",
+        "alt_search": "No es van trobar resultats per [SEARCH_TERM]. Mostrant al seu lloc resultats per [DIFFERENT_TERM]",
+        "search_suggestion": "No es van trobar resultats per [SEARCH_TERM]. Proveu una de les cerques següents:",
+        "searching": "Cercant [SEARCH_TERM]..."
+    }
+}

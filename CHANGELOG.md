@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Adds UI translations for Galician, Català & Spanish, thanks @pvillaverde!
+
 ## v0.10.5 (December 14, 2022)
 
 * Fixed an issue where merging an index from a fully-qualified domain name would mangle the mapped URLs
