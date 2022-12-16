@@ -9,6 +9,16 @@
 
 ## Unreleased
 
+* Adds UI translations for Galician, Català & Spanish, thanks @pvillaverde!
+
+## v0.10.5 (December 14, 2022)
+
+* Fixed an issue where merging an index from a fully-qualified domain name would mangle the mapped URLs
+
+## v0.10.4 (December 6, 2022)
+
+* Fixed a corner case where a `data-pagefind-body` tag wouldn't be honored on pages with DOM nodes outside the main `html` element
+
 ## v0.10.3 (December 2, 2022)
 
 * Fixed the Windows deployment target

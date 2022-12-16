@@ -36,7 +36,6 @@ class PagefindInstance {
         this.raw_ptr = null;
         this.searchMeta = null;
         this.languages = null;
-
     }
 
     initPrimary() {
@@ -227,7 +226,7 @@ class PagefindInstance {
     }
 
     fullUrl(raw) {
-        return `${this.baseUrl}/${raw}`.replace(/\/+/g, "/");
+        return `${this.baseUrl}/${raw}`.replace(/(?<!https?:)\/+/g, "/");
     }
 
     async getPtr() {
