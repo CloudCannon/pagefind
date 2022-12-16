@@ -131,20 +131,20 @@ impl Fossicker {
         #[cfg(feature = "extended")]
         let segments = if should_segment {
             // Run a segmenter only for any languages which require it.
-            data.digest.as_str().segment_str()
+            data.digest.as_str().segment_str().collect::<Vec<_>>()
         } else {
             content.push_str(&data.digest.replace('\u{200B}', ""));
             // Currently hesistant to run segmentation during indexing
             // that we can't also run during search, since we don't
             // ship a segmenter to the browser. This logic is easier
             // to replicate in the JavaScript that parses a search query.
-            Box::new(data.digest.split_whitespace())
+            data.digest.split_whitespace().collect::<Vec<_>>()
         };
 
         #[cfg(not(feature = "extended"))]
         let segments = data.digest.split_whitespace();
 
-        for (word_index, word) in segments.enumerate() {
+        for (word_index, word) in segments.into_iter().enumerate() {
             let mut normalized_word = SPECIAL_CHARS
                 .replace_all(word, "")
                 .into_owned()
