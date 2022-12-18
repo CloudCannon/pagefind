@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.10.6 (December 18, 2022)
+
 * Adds UI translations for Galician, Català & Spanish, thanks @pvillaverde!
 * Fixes Pagefind failing on Safari due to an unsupported regex
 
