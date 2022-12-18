@@ -30,13 +30,14 @@ If word stemming is unsupported, search results won't match across root words. I
 | Arabic — `ar`     | ❌               | ✅             |
 | Armenian — `hy`   | ❌               | ✅             |
 | Basque — `eu`     | ❌               | ✅             |
-| Catalan — `ca`    | ❌               | ✅             |
+| Catalan — `ca`    | ✅               | ✅             |
 | Chinese — `zh`    | ✅               | See below     |
 | Danish — `da`     | ❌               | ✅             |
-| Dutch — `nl`      | ❌               | ✅             |
+| Dutch — `nl`      | ✅               | ✅             |
 | English — `en`    | ✅               | ✅             |
 | Finnish — `fi`    | ❌               | ✅             |
-| French — `fr`     | ❌               | ✅             |
+| French — `fr`     | ✅               | ✅             |
+| Galician — `gl`   | ✅               | ❌             |
 | German — `de`     | ✅               | ✅             |
 | Greek — `el`      | ❌               | ✅             |
 | Hindi — `hi`      | ❌               | ✅             |
@@ -52,7 +53,7 @@ If word stemming is unsupported, search results won't match across root words. I
 | Romanian — `ro`   | ❌               | ✅             |
 | Russian — `ru`    | ✅               | ✅             |
 | Serbian — `sr`    | ❌               | ✅             |
-| Spanish — `es`    | ❌               | ✅             |
+| Spanish — `es`    | ✅               | ✅             |
 | Swedish — `sv`    | ❌               | ✅             |
 | Tamil — `ta`      | ❌               | ✅             |
 | Turkish — `tr`    | ❌               | ✅             |

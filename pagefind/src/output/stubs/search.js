@@ -226,7 +226,7 @@ class PagefindInstance {
     }
 
     fullUrl(raw) {
-        return `${this.baseUrl}/${raw}`.replace(/(?<!https?:)\/+/g, "/");
+        return `${this.baseUrl}/${raw}`.replace(/\/+/g, "/").replace(/^(https?:\/)/, "$1/");
     }
 
     async getPtr() {

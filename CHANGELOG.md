@@ -9,6 +9,11 @@
 
 ## Unreleased
 
+## v0.10.6 (December 18, 2022)
+
+* Adds UI translations for Galician, Català & Spanish, thanks @pvillaverde!
+* Fixes Pagefind failing on Safari due to an unsupported regex
+
 ## v0.10.5 (December 14, 2022)
 
 * Fixed an issue where merging an index from a fully-qualified domain name would mangle the mapped URLs
