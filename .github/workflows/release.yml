@@ -339,6 +339,14 @@ jobs:
 
           tar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
 
+          if command -v gtar &> /dev/null; then
+            echo "Using gtar"
+            gtar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
+          else
+            echo "Using system tar"
+            tar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
+          fi
+
           case $RUNNER_OS in
               Windows)
                   sha256sum $ASSET_PATH > $CHECKSUM_PATH
@@ -364,7 +372,13 @@ jobs:
             EXEC_NAME="pagefind_extended.exe"
           fi
 
-          tar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
+          if command -v gtar &> /dev/null; then
+            echo "Using gtar"
+            gtar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
+          else
+            echo "Using system tar"
+            tar czf $ASSET_PATH -C target/${{ matrix.target }}/release $EXEC_NAME
+          fi
 
           case $RUNNER_OS in
               Windows)
