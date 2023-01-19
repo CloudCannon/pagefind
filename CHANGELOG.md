@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Avoid using bsdtar in the release flow, as that will sometimes create sparse tar files that some packages cannot decompress. (Fixes lumeland/lume#362)
+
 ## v0.10.6 (December 18, 2022)
 
 * Adds UI translations for Galician, Català & Spanish, thanks @pvillaverde!
