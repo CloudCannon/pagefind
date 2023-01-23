@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Montazar Al-Jaber <montazar@nanawee.tech>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Sök",
+        "clear_search": "Rensa",
+        "load_more": "Visa fler träffar",
+        "search_label": "Sök på denna sida",
+        "filters_label": "Filter",
+        "zero_results": "[SEARCH_TERM] gav inga träffar",
+        "many_results": "[SEARCH_TERM] gav [COUNT] träffar",
+        "one_result": "[SEARCH_TERM] gav [COUNT] träff",
+        "alt_search": "[SEARCH_TERM] gav inga träffar. Visar resultat för [DIFFERENT_TERM] istället",
+        "search_suggestion": "[SEARCH_TERM] gav inga träffar. Försök igen med en av följande sökord:",
+        "searching": "Söker efter [SEARCH_TERM]..."
+    }
+}
