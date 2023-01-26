@@ -1,0 +1,16 @@
+.resource-citation {
+    font-family: monospace;
+    font-size: 0.9em;
+    font-style: italic;
+    opacity: 0.6;
+
+    a {
+        text-decoration: underline;
+        color: inherit;
+        font-weight: bold;
+    }
+
+    &:hover {
+        opacity: 1;
+    }
+}
