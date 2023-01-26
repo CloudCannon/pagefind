@@ -54,7 +54,7 @@ If word stemming is unsupported, search results won't match across root words. I
 | Russian — `ru`    | ✅               | ✅             |
 | Serbian — `sr`    | ❌               | ✅             |
 | Spanish — `es`    | ✅               | ✅             |
-| Swedish — `sv`    | ❌               | ✅             |
+| Swedish — `sv`    | ✅               | ✅             |
 | Tamil — `ta`      | ❌               | ✅             |
 | Turkish — `tr`    | ❌               | ✅             |
 | Yiddish — `yi`    | ❌               | ✅             |
