@@ -27,7 +27,6 @@ const sveltefixPlugin = {
 const build = async () => {
     const esbuildOptions = {
         write: true,
-        watch: false,
         outdir: path.join(__dirname, `../pagefind/vendor/`),
         entryPoints: [path.join(__dirname, 'ui.js')],
         entryNames: `pagefind_[name].${version}`,
@@ -42,7 +41,7 @@ const build = async () => {
         bundle: true,
     }
 
-    let compiled = await esbuild.build(esbuildOptions);
+    const compiled = await esbuild.build(esbuildOptions);
     console.log(compiled);
 }
 
@@ -58,7 +57,8 @@ const serve = async () => {
         bundle: true,
     }
 
-    const server = await esbuild.serve({ servedir: path.join(__dirname, "dev_files") }, esbuildOptions);
+    const context = await esbuild.context(esbuildOptions);
+    const server = await context.serve({ servedir: path.join(__dirname, "dev_files") });
     console.log(`Serving the dev suite on http://localhost:${server.port}`);
 }
 
