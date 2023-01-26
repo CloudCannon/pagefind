@@ -53,6 +53,14 @@ These resources are created by helpful community members, and aren't guaranteed 
 - **Astro**
   - {{< 
         resource
+        site="lirantal.com"
+        date="January 2023"
+        title="How to add client-side search with PageFind to your Astro blog static website"
+        url="https://www.lirantal.com/blog/2023-01-01_-how_to_add_client-side_search_to_your_astro_blog_static_website"
+        archive_url="https://web.archive.org/web/20230126200639/https://www.lirantal.com/blog/2023-01-01_-how_to_add_client-side_search_to_your_astro_blog_static_website"
+    >}}
+  - {{< 
+        resource
         site="friendlyuser.github.io"
         date="August 2022"
         title="Adding search to static sites with pagefind"
