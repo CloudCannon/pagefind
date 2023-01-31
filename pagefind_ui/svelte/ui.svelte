@@ -346,7 +346,7 @@
         height: calc(48px * var(--pagefind-ui-scale));
         padding: 0 calc(12px * var(--pagefind-ui-scale));
         font-size: calc(16px * var(--pagefind-ui-scale));
-        color: var(----pagefind-ui-primary);
+        color: var(--pagefind-ui-primary);
         background: var(--pagefind-ui-background);
         width: 100%;
         text-align: center;
