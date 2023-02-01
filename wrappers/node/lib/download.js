@@ -52,7 +52,7 @@ function downloadWin(url, dest, opts) {
             }
         }
 
-        iwrCmd = `powershell "${iwrCmd}"`;
+        iwrCmd = `powershell -noprofile "${iwrCmd}"`;
 
         child_process.exec(iwrCmd, err => {
             if (err) {
