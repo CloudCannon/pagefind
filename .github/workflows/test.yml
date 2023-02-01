@@ -23,17 +23,17 @@ jobs:
         include:
           - build: linux
             os: ubuntu-latest
-            rust: beta
+            rust: stable
             target: x86_64-unknown-linux-musl
             cross: false
           - build: macos
             os: macos-latest
-            rust: beta
+            rust: stable
             target: x86_64-apple-darwin
             cross: false
           - build: windows
             os: windows-latest
-            rust: beta
+            rust: stable
             target: x86_64-pc-windows-msvc
             cross: false
     steps:
