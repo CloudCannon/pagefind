@@ -35,7 +35,7 @@
         val = trigger_search_term;
         trigger_search_term = "";
     }
-    let pagefind;
+    let pagefind, input_el;
     let initializing = false;
 
     let searchResult = [];
@@ -176,7 +176,14 @@
         <input
             class="pagefind-ui__search-input"
             on:focus={init}
+            on:keydown={(e) => {
+                if (e.key === "Escape") {
+                    val = "";
+                    input_el.blur();
+                }
+            }}
             bind:value={val}
+            bind:this={input_el}
             type="text"
             placeholder={translate("placeholder")}
         />
