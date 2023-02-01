@@ -9,6 +9,15 @@
 
 ## Unreleased
 
+### Features & Improvements
+* Pagefind UI: Added a "Clear" button to the search input
+* Pagefind UI: Clear the search input on an `Esc` keypress
+* Pagefind UI: Adds UI translations for Swedish, thanks @mntzrr!
+* Improved `npx` wrapper compatibility on Windows, thanks @tylermercer!
+
+### Fixes & Tweaks
+* Fixed a syntax error in the Pagefind UI CSS
+
 ## v0.10.7 (January 19, 2023)
 
 * Avoid using bsdtar in the release flow, as that will sometimes create sparse tar files that some packages cannot decompress. (Fixes lumeland/lume#362)
