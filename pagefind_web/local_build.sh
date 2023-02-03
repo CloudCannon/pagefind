@@ -23,6 +23,7 @@ if [ "$1" = "debug" ]; then
 else
     wasm-pack build --release -t no-modules 
 fi
+node build.js
 mv pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$WASM_VERSION.js
 # Append pagefind_dcd to the decompressed wasm as a magic word read by the frontend
 printf 'pagefind_dcd' > ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
