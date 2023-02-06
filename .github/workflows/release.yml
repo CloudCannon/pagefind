@@ -29,9 +29,14 @@ jobs:
             ~/.rustup
             target
           key: ${{ runner.os }}-stable-min165
-      - name: Setup
-        run: |
-          rustup install stable
+          
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            override: true
+            default: true
+            components: rustfmt, clippy
 
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
@@ -257,11 +262,16 @@ jobs:
           echo "TARGET_CC=clang" >> $GITHUB_ENV
           echo "CFLAGS_aarch64_unknown_linux_musl=--sysroot=/usr/aarch64-linux-gnu" >> $GITHUB_ENV
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/aarch64-linux-gnu/bin/ld" >> $GITHUB_ENV
+      
       - name: Install Rust
-        run: |
-          rustup install ${{ matrix.rust }}
-          rustup target add ${{ matrix.target }}
-          rustup show
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: ${{ matrix.rust }}
+            target: ${{ matrix.target }}
+            override: true
+            default: true
+            components: rustfmt, clippy
+
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
         with:

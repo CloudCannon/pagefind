@@ -67,7 +67,7 @@ Feature: Multisite Search
                     }]
                 });
                 pui.triggerSearch("web");
-                await new Promise(r => setTimeout(r, 2500)); // TODO: await el in humane
+                await new Promise(r => setTimeout(r, 3500)); // TODO: await el in humane
             }
             """
         Then There should be no logs
@@ -147,5 +147,5 @@ Feature: Multisite Search
                 }
             }
             """
-        # There will be a log since the versions do not match
-        # Then There should be no logs
+# There will be a log since the versions do not match
+# Then There should be no logs
