@@ -153,9 +153,13 @@ class PagefindInstance {
             let compressed_wasm = await fetch(wasm_url);
             compressed_wasm = await compressed_wasm.arrayBuffer();
             const final_wasm = this.decompress(new Uint8Array(compressed_wasm), "Pagefind WebAssembly");
+            if (!final_wasm) {
+                throw new Error("No WASM after decompression");
+            }
             this.wasm = await this.backend(final_wasm);
         } catch (e) {
             console.error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
+            throw new Error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
         }
     }
 

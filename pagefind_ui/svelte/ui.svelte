@@ -23,6 +23,7 @@
     export let reset_styles = true;
     export let show_images = true;
     export let process_result = null;
+    export let process_term = null;
     export let show_empty_filters = true;
     export let debounce_timeout_ms = 300;
     export let pagefind_options = {};
@@ -147,6 +148,9 @@
 
     const search = async (term, filters) => {
         search_term = term || "";
+        if (typeof process_term === "function") {
+            term = process_term(term);
+        }
         loading = true;
         searched = true;
         await waitForApiInit();
