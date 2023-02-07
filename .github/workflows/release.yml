@@ -58,7 +58,7 @@ jobs:
           node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
-          git add ./pagefind_ui/package.json
+          git add ./pagefind_ui/default/package.json
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
 
@@ -67,7 +67,7 @@ jobs:
         run: ./local_build.sh
 
       - name: Build UI
-        working-directory: ./pagefind_ui
+        working-directory: ./pagefind_ui/default
         run: npm i && npm run build
 
       - name: Build
@@ -297,7 +297,7 @@ jobs:
           node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
-          git add ./pagefind_ui/package.json
+          git add ./pagefind_ui/default/package.json
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
 
@@ -306,7 +306,7 @@ jobs:
         run: ./local_build.sh
 
       - name: Build UI
-        working-directory: ./pagefind_ui
+        working-directory: ./pagefind_ui/default
         run: npm i && npm run build
 
       - name: Test Web

@@ -27,6 +27,6 @@ let pagefindWebCfg = file("../pagefind_web/Cargo.toml");
 pagefindWebCfg.contents = pagefindWebCfg.contents.replace(version_re, `version = "${version}"`);
 fs.writeFileSync(pagefindWebCfg.path, pagefindWebCfg.contents);
 
-let pagefindUiCfg = file("../pagefind_ui/package.json");
+let pagefindUiCfg = file("../pagefind_ui/default/package.json");
 pagefindUiCfg.contents = pagefindUiCfg.contents.replace(version_re, `"version": "${version}"`);
 fs.writeFileSync(pagefindUiCfg.path, pagefindUiCfg.contents);

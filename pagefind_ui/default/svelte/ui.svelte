@@ -6,7 +6,7 @@
     import Filters from "./filters.svelte";
     import Reset from "./reset.svelte";
 
-    import * as translationFiles from "../translations/*.json";
+    import * as translationFiles from "../../translations/*.json";
 
     const availableTranslations = {},
         languages = translationFiles.filenames.map(

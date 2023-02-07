@@ -27,7 +27,7 @@ const sveltefixPlugin = {
 const build = async () => {
     const esbuildOptions = {
         write: true,
-        outdir: path.join(__dirname, `../pagefind/vendor/`),
+        outdir: path.join(__dirname, `../../pagefind/vendor/`),
         entryPoints: [path.join(__dirname, 'ui.js')],
         entryNames: `pagefind_[name].${version}`,
         plugins: [
