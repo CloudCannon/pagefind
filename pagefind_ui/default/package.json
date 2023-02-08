@@ -11,11 +11,12 @@
   "author": "Cloudcannon",
   "license": "MIT",
   "devDependencies": {
+    "bcp-47": "^2.1.0",
     "esbuild": "^0.17.6",
     "esbuild-plugin-import-glob": "^0.1.1",
     "esbuild-svelte": "^0.7.3",
     "svelte": "^3.55.1",
-    "bcp-47": "^2.1.0"
+    "typescript": "^4.9.5"
   },
   "files": [
     "npm_dist/**",
