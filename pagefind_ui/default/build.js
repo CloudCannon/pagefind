@@ -4,6 +4,7 @@ import ImportGlobPlugin from "esbuild-plugin-import-glob";
 import sveltePlugin from "esbuild-svelte";
 import { createRequire } from "module";
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -23,27 +24,6 @@ const sveltefixPlugin = {
     }
 }
 
-const build = async () => {
-    const esbuildOptions = {
-        write: true,
-        outdir: path.join(__dirname, `../../pagefind/vendor/`),
-        entryPoints: [path.join(__dirname, 'ui.js')],
-        entryNames: `pagefind_[name].${version}`,
-        plugins: [
-            ImportGlobPlugin.default(),
-            sveltePlugin({ compileOptions: { css: false } }),
-            sveltefixPlugin
-        ],
-        minify: true,
-        loader: {},
-        define: {},
-        bundle: true,
-    }
-
-    const compiled = await esbuild.build(esbuildOptions);
-    console.log(compiled);
-}
-
 const serve = async () => {
     const esbuildOptions = {
         outdir: path.join(__dirname, "_dev_files/_pagefind"),
@@ -59,6 +39,62 @@ const serve = async () => {
     const context = await esbuild.context(esbuildOptions);
     const server = await context.serve({ servedir: path.join(__dirname, "_dev_files") });
     console.log(`Serving the dev suite on http://localhost:${server.port}`);
+}
+
+const build = async () => {
+    const commonOpts = {
+        write: true,
+        plugins: [
+            ImportGlobPlugin.default(),
+            sveltePlugin({ compileOptions: { css: false } }),
+            sveltefixPlugin
+        ],
+        loader: {},
+        define: {},
+        bundle: true,
+    }
+
+    // Direct web vendor build
+    const esbuildVendorOptions = {
+        ...commonOpts,
+        minify: true,
+        entryPoints: [path.join(__dirname, 'ui.js')],
+        entryNames: `pagefind_[name].${version}`,
+        outdir: path.join(__dirname, `../../pagefind/vendor/`),
+    }
+    const compiledVendor = await esbuild.build(esbuildVendorOptions);
+    console.log(`Vendor Build: `, compiledVendor);
+
+    // CJS "main" build
+    const esbuildCjsOptions = {
+        ...commonOpts,
+        entryPoints: [path.join(__dirname, 'ui-core.js')],
+        outdir: path.join(__dirname, `npm_dist/cjs/`),
+        platform: 'node',
+    }
+    const compiledCJS = await esbuild.build(esbuildCjsOptions);
+    stripCSSComment(path.join(__dirname, `npm_dist/cjs/ui-core.css`));
+    console.log(`CJS Build: `, compiledCJS);
+
+    // ESM Module Build
+    const esbuildModuleOptions = {
+        ...commonOpts,
+        entryPoints: [path.join(__dirname, 'ui-core.js')],
+        outdir: path.join(__dirname, `npm_dist/mjs/`),
+        platform: 'neutral',
+    }
+    const compiledMJS = await esbuild.build(esbuildModuleOptions);
+    stripCSSComment(path.join(__dirname, `npm_dist/mjs/ui-core.css`));
+    console.log(`Module Build: `, compiledMJS);
+
+    try { fs.mkdirSync(path.join(__dirname, `css`)); } catch { }
+    fs.copyFileSync(path.join(__dirname, `npm_dist/mjs/ui-core.css`), path.join(__dirname, `css/ui.css`))
+}
+
+const stripCSSComment = (file) => {
+    let contents = fs.readFileSync(file, { encoding: "utf-8" });
+    contents = contents.replace(/\/\* fakecss[^*]+\*\//g, '');
+    fs.writeFileSync(file, contents);
 }
 
 if (process.env.PAGEFIND_DEV) {

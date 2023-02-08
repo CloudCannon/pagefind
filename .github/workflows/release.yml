@@ -79,12 +79,9 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   publish-npm-package:
-    name: Publish NPM package
+    name: Publish NPM packages
     runs-on: ubuntu-20.04
     needs: publish-github-release
-    defaults:
-      run:
-        working-directory: ./wrappers/node
     steps:
       - name: Clone
         uses: actions/checkout@v2
@@ -92,12 +89,29 @@ jobs:
         with:
           name: release-checksums
           path: wrappers/node/checksums
-      - name: Prepare package
+
+      - name: Prepare wrapper package
+        working-directory: ./wrappers/node
         run: |
           RELEASE_VERSION=${GITHUB_REF#refs/tags/}
           npm version $(echo $RELEASE_VERSION | cut -c1-)
-      - name: Publish
+      - name: Publish wrapper package
+        working-directory: ./wrappers/node
         run: npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Prepare default ui package
+        working-directory: ./pagefind_ui/default
+        run: |
+          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
+          npm version $(echo $RELEASE_VERSION | cut -c1-)
+      - name: Publish default ui package
+        working-directory: ./pagefind_ui/default
+        run: |
+          npm i
+          npm run build
+          npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
