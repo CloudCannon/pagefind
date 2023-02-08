@@ -4,7 +4,6 @@ import ImportGlobPlugin from "esbuild-plugin-import-glob";
 import sveltePlugin from "esbuild-svelte";
 import { createRequire } from "module";
 import { fileURLToPath } from 'url';
-import { Server } from 'http';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -47,7 +46,7 @@ const build = async () => {
 
 const serve = async () => {
     const esbuildOptions = {
-        outdir: path.join(__dirname, "dev_files/_pagefind"),
+        outdir: path.join(__dirname, "_dev_files/_pagefind"),
         entryPoints: [path.join(__dirname, 'ui.js')],
         plugins: [
             ImportGlobPlugin.default(),
@@ -58,7 +57,7 @@ const serve = async () => {
     }
 
     const context = await esbuild.context(esbuildOptions);
-    const server = await context.serve({ servedir: path.join(__dirname, "dev_files") });
+    const server = await context.serve({ servedir: path.join(__dirname, "_dev_files") });
     console.log(`Serving the dev suite on http://localhost:${server.port}`);
 }
 
