@@ -2,8 +2,8 @@
   "name": "@pagefind/default-ui",
   "version": "0.0.0",
   "type": "module",
-  "main": "npm_dist/cjs/ui-core.js",
-  "module": "npm_dist/mjs/ui-core.js",
+  "main": "npm_dist/cjs/ui-core.cjs",
+  "module": "npm_dist/mjs/ui-core.mjs",
   "scripts": {
     "start": "PAGEFIND_DEV=true node ./build.js",
     "build": "node ./build.js"

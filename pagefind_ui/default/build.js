@@ -70,6 +70,7 @@ const build = async () => {
         ...commonOpts,
         entryPoints: [path.join(__dirname, 'ui-core.js')],
         outdir: path.join(__dirname, `npm_dist/cjs/`),
+        outExtension: { '.js': '.cjs' },
         platform: 'node',
     }
     const compiledCJS = await esbuild.build(esbuildCjsOptions);
@@ -81,6 +82,7 @@ const build = async () => {
         ...commonOpts,
         entryPoints: [path.join(__dirname, 'ui-core.js')],
         outdir: path.join(__dirname, `npm_dist/mjs/`),
+        outExtension: { '.js': '.mjs' },
         platform: 'neutral',
     }
     const compiledMJS = await esbuild.build(esbuildModuleOptions);
