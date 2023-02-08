@@ -1,13 +1,21 @@
 export { Input } from "./components/input";
 export { ResultList } from "./components/resultList";
 
+/*
+- Add some styles for the two components implemented thus far at `css/ui.css`
+- Wire up the build.js for `modular` to match `default`
+- Wire up the GH action for `modular` to match `default`
+- Add `files` to `package.json`
+*/
+
+
 let scriptBundlePath;
 try {
-    scriptBundlePath = new URL(document.currentScript.src).pathname.match(/^(.*\/)(?:pagefind-)?composable.js.*$/)[1];
+    scriptBundlePath = new URL(document.currentScript.src).pathname.match(/^(.*\/)(?:pagefind-)?modular-ui.js.*$/)[1];
 } catch (e) {
     scriptBundlePath = "/_pagefind/";
-    console.warn(`Pagefind couldn't determine the base of the bundle from the javascript import path. Falling back to the default of ${bundlePath}.`);
-    // TODO(composable): Ensure bundlePath is available on Instance
+    console.warn(`Pagefind couldn't determine the base of the bundle from the javascript import path. Falling back to the default of ${scriptBundlePath}.`);
+    // TODO(modular): Ensure bundlePath is available on Instance
     console.warn("You can configure this by passing a bundlePath option to PagefindComposable Instance");
     console.warn(`[DEBUG: Loaded from ${document?.currentScript?.src ?? "unknown"}]`);
 }

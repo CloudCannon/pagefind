@@ -15,8 +15,8 @@ const build = async () => {
     const esbuildOptions = {
         write: true,
         outdir: path.join(__dirname, `../../pagefind/vendor/`),
-        entryPoints: [path.join(__dirname, 'composable.js')],
-        entryNames: `pagefind_[name].${version}`,
+        entryPoints: [path.join(__dirname, 'modular.js')],
+        entryNames: `pagefind_[name]_ui.${version}`,
         plugins: [
             ImportGlobPlugin.default(),
         ],
@@ -33,7 +33,7 @@ const build = async () => {
 const serve = async () => {
     const esbuildOptions = {
         outdir: path.join(__dirname, "_dev_files/_pagefind"),
-        entryPoints: [path.join(__dirname, 'composable.js')],
+        entryPoints: [path.join(__dirname, 'modular.js')],
         plugins: [
             ImportGlobPlugin.default(),
         ],

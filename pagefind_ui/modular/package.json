@@ -1,8 +1,8 @@
 {
-  "name": "pagefind_composable",
+  "name": "@pagefind/modular-ui",
   "version": "0.0.0",
   "type": "module",
-  "main": "build.js",
+  "main": "modular-core.js",
   "scripts": {
     "start": "PAGEFIND_DEV=true node ./build.js",
     "build": "node ./build.js"
