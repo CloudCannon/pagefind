@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/_pagefind/composable.css">
+    <title>Pagefind Local Dev Suite</title>
+</head>
+<body style="max-width: 1000px; padding: 80px; margin: 0 auto;">
+    <h1>Hello World from the composable dev suite</h1>
+    <p>Searches for words ending in <kbd>y</kbd> will return no results</p>
+    <div id="searchbox"></div>
+    <p>Unrelated Paragraph with an existing input: <input id="input" type="text"></p>
+    <hr>
+    <h2>Later on, we have some results:</h2>
+    <div id="resultlist"></div>
+    <script src="/_pagefind/composable.js" type="application/javascript"></script>
+    <script>
+        const pagefind = new PagefindComposable.Instance();
+        pagefind.add(new PagefindComposable.Input({
+            containerElement: "#searchbox"
+        }));
+        pagefind.add(new PagefindComposable.Input({
+            inputElement: "#input"
+        }));
+        pagefind.add(new PagefindComposable.ResultList({
+            containerElement: "#resultlist"
+        }));
+    </script>
+</body>
+</html>

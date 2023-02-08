@@ -1,0 +1,19 @@
+{
+  "name": "pagefind_composable",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "build.js",
+  "scripts": {
+    "start": "PAGEFIND_DEV=true node ./build.js",
+    "build": "node ./build.js"
+  },
+  "author": "Cloudcannon",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.17.6",
+    "esbuild-plugin-import-glob": "^0.1.1"
+  },
+  "dependencies": {
+    "bcp-47": "^2.1.0"
+  }
+}
