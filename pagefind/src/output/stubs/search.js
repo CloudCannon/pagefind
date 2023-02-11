@@ -407,6 +407,8 @@ class Pagefind {
     constructor() {
         this.backend = wasm_bindgen;
         this.primaryLanguage = "unknown";
+        this.searchedAt = 0;
+        this.searchID = 0;
 
         this.primary = new PagefindInstance({
             primary: true
@@ -483,6 +485,32 @@ class Pagefind {
         await Promise.all(this.instances.map(i => i.preload(term, options)));
     }
 
+    async debouncedSearch(term, options, debounceTimeoutMs = 300) {
+        const thisSearchTime = Date.now();
+        const thisSearchID = ++this.searchID;
+        if (thisSearchTime - this.searchedAt > debounceTimeoutMs) {
+            this.searchedAt = thisSearchTime;
+            const searchResult = await this.search(term, options);
+            if (thisSearchID !== this.searchID) {
+                return null;
+            }
+            return searchResult;
+        }
+        this.preload(term, options);
+        const remainder = thisSearchTime - this.searchedAt;
+        await asyncSleep(debounceTimeoutMs - remainder);
+
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+
+        const searchResult = await this.search(term, options);
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+        return searchResult;
+    }
+
     async search(term, options = {}) {
         let search = await Promise.all(this.instances.map(i => i.search(term, options)));
 
@@ -500,5 +528,6 @@ export const mergeIndex = async (indexPath, options) => await pagefind.mergeInde
 export const options = async (options) => await pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
 export const search = async (term, options) => await pagefind.search(term, options);
+export const debouncedSearch = async (term, options, debounceTimeoutMs) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
 export const preload = async (term, options) => await pagefind.preload(term, options);
 export const filters = async () => await pagefind.filters();
