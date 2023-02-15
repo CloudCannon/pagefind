@@ -6,7 +6,7 @@
     import Filters from "./filters.svelte";
     import Reset from "./reset.svelte";
 
-    import * as translationFiles from "../translations/*.json";
+    import * as translationFiles from "../../translations/*.json";
 
     const availableTranslations = {},
         languages = translationFiles.filenames.map(
@@ -363,6 +363,7 @@
         font-size: calc(14px * var(--pagefind-ui-scale));
         cursor: pointer;
         background-color: var(--pagefind-ui-background);
+        border-radius: var(--pagefind-ui-border-radius);
     }
     .pagefind-ui__drawer {
         gap: calc(60px * var(--pagefind-ui-scale));
