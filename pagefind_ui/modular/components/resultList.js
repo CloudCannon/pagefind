@@ -21,8 +21,10 @@ const placeholderTemplate = () => {
     };
     return `<li class="pagefind-modular-list-result">
     <div class="pagefind-modular-list-thumb" data-pfmod-loading></div>
-    <p class="pagefind-modular-list-title" data-pfmod-loading>${placeholder(30)}</p>
-    <p class="pagefind-modular-list-excerpt" data-pfmod-loading>${placeholder(40)}</p>
+    <div class="pagefind-modular-list-inner">
+        <p class="pagefind-modular-list-title" data-pfmod-loading>${placeholder(30)}</p>
+        <p class="pagefind-modular-list-excerpt" data-pfmod-loading>${placeholder(40)}</p>
+    </div>
 </li>`;
 }
 
@@ -112,6 +114,11 @@ export class ResultList {
                 this.append(placeholderNodes);
                 return new Result({ result: r, placeholderNodes, resultFn: this.resultTemplate });
             })
+        });
+
+        instance.on("loading", () => {
+            if (!this.containerEl) return;
+            this.containerEl.innerHTML = "";
         });
     }
 }

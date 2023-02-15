@@ -1,5 +1,6 @@
 export { Input } from "./components/input";
 export { ResultList } from "./components/resultList";
+export { Summary } from "./components/summary";
 
 /*
 - Add some styles for the two components implemented thus far at `css/ui.css`
@@ -44,7 +45,6 @@ export class Instance {
             //TODO: USE resetStyles: opts.resetStyles ?? true,
             //TODO: USE processResult: opts.processResult ?? null,
             //TODO: USE processTerm: opts.processTerm ?? null,
-            debounceTimeoutMs: opts.debounceTimeoutMs ?? 300,
             mergeIndex: opts.mergeIndex ?? [],
             //TODO: USE translations: opts.translations ?? [],
         }
@@ -110,11 +110,7 @@ export class Instance {
             return this.__clear__();
         }
 
-        const results = await this.__pagefind__.debouncedSearch(
-            term,
-            { filters },
-            this.options.debounceTimeoutMs
-        );
+        const results = await this.__pagefind__.search(term, { filters });
         if (results && this.__searchID__ === thisSearch) {
             if (results.filters && Object.keys(results.filters)?.length) {
                 this.availableFilters = results.filters;

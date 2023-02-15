@@ -1,10 +1,16 @@
 import El from "../helpers/element-builder";
 
+const asyncSleep = async (ms = 100) => {
+    return new Promise(r => setTimeout(r, ms));
+};
+
 export class Input {
     constructor(opts) {
         this.inputEl = null;
         this.clearEl = null;
         this.instance = null;
+        this.searchID = 0;
+        this.debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
 
         if (opts.inputElement) {
             if (opts.containerElement) {
@@ -20,10 +26,18 @@ export class Input {
             return;
         }
 
-        this.inputEl.addEventListener("input", (e) => {
+        this.inputEl.addEventListener("input", async (e) => {
             if (this.instance && typeof e?.target?.value === "string") {
-                this.instance.triggerSearch(e.target.value);
                 this.updateState(e.target.value);
+
+                const thisSearchID = ++this.searchID;
+                await asyncSleep(this.debounceTimeoutMs);
+
+                if (thisSearchID !== this.searchID) {
+                    return null;
+                }
+
+                this.instance.triggerSearch(e.target.value);
             }
         });
     }

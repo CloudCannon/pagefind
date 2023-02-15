@@ -13,6 +13,11 @@
     <div id="searchbox"></div>
     <p>Unrelated Paragraph with an existing input: <input id="input" type="text"></p>
     <hr>
+    <pre>
+        <code>
+            Summary: <span id="summary"></span>
+        </code>
+    </pre>
     <h2>Later on, we have some results:</h2>
     <div id="resultlist"></div>
     <script src="/_pagefind/modular.js" type="application/javascript"></script>
@@ -26,6 +31,9 @@
         }));
         pagefind.add(new PagefindModularUI.ResultList({
             containerElement: "#resultlist"
+        }));
+        pagefind.add(new PagefindModularUI.Summary({
+            containerElement: "#summary"
         }));
     </script>
 </body>
