@@ -12,7 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "bcp-47": "^2.1.0",
-    "esbuild": "^0.17.6",
+    "esbuild": "^0.17.8",
     "esbuild-plugin-import-glob": "^0.1.1",
     "esbuild-svelte": "^0.7.3",
     "svelte": "^3.55.1",
