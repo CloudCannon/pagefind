@@ -9,14 +9,20 @@
 
 ## Unreleased
 
+
 ### Features & Improvements
-* Pagefind UI: Added a "Clear" button to the search input
-* Pagefind UI: Clear the search input on an `Esc` keypress
-* Pagefind UI: Adds UI translations for Swedish, thanks @mntzrr!
-* Improved `npx` wrapper compatibility on Windows, thanks @tylermercer!
+* **CLI**: Improved `npx` wrapper compatibility on Windows, thanks @tylermercer!
+* **JS API**: Added a `debouncedSearch` function to the JS API. See [Pagefind JS API > Debounced search](https://pagefind.app/docs/api/#debounced-search)
+* **Default UI**: Added a "Clear" button to the search input
+* **Default UI**: Clear the search input on an `Esc` keypress
+* **Default UI**: Added UI translations for Swedish, thanks @mntzrr!
+* **Default UI**: Added a `processTerm` hook that can normalize the search query. See [Pagefind UI > Process term](https://pagefind.app/docs/ui/#process-result)
+* **Default UI**: Added a `Clear` button to the search input
+* **Default UI**: Added functionality to clear the search input when `Esc` is pressed while the input is focused
+* **Default UI**: Published UI to npm under `@pagefind/default-ui`, as an alternative to using the files output by the Pagefind CLI
 
 ### Fixes & Tweaks
-* Fixed a syntax error in the Pagefind UI CSS
+* **Default UI**: Fixed a syntax error in the CSS
 
 ## v0.10.7 (January 19, 2023)
 
