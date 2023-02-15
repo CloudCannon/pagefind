@@ -407,7 +407,6 @@ class Pagefind {
     constructor() {
         this.backend = wasm_bindgen;
         this.primaryLanguage = "unknown";
-        this.searchedAt = 0;
         this.searchID = 0;
 
         this.primary = new PagefindInstance({
@@ -486,19 +485,9 @@ class Pagefind {
     }
 
     async debouncedSearch(term, options, debounceTimeoutMs = 300) {
-        const thisSearchTime = Date.now();
         const thisSearchID = ++this.searchID;
-        if (thisSearchTime - this.searchedAt > debounceTimeoutMs) {
-            this.searchedAt = thisSearchTime;
-            const searchResult = await this.search(term, options);
-            if (thisSearchID !== this.searchID) {
-                return null;
-            }
-            return searchResult;
-        }
         this.preload(term, options);
-        const remainder = thisSearchTime - this.searchedAt;
-        await asyncSleep(debounceTimeoutMs - remainder);
+        await asyncSleep(debounceTimeoutMs);
 
         if (thisSearchID !== this.searchID) {
             return null;

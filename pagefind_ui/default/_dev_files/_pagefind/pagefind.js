@@ -127,6 +127,9 @@ const stubbed_results = [
     }
 ]
 
+const asyncSleep = async (ms = 100) => {
+    return new Promise(r => setTimeout(r, ms));
+};
 
 const num = (max) => Math.floor(Math.random() * max);
 const stubbed_filters = (max) => {
@@ -145,6 +148,10 @@ const stubbed_filters = (max) => {
 }
 
 class Pagefind {
+    constructor() {
+        this.searchID = 0;
+    }
+
 
     async sleep(ms = 100) {
         return new Promise(r => setTimeout(r, ms));
@@ -163,6 +170,21 @@ class Pagefind {
         }
 
         return block;
+    }
+
+    async debouncedSearch(term, options, debounceTimeoutMs = 300) {
+        const thisSearchID = ++this.searchID;
+        await asyncSleep(debounceTimeoutMs);
+
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+
+        const searchResult = await this.search(term, options);
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+        return searchResult;
     }
 
     async search(term, options) {
@@ -202,5 +224,6 @@ const pagefind = new Pagefind();
 
 export const options = async () => { };
 export const search = async (term, options) => await pagefind.search(term, options);
+export const debouncedSearch = async (term, options, debounceTimeoutMs) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
 export const preload = async () => { };
 export const filters = async () => await pagefind.filters();

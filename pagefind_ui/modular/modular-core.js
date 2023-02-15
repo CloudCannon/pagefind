@@ -44,7 +44,7 @@ export class Instance {
             //TODO: USE resetStyles: opts.resetStyles ?? true,
             //TODO: USE processResult: opts.processResult ?? null,
             //TODO: USE processTerm: opts.processTerm ?? null,
-            //TODO: USE debounceTimeoutMs: opts.debounceTimeoutMs ?? 300,
+            debounceTimeoutMs: opts.debounceTimeoutMs ?? 300,
             mergeIndex: opts.mergeIndex ?? [],
             //TODO: USE translations: opts.translations ?? [],
         }
@@ -95,20 +95,27 @@ export class Instance {
         this.__hooks__[e]?.forEach(hook => hook?.(...args));
     }
 
+    async __clear__() {
+        this.__dispatch__("results", {results: []});
+        this.availableFilters = await this.__pagefind__.filters();
+        this.__dispatch__("filters", this.availableFilters);
+    }
+
     async __search__(term, filters) {
         this.__dispatch__("loading");
         await this.__load__();
         const thisSearch = ++this.__searchID__;
 
         if (!term || !term.length) {
-            this.__dispatch__("results", {results: []});
-            this.availableFilters = await this.__pagefind__.filters();
-            this.__dispatch__("filters", this.availableFilters);
-            return;
+            return this.__clear__();
         }
 
-        const results = await this.__pagefind__.search(term, { filters });
-        if (this.__searchID__ === thisSearch) {
+        const results = await this.__pagefind__.debouncedSearch(
+            term,
+            { filters },
+            this.options.debounceTimeoutMs
+        );
+        if (results && this.__searchID__ === thisSearch) {
             if (results.filters && Object.keys(results.filters)?.length) {
                 this.availableFilters = results.filters;
                 this.__dispatch__("filters", this.availableFilters);
