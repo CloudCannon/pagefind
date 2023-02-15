@@ -26,6 +26,11 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "npm"
+    directory: "/pagefind_ui/modular"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "npm"
     directory: "/wrappers/node"
     open-pull-requests-limit: 1
     schedule:

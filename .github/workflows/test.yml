@@ -90,6 +90,10 @@ jobs:
         working-directory: ./pagefind_ui/default
         run: npm i && npm run build
 
+      - name: Build Modular UI
+        working-directory: ./pagefind_ui/modular
+        run: npm i && npm run build
+
       - name: Test Web
         working-directory: ./pagefind_web
         run: cargo test --release

@@ -59,6 +59,7 @@ jobs:
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
           git add ./pagefind_ui/default/package.json
+          git add ./pagefind_ui/modular/package.json
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
 
@@ -68,6 +69,10 @@ jobs:
 
       - name: Build UI
         working-directory: ./pagefind_ui/default
+        run: npm i && npm run build
+
+      - name: Build Modular UI
+        working-directory: ./pagefind_ui/modular
         run: npm i && npm run build
 
       - name: Build
@@ -108,6 +113,20 @@ jobs:
           npm version $(echo $RELEASE_VERSION | cut -c1-)
       - name: Publish default ui package
         working-directory: ./pagefind_ui/default
+        run: |
+          npm i
+          npm run build
+          npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Prepare modular ui package
+        working-directory: ./pagefind_ui/modular
+        run: |
+          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
+          npm version $(echo $RELEASE_VERSION | cut -c1-)
+      - name: Publish modular ui package
+        working-directory: ./pagefind_ui/modular
         run: |
           npm i
           npm run build
@@ -312,6 +331,7 @@ jobs:
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
           git add ./pagefind_ui/default/package.json
+          git add ./pagefind_ui/modular/package.json
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
 
@@ -321,6 +341,10 @@ jobs:
 
       - name: Build UI
         working-directory: ./pagefind_ui/default
+        run: npm i && npm run build
+
+      - name: Build Modular UI
+        working-directory: ./pagefind_ui/modular
         run: npm i && npm run build
 
       - name: Test Web
