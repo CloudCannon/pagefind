@@ -1,3 +1,5 @@
+import El from "../helpers/element-builder";
+
 const templateNodes = (templateResult) => {
     if (templateResult instanceof Element) {
         return [templateResult];
@@ -14,16 +16,36 @@ const templateNodes = (templateResult) => {
 }
 
 const placeholderTemplate = () => {
-    return `<li>
-    <p>......</p>
-    <p>.................</p>
+    const placeholder = (max = 30) => {
+        return ". ".repeat(Math.floor(10 + Math.random() * max));
+    };
+    return `<li class="pagefind-modular-list-result">
+    <div class="pagefind-modular-list-thumb" data-pfmod-loading></div>
+    <p class="pagefind-modular-list-title" data-pfmod-loading>${placeholder(30)}</p>
+    <p class="pagefind-modular-list-excerpt" data-pfmod-loading>${placeholder(40)}</p>
 </li>`;
 }
 
 const resultTemplate = (result) => {
-    let wrapper = document.createElement("li");
-    wrapper.innerText = result?.meta?.title;
-    return wrapper;
+    let wrapper = new El("li").class("pagefind-modular-list-result");
+
+    let thumb = new El("div").class("pagefind-modular-list-thumb").addTo(wrapper);
+    if (result?.meta?.image) {
+        new El("img").class("pagefind-modular-list-image").attrs({
+            src: result.meta.image,
+            alt: result.meta.image_alt || result.meta.title
+        }).addTo(thumb);
+    }
+
+    let inner = new El("div").class("pagefind-modular-list-inner").addTo(wrapper);
+    let title = new El("p").class("pagefind-modular-list-title").addTo(inner);
+    new El("a").class("pagefind-modular-list-link").text(result.meta?.title).attrs({
+        href: result.meta?.url || result.url
+    }).addTo(title);
+
+    new El("p").class("pagefind-modular-list-excerpt").html(result.excerpt).addTo(inner);
+
+    return wrapper.element;
 }
 
 class Result {

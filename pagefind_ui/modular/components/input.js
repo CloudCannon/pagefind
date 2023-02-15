@@ -1,6 +1,9 @@
+import El from "../helpers/element-builder";
+
 export class Input {
     constructor(opts) {
         this.inputEl = null;
+        this.clearEl = null;
         this.instance = null;
 
         if (opts.inputElement) {
@@ -20,6 +23,7 @@ export class Input {
         this.inputEl.addEventListener("input", (e) => {
             if (this.instance && typeof e?.target?.value === "string") {
                 this.instance.triggerSearch(e.target.value);
+                this.updateState(e.target.value);
             }
         });
     }
@@ -35,9 +39,30 @@ export class Input {
             console.warn(`[Pagefind Input component]: Treating containerElement option as inputElement and proceeding`);
             this.initExisting(selector);
         } else {
-            this.inputEl = document.createElement("input");
             container.innerHTML = "";
-            container.appendChild(this.inputEl);
+
+            const wrapper = new El("form")
+                .class("pagefind-modular-input-wrapper")
+                .attrs({
+                    role: "search",
+                    "aria-label": "Search this site",
+                    action: "javascript:void(0);"
+                });
+
+            this.inputEl = new El("input").class("pagefind-modular-input").addTo(wrapper);
+
+            this.clearEl = new El("button")
+                .class("pagefind-modular-input-clear")
+                .attrs({"data-pfmod-suppressed": "true"})
+                .text("Clear")
+                .handle("click", () => {
+                    this.inputEl.value = "";
+                    this.instance.triggerSearch("");
+                    this.updateState("");
+                })
+                .addTo(wrapper);
+
+            wrapper.addTo(container);
         }
     }
 
@@ -54,11 +79,22 @@ export class Input {
         this.inputEl = el;
     }
 
+    updateState(term) {
+        if (this.clearEl) {
+            if (term && term?.length) {
+                this.clearEl.removeAttribute("data-pfmod-suppressed");
+            } else {
+                this.clearEl.setAttribute("data-pfmod-suppressed", "true");
+            }
+        }
+    }
+
     register(instance) {
         this.instance = instance;
         this.instance.on("search", (term, _filters) => {
             if (this.inputEl && document.activeElement !== this.inputEl) {
                 this.inputEl.value = term;
+                this.updateState(term);
             }
         });
     }

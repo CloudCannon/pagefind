@@ -21,7 +21,9 @@ const serve = async () => {
         ],
         bundle: true,
     }
-    fs.copyFileSync(path.join(__dirname, `css/ui.css`), path.join(__dirname, `_dev_files/_pagefind/modular.css`));
+    fs.rmSync(path.join(__dirname, `_dev_files/_pagefind/modular.css`));
+    fs.symlinkSync(path.join(__dirname, `css/ui.css`), path.join(__dirname, `_dev_files/_pagefind/modular.css`));
+    // fs.copyFileSync(path.join(__dirname, `css/ui.css`), path.join(__dirname, `_dev_files/_pagefind/modular.css`));
 
     const context = await esbuild.context(esbuildOptions);
     const server = await context.serve({ servedir: path.join(__dirname, "_dev_files") });

@@ -99,6 +99,14 @@ export class Instance {
         this.__dispatch__("loading");
         await this.__load__();
         const thisSearch = ++this.__searchID__;
+
+        if (!term || !term.length) {
+            this.__dispatch__("results", {results: []});
+            this.availableFilters = await this.__pagefind__.filters();
+            this.__dispatch__("filters", this.availableFilters);
+            return;
+        }
+
         const results = await this.__pagefind__.search(term, { filters });
         if (this.__searchID__ === thisSearch) {
             if (results.filters && Object.keys(results.filters)?.length) {
