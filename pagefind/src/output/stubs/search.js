@@ -153,9 +153,13 @@ class PagefindInstance {
             let compressed_wasm = await fetch(wasm_url);
             compressed_wasm = await compressed_wasm.arrayBuffer();
             const final_wasm = this.decompress(new Uint8Array(compressed_wasm), "Pagefind WebAssembly");
+            if (!final_wasm) {
+                throw new Error("No WASM after decompression");
+            }
             this.wasm = await this.backend(final_wasm);
         } catch (e) {
             console.error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
+            throw new Error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
         }
     }
 
@@ -403,6 +407,7 @@ class Pagefind {
     constructor() {
         this.backend = wasm_bindgen;
         this.primaryLanguage = "unknown";
+        this.searchID = 0;
 
         this.primary = new PagefindInstance({
             primary: true
@@ -479,6 +484,22 @@ class Pagefind {
         await Promise.all(this.instances.map(i => i.preload(term, options)));
     }
 
+    async debouncedSearch(term, options, debounceTimeoutMs = 300) {
+        const thisSearchID = ++this.searchID;
+        this.preload(term, options);
+        await asyncSleep(debounceTimeoutMs);
+
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+
+        const searchResult = await this.search(term, options);
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+        return searchResult;
+    }
+
     async search(term, options = {}) {
         let search = await Promise.all(this.instances.map(i => i.search(term, options)));
 
@@ -496,5 +517,6 @@ export const mergeIndex = async (indexPath, options) => await pagefind.mergeInde
 export const options = async (options) => await pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
 export const search = async (term, options) => await pagefind.search(term, options);
+export const debouncedSearch = async (term, options, debounceTimeoutMs) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
 export const preload = async (term, options) => await pagefind.preload(term, options);
 export const filters = async () => await pagefind.filters();

@@ -57,9 +57,13 @@ jobs:
           node-version: 16
 
       - name: Install Rust
-        run: |
-          rustup install ${{ matrix.rust }}
-          rustup default ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: ${{ matrix.rust }}
+            target: ${{ matrix.target }}
+            override: true
+            default: true
+            components: rustfmt, clippy
 
       - name: Check versions
         run: |
@@ -70,9 +74,6 @@ jobs:
         uses: jetli/wasm-pack-action@v0.3.0
         with:
           version: ${{env.WASM_PACK_VERSION}}
-
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@latest
 
       - name: Install humane
         uses: supplypike/setup-bin@v1
@@ -86,7 +87,11 @@ jobs:
         run: ./local_build.sh
 
       - name: Build UI
-        working-directory: ./pagefind_ui
+        working-directory: ./pagefind_ui/default
+        run: npm i && npm run build
+
+      - name: Build Modular UI
+        working-directory: ./pagefind_ui/modular
         run: npm i && npm run build
 
       - name: Test Web

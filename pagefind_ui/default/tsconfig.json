@@ -1,0 +1,11 @@
+{
+    "include": [
+        "npm_dist/**/*.cjs",
+        "npm_dist/**/*.mjs"
+    ],
+    "compilerOptions": {
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "allowJs": true
+    }
+}

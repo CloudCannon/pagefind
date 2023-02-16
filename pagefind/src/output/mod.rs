@@ -44,6 +44,18 @@ const WEB_UI_CSS: &[u8] = include_bytes!(concat!(
     env!("CARGO_PKG_VERSION"),
     ".css"
 ));
+const WEB_MODULAR_UI_JS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/vendor/pagefind_modular_ui.",
+    env!("CARGO_PKG_VERSION"),
+    ".js"
+));
+const WEB_MODULAR_UI_CSS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/vendor/pagefind_modular_ui.",
+    env!("CARGO_PKG_VERSION"),
+    ".css"
+));
 const GUNZIP_JS: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/src/output/stubs/gz.js"
@@ -100,6 +112,18 @@ pub async fn write_common(options: &SearchOptions, language_indexes: Vec<Languag
         write(
             outdir.join("pagefind-ui.css"),
             vec![WEB_UI_CSS],
+            Compress::None,
+            WriteBehavior::None,
+        ),
+        write(
+            outdir.join("pagefind-modular-ui.js"),
+            vec![WEB_MODULAR_UI_JS],
+            Compress::None,
+            WriteBehavior::None,
+        ),
+        write(
+            outdir.join("pagefind-modular-ui.css"),
+            vec![WEB_MODULAR_UI_CSS],
             Compress::None,
             WriteBehavior::None,
         ),

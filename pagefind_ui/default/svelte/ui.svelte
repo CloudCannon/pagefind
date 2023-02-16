@@ -6,7 +6,7 @@
     import Filters from "./filters.svelte";
     import Reset from "./reset.svelte";
 
-    import * as translationFiles from "../translations/*.json";
+    import * as translationFiles from "../../translations/*.json";
 
     const availableTranslations = {},
         languages = translationFiles.filenames.map(
@@ -23,6 +23,7 @@
     export let reset_styles = true;
     export let show_images = true;
     export let process_result = null;
+    export let process_term = null;
     export let show_empty_filters = true;
     export let debounce_timeout_ms = 300;
     export let pagefind_options = {};
@@ -36,6 +37,9 @@
         trigger_search_term = "";
     }
     let pagefind;
+    let input_el,
+        clear_el,
+        clear_width = 40;
     let initializing = false;
 
     let searchResult = [];
@@ -132,6 +136,7 @@
         } else {
             executeSearchFunc();
         }
+        updateForButtonWidth();
     };
 
     const waitForApiInit = async () => {
@@ -143,6 +148,9 @@
 
     const search = async (term, filters) => {
         search_term = term || "";
+        if (typeof process_term === "function") {
+            term = process_term(term);
+        }
         loading = true;
         searched = true;
         await waitForApiInit();
@@ -156,6 +164,13 @@
             searchResult = results;
             loading = false;
             show = 5;
+        }
+    };
+
+    const updateForButtonWidth = () => {
+        const width = clear_el.offsetWidth;
+        if (width != clear_width) {
+            input_el.style.paddingRight = `${width + 2}px`;
         }
     };
 
@@ -176,10 +191,27 @@
         <input
             class="pagefind-ui__search-input"
             on:focus={init}
+            on:keydown={(e) => {
+                if (e.key === "Escape") {
+                    val = "";
+                    input_el.blur();
+                }
+            }}
             bind:value={val}
+            bind:this={input_el}
             type="text"
             placeholder={translate("placeholder")}
         />
+
+        <button
+            class="pagefind-ui__search-clear"
+            class:pagefind-ui__suppressed={!val}
+            bind:this={clear_el}
+            on:click={() => {
+                val = "";
+                input_el.blur();
+            }}>{translate("clear_search")}</button
+        >
 
         <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
             {#if initializing}
@@ -274,6 +306,13 @@
         color: var(--pagefind-ui-text);
         font-family: var(--pagefind-ui-font);
     }
+    .pagefind-ui__hidden {
+        display: none;
+    }
+    .pagefind-ui__suppressed {
+        opacity: 0;
+        pointer-events: none;
+    }
     .pagefind-ui__form {
         position: relative;
     }
@@ -296,7 +335,8 @@
     }
     .pagefind-ui__search-input {
         height: calc(64px * var(--pagefind-ui-scale));
-        padding: 0 0 0 calc(54px * var(--pagefind-ui-scale));
+        padding: 0 calc(70px * var(--pagefind-ui-scale)) 0
+            calc(54px * var(--pagefind-ui-scale));
         background-color: var(--pagefind-ui-background);
         border: var(--pagefind-ui-border-width) solid var(--pagefind-ui-border);
         border-radius: var(--pagefind-ui-border-radius);
@@ -312,14 +352,24 @@
     .pagefind-ui__search-input::placeholder {
         opacity: 0.2;
     }
+    .pagefind-ui__search-clear {
+        position: absolute;
+        top: calc(2px * var(--pagefind-ui-scale));
+        right: calc(2px * var(--pagefind-ui-scale));
+        height: calc(60px * var(--pagefind-ui-scale));
+        padding: 0 calc(15px * var(--pagefind-ui-scale)) 0
+            calc(2px * var(--pagefind-ui-scale));
+        color: var(--pagefind-ui-text);
+        font-size: calc(14px * var(--pagefind-ui-scale));
+        cursor: pointer;
+        background-color: var(--pagefind-ui-background);
+        border-radius: var(--pagefind-ui-border-radius);
+    }
     .pagefind-ui__drawer {
         gap: calc(60px * var(--pagefind-ui-scale));
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-    }
-    .pagefind-ui__hidden {
-        display: none;
     }
     .pagefind-ui__results-area {
         min-width: min(calc(400px * var(--pagefind-ui-scale)), 100%);
@@ -346,7 +396,7 @@
         height: calc(48px * var(--pagefind-ui-scale));
         padding: 0 calc(12px * var(--pagefind-ui-scale));
         font-size: calc(16px * var(--pagefind-ui-scale));
-        color: var(----pagefind-ui-primary);
+        color: var(--pagefind-ui-primary);
         background: var(--pagefind-ui-background);
         width: 100%;
         text-align: center;

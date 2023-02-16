@@ -42,7 +42,7 @@ This will return an object with the following structure:
 }
 ```
 
-At this point you will have access to the number of search results, and a unique ID for each result.
+At this point you will have access to the number of search results, and a unique ID for each result. Also see [Debounced search](#debounced-search) below for an alternative API.
 
 ## Loading a result
 
@@ -191,9 +191,40 @@ const search = await pagefind.search(null, {
 ```
 {{< /diffcode >}}
 
+## Debounced search
+
+The helper function `pagefind.debouncedSearch` is available and can be used in place of `pagefind.search`:
+{{< diffcode >}}
+```js
+const pagefind = await import("/_pagefind/pagefind.js");
++const search = await pagefind.debouncedSearch("static");
+```
+{{< /diffcode >}}
+
+A custom debounce timeout (default: `300`) can optionally be specified as the third argument:
+{{< diffcode >}}
+```js
+const pagefind = await import("/_pagefind/pagefind.js");
++const search = await pagefind.debouncedSearch("static", {/* options */}, 300);
+```
+{{< /diffcode >}}
+
+This function waits for the specified duration, and then either performs the search, or returns null if a subsequent call to `pagefind.debouncedSearch` has been made. This helps with resource usage when processing large searches, and can help with flickering when rendering results in a UI.
+
+{{< diffcode >}}
+```js
+const search = await pagefind.debouncedSearch("static");
++if (search === null) {
++  // a more recent search call has been made, nothing to do
++} else {
++  process(search.results);
++}
+```
+{{< /diffcode >}}
+
 ## Preloading search terms
 
-If you have a debounced search input, Pagefind won't start loading indexes until you run your search query. To speed up your search query when it runs, you can use the `pagefind.preload` function as the user is typing. 
+If you have a debounced search input, Pagefind won't start loading indexes until you run your search query. To speed up your search query when it runs, you can use the `pagefind.preload` function as the user is typing. Note that the [Debounced search](#debounced-search) helper provided by Pagefind implements this for you under the hood.
 
 {{< diffcode >}}
 ```js
