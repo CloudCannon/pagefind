@@ -19,10 +19,14 @@
 * **Default UI**: Added a `processTerm` hook that can normalize the search query. See [Pagefind UI > Process term](https://pagefind.app/docs/ui/#process-result)
 * **Default UI**: Added a `Clear` button to the search input
 * **Default UI**: Added functionality to clear the search input when `Esc` is pressed while the input is focused
-* **Default UI**: Published UI to npm under `@pagefind/default-ui`, as an alternative to using the files output by the Pagefind CLI
+* **Default UI**: Published UI to npm under [@pagefind/default-ui](https://www.npmjs.com/package/@pagefind/default-ui), as an alternative to using the files output by the Pagefind CLI
 
 ### Fixes & Tweaks
 * **Default UI**: Fixed a syntax error in the CSS
+
+### Prelease: Modular UI
+* Work is underway on a new "Modular UI" that will live alongside the current "Default UI". Full support and documentation will be provided in a future release — the prerelease version can be found on npm under [@pagefind/modular-ui](https://www.npmjs.com/package/@pagefind/modular-ui)
+  * As this package is still under development, some of the configuration may change in a future release. Make sure to pin your Pagefind versions for any production site relying on the Modular UI.
 
 ## v0.10.7 (January 19, 2023)
 
