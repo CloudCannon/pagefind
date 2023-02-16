@@ -95,42 +95,45 @@ jobs:
           name: release-checksums
           path: wrappers/node/checksums
 
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+
+      - name: Get Tag
+        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
       - name: Prepare wrapper package
         working-directory: ./wrappers/node
         run: |
-          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
-          npm version $(echo $RELEASE_VERSION | cut -c1-)
+          npm version $GIT_VERSION
       - name: Publish wrapper package
         working-directory: ./wrappers/node
-        run: npm publish
+        run: npm publish --tag $GIT_TAG
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Prepare default ui package
         working-directory: ./pagefind_ui/default
         run: |
-          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
-          npm version $(echo $RELEASE_VERSION | cut -c1-)
+          npm version $GIT_VERSION
       - name: Publish default ui package
         working-directory: ./pagefind_ui/default
         run: |
           npm i
           npm run build
-          npm publish
+          npm publish --tag $GIT_TAG
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Prepare modular ui package
         working-directory: ./pagefind_ui/modular
         run: |
-          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
-          npm version $(echo $RELEASE_VERSION | cut -c1-)
+          npm version $GIT_VERSION
       - name: Publish modular ui package
         working-directory: ./pagefind_ui/modular
         run: |
           npm i
           npm run build
-          npm publish
+          npm publish --tag $GIT_TAG
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
