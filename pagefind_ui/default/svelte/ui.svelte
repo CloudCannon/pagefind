@@ -307,7 +307,7 @@
         font-family: var(--pagefind-ui-font);
     }
     .pagefind-ui__hidden {
-        display: none;
+        display: none !important;
     }
     .pagefind-ui__suppressed {
         opacity: 0;
