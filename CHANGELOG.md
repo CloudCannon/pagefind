@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.11.0 (February 16, 2023)
+
 
 ### Features & Improvements
 * **CLI**: Improved `npx` wrapper compatibility on Windows, thanks @tylermercer!
