@@ -40,6 +40,14 @@ export class Input {
                 this.instance.triggerSearch(e.target.value);
             }
         });
+        this.inputEl.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                ++this.searchID;
+                this.inputEl.value = "";
+                this.instance.triggerSearch("");
+                this.updateState("");
+            }
+        });
     }
 
     initContainer(selector) {
