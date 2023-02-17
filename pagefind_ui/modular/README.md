@@ -143,6 +143,7 @@ instance.add(new Summary({
 | Option | Description |
 |-|-|
 | `containerElement` | A selector to an element that the search summary text should be placed within |
+| `defaultMessage` | The text to show when there is no summary. Defaults to nothing |
 
 ### Custom Modules
 

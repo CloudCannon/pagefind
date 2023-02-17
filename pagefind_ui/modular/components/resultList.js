@@ -51,7 +51,7 @@ const resultTemplate = (result) => {
 }
 
 class Result {
-    constructor(opts) {
+    constructor(opts = {}) {
         this.rawResult = opts.result;
         this.placeholderNodes = opts.placeholderNodes;
         this.resultFn = opts.resultFn;

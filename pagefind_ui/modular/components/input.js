@@ -5,7 +5,7 @@ const asyncSleep = async (ms = 100) => {
 };
 
 export class Input {
-    constructor(opts) {
+    constructor(opts = {}) {
         this.inputEl = null;
         this.clearEl = null;
         this.instance = null;
