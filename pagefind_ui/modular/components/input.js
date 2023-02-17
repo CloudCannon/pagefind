@@ -37,16 +37,19 @@ export class Input {
                     return null;
                 }
 
-                this.instance.triggerSearch(e.target.value);
+                this.instance?.triggerSearch(e.target.value);
             }
         });
         this.inputEl.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 ++this.searchID;
                 this.inputEl.value = "";
-                this.instance.triggerSearch("");
+                this.instance?.triggerSearch("");
                 this.updateState("");
             }
+        });
+        this.inputEl.addEventListener("focus", () => {
+            this.instance?.triggerLoad();
         });
     }
 
