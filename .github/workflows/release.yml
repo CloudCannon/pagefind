@@ -175,10 +175,15 @@ jobs:
           name: release
           path: build-artifacts
       - name: Build CHANGELOG
+        if: env.GIT_TAG == 'latest'
         run: |
           node ./.backstage/changelog.cjs write
           echo CHANGELOG=\"$(base64 -w 0 -i CHANGELOG.md)\" >> $GITHUB_ENV
           echo SHA=\"$( git rev-parse main:CHANGELOG.md )\" >> $GITHUB_ENV
+      - name: Build CHANGELOG
+        if: env.GIT_TAG != 'latest'
+        run: |
+          node ./.backstage/changelog.cjs write || true
       - name: Commit new CHANGELOG
         uses: octokit/request-action@v2.x
         if: env.GIT_TAG == 'latest'
