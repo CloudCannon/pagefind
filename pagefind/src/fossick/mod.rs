@@ -219,9 +219,15 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
         return "/unknown/".to_string();
     };
 
+    let final_url: String = if !options.keep_index_url {
+        url.to_slash_lossy().to_owned().replace("index.html", "")
+    } else {
+        url.to_slash_lossy().to_owned().to_string()
+    };
+
     format!(
         "/{}",
-        url.to_slash_lossy().to_owned().replace("index.html", "")
+        final_url
     )
 }
 
