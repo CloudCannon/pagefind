@@ -54,6 +54,7 @@ export class FilterPills {
             .attrs({
                 "data-pfmod-sr-hidden": true
             })
+            .text(`Filter results by ${this.filter}`)
             .addTo(outer);
 
         this.wrapper = new El("div")
@@ -82,15 +83,15 @@ export class FilterPills {
         this.instance.triggerFilter(this.filter, selected);
     }
 
-    pillString(val, count) {
+    pillInner(val, count) {
         if (this.total) {
             if (val === "All") {
-                return `${val}`;
+                return `<span aria-label="${val}">${val}</span>`;
             } else {
-                return `${val} (${count})`;
+                return `<span aria-label="${val}">${val} (${count})</span>`;
             }
         } else {
-            return `${val}`;
+            return `<span aria-label="${val}">${val}</span>`;
         }
     }
 
@@ -98,9 +99,10 @@ export class FilterPills {
         this.available.forEach(([val, count]) => {
             new El("button")
                 .class("pagefind-modular-filter-pill")
-                .text(this.pillString(val, count))
+                .html(this.pillInner(val, count))
                 .attrs({
-                    "aria-pressed": this.selected.includes(val)
+                    "aria-pressed": this.selected.includes(val),
+                    "type": "button",
                 })
                 .handle("click", () => {
                     if (val === "All") {
@@ -127,7 +129,7 @@ export class FilterPills {
     updateExisting() {
         const pills = [...this.wrapper.childNodes];
         this.available.forEach(([val, count], i) => {
-            pills[i].innerText = this.pillString(val, count);
+            pills[i].innerHTML = this.pillInner(val, count);
             pills[i].setAttribute("aria-pressed", this.selected.includes(val));
         });
     }
