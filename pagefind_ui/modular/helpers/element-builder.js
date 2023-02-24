@@ -3,6 +3,11 @@ export default class El {
         this.element = document.createElement(tagname);
     }
 
+    id(s) {
+        this.element.id = s;
+        return this;
+    }
+
     class(s) {
         this.element.classList.add(s);
         return this;

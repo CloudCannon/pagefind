@@ -132,6 +132,24 @@ instance.add(new ResultList({
 
 The template functions can return either a string, a DOM node, or an array of DOM nodes.
 
+### FilterPills
+
+```js
+instance.add(new FilterPills({
+    containerElement: "#filter",
+    filter: "author"
+}));
+```
+
+| Option | Description |
+|-|-|
+| `containerElement` | A selector to an element that the filter pill row should be placed within |
+| `filter` | Which filter this row should represent. Filter name should exist in the search index |
+| `ordering` | An array containing the ideal order to display filter values in. Unmatched values will appear at the end |
+| `alwaysShow` | Whether to show the component when there are no results |
+| `selectMultiple` | Whether this component should toggle between single filter values, or allow multiple to be selected at once |
+
+
 ### Summary
 
 ```js

@@ -120,7 +120,7 @@ jobs:
         run: |
           npm i
           npm run build
-          npm publish --tag $GIT_TAG
+          npm publish --tag $GIT_TAG --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -133,7 +133,7 @@ jobs:
         run: |
           npm i
           npm run build
-          npm publish --tag $GIT_TAG
+          npm publish --tag $GIT_TAG --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -151,6 +151,13 @@ jobs:
         with:
           application_id: ${{ secrets.CC_OSS_BOT_ID }}
           application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
+
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+
+      - name: Get Tag
+        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
       - name: Clone
         uses: actions/checkout@v2
         with:
@@ -167,13 +174,22 @@ jobs:
         with:
           name: release
           path: build-artifacts
+
       - name: Build CHANGELOG
+        if: env.GIT_TAG == 'latest'
         run: |
           node ./.backstage/changelog.cjs write
           echo CHANGELOG=\"$(base64 -w 0 -i CHANGELOG.md)\" >> $GITHUB_ENV
           echo SHA=\"$( git rev-parse main:CHANGELOG.md )\" >> $GITHUB_ENV
+      - name: Build CHANGELOG
+        if: env.GIT_TAG != 'latest'
+        run: |
+          echo "## Prerelease" > RELEASE.md
+          node ./.backstage/changelog.cjs write || true
+
       - name: Commit new CHANGELOG
         uses: octokit/request-action@v2.x
+        if: env.GIT_TAG == 'latest'
         id: push_changes
         with:
           route: PUT /repos/{owner}/{repo}/contents/CHANGELOG.md
@@ -187,6 +203,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
       - name: Release documentation branch
         uses: octokit/request-action@v2.x
+        if: env.GIT_TAG == 'latest'
         id: merge_docs
         with:
           route: POST /repos/{owner}/{repo}/merges
@@ -200,8 +217,21 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG == 'latest'
         with:
+          repository: cloudcannon/pagefind
+          prerelease: false
+          body_path: RELEASE.md
+          files: |
+            build-artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG != 'latest'
+        with:
+          repository: cloudcannon/pagefind-beta
+          prerelease: true
           body_path: RELEASE.md
           files: |
             build-artifacts/*
@@ -276,7 +306,11 @@ jobs:
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
 
+      - name: Get Tag
+        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
       - name: Verify Changelog
+        if: env.GIT_TAG == 'latest'
         run: |
           node ./.backstage/changelog.cjs
 

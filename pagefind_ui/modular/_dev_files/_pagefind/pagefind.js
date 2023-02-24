@@ -188,6 +188,8 @@ class Pagefind {
     }
 
     async search(term, options) {
+        console.log(`Pagefind Stub: Searching for ${term} with options:`);
+        console.log(options);
         await this.sleep(Math.floor(Math.random() * 2000));
         if (/y$/i.test(term)) {
             return {

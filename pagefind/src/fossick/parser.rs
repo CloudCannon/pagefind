@@ -141,7 +141,7 @@ impl<'a> DomParser<'a> {
                     enclose! { (data) element!(root, move |el| {
                         let explicit_ignore_flag = el.get_attribute("data-pagefind-ignore").map(|attr| {
                             match attr.to_ascii_lowercase().as_str() {
-                                "" | "index" => NodeStatus::Ignored,
+                                "" | "index" | "true" => NodeStatus::Ignored,
                                 "all" => NodeStatus::Excluded,
                                 _ => {
                                     options.logger.warn(format!("data-pagefind-ignore value of \"{}\" is not valid. Expected no value, or one of: [index, all]. Assuming 'all' and excluding this element entirely.", attr));

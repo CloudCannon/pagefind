@@ -466,7 +466,7 @@ class Pagefind {
                     continue;
                 } else {
                     const filter = merged[filterKey];
-                    for (const [valueKey, count] of Object.entries(filter)) {
+                    for (const [valueKey, count] of Object.entries(values)) {
                         filter[valueKey] = (filter[valueKey] || 0) + count;
                     }
                 }

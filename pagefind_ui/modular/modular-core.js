@@ -1,6 +1,7 @@
 export { Input } from "./components/input";
 export { ResultList } from "./components/resultList";
 export { Summary } from "./components/summary";
+export { FilterPills } from "./components/filterPills";
 
 /*
 - Add some styles for the two components implemented thus far at `css/ui.css`
@@ -84,11 +85,30 @@ export class Instance {
         // this.components.forEach(component => component?.triggerLoad?.());
     }
 
-    triggerSearch(term, filters) {
+    triggerSearch(term) {
+        this.searchTerm = term;
+        this.__dispatch__("search", term, this.searchFilters);
+        this.__search__(term, this.searchFilters);
+    }
+
+    triggerSearchWithFilters(term, filters) {
         this.searchTerm = term;
         this.searchFilters = filters;
         this.__dispatch__("search", term, filters);
         this.__search__(term, filters);
+    }
+
+    triggerFilters(filters) {
+        this.searchFilters = filters;
+        this.__dispatch__("search", this.searchTerm, filters);
+        this.__search__(this.searchTerm, filters);
+    }
+
+    triggerFilter(filter, values) {
+        this.searchFilters = this.searchFilters || {};
+        this.searchFilters[filter] = values;
+        this.__dispatch__("search", this.searchTerm, this.searchFilters);
+        this.__search__(this.searchTerm, this.searchFilters);
     }
 
     __dispatch__(e, ...args) {
