@@ -63,6 +63,16 @@ Overrides the bundle directory. In most cases this should be automatically detec
 
 See [multisite search > weighting](/docs/multisite/#changing-the-weighting-of-individual-indexes)
 
+### Keep Index URL
+
+```json
+{
+    "keepIndexUrl": true
+}
+```
+
+Keeps `index.html` at the end of search result paths. For example, a file called "public/cat/index.html will have a search result url of `public/cat/index.html`. Defaults to `false`, stripping `index.html`.
+
 ### Merge filter
 
 See [multisite search > filtering](/docs/multisite/#filtering-results-by-index)
