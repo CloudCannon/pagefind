@@ -78,6 +78,13 @@ See [Multilingual search](/docs/multilingual/) for more details.
 |---------------------------|---------------------------|------------------|
 | `--force-language <LANG>` | `PAGEFIND_FORCE_LANGUAGE` | `force_language` |
 
+### Keep Index URL
+Keeps `index.html` at the end of search result paths. By default, a file at `animals/cat/index.html` will be given the URL `/animals/cat/`. Setting this option to `true` will result in the URL `/animals/cat/index.html`.
+
+| CLI Flag           | ENV Variable     | Config Key       |
+|--------------------|------------------|------------------|
+| `--keep-index-url` | `KEEP_INDEX_URL` | `keep_index_url` |
+
 ### Verbose
 Prints extra logging while indexing the site. Only affects the CLI, does not impact web-facing search.
 
