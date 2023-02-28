@@ -167,7 +167,7 @@ export class FilterPills {
             if (!this.wrapper) return;
             this.total = results?.unfilteredResultCount || 0;
 
-            if (this.available[0][0] === "All") {
+            if (this.available?.[0]?.[0] === "All") {
                 this.available[0][1] = this.total;
             }
 
