@@ -85,11 +85,7 @@ export class FilterPills {
 
     pillInner(val, count) {
         if (this.total) {
-            if (val === "All") {
-                return `<span aria-label="${val}">${val}</span>`;
-            } else {
-                return `<span aria-label="${val}">${val} (${count})</span>`;
-            }
+            return `<span aria-label="${val}">${val} (${count})</span>`;
         } else {
             return `<span aria-label="${val}">${val}</span>`;
         }
@@ -163,15 +159,19 @@ export class FilterPills {
                     return a[0].localeCompare(b[0]);
                 });
             }
-            this.available.unshift(["All", 0]);
+            this.available.unshift(["All", this.total]);
             this.update();
         });
 
         instance.on("results", (results) => {
             if (!this.wrapper) return;
-            this.total = results?.results?.length || 0;
+            this.total = results?.unfilteredTotalCount || 0;
 
-            if (results?.results?.length || this.alwaysShow) {
+            if (this.available[0][0] === "All") {
+                this.available[0][1] = this.total;
+            }
+
+            if (this.total || this.alwaysShow) {
                 this.wrapper.removeAttribute("data-pfmod-hidden");
             } else {
                 this.wrapper.setAttribute("data-pfmod-hidden", "true");

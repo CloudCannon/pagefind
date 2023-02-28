@@ -117,7 +117,7 @@ export class Instance {
     }
 
     async __clear__() {
-        this.__dispatch__("results", {results: []});
+        this.__dispatch__("results", {results: [], unfilteredTotalCount: 0});
         this.availableFilters = await this.__pagefind__.filters();
         this.totalFilters = this.availableFilters;
         this.__dispatch__("filters", { available: this.availableFilters, total: this.totalFilters });

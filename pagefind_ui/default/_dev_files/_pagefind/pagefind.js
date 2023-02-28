@@ -212,6 +212,7 @@ class Pagefind {
             }),
             filters: stubbed_filters(3),
             totalFilters: stubbed_filters(3),
+            unfilteredTotalCount: 10,
         };
     }
 
