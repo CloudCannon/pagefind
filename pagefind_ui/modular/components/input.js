@@ -123,4 +123,10 @@ export class Input {
             }
         });
     }
+
+    focus() {
+        if (this.inputEl) {
+            this.inputEl.focus();
+        }
+    }
 }
