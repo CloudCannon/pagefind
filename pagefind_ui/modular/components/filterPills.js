@@ -165,7 +165,7 @@ export class FilterPills {
 
         instance.on("results", (results) => {
             if (!this.wrapper) return;
-            this.total = results?.unfilteredTotalCount || 0;
+            this.total = results?.unfilteredResultCount || 0;
 
             if (this.available[0][0] === "All") {
                 this.available[0][1] = this.total;
