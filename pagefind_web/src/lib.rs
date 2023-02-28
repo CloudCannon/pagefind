@@ -240,7 +240,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
     }
 
     let filter_set = search_index.filter(filter);
-    let mut results = if exact {
+    let (unfiltered_results, mut results) = if exact {
         search_index.exact_term(query, filter_set)
     } else {
         search_index.search_term(query, filter_set)
@@ -248,6 +248,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
 
     let filter_string =
         search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
+    let unfiltered_string = search_index.get_filters(Some(unfiltered_results));
 
     if let Some((sort, direction)) = sort.split_once(':') {
         debug!({ format!("Trying to sort by {sort} ({direction})") });
@@ -293,5 +294,8 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
     #[cfg(debug_assertions)]
     debug_log(&format! {"{:?}", result_string});
 
-    format!("{}:{}", result_string, filter_string)
+    format!(
+        "{}:{}__PF_UNFILTERED_DELIM__{}",
+        result_string, filter_string, unfiltered_string
+    )
 }

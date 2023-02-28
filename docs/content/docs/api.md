@@ -121,7 +121,11 @@ const search = await pagefind.search("static", {
 ```
 {{< /diffcode >}}
 
-If all filters have been loaded with `await pagefind.filters()`, counts will also be returned alongside each search, detailing the number of remaining items for each filter value:
+If all filters have been loaded with `await pagefind.filters()`, counts will also be returned alongside each search, detailing the number of remaining items for each filter value. 
+
+- The `filters` key contains the number of results if a given filter were to be applied in addition to the current filters.
+- The `totalFilters` key contains the number of results if a given filter were to be applied instead of the current filters.
+
 ```js
 { 
     results: [
@@ -139,6 +143,17 @@ If all filters have been loaded with `await pagefind.filters()`, counts will als
         "color": {
             "Orange": 1,
             "Red": 0
+        }
+    },
+    totalFilters: {
+        "filter": {
+            "value_one": 4,
+            "value_two": 10,
+            "value_three": 2
+        },
+        "color": {
+            "Orange": 4,
+            "Red": 2
         }
     }
 }

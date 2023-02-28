@@ -339,6 +339,7 @@ class PagefindInstance {
             return {
                 results: [],
                 filters: {},
+                totalFilters: {},
                 timings: {
                     preload: Date.now() - start,
                     search: Date.now() - start,
@@ -368,8 +369,9 @@ class PagefindInstance {
         let searchStart = Date.now();
         let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search);
         log(`Got the raw search result: ${result}`);
-        let [results, filters] = result.split(/:(.*)$/);
+        let [results, filters, totalFilters] = result.split(/:(.*)__PF_UNFILTERED_DELIM__(.*)$/);
         let filterObj = this.parseFilters(filters);
+        let totalFilterObj = this.parseFilters(totalFilters);
         log(`Remaining filters: ${JSON.stringify(result)}`);
         results = results.length ? results.split(" ") : [];
 
@@ -394,6 +396,7 @@ class PagefindInstance {
         return {
             results: resultsInterface,
             filters: filterObj,
+            totalFilters: totalFilterObj,
             timings: {
                 preload: realTime - searchTime,
                 search: searchTime,
@@ -504,10 +507,11 @@ class Pagefind {
         let search = await Promise.all(this.instances.map(i => i.search(term, options)));
 
         const filters = this.mergeFilters(search.map(s => s.filters));
+        const totalFilters = this.mergeFilters(search.map(s => s.totalFilters));
         const results = search.map(s => s.results).flat().sort((a, b) => b.score - a.score);
         const timings = search.map(s => s.timings);
 
-        return { results, filters, timings };
+        return { results, filters, totalFilters, timings };
     }
 }
 
