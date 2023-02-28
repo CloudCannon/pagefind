@@ -139,6 +139,12 @@ export class FilterPills {
         this.instance.on("filters", (filters) => {
             if (!this.wrapper) return;
 
+            if (this.selectMultiple) {
+                filters = filters.available;
+            } else {
+                filters = filters.total;
+            }
+
             let newlyAvailable = filters[this.filter];
             if (!newlyAvailable) {
                 console.warn(`[Pagefind FilterPills component]: No possible values found for the ${this.filter} filter`);

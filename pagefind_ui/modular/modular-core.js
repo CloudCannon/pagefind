@@ -40,6 +40,7 @@ export class Instance {
         this.searchFilters = {};
         this.searchResult = {};
         this.availableFilters = null;
+        this.totalFilters = null;
 
         this.options = {
             bundlePath: opts.bundlePath ?? scriptBundlePath,
@@ -118,7 +119,8 @@ export class Instance {
     async __clear__() {
         this.__dispatch__("results", {results: []});
         this.availableFilters = await this.__pagefind__.filters();
-        this.__dispatch__("filters", this.availableFilters);
+        this.totalFilters = this.availableFilters;
+        this.__dispatch__("filters", { available: this.availableFilters, total: this.totalFilters });
     }
 
     async __search__(term, filters) {
@@ -134,7 +136,8 @@ export class Instance {
         if (results && this.__searchID__ === thisSearch) {
             if (results.filters && Object.keys(results.filters)?.length) {
                 this.availableFilters = results.filters;
-                this.__dispatch__("filters", this.availableFilters);
+                this.totalFilters = results.totalFilters;
+                this.__dispatch__("filters", { available: this.availableFilters, total: this.totalFilters });
             }
             this.searchResult = results;
             this.__dispatch__("results", this.searchResult);
@@ -160,6 +163,7 @@ export class Instance {
             this.__pagefind__ = imported_pagefind;
         }
         this.availableFilters = await this.__pagefind__.filters();
-        this.__dispatch__("filters", this.availableFilters);
+        this.totalFilters = this.availableFilters;
+        this.__dispatch__("filters", { available: this.availableFilters, total: this.totalFilters });
     }
 }
