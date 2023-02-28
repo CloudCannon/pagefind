@@ -245,6 +245,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
     } else {
         search_index.search_term(query, filter_set)
     };
+    let unfiltered_total = unfiltered_results.len();
 
     let filter_string =
         search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
@@ -295,7 +296,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
     debug_log(&format! {"{:?}", result_string});
 
     format!(
-        "{}:{}__PF_UNFILTERED_DELIM__{}",
-        result_string, filter_string, unfiltered_string
+        "{}:{}:{}__PF_UNFILTERED_DELIM__{}",
+        unfiltered_total, result_string, filter_string, unfiltered_string
     )
 }

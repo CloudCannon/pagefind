@@ -338,6 +338,7 @@ class PagefindInstance {
         if (!term?.length && !filter_only) {
             return {
                 results: [],
+                unfilteredResultCount: 0,
                 filters: {},
                 totalFilters: {},
                 timings: {
@@ -369,7 +370,7 @@ class PagefindInstance {
         let searchStart = Date.now();
         let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search);
         log(`Got the raw search result: ${result}`);
-        let [results, filters, totalFilters] = result.split(/:(.*)__PF_UNFILTERED_DELIM__(.*)$/);
+        let [unfilteredResultCount, results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
         let filterObj = this.parseFilters(filters);
         let totalFilterObj = this.parseFilters(totalFilters);
         log(`Remaining filters: ${JSON.stringify(result)}`);
@@ -395,6 +396,7 @@ class PagefindInstance {
         log(`Found ${results.length} result${results.length == 1 ? '' : 's'} for "${term}" in ${Date.now() - searchStart}ms (${Date.now() - start}ms realtime)`);
         return {
             results: resultsInterface,
+            unfilteredResultCount: parseInt(unfilteredResultCount),
             filters: filterObj,
             totalFilters: totalFilterObj,
             timings: {
@@ -510,8 +512,9 @@ class Pagefind {
         const totalFilters = this.mergeFilters(search.map(s => s.totalFilters));
         const results = search.map(s => s.results).flat().sort((a, b) => b.score - a.score);
         const timings = search.map(s => s.timings);
+        const unfilteredResultCount = search.reduce((sum, s) => sum + s.unfilteredResultCount, 0);
 
-        return { results, filters, totalFilters, timings };
+        return { results, unfilteredResultCount, filters, totalFilters, timings };
     }
 }
 
