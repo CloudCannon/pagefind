@@ -8,6 +8,7 @@ export class FilterPills {
     constructor(opts = {}) {
         this.instance = null;
         this.wrapper = null;
+        this.pillContainer = null;
         this.available = {};
         this.selected = ["All"];
         this.total = 0;
@@ -41,7 +42,7 @@ export class FilterPills {
         const id = `pagefind_modular_filter_pills_${this.filter}`;
 
 
-        const outer = new El("div")
+        this.wrapper = new El("div")
             .class("pagefind-modular-filter-pills-wrapper")
             .attrs({
                 "role": "group",
@@ -55,17 +56,17 @@ export class FilterPills {
                 "data-pfmod-sr-hidden": true
             })
             .text(`Filter results by ${this.filter}`)
-            .addTo(outer);
+            .addTo(this.wrapper);
 
-        this.wrapper = new El("div")
+        this.pillContainer = new El("div")
             .class("pagefind-modular-filter-pills")
-            .addTo(outer);
+            .addTo(this.wrapper);
         
         if (!this.alwaysShow) {
             this.wrapper.setAttribute("data-pfmod-hidden", "true");
         }
 
-        outer.addTo(container);
+        this.wrapper.addTo(container);
     }
 
     update() {
@@ -118,12 +119,12 @@ export class FilterPills {
                     this.update();
                     this.pushFilters();
                 })
-                .addTo(this.wrapper);
+                .addTo(this.pillContainer);
         });
     }
 
     updateExisting() {
-        const pills = [...this.wrapper.childNodes];
+        const pills = [...this.pillContainer.childNodes];
         this.available.forEach(([val, count], i) => {
             pills[i].innerHTML = this.pillInner(val, count);
             pills[i].setAttribute("aria-pressed", this.selected.includes(val));
@@ -133,7 +134,7 @@ export class FilterPills {
     register(instance) {
         this.instance = instance;
         this.instance.on("filters", (filters) => {
-            if (!this.wrapper) return;
+            if (!this.pillContainer) return;
 
             if (this.selectMultiple) {
                 filters = filters.available;
@@ -164,7 +165,7 @@ export class FilterPills {
         });
 
         instance.on("results", (results) => {
-            if (!this.wrapper) return;
+            if (!this.pillContainer) return;
             this.total = results?.unfilteredResultCount || 0;
 
             if (this.available?.[0]?.[0] === "All") {
