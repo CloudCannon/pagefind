@@ -47,6 +47,9 @@ export class Input {
                 this.instance?.triggerSearch("");
                 this.updateState("");
             }
+            if (e.key === "Enter") {
+                e.preventDefault();
+            }
         });
         this.inputEl.addEventListener("focus", () => {
             this.instance?.triggerLoad();

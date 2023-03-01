@@ -196,6 +196,9 @@
                     val = "";
                     input_el.blur();
                 }
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                }
             }}
             bind:value={val}
             bind:this={input_el}
