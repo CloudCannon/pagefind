@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v0.12.0 (March 1, 2023)
+
 > Note: v0.12.0 will likely be the last feature release before an upcoming v1.0.0 that will contain a small handful of breaking changes. See the [v1.0.0 milestone](https://github.com/CloudCannon/pagefind/milestone/4) on GitHub for details and updates.
 
 ### Features & Improvements
