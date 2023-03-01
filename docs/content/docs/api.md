@@ -61,7 +61,7 @@ Which will return an object with the following structure:
 ```json
 {
   "url": "/url-of-the-page/",
-  "excerpt": "A small snippet of the <mark>static</mark> content, with the search term(s) highlighted in mark elements.",
+  "excerpt": "A small snippet of the <mark>static</mark> content, with the search term(s) highlighted in &lt;mark&gt; elements.",
   "filters": {
     "author": "CloudCannon"
   },
@@ -69,10 +69,12 @@ Which will return an object with the following structure:
     "title": "The title from the first h1 element on the page",
     "image": "/weka.png"
   },
-  "content": "The full content of the page, formatted as text. Cursus Ipsum Risus Ullamcorper...",
+  "content": "The full content of the page, formatted as text. <html> will not be escaped. ...",
   "word_count": 242
 }
 ```
+
+> Note that `excerpt` will have HTML entities encoded before adding `<mark>` elements, so is safe to use as innerHTML. The `content` key is raw and unprocessed, so will need to be escaped by the user if necessary.
 
 To load a "page" of results, you can run something like the following:
 
@@ -125,6 +127,7 @@ If all filters have been loaded with `await pagefind.filters()`, counts will als
 
 - The `filters` key contains the number of results if a given filter were to be applied in addition to the current filters.
 - The `totalFilters` key contains the number of results if a given filter were to be applied instead of the current filters.
+- The `unfilteredResultCount` key details the number of results for the search term alone, if no filters had been applied.
 
 ```js
 { 
@@ -134,6 +137,7 @@ If all filters have been loaded with `await pagefind.filters()`, counts will als
             data: async function data(),
         }
     ],
+    unfilteredResultCount: 100,
     filters: {
         "filter": {
             "value_one": 4,
