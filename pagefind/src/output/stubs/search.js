@@ -206,7 +206,7 @@ class PagefindInstance {
         let fragment = await this.loaded_fragments[hash];
 
         if (!fragment.raw_content) {
-            fragment.raw_content = fragment.content;
+            fragment.raw_content = fragment.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
             fragment.content = fragment.content.replace(/\u200B/g, '');
         }
 
