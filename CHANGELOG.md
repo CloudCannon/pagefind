@@ -9,8 +9,23 @@
 
 ## Unreleased
 
-## v0.11.0 (February 16, 2023)
+## v0.12.0 (March 1, 2023)
 
+> Note: v0.12.0 will likely be the last feature release before an upcoming v1.0.0 that will contain a small handful of breaking changes. See the [v1.0.0 milestone](https://github.com/CloudCannon/pagefind/milestone/4) on GitHub for details and updates.
+
+### Features & Improvements
+* **CLI**: Added a "Keep Index URL" setting. (PR #233 — thanks @kenpetti-toasttab !). See [Pagefind CLI > Keep Index URL](https://pagefind.app/docs/config-options/#keep-index-url)
+* **JS API**: Added a `totalFilters` object to the search response, containing the total matches for the search term under each filter
+* **JS API**: Added an `unfilteredResultCount` key to the search response, containing the total matches for the search term if no filters were applied
+
+### Fixes & Tweaks
+* **CLI**: Stopped warning when encountering `data-pagefind-ignore="true"` instead of `data-pagefind-ignore`
+* **Search**: Fixed merging filters from multiple indexes
+* **Default UI**: Fixed filters sticking open once search input has been focused
+* **Default UI**: Fixed the search input clearing when hitting the `Enter` key
+* **Search / Default UI**: Fixed HTML tags in Pagefind excerpts not being escaped. The `content` key remains unprocessed
+
+## v0.11.0 (February 16, 2023)
 
 ### Features & Improvements
 * **CLI**: Improved `npx` wrapper compatibility on Windows, thanks @tylermercer!

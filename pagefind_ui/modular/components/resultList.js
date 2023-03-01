@@ -50,13 +50,46 @@ const resultTemplate = (result) => {
     return wrapper.element;
 }
 
+const nearestScrollParent = (el) => {
+    if (!(el instanceof HTMLElement)) return null;
+    const overflowY = window.getComputedStyle(el).overflowY;
+    const isScrollable = overflowY !== 'visible' && overflowY !== 'hidden';
+
+    if (isScrollable) {
+        return el;
+    } else {
+        return nearestScrollParent(el.parentNode);
+    }
+}
+
 class Result {
-    constructor(opts) {
+    constructor(opts = {}) {
         this.rawResult = opts.result;
         this.placeholderNodes = opts.placeholderNodes;
         this.resultFn = opts.resultFn;
+        this.intersectionEl = opts.intersectionEl;
         this.result = null;
-        this.load();
+        this.waitForIntersection();
+    }
+
+    waitForIntersection() {
+        if (!this.placeholderNodes?.length) return;
+
+        let options = {
+            root: this.intersectionEl,
+            rootMargin: "0px",
+            threshold: 0.01,
+        };
+        
+        let observer = new IntersectionObserver((entries, observer) => {
+            if (this.result !== null) return;
+            if (entries?.[0]?.isIntersecting) {
+                this.load();
+                observer.disconnect();
+            }
+        }, options);
+
+        observer.observe(this.placeholderNodes[0]);
     }
 
     async load() {
@@ -76,6 +109,7 @@ class Result {
 
 export class ResultList {
     constructor(opts) {
+        this.intersectionEl = document.body;
         this.containerEl = null;
         this.results = [];
         this.placeholderTemplate = opts.placeholderTemplate ?? placeholderTemplate;
@@ -109,10 +143,11 @@ export class ResultList {
         instance.on("results", (results) => {
             if (!this.containerEl) return;
             this.containerEl.innerHTML = "";
+            this.intersectionEl = nearestScrollParent(this.containerEl);
             this.results = results.results.map(r => {
                 let placeholderNodes = templateNodes(this.placeholderTemplate());
                 this.append(placeholderNodes);
-                return new Result({ result: r, placeholderNodes, resultFn: this.resultTemplate });
+                return new Result({ result: r, placeholderNodes, resultFn: this.resultTemplate, intersectionEl: this.intersectionEl });
             })
         });
 

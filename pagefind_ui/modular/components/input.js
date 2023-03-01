@@ -5,7 +5,7 @@ const asyncSleep = async (ms = 100) => {
 };
 
 export class Input {
-    constructor(opts) {
+    constructor(opts = {}) {
         this.inputEl = null;
         this.clearEl = null;
         this.instance = null;
@@ -37,8 +37,22 @@ export class Input {
                     return null;
                 }
 
-                this.instance.triggerSearch(e.target.value);
+                this.instance?.triggerSearch(e.target.value);
             }
+        });
+        this.inputEl.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                ++this.searchID;
+                this.inputEl.value = "";
+                this.instance?.triggerSearch("");
+                this.updateState("");
+            }
+            if (e.key === "Enter") {
+                e.preventDefault();
+            }
+        });
+        this.inputEl.addEventListener("focus", () => {
+            this.instance?.triggerLoad();
         });
     }
 
@@ -111,5 +125,11 @@ export class Input {
                 this.updateState(term);
             }
         });
+    }
+
+    focus() {
+        if (this.inputEl) {
+            this.inputEl.focus();
+        }
     }
 }

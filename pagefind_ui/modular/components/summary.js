@@ -1,6 +1,7 @@
 export class Summary {
-    constructor(opts) {
+    constructor(opts = {}) {
         this.containerEl = null;
+        this.defaultMessage = opts.defaultMessage ?? "";
         this.term = "";
 
         if (opts.containerElement) {
@@ -19,6 +20,7 @@ export class Summary {
         }
 
         this.containerEl = container;
+        this.containerEl.innerText = this.defaultMessage;
     }
 
     register(instance) {
@@ -29,7 +31,7 @@ export class Summary {
         instance.on("results", (results) => {
             if (!this.containerEl || !results) return;
             if (!this.term) {
-                this.containerEl.innerText = '';
+                this.containerEl.innerText = this.defaultMessage;
                 return;
             }
             let count = results?.results?.length ?? 0;

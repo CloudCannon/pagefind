@@ -196,6 +196,9 @@
                     val = "";
                     input_el.blur();
                 }
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                }
             }}
             bind:value={val}
             bind:this={input_el}
@@ -307,7 +310,7 @@
         font-family: var(--pagefind-ui-font);
     }
     .pagefind-ui__hidden {
-        display: none;
+        display: none !important;
     }
     .pagefind-ui__suppressed {
         opacity: 0;

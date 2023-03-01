@@ -12,6 +12,7 @@
     <p>Searches for words ending in <kbd>y</kbd> will return no results</p>
     <div id="searchbox"></div>
     <p>Unrelated Paragraph with an existing input: <input id="input" type="text"></p>
+    <div id="pills"></div>
     <hr>
     <pre>
         <code>
@@ -34,6 +35,10 @@
         }));
         pagefind.add(new PagefindModularUI.Summary({
             containerElement: "#summary"
+        }));
+        pagefind.add(new PagefindModularUI.FilterPills({
+            containerElement: "#pills",
+            filter: "color"
         }));
     </script>
 </body>

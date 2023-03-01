@@ -1,14 +1,9 @@
 export { Input } from "./components/input";
 export { ResultList } from "./components/resultList";
 export { Summary } from "./components/summary";
+export { FilterPills } from "./components/filterPills";
 
-/*
-- Add some styles for the two components implemented thus far at `css/ui.css`
-- Wire up the build.js for `modular` to match `default`
-- Wire up the GH action for `modular` to match `default`
-- Add `files` to `package.json`
-*/
-
+const sleep = async (ms = 50) => await new Promise((resolve) => setTimeout(resolve, ms));
 
 let scriptBundlePath;
 try {
@@ -39,6 +34,7 @@ export class Instance {
         this.searchFilters = {};
         this.searchResult = {};
         this.availableFilters = null;
+        this.totalFilters = null;
 
         this.options = {
             bundlePath: opts.bundlePath ?? scriptBundlePath,
@@ -84,11 +80,30 @@ export class Instance {
         // this.components.forEach(component => component?.triggerLoad?.());
     }
 
-    triggerSearch(term, filters) {
+    triggerSearch(term) {
+        this.searchTerm = term;
+        this.__dispatch__("search", term, this.searchFilters);
+        this.__search__(term, this.searchFilters);
+    }
+
+    triggerSearchWithFilters(term, filters) {
         this.searchTerm = term;
         this.searchFilters = filters;
         this.__dispatch__("search", term, filters);
         this.__search__(term, filters);
+    }
+
+    triggerFilters(filters) {
+        this.searchFilters = filters;
+        this.__dispatch__("search", this.searchTerm, filters);
+        this.__search__(this.searchTerm, filters);
+    }
+
+    triggerFilter(filter, values) {
+        this.searchFilters = this.searchFilters || {};
+        this.searchFilters[filter] = values;
+        this.__dispatch__("search", this.searchTerm, this.searchFilters);
+        this.__search__(this.searchTerm, this.searchFilters);
     }
 
     __dispatch__(e, ...args) {
@@ -96,9 +111,10 @@ export class Instance {
     }
 
     async __clear__() {
-        this.__dispatch__("results", {results: []});
+        this.__dispatch__("results", {results: [], unfilteredTotalCount: 0});
         this.availableFilters = await this.__pagefind__.filters();
-        this.__dispatch__("filters", this.availableFilters);
+        this.totalFilters = this.availableFilters;
+        this.__dispatch__("filters", { available: this.availableFilters, total: this.totalFilters });
     }
 
     async __search__(term, filters) {
@@ -114,7 +130,8 @@ export class Instance {
         if (results && this.__searchID__ === thisSearch) {
             if (results.filters && Object.keys(results.filters)?.length) {
                 this.availableFilters = results.filters;
-                this.__dispatch__("filters", this.availableFilters);
+                this.totalFilters = results.totalFilters;
+                this.__dispatch__("filters", { available: this.availableFilters, total: this.totalFilters });
             }
             this.searchResult = results;
             this.__dispatch__("results", this.searchResult);
@@ -122,7 +139,12 @@ export class Instance {
     }
 
     async __load__() {
-        if (this.__initializing__) return;
+        if (this.__initializing__) {
+            while (!this.__pagefind__) {
+                await sleep(50);
+            }
+            return;
+        };
         this.__initializing__ = true;
         if (!this.__pagefind__) {
             let imported_pagefind = await import(`${this.options.bundlePath}pagefind.js`);
@@ -140,6 +162,7 @@ export class Instance {
             this.__pagefind__ = imported_pagefind;
         }
         this.availableFilters = await this.__pagefind__.filters();
-        this.__dispatch__("filters", this.availableFilters);
+        this.totalFilters = this.availableFilters;
+        this.__dispatch__("filters", { available: this.availableFilters, total: this.totalFilters });
     }
 }

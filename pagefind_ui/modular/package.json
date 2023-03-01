@@ -15,5 +15,13 @@
     "esbuild": "^0.17.8",
     "esbuild-plugin-import-glob": "^0.1.1",
     "typescript": "^4.9.5"
-  }
+  },
+  "files": [
+    "npm_dist/**",
+    "css/ui.css",
+    "modular.js",
+    "modular-core.js",
+    "components/**",
+    "helpers/**"
+  ]
 }

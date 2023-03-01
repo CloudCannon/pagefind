@@ -70,6 +70,15 @@ pub struct PagefindInboundConfig {
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
     pub verbose: bool,
+
+    #[clap(
+        long,
+        short,
+        help = "Keep \"index.html\" at the end of search result paths. Defaults to false, stripping \"index.html\"."
+    )]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_false")]
+    pub keep_index_url: bool,
 }
 
 mod defaults {
@@ -99,6 +108,7 @@ pub struct SearchOptions {
     pub force_language: Option<String>,
     pub version: &'static str,
     pub logger: Logger,
+    pub keep_index_url: bool
 }
 
 impl SearchOptions {
@@ -124,6 +134,7 @@ impl SearchOptions {
                 force_language: config.force_language,
                 version: env!("CARGO_PKG_VERSION"),
                 logger: Logger::new(log_level),
+                keep_index_url: config.keep_index_url
             })
         }
     }

@@ -1,6 +1,7 @@
 :root {
     --pagefind-ui-scale: 0.8;
-    --pagefind-ui-primary: #393939;
+    --pagefind-ui-primary: #034AD8;
+    --pagefind-ui-fade: #707070;
     --pagefind-ui-text: #393939;
     --pagefind-ui-background: #ffffff;
     --pagefind-ui-border: #eeeeee;
@@ -14,9 +15,26 @@
         "Lucida Grande", sans-serif;
 }
 
+[data-pfmod-hidden] {
+    display: none !important;
+}
+
 [data-pfmod-suppressed] {
     opacity: 0 !important;
     pointer-events: none !important;
+}
+
+[data-pfmod-sr-hidden] {
+    -webkit-clip: rect(0 0 0 0) !important;
+    clip: rect(0 0 0 0) !important;
+    -webkit-clip-path: inset(100%) !important;
+    clip-path: inset(100%) !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    overflow: clip !important;
+    position: absolute !important;
+    white-space: nowrap !important;
+    width: 1px !important;
 }
 
 [data-pfmod-loading] {
@@ -83,6 +101,7 @@
     cursor: pointer;
     background-color: var(--pagefind-ui-background);
     border: none;
+    appearance: none;
 }
 
 /* ResultList */
@@ -154,4 +173,42 @@
     margin-top: calc(4px * var(--pagefind-ui-scale));
     margin-bottom: 0;
     min-width: calc(250px * var(--pagefind-ui-scale));
+}
+
+/* FilterPills */
+
+.pagefind-modular-filter-pills-wrapper {
+    overflow-x: scroll;
+    padding: 15px 0;
+}
+
+.pagefind-modular-filter-pills {
+    display: flex;
+    gap: 6px;
+}
+
+.pagefind-modular-filter-pill {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    appearance: none;
+    padding: 0 calc(24px * var(--pagefind-ui-scale));
+    background-color: var(--pagefind-ui-background);
+    color: var(--pagefind-ui-fade);
+    border: var(--pagefind-ui-border-width) solid var(--pagefind-ui-border);
+    border-radius: calc(25px * var(--pagefind-ui-scale));
+    font-size: calc(18px * var(--pagefind-ui-scale));
+    height: calc(50px * var(--pagefind-ui-scale));
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.pagefind-modular-filter-pill:hover {
+    border-color: var(--pagefind-ui-primary);
+}
+
+.pagefind-modular-filter-pill[aria-pressed="true"] {
+    border-color: var(--pagefind-ui-primary);
+    color: var(--pagefind-ui-primary);
 }
