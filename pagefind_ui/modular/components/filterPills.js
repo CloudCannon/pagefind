@@ -42,12 +42,15 @@ export class FilterPills {
         const id = `pagefind_modular_filter_pills_${this.filter}`;
 
 
-        this.wrapper = new El("div")
+        const wrapper = new El("div")
             .class("pagefind-modular-filter-pills-wrapper")
             .attrs({
                 "role": "group",
                 "aria-labelledby": id,
             });
+        if (!this.alwaysShow) {
+            wrapper.attrs({"data-pfmod-hidden": true});
+        }
         
         new El("div")
             .id(id)
@@ -56,17 +59,13 @@ export class FilterPills {
                 "data-pfmod-sr-hidden": true
             })
             .text(`Filter results by ${this.filter}`)
-            .addTo(this.wrapper);
+            .addTo(wrapper);
 
         this.pillContainer = new El("div")
             .class("pagefind-modular-filter-pills")
-            .addTo(this.wrapper);
-        
-        if (!this.alwaysShow) {
-            this.wrapper.setAttribute("data-pfmod-hidden", "true");
-        }
+            .addTo(wrapper);
 
-        this.wrapper.addTo(container);
+        this.wrapper = wrapper.addTo(container);
     }
 
     update() {
