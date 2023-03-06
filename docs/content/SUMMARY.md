@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Pagefind](README.md)
+* [Welcome](README.md)
 * [Docs](docs/README.md)
   * [Getting Started with Pagefind](docs/\_index.md)
   * [Searching manually with the Pagefind JavaScript API](docs/api.md)
