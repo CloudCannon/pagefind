@@ -312,9 +312,11 @@ impl<'a> DomParser<'a> {
                             let mut parent = data.current_node.borrow_mut();
 
                             // If the parent is a parent of a body, we don't want to append
-                            // any more content to it. (Unless, of course, we are another body)
-                            if node.status != NodeStatus::Body && parent.status == NodeStatus::ParentOfBody {
-                                return Ok(());
+                            // any more content to it. (Unless, of course, we are representing another body)
+                            if parent.status == NodeStatus::ParentOfBody
+                                && node.status != NodeStatus::Body
+                                && node.status != NodeStatus::ParentOfBody {
+                                    return Ok(());
                             }
                             match node.status {
                                 NodeStatus::Ignored | NodeStatus::Excluded => {},
