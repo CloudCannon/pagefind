@@ -10,6 +10,7 @@
 ## Unreleased
 
 * Fixed an issue where multiple `data-pagefind-body` tags on a page would conflict if one was nested deeper than the other
+* Added anchor data to the fragments loaded for search results
 
 ## v0.12.0 (March 1, 2023)
 

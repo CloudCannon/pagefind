@@ -13,7 +13,7 @@ use tokio::io::AsyncBufReadExt;
 use tokio::io::{AsyncReadExt, BufReader};
 use tokio::time::{sleep, Duration};
 
-use crate::fragments::{PageFragment, PageFragmentData};
+use crate::fragments::{PageAnchorData, PageFragment, PageFragmentData};
 use crate::SearchOptions;
 use parser::DomParser;
 
@@ -104,20 +104,23 @@ impl Fossicker {
         Ok(())
     }
 
-    fn parse_digest(&mut self) -> (String, HashMap<String, Vec<u32>>) {
+    fn parse_digest(
+        &mut self,
+    ) -> (
+        String,
+        HashMap<String, Vec<u32>>,
+        Vec<(String, String, u32)>,
+    ) {
         let mut map: HashMap<String, Vec<u32>> = HashMap::new();
+        let mut anchors = Vec::new();
         // TODO: push this error handling up a level and return an Err from parse_digest
         if self.data.as_ref().is_none() {
-            return ("".into(), map); // empty page result, will be dropped from search
+            return ("".into(), map, anchors); // empty page result, will be dropped from search
         }
         let data = self.data.as_ref().unwrap();
         let stemmer = get_stemmer(&data.language);
 
-        #[cfg(feature = "extended")]
         let mut content = String::with_capacity(data.digest.len());
-
-        #[cfg(not(feature = "extended"))]
-        let content = data.digest.replace('\u{200B}', ""); // TODO: Use separate parse_digest methods based on features
 
         // TODO: Consider reading newlines and jump the word_index up some amount,
         // so that separate bodies of text don't return exact string
@@ -133,7 +136,6 @@ impl Fossicker {
             // Run a segmenter only for any languages which require it.
             data.digest.as_str().segment_str().collect::<Vec<_>>()
         } else {
-            content.push_str(&data.digest.replace('\u{200B}', ""));
             // Currently hesistant to run segmentation during indexing
             // that we can't also run during search, since we don't
             // ship a segmenter to the browser. This logic is easier
@@ -144,7 +146,27 @@ impl Fossicker {
         #[cfg(not(feature = "extended"))]
         let segments = data.digest.split_whitespace();
 
+        let mut anchor_count = 0;
         for (word_index, word) in segments.into_iter().enumerate() {
+            let word_index = word_index - anchor_count;
+
+            if word.contains("___PAGEFIND_ANCHOR___") {
+                if let [element_name, element_id] =
+                    word.split("___PAGEFIND_ANCHOR___").collect::<Vec<_>>()[..]
+                {
+                    anchors.push((
+                        element_name.to_string(),
+                        element_id.to_string(),
+                        word_index as u32,
+                    ));
+                    anchor_count += 1;
+                    continue;
+                }
+            }
+
+            content.push_str(&word.replace('\u{200B}', ""));
+            content.push(' ');
+
             let mut normalized_word = SPECIAL_CHARS
                 .replace_all(word, "")
                 .into_owned()
@@ -152,7 +174,6 @@ impl Fossicker {
 
             #[cfg(feature = "extended")]
             if should_segment {
-                content.push_str(&word.replace('\u{200B}', ""));
                 content.push('\u{200B}');
             }
 
@@ -168,8 +189,10 @@ impl Fossicker {
                 }
             }
         }
-
-        (content, map)
+        if content.ends_with(' ') {
+            content.pop();
+        }
+        (content, map, anchors)
     }
 
     pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
@@ -177,7 +200,7 @@ impl Fossicker {
             sleep(Duration::from_millis(1)).await;
         }
 
-        let (content, word_data) = self.parse_digest();
+        let (content, word_data, anchors) = self.parse_digest();
 
         if self.data.is_none() {
             return Err(());
@@ -199,6 +222,15 @@ impl Fossicker {
                     filters: data.filters,
                     meta: data.meta,
                     word_count: word_data.len(),
+                    anchors: anchors
+                        .into_iter()
+                        .map(|(element, id, location)| PageAnchorData {
+                            element,
+                            id,
+                            location,
+                            text: None,
+                        })
+                        .collect(),
                 },
             },
             word_data,
@@ -225,10 +257,7 @@ fn build_url(page_url: &Path, options: &SearchOptions) -> String {
         url.to_slash_lossy().to_owned().to_string()
     };
 
-    format!(
-        "/{}",
-        final_url
-    )
+    format!("/{}", final_url)
 }
 
 // TODO: These language codes are duplicated with pagefind_web's Cargo.toml

@@ -226,6 +226,7 @@ class PagefindInstance {
             fragment.raw_url = fragment.url;
             fragment.url = this.fullUrl(fragment.raw_url);
         }
+        fragment.locations = locations;
         return fragment;
     }
 

@@ -13,6 +13,7 @@ lazy_static! {
     static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
     static ref TRIM_NEWLINES: Regex = Regex::new("^[\n\r\\s]+|[\n\r\\s]+$").unwrap();
     static ref EXTRANEOUS_SPACES: Regex = Regex::new("\\s{2,}").unwrap();
+    static ref ALL_SPACES: Regex = Regex::new("\\s").unwrap();
     static ref SENTENCE_CHARS: Regex = Regex::new("[\\w'\"\\)\\$\\*]").unwrap();
 }
 lazy_static! {
@@ -151,6 +152,7 @@ impl<'a> DomParser<'a> {
                         });
                         let treat_as_body = el.has_attribute("data-pagefind-body");
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
+                        let element_id = el.get_attribute("id").map(|e| ALL_SPACES.replace_all(&e, "").to_string());
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
                         let default_meta = el.get_attribute("data-pagefind-default-meta").map(|attr| parse_attr_string(attr, el));
                         let sort = el.get_attribute("data-pagefind-sort").map(|attr| parse_attr_string(attr, el));
@@ -164,6 +166,19 @@ impl<'a> DomParser<'a> {
                         } else {
                             NodeStatus::Indexing
                         };
+
+                        if status != NodeStatus::Excluded && status != NodeStatus::Ignored {
+                            if let Some(element_id) = element_id {
+                                let parent = &data.borrow().current_node;
+                                let mut parent = parent.borrow_mut();
+                                // Don't insert anchors if this node is outside of a body-tree
+                                if !(parent.status == NodeStatus::ParentOfBody
+                                    && status != NodeStatus::Body
+                                    && status != NodeStatus::ParentOfBody) {
+                                    parent.current_value.push_str(&format!("{tag_name}___PAGEFIND_ANCHOR___{element_id}"));
+                                }
+                            }
+                        }
 
                         if status != NodeStatus::Excluded {
                             if let Some(attrs) = index_attrs {
