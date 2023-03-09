@@ -53,6 +53,14 @@ These resources are created by helpful community members, and aren't guaranteed 
 - **Astro**
   - {{< 
         resource
+        site="blog.otterlord.dev"
+        date="January 2023"
+        title="Add Searching To Your Astro Static Site"
+        url="https://blog.otterlord.dev/post/astro-search/"
+        archive_url="http://web.archive.org/web/20230105171802/https://blog.otterlord.dev/post/astro-search/"
+    >}}
+  - {{< 
+        resource
         site="lirantal.com"
         date="January 2023"
         title="How to add client-side search with PageFind to your Astro blog static website"
