@@ -102,6 +102,13 @@ These resources are created by helpful community members, and aren't guaranteed 
         url="https://www.brycewray.com/posts/2022/07/pagefind-quite-find-site-search/"
         archive_url="http://web.archive.org/web/20230115164932/https://www.brycewray.com/posts/2022/07/pagefind-quite-find-site-search/"
     >}}
+- **Lume**
+  - {{< 
+        resource
+        site="lume.land"
+        title="Official Pagefind plugin for Lume"
+        url="https://lume.land/plugins/pagefind/"
+    >}}
 - **Zola**
   - {{< 
         resource

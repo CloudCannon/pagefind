@@ -1,7 +1,7 @@
 <a href='{{ .Get "url" }}'>{{ .Get "title" }}</a><br/>
 <span class="resource-citation">
-    {{ .Get "date" }} 
-    • {{ .Get "site" }} 
+    {{ with .Get "date" }}{{.}} • {{ end }}
+    {{ .Get "site" }} 
     {{ with .Get "archive_url" }}• <a href='{{ . }}'>archive</a>{{ end }}
     {{ with .Get "translated_url" }}• <a href='{{ . }}'>translated</a>{{ end }}
 </span>
