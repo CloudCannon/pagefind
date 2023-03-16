@@ -51,7 +51,7 @@ pagefind_stem = { version = "0.2.0", features = [
 charabia = { version = "0.7.0", optional = true }
 hashbrown = { version = "0.13.1", features = ["serde"] }
 regex = "1.1"
-minicbor = { version = "0.18.0", features = ["alloc", "derive"] }
+minicbor = { version = "0.19.1", features = ["alloc", "derive"] }
 lol_html = "0.3"
 html-escape = "0.2.11"
 bit-set = "0.5"
