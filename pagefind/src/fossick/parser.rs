@@ -590,8 +590,9 @@ mod tests {
     }
 
     fn test_raw_parse(input: Vec<&'static str>) -> DomParserResult {
+        use clap::CommandFactory;
         let config_args = vec![twelf::Layer::Clap(
-            <crate::PagefindInboundConfig as clap::IntoApp>::command().get_matches_from(vec![
+            crate::PagefindInboundConfig::command().get_matches_from(vec![
                 "pagefind",
                 "--source",
                 "not_important",
