@@ -25,11 +25,17 @@ updates:
     open-pull-requests-limit: 1
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: "esbuild"
+        update-types: ["version-update:semver-patch"]
   - package-ecosystem: "npm"
     directory: "/pagefind_ui/modular"
     open-pull-requests-limit: 1
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: "esbuild"
+        update-types: ["version-update:semver-patch"]
   - package-ecosystem: "npm"
     directory: "/wrappers/node"
     open-pull-requests-limit: 1
