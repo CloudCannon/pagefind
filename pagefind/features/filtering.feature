@@ -62,27 +62,6 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
 
-    Scenario: Filter counts are returned for a given search term
-        When I evaluate:
-            """
-            async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
-
-                await pagefind.filters(); // Load filters
-                let search = await pagefind.search("Ali");
-                let strings = Object.entries(search.filters).map(([filter, values]) => {
-                    values = Object.entries(values).map(([value, count]) => {
-                        return `${value}(${count})`;
-                    })
-                    return `${filter}:[${values.join(", ")}]`;
-                });
-
-                document.querySelector('[data-results]').innerText = strings.join(' ');
-            }
-            """
-        Then There should be no logs
-        Then The selector "[data-results]" should contain "color:[Black(0), Orange(0), Tabby(1), White(0)] mood:[Angry(1)]"
-
     Scenario: Filtering on tagged elements
         When I evaluate:
             """
@@ -255,3 +234,67 @@ Feature: Filtering
             """
         Then There should be no logs
         Then The selector "[data-results]" should contain "0"
+
+    Scenario: Filter counts are returned for a given search term
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                await pagefind.filters(); // Load filters
+                let search = await pagefind.search("Ali");
+                let strings = Object.entries(search.filters).map(([filter, values]) => {
+                    values = Object.entries(values).map(([value, count]) => {
+                        return `${value}(${count})`;
+                    })
+                    return `${filter}:[${values.join(", ")}]`;
+                });
+
+                document.querySelector('[data-results]').innerText = strings.join(' ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "color:[Black(0), Orange(0), Tabby(1), White(0)] mood:[Angry(1)]"
+
+    Scenario: Total filter counts are returned for a given search term
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                await pagefind.filters(); // Load filters
+                let search = await pagefind.search("Cat", {
+                    filters: {
+                        color: "White"
+                    }
+                });
+                let strings = Object.entries(search.totalFilters).map(([filter, values]) => {
+                    values = Object.entries(values).map(([value, count]) => {
+                        return `${value}(${count})`;
+                    })
+                    return `${filter}:[${values.join(", ")}]`;
+                });
+
+                document.querySelector('[data-results]').innerText = strings.join(' ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "color:[Black(1), Orange(1), Tabby(1), White(2)] mood:[Angry(1)]"
+
+    Scenario: Total unfiltered result counts are given for a filtered search term
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                await pagefind.filters(); // Load filters
+                let search = await pagefind.search("Ali", {
+                    filters: {
+                        color: "Orange"
+                    }
+                });
+                document.querySelector('[data-results]').innerText = `results:${search.results.length} total:${search.unfilteredResultCount}`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "results:0 total:1"

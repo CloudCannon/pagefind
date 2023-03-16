@@ -19,6 +19,13 @@ Feature: Indexing
             </div>
             <p>goodbye content</p>
             <p data-pagefind-body>Little extra body</p>
+            <div>
+                <p>More unindexed content</p>
+                <main data-pagefind-body="">
+                    <p>Body number 3</p>
+                </main>
+                <p>And yet more unindexed content</p>
+            </div>
             """
         # The above data-pagefind-body existing on a page should
         # exclude all pages that do not include it.
@@ -45,7 +52,7 @@ Feature: Indexing
             }
             """
         Then There should be no logs
-        Then The selector "[data-search-one]" should contain "Hello World, from Pagefind. Huzzah! Little extra body."
+        Then The selector "[data-search-one]" should contain "Hello World, from Pagefind. Huzzah! Little extra body. Body number 3."
         Then The selector "[data-search-two]" should contain "0 result(s)"
 
     Scenario: HTML attributes can be indexed

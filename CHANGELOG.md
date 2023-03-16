@@ -9,14 +9,44 @@
 
 ## Unreleased
 
+* Fixed an issue where multiple `data-pagefind-body` tags on a page would conflict if one was nested deeper than the other
+* Added anchor data to the fragments loaded for search results
+
+## v0.12.0 (March 1, 2023)
+
+> Note: v0.12.0 will likely be the last feature release before an upcoming v1.0.0 that will contain a small handful of breaking changes. See the [v1.0.0 milestone](https://github.com/CloudCannon/pagefind/milestone/4) on GitHub for details and updates.
+
 ### Features & Improvements
-* Pagefind UI: Added a "Clear" button to the search input
-* Pagefind UI: Clear the search input on an `Esc` keypress
-* Pagefind UI: Adds UI translations for Swedish, thanks @mntzrr!
-* Improved `npx` wrapper compatibility on Windows, thanks @tylermercer!
+* **CLI**: Added a "Keep Index URL" setting. (PR #233 — thanks @kenpetti-toasttab !). See [Pagefind CLI > Keep Index URL](https://pagefind.app/docs/config-options/#keep-index-url)
+* **JS API**: Added a `totalFilters` object to the search response, containing the total matches for the search term under each filter
+* **JS API**: Added an `unfilteredResultCount` key to the search response, containing the total matches for the search term if no filters were applied
 
 ### Fixes & Tweaks
-* Fixed a syntax error in the Pagefind UI CSS
+* **CLI**: Stopped warning when encountering `data-pagefind-ignore="true"` instead of `data-pagefind-ignore`
+* **Search**: Fixed merging filters from multiple indexes
+* **Default UI**: Fixed filters sticking open once search input has been focused
+* **Default UI**: Fixed the search input clearing when hitting the `Enter` key
+* **Search / Default UI**: Fixed HTML tags in Pagefind excerpts not being escaped. The `content` key remains unprocessed
+
+## v0.11.0 (February 16, 2023)
+
+### Features & Improvements
+* **CLI**: Improved `npx` wrapper compatibility on Windows, thanks @tylermercer!
+* **JS API**: Added a `debouncedSearch` function to the JS API. See [Pagefind JS API > Debounced search](https://pagefind.app/docs/api/#debounced-search)
+* **Default UI**: Added a "Clear" button to the search input
+* **Default UI**: Clear the search input on an `Esc` keypress
+* **Default UI**: Added UI translations for Swedish, thanks @mntzrr!
+* **Default UI**: Added a `processTerm` hook that can normalize the search query. See [Pagefind UI > Process term](https://pagefind.app/docs/ui/#process-result)
+* **Default UI**: Added a `Clear` button to the search input
+* **Default UI**: Added functionality to clear the search input when `Esc` is pressed while the input is focused
+* **Default UI**: Published UI to npm under [@pagefind/default-ui](https://www.npmjs.com/package/@pagefind/default-ui), as an alternative to using the files output by the Pagefind CLI
+
+### Fixes & Tweaks
+* **Default UI**: Fixed a syntax error in the CSS
+
+### Prelease: Modular UI
+* Work is underway on a new "Modular UI" that will live alongside the current "Default UI". Full support and documentation will be provided in a future release — the prerelease version can be found on npm under [@pagefind/modular-ui](https://www.npmjs.com/package/@pagefind/modular-ui)
+  * As this package is still under development, some of the configuration may change in a future release. Make sure to pin your Pagefind versions for any production site relying on the Modular UI.
 
 ## v0.10.7 (January 19, 2023)
 

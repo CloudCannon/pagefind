@@ -87,7 +87,11 @@ jobs:
         run: ./local_build.sh
 
       - name: Build UI
-        working-directory: ./pagefind_ui
+        working-directory: ./pagefind_ui/default
+        run: npm i && npm run build
+
+      - name: Build Modular UI
+        working-directory: ./pagefind_ui/modular
         run: npm i && npm run build
 
       - name: Test Web

@@ -53,6 +53,14 @@ These resources are created by helpful community members, and aren't guaranteed 
 - **Astro**
   - {{< 
         resource
+        site="blog.otterlord.dev"
+        date="January 2023"
+        title="Add Searching To Your Astro Static Site"
+        url="https://blog.otterlord.dev/post/astro-search/"
+        archive_url="http://web.archive.org/web/20230105171802/https://blog.otterlord.dev/post/astro-search/"
+    >}}
+  - {{< 
+        resource
         site="lirantal.com"
         date="January 2023"
         title="How to add client-side search with PageFind to your Astro blog static website"
@@ -93,6 +101,13 @@ These resources are created by helpful community members, and aren't guaranteed 
         title="Pagefind is quite a find for site search"
         url="https://www.brycewray.com/posts/2022/07/pagefind-quite-find-site-search/"
         archive_url="http://web.archive.org/web/20230115164932/https://www.brycewray.com/posts/2022/07/pagefind-quite-find-site-search/"
+    >}}
+- **Lume**
+  - {{< 
+        resource
+        site="lume.land"
+        title="Official Pagefind plugin for Lume"
+        url="https://lume.land/plugins/pagefind/"
     >}}
 - **Zola**
   - {{< 

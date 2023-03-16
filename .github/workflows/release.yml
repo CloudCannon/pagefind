@@ -58,7 +58,8 @@ jobs:
           node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
-          git add ./pagefind_ui/package.json
+          git add ./pagefind_ui/default/package.json
+          git add ./pagefind_ui/modular/package.json
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
 
@@ -67,7 +68,11 @@ jobs:
         run: ./local_build.sh
 
       - name: Build UI
-        working-directory: ./pagefind_ui
+        working-directory: ./pagefind_ui/default
+        run: npm i && npm run build
+
+      - name: Build Modular UI
+        working-directory: ./pagefind_ui/modular
         run: npm i && npm run build
 
       - name: Build
@@ -79,12 +84,9 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   publish-npm-package:
-    name: Publish NPM package
+    name: Publish NPM packages
     runs-on: ubuntu-20.04
     needs: publish-github-release
-    defaults:
-      run:
-        working-directory: ./wrappers/node
     steps:
       - name: Clone
         uses: actions/checkout@v2
@@ -92,12 +94,46 @@ jobs:
         with:
           name: release-checksums
           path: wrappers/node/checksums
-      - name: Prepare package
+
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+
+      - name: Get Tag
+        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
+      - name: Prepare wrapper package
+        working-directory: ./wrappers/node
         run: |
-          RELEASE_VERSION=${GITHUB_REF#refs/tags/}
-          npm version $(echo $RELEASE_VERSION | cut -c1-)
-      - name: Publish
-        run: npm publish
+          npm version $GIT_VERSION
+      - name: Publish wrapper package
+        working-directory: ./wrappers/node
+        run: npm publish --tag $GIT_TAG
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Prepare default ui package
+        working-directory: ./pagefind_ui/default
+        run: |
+          npm version $GIT_VERSION
+      - name: Publish default ui package
+        working-directory: ./pagefind_ui/default
+        run: |
+          npm i
+          npm run build
+          npm publish --tag $GIT_TAG --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Prepare modular ui package
+        working-directory: ./pagefind_ui/modular
+        run: |
+          npm version $GIT_VERSION
+      - name: Publish modular ui package
+        working-directory: ./pagefind_ui/modular
+        run: |
+          npm i
+          npm run build
+          npm publish --tag $GIT_TAG --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -115,29 +151,44 @@ jobs:
         with:
           application_id: ${{ secrets.CC_OSS_BOT_ID }}
           application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
+
       - name: Clone
         uses: actions/checkout@v2
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
-      - name: Get Version
-        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+
       - name: Swap to main
         uses: actions/checkout@v2
         with:
           ref: main
           fetch-depth: 0 # Full fetch
           token: ${{ steps.get_workflow_token.outputs.token }}
+
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+      - name: Get Tag
+        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
       - uses: actions/download-artifact@v3
         with:
           name: release
           path: build-artifacts
+
       - name: Build CHANGELOG
+        if: env.GIT_TAG == 'latest'
         run: |
           node ./.backstage/changelog.cjs write
           echo CHANGELOG=\"$(base64 -w 0 -i CHANGELOG.md)\" >> $GITHUB_ENV
           echo SHA=\"$( git rev-parse main:CHANGELOG.md )\" >> $GITHUB_ENV
+      - name: Build CHANGELOG
+        if: env.GIT_TAG != 'latest'
+        run: |
+          echo "## Prerelease" > RELEASE.md
+          node ./.backstage/changelog.cjs write || true
+
       - name: Commit new CHANGELOG
         uses: octokit/request-action@v2.x
+        if: env.GIT_TAG == 'latest'
         id: push_changes
         with:
           route: PUT /repos/{owner}/{repo}/contents/CHANGELOG.md
@@ -151,6 +202,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
       - name: Release documentation branch
         uses: octokit/request-action@v2.x
+        if: env.GIT_TAG == 'latest'
         id: merge_docs
         with:
           route: POST /repos/{owner}/{repo}/merges
@@ -164,8 +216,21 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG == 'latest'
         with:
+          repository: cloudcannon/pagefind
+          prerelease: false
+          body_path: RELEASE.md
+          files: |
+            build-artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG != 'latest'
+        with:
+          repository: cloudcannon/pagefind-beta
+          prerelease: true
           body_path: RELEASE.md
           files: |
             build-artifacts/*
@@ -240,7 +305,11 @@ jobs:
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
 
+      - name: Get Tag
+        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
       - name: Verify Changelog
+        if: env.GIT_TAG == 'latest'
         run: |
           node ./.backstage/changelog.cjs
 
@@ -297,7 +366,8 @@ jobs:
           node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
-          git add ./pagefind_ui/package.json
+          git add ./pagefind_ui/default/package.json
+          git add ./pagefind_ui/modular/package.json
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
 
@@ -306,7 +376,11 @@ jobs:
         run: ./local_build.sh
 
       - name: Build UI
-        working-directory: ./pagefind_ui
+        working-directory: ./pagefind_ui/default
+        run: npm i && npm run build
+
+      - name: Build Modular UI
+        working-directory: ./pagefind_ui/modular
         run: npm i && npm run build
 
       - name: Test Web

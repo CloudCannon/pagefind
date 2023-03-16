@@ -206,7 +206,7 @@ class PagefindInstance {
         let fragment = await this.loaded_fragments[hash];
 
         if (!fragment.raw_content) {
-            fragment.raw_content = fragment.content;
+            fragment.raw_content = fragment.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
             fragment.content = fragment.content.replace(/\u200B/g, '');
         }
 
@@ -226,6 +226,7 @@ class PagefindInstance {
             fragment.raw_url = fragment.url;
             fragment.url = this.fullUrl(fragment.raw_url);
         }
+        fragment.locations = locations;
         return fragment;
     }
 
@@ -338,7 +339,9 @@ class PagefindInstance {
         if (!term?.length && !filter_only) {
             return {
                 results: [],
+                unfilteredResultCount: 0,
                 filters: {},
+                totalFilters: {},
                 timings: {
                     preload: Date.now() - start,
                     search: Date.now() - start,
@@ -368,8 +371,9 @@ class PagefindInstance {
         let searchStart = Date.now();
         let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search);
         log(`Got the raw search result: ${result}`);
-        let [results, filters] = result.split(/:(.*)$/);
+        let [unfilteredResultCount, results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
         let filterObj = this.parseFilters(filters);
+        let totalFilterObj = this.parseFilters(totalFilters);
         log(`Remaining filters: ${JSON.stringify(result)}`);
         results = results.length ? results.split(" ") : [];
 
@@ -393,7 +397,9 @@ class PagefindInstance {
         log(`Found ${results.length} result${results.length == 1 ? '' : 's'} for "${term}" in ${Date.now() - searchStart}ms (${Date.now() - start}ms realtime)`);
         return {
             results: resultsInterface,
+            unfilteredResultCount: parseInt(unfilteredResultCount),
             filters: filterObj,
+            totalFilters: totalFilterObj,
             timings: {
                 preload: realTime - searchTime,
                 search: searchTime,
@@ -407,6 +413,7 @@ class Pagefind {
     constructor() {
         this.backend = wasm_bindgen;
         this.primaryLanguage = "unknown";
+        this.searchID = 0;
 
         this.primary = new PagefindInstance({
             primary: true
@@ -465,7 +472,7 @@ class Pagefind {
                     continue;
                 } else {
                     const filter = merged[filterKey];
-                    for (const [valueKey, count] of Object.entries(filter)) {
+                    for (const [valueKey, count] of Object.entries(values)) {
                         filter[valueKey] = (filter[valueKey] || 0) + count;
                     }
                 }
@@ -483,14 +490,32 @@ class Pagefind {
         await Promise.all(this.instances.map(i => i.preload(term, options)));
     }
 
+    async debouncedSearch(term, options, debounceTimeoutMs = 300) {
+        const thisSearchID = ++this.searchID;
+        this.preload(term, options);
+        await asyncSleep(debounceTimeoutMs);
+
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+
+        const searchResult = await this.search(term, options);
+        if (thisSearchID !== this.searchID) {
+            return null;
+        }
+        return searchResult;
+    }
+
     async search(term, options = {}) {
         let search = await Promise.all(this.instances.map(i => i.search(term, options)));
 
         const filters = this.mergeFilters(search.map(s => s.filters));
+        const totalFilters = this.mergeFilters(search.map(s => s.totalFilters));
         const results = search.map(s => s.results).flat().sort((a, b) => b.score - a.score);
         const timings = search.map(s => s.timings);
+        const unfilteredResultCount = search.reduce((sum, s) => sum + s.unfilteredResultCount, 0);
 
-        return { results, filters, timings };
+        return { results, unfilteredResultCount, filters, totalFilters, timings };
     }
 }
 
@@ -500,5 +525,6 @@ export const mergeIndex = async (indexPath, options) => await pagefind.mergeInde
 export const options = async (options) => await pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
 export const search = async (term, options) => await pagefind.search(term, options);
+export const debouncedSearch = async (term, options, debounceTimeoutMs) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
 export const preload = async (term, options) => await pagefind.preload(term, options);
 export const filters = async () => await pagefind.filters();

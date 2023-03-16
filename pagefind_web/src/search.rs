@@ -14,11 +14,16 @@ pub struct PageSearchResult {
 }
 
 impl SearchIndex {
-    pub fn exact_term(&self, term: &str, filter_results: Option<BitSet>) -> Vec<PageSearchResult> {
+    pub fn exact_term(
+        &self,
+        term: &str,
+        filter_results: Option<BitSet>,
+    ) -> (Vec<usize>, Vec<PageSearchResult>) {
         debug!({
             format! {"Searching {:?}", term}
         });
 
+        let mut unfiltered_results: Vec<usize> = vec![];
         let mut maps = Vec::new();
         let mut words = Vec::new();
         for term in stems_from_term(term) {
@@ -31,8 +36,13 @@ impl SearchIndex {
                 maps.push(set);
             } else {
                 // If we can't find this word, there are obviously no exact matches
-                return vec![];
+                return (vec![], vec![]);
             }
+        }
+
+        if !maps.is_empty() {
+            maps = vec![intersect_maps(maps).expect("some search results should exist here")];
+            unfiltered_results.extend(maps[0].iter());
         }
 
         if let Some(filter) = filter_results {
@@ -41,7 +51,7 @@ impl SearchIndex {
 
         let results = match intersect_maps(maps) {
             Some(map) => map,
-            None => return vec![],
+            None => return (vec![], vec![]),
         };
 
         let mut pages: Vec<PageSearchResult> = vec![];
@@ -93,14 +103,19 @@ impl SearchIndex {
             }
         }
 
-        pages
+        (unfiltered_results, pages)
     }
 
-    pub fn search_term(&self, term: &str, filter_results: Option<BitSet>) -> Vec<PageSearchResult> {
+    pub fn search_term(
+        &self,
+        term: &str,
+        filter_results: Option<BitSet>,
+    ) -> (Vec<usize>, Vec<PageSearchResult>) {
         debug!({
             format! {"Searching {:?}", term}
         });
 
+        let mut unfiltered_results: Vec<usize> = vec![];
         let mut maps = Vec::new();
         let mut unique_maps = Vec::new();
         let mut words = Vec::new();
@@ -127,6 +142,11 @@ impl SearchIndex {
             maps.push(BitSet::new());
         }
 
+        if !maps.is_empty() {
+            maps = vec![intersect_maps(maps).expect("some search results should exist here")];
+            unfiltered_results.extend(maps[0].iter());
+        }
+
         if let Some(filter) = filter_results {
             maps.push(filter);
         } else if maps.is_empty() {
@@ -139,7 +159,7 @@ impl SearchIndex {
 
         let results = match intersect_maps(maps) {
             Some(map) => map,
-            None => return vec![],
+            None => return (vec![], vec![]),
         };
 
         let mut pages: Vec<PageSearchResult> = vec![];
@@ -198,7 +218,7 @@ impl SearchIndex {
                 .unwrap_or(Ordering::Equal)
         });
 
-        pages
+        (unfiltered_results, pages)
     }
 
     fn find_word_extensions(&self, term: &str) -> Vec<(&String, &Vec<PageWord>)> {

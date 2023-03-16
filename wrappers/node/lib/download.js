@@ -150,8 +150,13 @@ function get(_url, opts) {
 }
 
 function getApiUrl(repo, tag) {
-    console.log(`https://api.github.com/repos/${repo}/releases/tags/${tag}`)
-    return `https://api.github.com/repos/${repo}/releases/tags/${tag}`;
+    if (/v\d+\.\d+\.\d+-.+$/.test(tag)) {
+        console.log(`https://api.github.com/repos/${repo}-beta/releases/tags/${tag}`)
+        return `https://api.github.com/repos/${repo}-beta/releases/tags/${tag}`;
+    } else {
+        console.log(`https://api.github.com/repos/${repo}/releases/tags/${tag}`)
+        return `https://api.github.com/repos/${repo}/releases/tags/${tag}`;
+    }
 }
 
 /**

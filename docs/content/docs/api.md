@@ -42,7 +42,7 @@ This will return an object with the following structure:
 }
 ```
 
-At this point you will have access to the number of search results, and a unique ID for each result.
+At this point you will have access to the number of search results, and a unique ID for each result. Also see [Debounced search](#debounced-search) below for an alternative API.
 
 ## Loading a result
 
@@ -61,7 +61,7 @@ Which will return an object with the following structure:
 ```json
 {
   "url": "/url-of-the-page/",
-  "excerpt": "A small snippet of the <mark>static</mark> content, with the search term(s) highlighted in mark elements.",
+  "excerpt": "A small snippet of the <mark>static</mark> content, with the search term(s) highlighted in &lt;mark&gt; elements.",
   "filters": {
     "author": "CloudCannon"
   },
@@ -69,10 +69,12 @@ Which will return an object with the following structure:
     "title": "The title from the first h1 element on the page",
     "image": "/weka.png"
   },
-  "content": "The full content of the page, formatted as text. Cursus Ipsum Risus Ullamcorper...",
+  "content": "The full content of the page, formatted as text. <html> will not be escaped. ...",
   "word_count": 242
 }
 ```
+
+> Note that `excerpt` will have HTML entities encoded before adding `<mark>` elements, so is safe to use as innerHTML. The `content` key is raw and unprocessed, so will need to be escaped by the user if necessary.
 
 To load a "page" of results, you can run something like the following:
 
@@ -121,7 +123,12 @@ const search = await pagefind.search("static", {
 ```
 {{< /diffcode >}}
 
-If all filters have been loaded with `await pagefind.filters()`, counts will also be returned alongside each search, detailing the number of remaining items for each filter value:
+If all filters have been loaded with `await pagefind.filters()`, counts will also be returned alongside each search, detailing the number of remaining items for each filter value. 
+
+- The `filters` key contains the number of results if a given filter were to be applied in addition to the current filters.
+- The `totalFilters` key contains the number of results if a given filter were to be applied instead of the current filters.
+- The `unfilteredResultCount` key details the number of results for the search term alone, if no filters had been applied.
+
 ```js
 { 
     results: [
@@ -130,6 +137,7 @@ If all filters have been loaded with `await pagefind.filters()`, counts will als
             data: async function data(),
         }
     ],
+    unfilteredResultCount: 100,
     filters: {
         "filter": {
             "value_one": 4,
@@ -139,6 +147,17 @@ If all filters have been loaded with `await pagefind.filters()`, counts will als
         "color": {
             "Orange": 1,
             "Red": 0
+        }
+    },
+    totalFilters: {
+        "filter": {
+            "value_one": 4,
+            "value_two": 10,
+            "value_three": 2
+        },
+        "color": {
+            "Orange": 4,
+            "Red": 2
         }
     }
 }
@@ -191,9 +210,40 @@ const search = await pagefind.search(null, {
 ```
 {{< /diffcode >}}
 
+## Debounced search
+
+The helper function `pagefind.debouncedSearch` is available and can be used in place of `pagefind.search`:
+{{< diffcode >}}
+```js
+const pagefind = await import("/_pagefind/pagefind.js");
++const search = await pagefind.debouncedSearch("static");
+```
+{{< /diffcode >}}
+
+A custom debounce timeout (default: `300`) can optionally be specified as the third argument:
+{{< diffcode >}}
+```js
+const pagefind = await import("/_pagefind/pagefind.js");
++const search = await pagefind.debouncedSearch("static", {/* options */}, 300);
+```
+{{< /diffcode >}}
+
+This function waits for the specified duration, and then either performs the search, or returns null if a subsequent call to `pagefind.debouncedSearch` has been made. This helps with resource usage when processing large searches, and can help with flickering when rendering results in a UI.
+
+{{< diffcode >}}
+```js
+const search = await pagefind.debouncedSearch("static");
++if (search === null) {
++  // a more recent search call has been made, nothing to do
++} else {
++  process(search.results);
++}
+```
+{{< /diffcode >}}
+
 ## Preloading search terms
 
-If you have a debounced search input, Pagefind won't start loading indexes until you run your search query. To speed up your search query when it runs, you can use the `pagefind.preload` function as the user is typing. 
+If you have a debounced search input, Pagefind won't start loading indexes until you run your search query. To speed up your search query when it runs, you can use the `pagefind.preload` function as the user is typing. Note that the [Debounced search](#debounced-search) helper provided by Pagefind implements this for you under the hood.
 
 {{< diffcode >}}
 ```js

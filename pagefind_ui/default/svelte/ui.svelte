@@ -6,7 +6,7 @@
     import Filters from "./filters.svelte";
     import Reset from "./reset.svelte";
 
-    import * as translationFiles from "../translations/*.json";
+    import * as translationFiles from "../../translations/*.json";
 
     const availableTranslations = {},
         languages = translationFiles.filenames.map(
@@ -196,6 +196,9 @@
                     val = "";
                     input_el.blur();
                 }
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                }
             }}
             bind:value={val}
             bind:this={input_el}
@@ -307,7 +310,7 @@
         font-family: var(--pagefind-ui-font);
     }
     .pagefind-ui__hidden {
-        display: none;
+        display: none !important;
     }
     .pagefind-ui__suppressed {
         opacity: 0;
@@ -363,6 +366,7 @@
         font-size: calc(14px * var(--pagefind-ui-scale));
         cursor: pointer;
         background-color: var(--pagefind-ui-background);
+        border-radius: var(--pagefind-ui-border-radius);
     }
     .pagefind-ui__drawer {
         gap: calc(60px * var(--pagefind-ui-scale));

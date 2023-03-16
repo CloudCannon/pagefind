@@ -120,6 +120,22 @@ new PagefindUI({
 
 Whether to show an image alongside each search result. Defaults to `true`.
 
+### Process term
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    processTerm: function (term) {
++        return term.replace(/aa/g, 'ā');
++    }
+});
+```
+{{< /diffcode >}}
+
+Provides a function that Pagefind UI calls before performing a search. This can be used to normalize search terms to match your content. The result will not be shown to the user, in the above example the search input would still display `aa`. 
+
+
 ### Process result
 
 {{< diffcode >}}
