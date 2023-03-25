@@ -1,6 +1,7 @@
 {
   "name": "pagefind",
   "version": "0.0.0",
+  "type": "module",
   "description": "Implement search on any static website.",
   "bin": "lib/index.js",
   "repository": {

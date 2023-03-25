@@ -79,6 +79,11 @@ pub struct PagefindInboundConfig {
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
     pub keep_index_url: bool,
+
+    #[clap(long)]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_false")]
+    pub service: bool,
 }
 
 mod defaults {
@@ -108,7 +113,7 @@ pub struct SearchOptions {
     pub force_language: Option<String>,
     pub version: &'static str,
     pub logger: Logger,
-    pub keep_index_url: bool
+    pub keep_index_url: bool,
 }
 
 impl SearchOptions {
@@ -134,7 +139,7 @@ impl SearchOptions {
                 force_language: config.force_language,
                 version: env!("CARGO_PKG_VERSION"),
                 logger: Logger::new(log_level),
-                keep_index_url: config.keep_index_url
+                keep_index_url: config.keep_index_url,
             })
         }
     }

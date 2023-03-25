@@ -1,3 +1,4 @@
+use pagefind::service::{run_service, ServiceAction, ServiceRequest};
 use pagefind::{PagefindInboundConfig, SearchOptions, SearchState};
 use std::path::PathBuf;
 use std::time::Instant;
@@ -54,14 +55,19 @@ async fn main() {
 
     match PagefindInboundConfig::with_layers(&config_layers) {
         Ok(config) => {
-            if let Ok(options) = SearchOptions::load(config.clone()) {
+            if config.service {
+                run_service(config).await;
+            } else if let Ok(options) = SearchOptions::load(config.clone()) {
                 let mut runner = SearchState::new(options);
 
-                runner.run().await;
+                runner.log_start();
+                runner.fossick_all_files().await;
+                runner.build_indexes().await;
+                let logger = runner.write_files().await;
 
                 let duration = start.elapsed();
 
-                runner.options.logger.status(&format!(
+                logger.status(&format!(
                     "Finished in {}.{} seconds",
                     duration.as_secs(),
                     duration.subsec_millis()

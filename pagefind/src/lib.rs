@@ -1,8 +1,10 @@
 use std::cmp::Ordering;
 
-use fossick::Fossicker;
+use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
+use index::PagefindIndexes;
+use logging::Logger;
 pub use options::{PagefindInboundConfig, SearchOptions};
 use wax::{Glob, WalkEntry};
 
@@ -16,15 +18,22 @@ mod logging;
 mod options;
 mod output;
 pub mod serve;
+pub mod service;
 mod utils;
 
 pub struct SearchState {
     pub options: SearchOptions,
+    pub fossicked_pages: Vec<Result<FossickedData, ()>>,
+    pub built_indexes: Vec<PagefindIndexes>,
 }
 
 impl SearchState {
     pub fn new(options: SearchOptions) -> Self {
-        Self { options }
+        Self {
+            options,
+            fossicked_pages: vec![],
+            built_indexes: vec![],
+        }
     }
 
     pub async fn walk_for_files(&mut self) -> Vec<Fossicker> {
@@ -46,24 +55,7 @@ impl SearchState {
         }
     }
 
-    pub async fn run(&mut self) {
-        let log = &self.options.logger;
-        #[cfg(not(feature = "extended"))]
-        log.status(&format!("Running Pagefind v{}", self.options.version));
-        #[cfg(feature = "extended")]
-        log.status(&format!(
-            "Running Pagefind v{} (Extended)",
-            self.options.version
-        ));
-        log.v_info("Running in verbose mode");
-
-        log.info(format!(
-            "Running from: {:?}",
-            self.options.working_directory
-        ));
-        log.info(format!("Source:       {:?}", self.options.source));
-        log.info(format!("Bundle Directory:  {:?}", self.options.bundle_dir));
-
+    pub async fn fossick_all_files(&mut self) {
         let files = self.walk_for_files().await;
         let log = &self.options.logger;
 
@@ -79,9 +71,17 @@ impl SearchState {
             .into_iter()
             .map(|f| f.fossick(&self.options))
             .collect();
-        let all_pages = join_all(results).await;
+        self.fossicked_pages = join_all(results).await;
+    }
 
-        let used_custom_body = all_pages.iter().flatten().any(|page| page.has_custom_body);
+    pub async fn build_indexes(&mut self) {
+        let log = &self.options.logger;
+
+        let used_custom_body = self
+            .fossicked_pages
+            .iter()
+            .flatten()
+            .any(|page| page.has_custom_body);
         if used_custom_body {
             log.info("Found a data-pagefind-body element on the site.\n↳ Ignoring pages without this tag.");
         } else {
@@ -91,7 +91,8 @@ impl SearchState {
         }
 
         if self.options.root_selector == "html" {
-            let pages_without_html = all_pages
+            let pages_without_html = self
+                .fossicked_pages
                 .iter()
                 .flatten()
                 .filter(|p| !p.has_html_element)
@@ -111,7 +112,7 @@ impl SearchState {
 
         log.status("[Reading languages]");
 
-        let pages_with_data = all_pages.into_iter().flatten().filter(|d| {
+        let pages_with_data = self.fossicked_pages.iter().flatten().filter(|d| {
             if used_custom_body && !d.has_custom_body {
                 return false;
             }
@@ -122,9 +123,9 @@ impl SearchState {
         for page in pages_with_data {
             let language = page.language.clone();
             if let Some(lang_pages) = language_map.get_mut(&language) {
-                lang_pages.push(page);
+                lang_pages.push(page.clone());
             } else {
-                language_map.insert(language, vec![page]);
+                language_map.insert(language, vec![page.clone()]);
             }
         }
 
@@ -192,9 +193,9 @@ impl SearchState {
             .into_iter()
             .map(|(language, pages)| async { build_indexes(pages, language, &self.options).await })
             .collect();
-        let indexes = join_all(indexes).await;
+        self.built_indexes = join_all(indexes).await;
 
-        let stats = indexes.iter().fold((0, 0, 0, 0), |mut stats, index| {
+        let stats = self.built_indexes.iter().fold((0, 0, 0, 0), |mut stats, index| {
             log.v_info(format!(
                 "Language {}: \n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n  Indexed {} sort{}\n",
                 index.language,
@@ -230,8 +231,8 @@ impl SearchState {
 
         log.info(format!(
             "Total: \n  Indexed {} language{}\n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n  Indexed {} sort{}",
-            indexes.len(),
-            plural!(indexes.len()),
+            self.built_indexes.len(),
+            plural!(self.built_indexes.len()),
             stats.0,
             plural!(stats.0),
             stats.1,
@@ -250,13 +251,38 @@ impl SearchState {
             );
             std::process::exit(1);
         }
+    }
 
-        let index_entries: Vec<_> = indexes
+    pub async fn write_files(self) -> Logger {
+        let index_entries: Vec<_> = self
+            .built_indexes
             .into_iter()
             .map(|indexes| async { indexes.write_files(&self.options).await })
             .collect();
         let index_entries = join_all(index_entries).await;
 
         output::write_common(&self.options, index_entries).await;
+
+        self.options.logger
+    }
+
+    pub fn log_start(&self) {
+        let log = &self.options.logger;
+
+        #[cfg(not(feature = "extended"))]
+        log.status(&format!("Running Pagefind v{}", self.options.version));
+        #[cfg(feature = "extended")]
+        log.status(&format!(
+            "Running Pagefind v{} (Extended)",
+            self.options.version
+        ));
+        log.v_info("Running in verbose mode");
+
+        log.info(format!(
+            "Running from: {:?}",
+            self.options.working_directory
+        ));
+        log.info(format!("Source:       {:?}", self.options.source));
+        log.info(format!("Bundle Directory:  {:?}", self.options.bundle_dir));
     }
 }

@@ -26,7 +26,7 @@ lazy_static! {
 
 mod parser;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FossickedData {
     pub file_path: PathBuf,
     pub fragment: PageFragment,
@@ -40,6 +40,7 @@ pub struct FossickedData {
 #[derive(Debug)]
 pub struct Fossicker {
     file_path: PathBuf,
+    synthetic_content: Option<String>,
     data: Option<DomParserResult>,
 }
 
@@ -47,6 +48,15 @@ impl Fossicker {
     pub fn new(file_path: PathBuf) -> Self {
         Self {
             file_path,
+            synthetic_content: None,
+            data: None,
+        }
+    }
+
+    pub fn new_synthetic(file_path: PathBuf, contents: String) -> Self {
+        Self {
+            file_path,
+            synthetic_content: Some(contents),
             data: None,
         }
     }
@@ -91,6 +101,37 @@ impl Fossicker {
                     );
                     return Ok(());
                 }
+            }
+        }
+
+        let mut data = rewriter.wrap();
+        if let Some(forced_language) = &options.force_language {
+            data.language = forced_language.clone();
+        }
+
+        self.data = Some(data);
+
+        Ok(())
+    }
+
+    async fn read_synthetic(&mut self, options: &SearchOptions) -> Result<(), Error> {
+        let Some(contents) = self.synthetic_content.as_ref() else { return Ok(()) };
+
+        let mut rewriter = DomParser::new(options);
+
+        let mut br = BufReader::new(contents.as_bytes());
+        let mut buf = [0; 20000];
+
+        while let Ok(read) = br.read(&mut buf).await {
+            if read == 0 {
+                break;
+            }
+            if let Err(error) = rewriter.write(&buf[..read]) {
+                println!(
+                    "Failed to parse file {} — skipping this file. Error:\n{error}",
+                    self.file_path.to_str().unwrap_or("[unknown file]")
+                );
+                return Ok(());
             }
         }
 
@@ -196,8 +237,14 @@ impl Fossicker {
     }
 
     pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
-        while self.read_file(options).await.is_err() {
-            sleep(Duration::from_millis(1)).await;
+        if self.synthetic_content.is_some() {
+            while self.read_synthetic(options).await.is_err() {
+                sleep(Duration::from_millis(1)).await;
+            }
+        } else {
+            while self.read_file(options).await.is_err() {
+                sleep(Duration::from_millis(1)).await;
+            }
         }
 
         let (content, word_data, anchors) = self.parse_digest();
