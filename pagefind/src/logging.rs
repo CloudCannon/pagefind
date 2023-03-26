@@ -3,12 +3,13 @@ use std::fmt::Debug;
 use console::{Style, Term};
 use lazy_static::lazy_static;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LogLevel {
     Standard,
     Verbose,
 }
 
+#[derive(Debug, Clone)]
 pub enum LogStyle {
     Info,
     Status,
@@ -17,6 +18,7 @@ pub enum LogStyle {
     Success,
 }
 
+#[derive(Clone)]
 pub struct Logger {
     log_level: LogLevel,
     out: Term,

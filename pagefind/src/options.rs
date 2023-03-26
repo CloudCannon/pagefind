@@ -102,7 +102,7 @@ mod defaults {
 }
 
 // The configuration object used internally
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SearchOptions {
     pub working_directory: PathBuf,
     pub source: PathBuf,
@@ -118,7 +118,7 @@ pub struct SearchOptions {
 
 impl SearchOptions {
     pub fn load(config: PagefindInboundConfig) -> Result<Self> {
-        if config.source.is_empty() {
+        if !config.service && config.source.is_empty() {
             eprintln!("Required argument source not supplied. Pagefind needs to know the root of your built static site.");
             eprintln!("Provide a --source flag, a PAGEFIND_SOURCE environment variable, or a source key in a Pagefind configuration file.");
             bail!("Missing argument: source");

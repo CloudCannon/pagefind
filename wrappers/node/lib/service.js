@@ -46,19 +46,11 @@ const run = async () => {
         process.exit(1);
     });
 
-    const write = () => {
+    const write = (msg) => {
         // let e = new Encoder({ largeBigIntToFloat: false, useRecords: false });
-        let msg = Buffer.from(JSON.stringify({
-            message_id: 99458,
-            payload: {
-                type: 'Other',
-                custom: 'We JSON now.'
-            }
-        })).toString('base64');
-        console.log(msg);
-
-        console.log("Writing");
-        child.stdin.write(msg + ",", (err) => {
+        let encoded = Buffer.from(JSON.stringify(msg)).toString('base64') + ",";
+        console.log("Writing", encoded);
+        child.stdin.write(encoded, (err) => {
             if (err) { 
                 console.error("Service stopped");
                 process.exit(1);
@@ -66,8 +58,50 @@ const run = async () => {
         });
     }
 
-    setInterval(() => {
-        write();
-    }, 1000);
+    write({
+        message_id: 1,
+        payload: {
+            type: 'NewIndex',
+            id: 3
+        }
+    });
+
+    await new Promise(r => setTimeout(r, 1000));
+
+    write({
+        message_id: 2,
+        payload: {
+            type: 'AddFile',
+            index_id: 3,
+            file_path: 'index.html',
+            file_contents: `<html><body><p>Hello World</p></body></html>`
+        }
+    });
+
+    await new Promise(r => setTimeout(r, 1000));
+
+    write({
+        message_id: 3,
+        payload: {
+            type: 'AddFile',
+            index_id: 3,
+            file_path: 'cats.html',
+            file_contents: `<html><body><p>Hello Cats</p></body></html>`
+        }
+    });
+
+    await new Promise(r => setTimeout(r, 1000));
+
+    write({
+        message_id: 4,
+        payload: {
+            type: 'WriteFiles',
+            index_id: 3
+        }
+    });
+
+    await new Promise(r => setTimeout(r, 2000));
+
+    process.exit(0);
 }
 run();

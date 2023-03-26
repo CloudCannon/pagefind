@@ -55,26 +55,28 @@ async fn main() {
 
     match PagefindInboundConfig::with_layers(&config_layers) {
         Ok(config) => {
-            if config.service {
-                run_service(config).await;
-            } else if let Ok(options) = SearchOptions::load(config.clone()) {
-                let mut runner = SearchState::new(options);
+            if let Ok(options) = SearchOptions::load(config.clone()) {
+                if config.service {
+                    run_service(options).await;
+                } else {
+                    let mut runner = SearchState::new(options);
 
-                runner.log_start();
-                runner.fossick_all_files().await;
-                runner.build_indexes().await;
-                let logger = runner.write_files().await;
+                    runner.log_start();
+                    runner.fossick_all_files().await;
+                    runner.build_indexes().await;
+                    let logger = runner.write_files().await;
 
-                let duration = start.elapsed();
+                    let duration = start.elapsed();
 
-                logger.status(&format!(
-                    "Finished in {}.{} seconds",
-                    duration.as_secs(),
-                    duration.subsec_millis()
-                ));
+                    logger.status(&format!(
+                        "Finished in {}.{} seconds",
+                        duration.as_secs(),
+                        duration.subsec_millis()
+                    ));
 
-                if config.serve {
-                    pagefind::serve::serve_dir(PathBuf::from(config.source)).await;
+                    if config.serve {
+                        pagefind::serve::serve_dir(PathBuf::from(config.source)).await;
+                    }
                 }
             }
         }

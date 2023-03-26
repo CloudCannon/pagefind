@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, path::PathBuf};
 
 use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
@@ -23,7 +23,7 @@ mod utils;
 
 pub struct SearchState {
     pub options: SearchOptions,
-    pub fossicked_pages: Vec<Result<FossickedData, ()>>,
+    pub fossicked_pages: Vec<FossickedData>,
     pub built_indexes: Vec<PagefindIndexes>,
 }
 
@@ -71,17 +71,29 @@ impl SearchState {
             .into_iter()
             .map(|f| f.fossick(&self.options))
             .collect();
-        self.fossicked_pages = join_all(results).await;
+        self.fossicked_pages = join_all(results).await.into_iter().flatten().collect();
+    }
+
+    pub async fn fossick_synthetic_file(&mut self, file_path: PathBuf, contents: String) {
+        let file = Fossicker::new_synthetic(file_path, contents);
+        let result = file.fossick(&self.options).await;
+        if let Ok(result) = result {
+            let existing = self
+                .fossicked_pages
+                .iter()
+                .position(|page| page.file_path == result.file_path);
+            if let Some(existing) = existing {
+                *self.fossicked_pages.get_mut(existing).unwrap() = result;
+            } else {
+                self.fossicked_pages.push(result);
+            }
+        }
     }
 
     pub async fn build_indexes(&mut self) {
         let log = &self.options.logger;
 
-        let used_custom_body = self
-            .fossicked_pages
-            .iter()
-            .flatten()
-            .any(|page| page.has_custom_body);
+        let used_custom_body = self.fossicked_pages.iter().any(|page| page.has_custom_body);
         if used_custom_body {
             log.info("Found a data-pagefind-body element on the site.\n↳ Ignoring pages without this tag.");
         } else {
@@ -94,7 +106,6 @@ impl SearchState {
             let pages_without_html = self
                 .fossicked_pages
                 .iter()
-                .flatten()
                 .filter(|p| !p.has_html_element)
                 .map(|p| format!("  * {:?} has no <html> element", p.fragment.data.url))
                 .collect::<Vec<_>>();
@@ -112,7 +123,7 @@ impl SearchState {
 
         log.status("[Reading languages]");
 
-        let pages_with_data = self.fossicked_pages.iter().flatten().filter(|d| {
+        let pages_with_data = self.fossicked_pages.iter().filter(|d| {
             if used_custom_body && !d.has_custom_body {
                 return false;
             }
