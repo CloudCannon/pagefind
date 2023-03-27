@@ -12,6 +12,13 @@
   "scripts": {
     "not_postinstall": "node ./lib/runner/postinstall.cjs"
   },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./lib/index.js"
+    }
+  },
+  "types": "types/index.d.ts",
   "author": "CloudCannon",
   "license": "MIT",
   "dependencies": {

@@ -1,5 +1,6 @@
 import { PagefindService } from "./service.js";
 
+
 let persistentService;
 const launch = () => {
     if (!persistentService) {
@@ -19,6 +20,7 @@ const handleApiResponse = (resolve, reject, { exception, err, result }, resultFn
     }
 }
 
+/** @type {import('pagefindService').createIndex} */
 export const createIndex = () => new Promise((resolve, reject) => {
     launch().sendMessage(
         {
@@ -50,9 +52,11 @@ const addFile = (indexId, filePath, fileContents) => new Promise((resolve, rejec
         }, (response) => {
             handleApiResponse(resolve, reject, response, (success) => {
                 return {
-                    uniqueWords: success.page_word_count,
-                    url: success.page_url,
-                    meta: success.page_meta,
+                    file: {
+                        uniqueWords: success.page_word_count,
+                        url: success.page_url,
+                        meta: success.page_meta,
+                    }
                 }
             });
         }
