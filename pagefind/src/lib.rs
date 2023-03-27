@@ -74,10 +74,14 @@ impl SearchState {
         self.fossicked_pages = join_all(results).await.into_iter().flatten().collect();
     }
 
-    pub async fn fossick_synthetic_file(&mut self, file_path: PathBuf, contents: String) {
+    pub async fn fossick_synthetic_file(
+        &mut self,
+        file_path: PathBuf,
+        contents: String,
+    ) -> Result<FossickedData, ()> {
         let file = Fossicker::new_synthetic(file_path, contents);
         let result = file.fossick(&self.options).await;
-        if let Ok(result) = result {
+        if let Ok(result) = result.clone() {
             let existing = self
                 .fossicked_pages
                 .iter()
@@ -88,6 +92,7 @@ impl SearchState {
                 self.fossicked_pages.push(result);
             }
         }
+        result
     }
 
     pub async fn build_indexes(&mut self) {

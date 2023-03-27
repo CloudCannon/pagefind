@@ -1,26 +1,68 @@
-#!/usr/bin/env node
-const path = require('path');
-const fs = require('fs');
-const { execFileSync } = require('child_process');
+import { PagefindService } from "./service.js";
 
-const binaryPath = path.join(__dirname, `../bin/pagefind_extended${process.platform === 'win32' ? '.exe' : ''}`);
-
-if (!fs.existsSync(binaryPath)) {
-    console.error(`Binary failed to download — package expected to have downloaded the binary to ${binaryPath} during its postinstall`);
-    console.error(`Do you have install scripts disabled for npm?`);
-    console.error(`Try running \`npm config set ignore-scripts false\` and re-installing.`);
-    console.error(`Otherwise, your platform might not be supported. Open an issue on GitHub!`);
-    process.exit(1);
+let persistentService;
+const launch = () => {
+    if (!persistentService) {
+        persistentService = new PagefindService();
+    }
+    return persistentService;
 }
 
-try {
-    execFileSync(
-        binaryPath,
-        process.argv.slice(2),
+const handleApiResponse = (resolve, reject, { exception, err, result }, resultFn) => {
+    if (exception) {
+        reject(exception);
+    } else {
+        resolve({
+            errors: err ? [err.message] : [],
+            ...(result ? resultFn(result) : {})
+        });
+    }
+}
+
+export const createIndex = () => new Promise((resolve, reject) => {
+    launch().sendMessage(
         {
-            stdio: [process.stdin, process.stdout, process.stderr]
+            type: 'NewIndex'
+        }, (response) => {
+            handleApiResponse(resolve, reject, response, (success) => {
+                return {
+                    index: indexFns(success.index_id)
+                }
+            });
         }
-    )
-} catch (err) {
-    process.exit(1);
+    );
+});
+
+const indexFns = (indexId) => {
+    return {
+        addFile: (filePath, fileContents) => addFile(indexId, filePath, fileContents),
+        writeFiles: () => writeFiles(indexId)
+    }
 }
+
+const addFile = (indexId, filePath, fileContents) => new Promise((resolve, reject) => {
+    launch().sendMessage(
+        {
+            type: 'AddFile',
+            index_id: indexId,
+            file_path: filePath,
+            file_contents: fileContents
+        }, (response) => {
+            handleApiResponse(resolve, reject, response, (success) => {
+                return {
+                    uniqueWords: success.page_word_count,
+                    url: success.page_url,
+                    meta: success.page_meta,
+                }
+            });
+        }
+    );
+});
+
+const writeFiles = (indexId) => new Promise((resolve, reject) => {
+    launch().sendMessage(
+        {
+            type: 'WriteFiles'
+        }, (err, res) => err ? reject(err) : resolve(res)
+    );
+});

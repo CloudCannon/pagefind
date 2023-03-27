@@ -1,4 +1,4 @@
-use pagefind::service::{run_service, ServiceAction, ServiceRequest};
+use pagefind::service::run_service;
 use pagefind::{PagefindInboundConfig, SearchOptions, SearchState};
 use std::path::PathBuf;
 use std::time::Instant;

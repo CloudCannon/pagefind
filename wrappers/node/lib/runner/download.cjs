@@ -9,7 +9,7 @@ const child_process = require('child_process');
 const proxy_from_env = require('proxy-from-env');
 const { createHash } = require('crypto');
 
-const packageVersion = require('../package.json').version;
+const packageVersion = require('../../package.json').version;
 const cacheDir = path.join(__dirname, `../cache`);
 const tmpDir = path.join(cacheDir, packageVersion);
 

@@ -3,13 +3,14 @@
   "version": "0.0.0",
   "type": "module",
   "description": "Implement search on any static website.",
-  "bin": "lib/index.js",
+  "bin": "lib/runner/bin.cjs",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/CloudCannon/pagefind"
   },
   "scripts": {
-    "postinstall": "node ./lib/postinstall.js"
+    "not_postinstall": "node ./lib/runner/postinstall.cjs"
   },
   "author": "CloudCannon",
   "license": "MIT",

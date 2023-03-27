@@ -4,13 +4,13 @@ const path = require('path');
 const util = require('util');
 const child_process = require('child_process');
 
-const download = require('./download');
+const download = require('./download.cjs');
 
 const fsExists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 const exec = util.promisify(child_process.exec);
 
-const VERSION = `v${require('../package.json').version}`;
+const VERSION = `v${require('../../package.json').version}`;
 const BIN_PATH = path.join(__dirname, '../bin');
 
 process.on('unhandledRejection', (reason, promise) => {
