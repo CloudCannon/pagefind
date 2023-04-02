@@ -28,7 +28,11 @@ pub async fn run_service(options: SearchOptions) {
         loop {
             let mut buf = vec![];
             stdin.read_until(b',', &mut buf).unwrap();
-            buf.pop();
+
+            if buf.pop().is_none() {
+                // EOF Reached
+                std::process::exit(0);
+            }
 
             let decoded = general_purpose::STANDARD
                 .decode(buf)
