@@ -145,6 +145,13 @@ pub async fn run_service(options: SearchOptions) {
                     Err(_) => err("Failed to add file"),
                 }
             }
+            RequestAction::BuildIndex { index_id } => {
+                let index = indexes
+                    .get_mut(index_id as usize)
+                    .expect("Requested index should exist");
+                index.build_indexes().await;
+                send(ResponseAction::BuildIndex {});
+            }
             RequestAction::WriteFiles { index_id } => {
                 let mut index = indexes.remove(index_id as usize);
                 index.build_indexes().await;

@@ -21,6 +21,7 @@ pub(super) enum ResponseAction {
         page_url: String,
         page_meta: HashMap<String, String>,
     },
+    BuildIndex {},
     WriteFiles {
         bundle_location: String,
     },

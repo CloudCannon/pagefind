@@ -25,6 +25,9 @@ pub(super) enum RequestAction {
         filters: Option<HashMap<String, Vec<String>>>,
         sort: Option<HashMap<String, String>>,
     },
+    BuildIndex {
+        index_id: u32,
+    },
     WriteFiles {
         index_id: u32,
     },

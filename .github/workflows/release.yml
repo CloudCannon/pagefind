@@ -86,7 +86,7 @@ jobs:
   publish-npm-package:
     name: Publish NPM packages
     runs-on: ubuntu-20.04
-    needs: publish-github-release
+    needs: publish-binary-npm-packages
     steps:
       - name: Clone
         uses: actions/checkout@v2
@@ -97,9 +97,12 @@ jobs:
 
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
-
       - name: Get Tag
         run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
+      - name: Version optional dependencies
+        run: |
+          node ./.backstage/version_main_package.cjs
 
       - name: Prepare wrapper package
         working-directory: ./wrappers/node
@@ -134,6 +137,68 @@ jobs:
           npm i
           npm run build
           npm publish --tag $GIT_TAG --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-binary-npm-packages:
+    name: Publish Binary NPM packages
+    runs-on: ubuntu-20.04
+    needs: publish-github-release
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            package: windows-x64
+            os: win32
+            cpu: x64
+          - target: x86_64-unknown-linux-musl
+            package: linux-x64
+            os: linux
+            cpu: x64
+          - target: aarch64-unknown-linux-musl
+            package: linux-arm64
+            os: linux
+            cpu: arm64
+          - target: x86_64-apple-darwin
+            package: darwin-x64
+            os: darwin
+            cpu: x64
+          - target: aarch64-apple-darwin
+            package: darwin-arm64
+            os: darwin
+            cpu: arm64
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v3
+        with:
+          name: release
+          path: build-artifacts
+
+      - name: Get Version
+        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+      - name: Get Tag
+        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+
+      - name: Create Package
+        run: |
+          mkdir -p ${{ matrix.package }}/bin/
+          cd ${{ matrix.package }}
+          node ../.backstage/create_package.cjs ${{ matrix.os }} ${{ matrix.cpu }}
+          cp ../wrappers/node/.npmrc .
+      - name: Extract Binary
+        working-directory: build-artifacts
+        run: |
+          tar xzf pagefind-v$GIT_VERSION-${{ matrix.target }}.tar.gz
+          rm *.tar.gz
+          mv * ../${{ matrix.package }}/bin/
+      - name: Prepare package
+        working-directory: ${{ matrix.package }}
+        run: |
+          npm version $GIT_VERSION
+      - name: Publish
+        working-directory: ${{ matrix.package }}
+        run: npm publish --tag $GIT_TAG --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -347,6 +412,7 @@ jobs:
           version: ${{env.WASM_PACK_VERSION}}
 
       - name: Install humane
+        if: matrix.run_tests == true
         uses: supplypike/setup-bin@v1
         with:
           uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.humane_target}}.tar.gz"

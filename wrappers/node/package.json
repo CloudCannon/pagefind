@@ -9,9 +9,6 @@
     "type": "git",
     "url": "https://github.com/CloudCannon/pagefind"
   },
-  "scripts": {
-    "not_postinstall": "node ./lib/runner/postinstall.cjs"
-  },
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
@@ -21,12 +18,12 @@
   "types": "types/index.d.ts",
   "author": "CloudCannon",
   "license": "MIT",
-  "dependencies": {
-    "https-proxy-agent": "^5.0.0",
-    "proxy-from-env": "^1.1.0"
-  },
-  "overrides": {
-    "agent-base": "^6.0.2"
+  "optionalDependencies": {
+    "@pagefind/linux-x64": "0.0.0",
+    "@pagefind/linux-arm64": "0.0.0",
+    "@pagefind/darwin-x64": "0.0.0",
+    "@pagefind/darwin-arm64": "0.0.0",
+    "@pagefind/windows-x64": "0.0.0"
   },
   "keywords": [
     "CloudCannon",
