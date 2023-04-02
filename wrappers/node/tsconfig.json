@@ -12,6 +12,9 @@
             "pagefindService": [
                 "./types/index"
             ],
+            "pagefindInternal": [
+                "./types/internal"
+            ],
         },
         "noUnusedLocals": true,
         "noUnusedParameters": true

@@ -1,3 +1,4 @@
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -14,6 +15,15 @@ pub(super) enum RequestAction {
         index_id: u32,
         file_path: String,
         file_contents: String,
+    },
+    AddRecord {
+        index_id: u32,
+        url: String,
+        content: String,
+        language: String,
+        meta: Option<HashMap<String, String>>,
+        filters: Option<HashMap<String, Vec<String>>>,
+        sort: Option<HashMap<String, String>>,
     },
     WriteFiles {
         index_id: u32,

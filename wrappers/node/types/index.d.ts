@@ -12,19 +12,24 @@ export interface NewIndexResponse {
  * A Pagefind index that exists in the backend service
  */
 export interface PagefindIndex {
-    addHTMLFile(filePath: string, fileContents: string): Promise<NewFileResponse>,
-    addCustomRecord(url: string, content: string): Promise<NewFileResponse>,
-    writeFiles(): Promise<WriteFilesResponse>,
+    addHTMLFile: typeof addHTMLFile,
+    addCustomRecord: typeof addCustomRecord,
+    writeFiles: typeof writeFiles,
 }
+
+declare function addHTMLFile(filePath: string, fileContents: string): Promise<NewFileResponse>;
+declare function addCustomRecord(record: CustomRecord): Promise<NewFileResponse>;
 
 /**
  * The data required to add a custom record to Pagefind that isn't backed by an HTML file
  */
 export interface CustomRecord {
     url: string,
-    meta: Record<string, string>,
-    filters: Record<string, string[]>,
-    sort: Record<string, string>
+    content: string,
+    language: string,
+    meta?: Record<string, string>,
+    filters?: Record<string, string[]>,
+    sort?: Record<string, string>
 }
 
 export interface NewFileResponse {
@@ -38,4 +43,9 @@ export interface NewFile {
     meta: Record<string, string>
 }
 
-export interface WriteFilesResponse { }
+declare function writeFiles(): Promise<WriteFilesResponse>;
+
+export interface WriteFilesResponse {
+    errors: string[],
+    bundleLocation: string
+}

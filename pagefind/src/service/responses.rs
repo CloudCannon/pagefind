@@ -13,12 +13,15 @@ pub(super) enum ResponseAction {
     Error {
         message: String,
     },
-    CreatedIndex {
+    NewIndex {
         index_id: u32,
     },
-    AddedFile {
+    IndexedFile {
         page_word_count: u32,
         page_url: String,
         page_meta: HashMap<String, String>,
+    },
+    WriteFiles {
+        bundle_location: String,
     },
 }

@@ -6,7 +6,11 @@ use std::{
 use base64::{engine::general_purpose, Engine as _};
 use tokio::sync::mpsc;
 
-use crate::{SearchOptions, SearchState};
+use crate::{
+    fossick::{parser::DomParserResult, FossickedData, Fossicker},
+    fragments::{PageFragment, PageFragmentData},
+    SearchOptions, SearchState,
+};
 
 use requests::*;
 use responses::*;
@@ -81,7 +85,7 @@ pub async fn run_service(options: SearchOptions) {
             RequestAction::NewIndex => {
                 let index_id = indexes.len();
                 indexes.insert(index_id, SearchState::new(options.clone()));
-                send(ResponseAction::CreatedIndex {
+                send(ResponseAction::NewIndex {
                     index_id: index_id as u32,
                 });
             }
@@ -93,11 +97,43 @@ pub async fn run_service(options: SearchOptions) {
                 let index = indexes
                     .get_mut(index_id as usize)
                     .expect("Requested index should exist");
-                let data = index
-                    .fossick_synthetic_file(PathBuf::from(file_path), file_contents)
-                    .await;
+                let file = Fossicker::new_synthetic(PathBuf::from(file_path), file_contents);
+                let data = index.fossick_one(file).await;
                 match data {
-                    Ok(data) => send(ResponseAction::AddedFile {
+                    Ok(data) => send(ResponseAction::IndexedFile {
+                        page_word_count: data.fragment.data.word_count as u32,
+                        page_url: data.fragment.data.url.clone(),
+                        page_meta: data.fragment.data.meta.clone(),
+                    }),
+                    Err(_) => err("Failed to add file"),
+                }
+            }
+            RequestAction::AddRecord {
+                index_id,
+                url,
+                content,
+                language,
+                meta,
+                filters,
+                sort,
+            } => {
+                let index = indexes
+                    .get_mut(index_id as usize)
+                    .expect("Requested index should exist");
+                let data = DomParserResult {
+                    digest: content,
+                    filters: filters.unwrap_or_default(),
+                    sort: sort.unwrap_or_default(),
+                    meta: meta.unwrap_or_default(),
+                    has_custom_body: false,
+                    force_inclusion: true,
+                    has_html_element: true,
+                    language,
+                };
+                let file = Fossicker::new_with_data(url, data);
+                let data = index.fossick_one(file).await;
+                match data {
+                    Ok(data) => send(ResponseAction::IndexedFile {
                         page_word_count: data.fragment.data.word_count as u32,
                         page_url: data.fragment.data.url.clone(),
                         page_meta: data.fragment.data.meta.clone(),
@@ -109,6 +145,9 @@ pub async fn run_service(options: SearchOptions) {
                 let mut index = indexes.remove(index_id as usize);
                 index.build_indexes().await;
                 index.write_files().await;
+                send(ResponseAction::WriteFiles {
+                    bundle_location: "TODO".into(),
+                });
             }
         }
     }

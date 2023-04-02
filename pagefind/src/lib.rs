@@ -74,24 +74,25 @@ impl SearchState {
         self.fossicked_pages = join_all(results).await.into_iter().flatten().collect();
     }
 
-    pub async fn fossick_synthetic_file(
-        &mut self,
-        file_path: PathBuf,
-        contents: String,
-    ) -> Result<FossickedData, ()> {
-        let file = Fossicker::new_synthetic(file_path, contents);
+    pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData, ()> {
         let result = file.fossick(&self.options).await;
+        self.options
+            .logger
+            .info(format!("Indexing file into: {:#?}", self.fossicked_pages));
         if let Ok(result) = result.clone() {
             let existing = self
                 .fossicked_pages
                 .iter()
-                .position(|page| page.file_path == result.file_path);
+                .position(|page| page.url == result.url);
             if let Some(existing) = existing {
                 *self.fossicked_pages.get_mut(existing).unwrap() = result;
             } else {
                 self.fossicked_pages.push(result);
             }
         }
+        self.options
+            .logger
+            .info(format!("Now: {:#?}", self.fossicked_pages));
         result
     }
 
@@ -129,7 +130,7 @@ impl SearchState {
         log.status("[Reading languages]");
 
         let pages_with_data = self.fossicked_pages.iter().filter(|d| {
-            if used_custom_body && !d.has_custom_body {
+            if used_custom_body && !d.has_custom_body && !d.force_inclusion {
                 return false;
             }
             !d.word_data.is_empty()

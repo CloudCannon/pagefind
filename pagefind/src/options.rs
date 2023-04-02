@@ -74,6 +74,15 @@ pub struct PagefindInboundConfig {
     #[clap(
         long,
         short,
+        help = "Path to a logfile to write to. Will replace the file on each run"
+    )]
+    #[clap(required = false)]
+    #[serde(default)]
+    pub logfile: Option<String>,
+
+    #[clap(
+        long,
+        short,
         help = "Keep \"index.html\" at the end of search result paths. Defaults to false, stripping \"index.html\"."
     )]
     #[clap(required = false)]
@@ -129,6 +138,8 @@ impl SearchOptions {
                 LogLevel::Standard
             };
 
+            let log_to_terminal = !config.service;
+
             Ok(Self {
                 working_directory: env::current_dir().unwrap(),
                 source: PathBuf::from(config.source),
@@ -138,7 +149,11 @@ impl SearchOptions {
                 glob: config.glob,
                 force_language: config.force_language,
                 version: env!("CARGO_PKG_VERSION"),
-                logger: Logger::new(log_level),
+                logger: Logger::new(
+                    log_level,
+                    log_to_terminal,
+                    config.logfile.map(PathBuf::from),
+                ),
                 keep_index_url: config.keep_index_url,
             })
         }

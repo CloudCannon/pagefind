@@ -1,23 +1,53 @@
 import child_process from 'child_process';
-import fs from 'fs';
-import path from 'path';
+
+/**
+ * Requests
+ * @typedef {import('pagefindInternal').InternalServiceRequest} InternalServiceRequest
+ * @typedef {import('pagefindInternal').InternalRequestPayload} InternalRequestPayload
+ * 
+ * Responses
+ * @typedef {import('pagefindInternal').InternalServiceResponse} InternalServiceResponse
+ * @typedef {import('pagefindInternal').InternalResponseError} InternalResponseError
+ * @typedef {import('pagefindInternal').InternalResponsePayload} InternalResponsePayload
+ * 
+ * @typedef {import('pagefindInternal').InternalResponseCallback} InternalResponseCallback
+ */
 
 export class PagefindService {
     constructor() {
-        this.backend = child_process.spawn("../../target/debug/pagefind", [`--service`], {
+        /**
+         * @type {child_process.ChildProcessByStdio<import('stream').Writable, import('stream').Readable, null> | null}
+         */
+        this.backend = child_process.spawn("../../target/debug/pagefind", [`--service`, `--logfile=pagefind_log.txt`], {
             windowsHide: true,
             stdio: ['pipe', 'pipe', 'inherit'],
             cwd: process.cwd(),
         });
+
         this.incomingMessageBuffer = "";
+        /**
+         * @type {Record<number, function(InternalResponseCallback): void>}
+         */
         this.callbacks = {};
         this.messageId = 0;
 
-        this.backend.stdout.on('data', (data) => this.handleIncomingChunk(data));
-        this.backend.stdin.on('error', (err) => this.close(err));
+        (this.backend.stdout).on('data', (data) => this.handleIncomingChunk(data));
+        (this.backend.stdin).on('error', (err) => this.close(err));
         this.backend.on('error', (err) => this.close(err));
+
+        this.refCount = 0
+        this.backend.unref?.();
+
+
+        /** @type {{ unref?(): void }} */
+        (this.backend.stdout)?.unref?.();
+        /** @type {{ unref?(): void }} */
+        (this.backend.stdin)?.unref?.();
     }
 
+    /**
+     * @param {Error} err 
+     */
     close(err) {
         if (err) {
             console.error("Service stopped", err);
@@ -25,6 +55,17 @@ export class PagefindService {
         this.backend = null;
     }
 
+    ref() {
+        if (++this.refCount === 1) this.backend?.ref?.();
+    }
+
+    unref() {
+        if (--this.refCount === 0) this.backend?.unref?.();
+    }
+
+    /**
+     * @param {Buffer} buf 
+     */
     handleIncomingChunk(buf) {
         let chunk = buf.toString();
         try {
@@ -44,34 +85,53 @@ export class PagefindService {
         } catch (e) {
             /* TODO: Comms error handling */
             console.error(e);
+            this.incomingMessageBuffer = "";
         }
     }
 
+    /**
+     * @param {string} message 
+     */
     handleIncomingMessage(message) {
-        message = PagefindService.parseMessage(message);
-        if (this.callbacks[message.message_id]) {
-            const isError = message.payload.type === "Error";
-            this.returnValue({
-                message_id: message.message_id,
-                exception: null,
-                err: isError ? message.payload : null,
-                result: !isError ? message.payload : null,
-            });
+        let parsed_message = PagefindService.parseMessage(message);
+        if (this.callbacks[parsed_message.message_id]) {
+            const isError = parsed_message.payload.type === "Error";
+            this.returnValue(
+                parsed_message.message_id,
+                {
+                    exception: null,
+                    err: isError ? /** @type {InternalResponseError} */ (parsed_message.payload) : null,
+                    result: !isError ? /** @type {InternalResponsePayload} */ (parsed_message.payload) : null,
+                });
         }
     }
 
+    /**
+     * @param {InternalRequestPayload} message 
+     * @param {function(InternalResponseCallback): void} callback 
+     * @returns {InternalServiceRequest}
+     */
     wrapOutgoingMessage(message, callback) {
-        message = {
+        let output_message = {
             message_id: ++this.messageId,
             payload: message
         };
-        if (callback) this.callbacks[message.message_id] = callback;
-        return message;
+        if (callback) this.callbacks[output_message.message_id] = callback;
+        return output_message;
     }
 
+    /**
+     * @param {InternalRequestPayload} message 
+     * @param {function(InternalResponseCallback): void} callback 
+     */
     sendMessage(message, callback) {
-        message = this.wrapOutgoingMessage(message, callback);
-        let encoded = PagefindService.encodeMessage(message);
+        if (this.backend === null) {
+            console.error(`Cannot send message, backend is closed: `, message);
+            return;
+        }
+        let wrapped_message = this.wrapOutgoingMessage(message, callback);
+        this.ref();
+        let encoded = PagefindService.encodeMessage(wrapped_message);
         this.backend.stdin.write(encoded, (err) => {
             if (err) {
                 this.close(err);
@@ -79,124 +139,34 @@ export class PagefindService {
         });
     }
 
-    returnValue({ message_id, exception, err, result }) {
+    /**
+     * @param {number} message_id 
+     * @param {InternalResponseCallback} response_callback
+     */
+    returnValue(message_id, response_callback) {
         try {
-            this.callbacks[message_id]({ exception, err, result });
+            this.callbacks[message_id](response_callback);
         } finally {
             delete this.callbacks[message_id];
+            this.unref();
         }
     }
 
-    static encodeMessage(msg) {
-        return Buffer.from(JSON.stringify(msg)).toString('base64') + ",";
+    /**
+     * @param {InternalServiceRequest} message 
+     * @returns {string}
+     */
+    static encodeMessage(message) {
+        return Buffer.from(JSON.stringify(message)).toString('base64') + ",";
     }
 
-    static parseMessage(msg) {
-        const data = Buffer.from(msg, 'base64');
-        return JSON.parse(data);
+    /**
+     * 
+     * @param {string} message 
+     * @returns {InternalServiceResponse}
+     */
+    static parseMessage(message) {
+        const data = Buffer.from(message, 'base64');
+        return JSON.parse(data.toString());
     }
 }
-
-// const run = async () => {
-//     let child = child_process.spawn("../../target/debug/pagefind", [`--service`], {
-//         windowsHide: true,
-//         stdio: ['pipe', 'pipe', 'inherit'],
-//         cwd: process.cwd(),
-//     });
-
-//     let partMsg = "";
-
-//     const processMsg = (d) => {
-//         const data = Buffer.from(d.toString(), 'base64');
-//         const decoded = JSON.parse(data);
-//         console.log("DATA", decoded);
-//     }
-
-//     child.stdout.on('data', (d) => {
-//         let chunk = d.toString();
-//         console.log("RAW", chunk);
-//         try {
-//             while (chunk.length) {
-//                 let delim = chunk.indexOf(',');
-//                 if (!delim) {
-//                     partMsg = partMsg + chunk;
-//                     return;
-//                 }
-
-//                 let msg = chunk.slice(0, delim);
-//                 processMsg(partMsg + msg);
-//                 partMsg = "";
-
-//                 chunk = chunk.slice(delim + 1);
-//             }
-//         } catch { }
-//     });
-
-//     child.stdin.on('error', (e) => {
-//         console.error("Service stopped");
-//         process.exit(1);
-//     });
-//     child.on('error', (e) => {
-//         console.error("Service stopped");
-//         process.exit(1);
-//     });
-
-//     const write = (msg) => {
-//         // let e = new Encoder({ largeBigIntToFloat: false, useRecords: false });
-//         let encoded = Buffer.from(JSON.stringify(msg)).toString('base64') + ",";
-//         console.log("Writing", encoded);
-//         child.stdin.write(encoded, (err) => {
-//             if (err) {
-//                 console.error("Service stopped");
-//                 process.exit(1);
-//             }
-//         });
-//     }
-
-//     write({
-//         message_id: 1,
-//         payload: {
-//             type: 'NewIndex',
-//             id: 3
-//         }
-//     });
-
-//     await new Promise(r => setTimeout(r, 1000));
-
-//     write({
-//         message_id: 2,
-//         payload: {
-//             type: 'AddFile',
-//             index_id: 3,
-//             file_path: 'index.html',
-//             file_contents: `<html><body><p>Hello World</p></body></html>`
-//         }
-//     });
-
-//     await new Promise(r => setTimeout(r, 1000));
-
-//     write({
-//         message_id: 3,
-//         payload: {
-//             type: 'AddFile',
-//             index_id: 3,
-//             file_path: 'cats.html',
-//             file_contents: `<html><body><p>Hello Cats</p></body></html>`
-//         }
-//     });
-
-//     await new Promise(r => setTimeout(r, 1000));
-
-//     write({
-//         message_id: 4,
-//         payload: {
-//             type: 'WriteFiles',
-//             index_id: 3
-//         }
-//     });
-
-//     await new Promise(r => setTimeout(r, 2000));
-
-//     process.exit(0);
-// }
-// run();

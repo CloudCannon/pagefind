@@ -42,5 +42,8 @@
   "bugs": {
     "url": "https://github.com/CloudCannon/pagefind/issues"
   },
-  "homepage": "https://github.com/CloudCannon/pagefind#readme"
+  "homepage": "https://github.com/CloudCannon/pagefind#readme",
+  "devDependencies": {
+    "@types/node": "^18.15.11"
+  }
 }
