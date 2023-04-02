@@ -101,6 +101,7 @@ pub struct DomParserResult {
     pub sort: HashMap<String, String>,
     pub meta: HashMap<String, String>,
     pub has_custom_body: bool,
+    pub force_inclusion: bool, // Include this page even if there is no body
     pub has_html_element: bool,
     pub language: String,
 }
@@ -514,6 +515,7 @@ impl<'a> DomParser<'a> {
             sort: data.sort,
             meta: data.default_meta,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
+            force_inclusion: false,
             has_html_element: data.has_html_element,
             language: data
                 .language

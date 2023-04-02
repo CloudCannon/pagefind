@@ -41,3 +41,5 @@ updates:
     open-pull-requests-limit: 1
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: "@pagefind/*"

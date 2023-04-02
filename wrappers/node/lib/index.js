@@ -1,26 +1,180 @@
-#!/usr/bin/env node
-const path = require('path');
-const fs = require('fs');
-const { execFileSync } = require('child_process');
+import { PagefindService } from "./service.js";
 
-const binaryPath = path.join(__dirname, `../bin/pagefind_extended${process.platform === 'win32' ? '.exe' : ''}`);
+/**
+ * @typedef {import('pagefindInternal').InternalResponseCallback} InternalResponseCallback
+ * @typedef {import('pagefindInternal').InternalResponsePayload} InternalResponsePayload
+ */
 
-if (!fs.existsSync(binaryPath)) {
-    console.error(`Binary failed to download — package expected to have downloaded the binary to ${binaryPath} during its postinstall`);
-    console.error(`Do you have install scripts disabled for npm?`);
-    console.error(`Try running \`npm config set ignore-scripts false\` and re-installing.`);
-    console.error(`Otherwise, your platform might not be supported. Open an issue on GitHub!`);
-    process.exit(1);
+/**
+ * @type {PagefindService?}
+ */
+let persistentService;
+const launch = () => {
+    if (!persistentService) {
+        persistentService = new PagefindService();
+    }
+    return persistentService;
 }
 
-try {
-    execFileSync(
-        binaryPath,
-        process.argv.slice(2),
+/**
+ * @template T
+ * @param {function(any): void} resolve 
+ * @param {function(any): void} reject 
+ * @param {InternalResponseCallback} response_callback 
+ * @param {function(InternalResponsePayload): T} resultFn 
+ */
+const handleApiResponse = (resolve, reject, { exception, err, result }, resultFn) => {
+    if (exception) {
+        reject(exception);
+    } else {
+        resolve({
+            errors: err ? [err.message] : [],
+            ...(result ? resultFn(result) : {})
+        });
+    }
+}
+
+/** 
+ * @typedef {import('pagefindService').NewIndexResponse} NewIndexResponse
+ * 
+ * @type {import('pagefindService').createIndex} 
+ * */
+export const createIndex = () => new Promise((resolve, reject) => {
+    const action = 'NewIndex';
+    launch().sendMessage(
         {
-            stdio: [process.stdin, process.stdout, process.stderr]
+            type: action
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<NewIndexResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== action) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    index: indexFns(success.index_id),
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
         }
-    )
-} catch (err) {
-    process.exit(1);
+    );
+});
+
+/**
+ * @param {number} indexId 
+ * @returns {import ('pagefindService').PagefindIndex}
+ */
+const indexFns = (indexId) => {
+    return {
+        addHTMLFile: (filePath, fileContents) => addHTMLFile(indexId, filePath, fileContents),
+        addCustomRecord: (record) => addCustomRecord(indexId, record),
+        writeFiles: () => writeFiles(indexId)
+    }
 }
+
+/**
+ * @typedef {import('pagefindService').NewFileResponse} NewFileResponse
+ * 
+ * @param {number} indexId 
+ * @param {string} filePath 
+ * @param {string} fileContents 
+ * @returns {Promise<NewFileResponse>}
+ */
+const addHTMLFile = (indexId, filePath, fileContents) => new Promise((resolve, reject) => {
+    const action = 'AddFile';
+    const responseAction = 'IndexedFile';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+            file_path: filePath,
+            file_contents: fileContents
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<NewFileResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== responseAction) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    file: {
+                        uniqueWords: success.page_word_count,
+                        url: success.page_url,
+                        meta: success.page_meta,
+                    }
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
+/**
+ * @param {number} indexId 
+ * @param {import('pagefindService').CustomRecord} record
+ * @returns {Promise<NewFileResponse>}
+ */
+const addCustomRecord = (indexId, record) => new Promise((resolve, reject) => {
+    const action = 'AddRecord';
+    const responseAction = 'IndexedFile';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+            url: record.url,
+            content: record.content,
+            language: record.language,
+            meta: record.meta,
+            filters: record.filters,
+            sort: record.sort,
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<NewFileResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== responseAction) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    file: {
+                        uniqueWords: success.page_word_count,
+                        url: success.page_url,
+                        meta: success.page_meta,
+                    }
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
+/**
+ * @typedef {import ('pagefindService').WriteFilesResponse} WriteFilesResponse
+ * 
+ * @param {number} indexId 
+ * @returns {Promise<WriteFilesResponse>}
+ */
+const writeFiles = (indexId) => new Promise((resolve, reject) => {
+    const action = 'WriteFiles';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<WriteFilesResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== action) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    bundleLocation: success.bundle_location
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});

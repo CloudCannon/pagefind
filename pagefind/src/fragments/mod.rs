@@ -2,7 +2,7 @@ use hashbrown::HashMap;
 
 use serde::Serialize;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct PageAnchorData {
     pub element: String,
     pub id: String,
@@ -10,7 +10,7 @@ pub struct PageAnchorData {
     pub location: u32,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct PageFragmentData {
     pub url: String,
     pub content: String,
@@ -20,7 +20,7 @@ pub struct PageFragmentData {
     pub anchors: Vec<PageAnchorData>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PageFragment {
     pub page_number: usize,
     pub data: PageFragmentData,

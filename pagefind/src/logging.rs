@@ -1,14 +1,20 @@
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    fs::{create_dir_all, File, OpenOptions},
+    io::Write,
+    path::PathBuf,
+};
 
 use console::{Style, Term};
 use lazy_static::lazy_static;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LogLevel {
     Standard,
     Verbose,
 }
 
+#[derive(Debug, Clone)]
 pub enum LogStyle {
     Info,
     Status,
@@ -17,10 +23,12 @@ pub enum LogStyle {
     Success,
 }
 
+#[derive(Clone)]
 pub struct Logger {
     log_level: LogLevel,
-    out: Term,
+    out: Option<Term>,
     err: Term,
+    logfile: Option<PathBuf>,
 }
 
 macro_rules! plural {
@@ -48,11 +56,26 @@ lazy_static! {
 }
 
 impl Logger {
-    pub fn new(log_level: LogLevel) -> Self {
+    pub fn new(log_level: LogLevel, use_terminal: bool, logfile: Option<PathBuf>) -> Self {
+        if let Some(filename) = &logfile {
+            if let Some(parent) = filename.parent() {
+                create_dir_all(parent).unwrap();
+            }
+
+            let mut file = File::create(filename).unwrap();
+            file.write_all("Pagefind logging initialized\n".as_bytes())
+                .expect("Logfile should be writable");
+        }
+
         Self {
             log_level,
-            out: Term::stdout(),
+            out: if (use_terminal) {
+                Some(Term::stdout())
+            } else {
+                None
+            },
             err: Term::stderr(),
+            logfile,
         }
     }
 
@@ -94,33 +117,41 @@ impl Logger {
             LogLevel::Verbose => matches!(self.log_level, LogLevel::Verbose),
         };
 
+        if let Some(filename) = &self.logfile {
+            let mut file = OpenOptions::new()
+                .write(true)
+                .append(true)
+                .open(filename)
+                .unwrap();
+
+            writeln!(file, "[{log_style:?}]: {}", msg.as_ref()).unwrap();
+        }
+
         if log {
-            // We currently aren't worried about logging failures.
-            match log_style {
-                LogStyle::Info => {
-                    let _ = self.out.write_line(msg.as_ref());
-                }
-                LogStyle::Status => {
-                    let _ = self
-                        .out
-                        .write_line(&format!("\n{}", STATUS.apply_to(msg.as_ref())));
-                }
-                LogStyle::Warning => {
-                    let _ = self
-                        .err
-                        .write_line(&WARN.apply_to(msg.as_ref()).to_string());
-                }
-                LogStyle::Error => {
-                    let _ = self
-                        .err
-                        .write_line(&ERROR.apply_to(msg.as_ref()).to_string());
-                }
-                LogStyle::Success => {
-                    let _ = self
-                        .out
-                        .write_line(&SUCCESS.apply_to(msg.as_ref()).to_string());
-                }
-            };
+            if let Some(out) = &self.out {
+                // We currently aren't worried about logging failures.
+                match log_style {
+                    LogStyle::Info => {
+                        let _ = out.write_line(msg.as_ref());
+                    }
+                    LogStyle::Status => {
+                        let _ = out.write_line(&format!("\n{}", STATUS.apply_to(msg.as_ref())));
+                    }
+                    LogStyle::Warning => {
+                        let _ = self
+                            .err
+                            .write_line(&WARN.apply_to(msg.as_ref()).to_string());
+                    }
+                    LogStyle::Error => {
+                        let _ = self
+                            .err
+                            .write_line(&ERROR.apply_to(msg.as_ref()).to_string());
+                    }
+                    LogStyle::Success => {
+                        let _ = out.write_line(&SUCCESS.apply_to(msg.as_ref()).to_string());
+                    }
+                };
+            }
         }
     }
 }

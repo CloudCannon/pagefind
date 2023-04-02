@@ -24,35 +24,59 @@ lazy_static! {
     static ref SPECIAL_CHARS: Regex = Regex::new("[^\\w]").unwrap();
 }
 
-mod parser;
+pub mod parser;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FossickedData {
-    pub file_path: PathBuf,
+    pub url: String,
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<u32>>,
     pub sort: HashMap<String, String>,
     pub has_custom_body: bool,
+    pub force_inclusion: bool,
     pub has_html_element: bool,
     pub language: String,
 }
 
 #[derive(Debug)]
 pub struct Fossicker {
-    file_path: PathBuf,
+    file_path: Option<PathBuf>,
+    page_url: Option<String>,
+    synthetic_content: Option<String>,
     data: Option<DomParserResult>,
 }
 
 impl Fossicker {
     pub fn new(file_path: PathBuf) -> Self {
         Self {
-            file_path,
+            file_path: Some(file_path),
+            page_url: None,
+            synthetic_content: None,
             data: None,
         }
     }
 
+    pub fn new_synthetic(file_path: PathBuf, contents: String) -> Self {
+        Self {
+            file_path: Some(file_path),
+            page_url: None,
+            synthetic_content: Some(contents),
+            data: None,
+        }
+    }
+
+    pub fn new_with_data(url: String, data: DomParserResult) -> Self {
+        Self {
+            file_path: None,
+            page_url: Some(url),
+            synthetic_content: None,
+            data: Some(data),
+        }
+    }
+
     async fn read_file(&mut self, options: &SearchOptions) -> Result<(), Error> {
-        let file = File::open(&self.file_path).await?;
+        let Some(file_path) = &self.file_path else { return Ok(()) }; // TODO: Change to thiserror
+        let file = File::open(file_path).await?;
 
         let mut rewriter = DomParser::new(options);
 
@@ -74,7 +98,7 @@ impl Fossicker {
                 if let Err(error) = rewriter.write(&buf[..read]) {
                     println!(
                         "Failed to parse file {} — skipping this file. Error:\n{error}",
-                        self.file_path.to_str().unwrap_or("[unknown file]")
+                        file_path.to_str().unwrap_or("[unknown file]")
                     );
                     return Ok(());
                 }
@@ -87,10 +111,42 @@ impl Fossicker {
                 if let Err(error) = rewriter.write(&buf[..read]) {
                     println!(
                         "Failed to parse file {} — skipping this file. Error:\n{error}",
-                        self.file_path.to_str().unwrap_or("[unknown file]")
+                        file_path.to_str().unwrap_or("[unknown file]")
                     );
                     return Ok(());
                 }
+            }
+        }
+
+        let mut data = rewriter.wrap();
+        if let Some(forced_language) = &options.force_language {
+            data.language = forced_language.clone();
+        }
+
+        self.data = Some(data);
+
+        Ok(())
+    }
+
+    async fn read_synthetic(&mut self, options: &SearchOptions) -> Result<(), Error> {
+        let Some(file_path) = &self.file_path else { return Ok(()) }; // TODO: Change to thiserror
+        let Some(contents) = self.synthetic_content.as_ref() else { return Ok(()) };
+
+        let mut rewriter = DomParser::new(options);
+
+        let mut br = BufReader::new(contents.as_bytes());
+        let mut buf = [0; 20000];
+
+        while let Ok(read) = br.read(&mut buf).await {
+            if read == 0 {
+                break;
+            }
+            if let Err(error) = rewriter.write(&buf[..read]) {
+                println!(
+                    "Failed to parse file {} — skipping this file. Error:\n{error}",
+                    file_path.to_str().unwrap_or("[unknown file]")
+                );
+                return Ok(());
             }
         }
 
@@ -195,23 +251,41 @@ impl Fossicker {
         (content, map, anchors)
     }
 
-    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
-        while self.read_file(options).await.is_err() {
-            sleep(Duration::from_millis(1)).await;
+    async fn fossick_html(&mut self, options: &SearchOptions) {
+        if self.synthetic_content.is_some() {
+            while self.read_synthetic(options).await.is_err() {
+                sleep(Duration::from_millis(1)).await;
+            }
+        } else {
+            while self.read_file(options).await.is_err() {
+                sleep(Duration::from_millis(1)).await;
+            }
         }
+    }
+
+    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
+        if self.file_path.is_some() && self.data.is_none() {
+            self.fossick_html(options).await;
+        };
 
         let (content, word_data, anchors) = self.parse_digest();
 
-        if self.data.is_none() {
-            return Err(());
-        }
-
         let data = self.data.unwrap();
-        let url = build_url(&self.file_path, options);
+        let url = if let Some(url) = &self.page_url {
+            url.clone()
+        } else if let Some(path) = &self.file_path {
+            build_url(path, options)
+        } else {
+            options
+                .logger
+                .error("Tried to index file with no specified URL or file path, ignoring.");
+            return Err(());
+        };
 
         Ok(FossickedData {
-            file_path: self.file_path,
+            url: url.clone(),
             has_custom_body: data.has_custom_body,
+            force_inclusion: data.force_inclusion,
             has_html_element: data.has_html_element,
             language: data.language,
             fragment: PageFragment {

@@ -1,23 +1,29 @@
 {
   "name": "pagefind",
   "version": "0.0.0",
+  "type": "module",
   "description": "Implement search on any static website.",
-  "bin": "lib/index.js",
+  "bin": "lib/runner/bin.cjs",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/CloudCannon/pagefind"
   },
-  "scripts": {
-    "postinstall": "node ./lib/postinstall.js"
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./lib/index.js"
+    }
   },
+  "types": "types/index.d.ts",
   "author": "CloudCannon",
   "license": "MIT",
-  "dependencies": {
-    "https-proxy-agent": "^5.0.0",
-    "proxy-from-env": "^1.1.0"
-  },
-  "overrides": {
-    "agent-base": "^6.0.2"
+  "optionalDependencies": {
+    "@pagefind/linux-x64": "0.0.0",
+    "@pagefind/linux-arm64": "0.0.0",
+    "@pagefind/darwin-x64": "0.0.0",
+    "@pagefind/darwin-arm64": "0.0.0",
+    "@pagefind/windows-x64": "0.0.0"
   },
   "keywords": [
     "CloudCannon",
@@ -33,5 +39,8 @@
   "bugs": {
     "url": "https://github.com/CloudCannon/pagefind/issues"
   },
-  "homepage": "https://github.com/CloudCannon/pagefind#readme"
+  "homepage": "https://github.com/CloudCannon/pagefind#readme",
+  "devDependencies": {
+    "@types/node": "^18.15.11"
+  }
 }

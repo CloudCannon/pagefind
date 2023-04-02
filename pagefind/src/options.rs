@@ -74,11 +74,25 @@ pub struct PagefindInboundConfig {
     #[clap(
         long,
         short,
+        help = "Path to a logfile to write to. Will replace the file on each run"
+    )]
+    #[clap(required = false)]
+    #[serde(default)]
+    pub logfile: Option<String>,
+
+    #[clap(
+        long,
+        short,
         help = "Keep \"index.html\" at the end of search result paths. Defaults to false, stripping \"index.html\"."
     )]
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
     pub keep_index_url: bool,
+
+    #[clap(long)]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_false")]
+    pub service: bool,
 }
 
 mod defaults {
@@ -97,7 +111,7 @@ mod defaults {
 }
 
 // The configuration object used internally
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SearchOptions {
     pub working_directory: PathBuf,
     pub source: PathBuf,
@@ -108,12 +122,12 @@ pub struct SearchOptions {
     pub force_language: Option<String>,
     pub version: &'static str,
     pub logger: Logger,
-    pub keep_index_url: bool
+    pub keep_index_url: bool,
 }
 
 impl SearchOptions {
     pub fn load(config: PagefindInboundConfig) -> Result<Self> {
-        if config.source.is_empty() {
+        if !config.service && config.source.is_empty() {
             eprintln!("Required argument source not supplied. Pagefind needs to know the root of your built static site.");
             eprintln!("Provide a --source flag, a PAGEFIND_SOURCE environment variable, or a source key in a Pagefind configuration file.");
             bail!("Missing argument: source");
@@ -124,6 +138,8 @@ impl SearchOptions {
                 LogLevel::Standard
             };
 
+            let log_to_terminal = !config.service;
+
             Ok(Self {
                 working_directory: env::current_dir().unwrap(),
                 source: PathBuf::from(config.source),
@@ -133,8 +149,12 @@ impl SearchOptions {
                 glob: config.glob,
                 force_language: config.force_language,
                 version: env!("CARGO_PKG_VERSION"),
-                logger: Logger::new(log_level),
-                keep_index_url: config.keep_index_url
+                logger: Logger::new(
+                    log_level,
+                    log_to_terminal,
+                    config.logfile.map(PathBuf::from),
+                ),
+                keep_index_url: config.keep_index_url,
             })
         }
     }
