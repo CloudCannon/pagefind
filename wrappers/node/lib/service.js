@@ -1,4 +1,5 @@
 import child_process from 'child_process';
+import { resolveBinaryPath } from './resolveBinary.js';
 
 /**
  * Requests
@@ -18,7 +19,7 @@ export class PagefindService {
         /**
          * @type {child_process.ChildProcessByStdio<import('stream').Writable, import('stream').Readable, null> | null}
          */
-        this.backend = child_process.spawn("../../target/debug/pagefind", [`--service`, `--logfile=pagefind_log.txt`], {
+        this.backend = child_process.spawn(resolveBinaryPath("pagefind"), [`--service`], {
             windowsHide: true,
             stdio: ['pipe', 'pipe', 'inherit'],
             cwd: process.cwd(),
