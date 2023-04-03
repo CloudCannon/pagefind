@@ -9,7 +9,7 @@ const run = async () => {
     let index = result.index;
 
     console.log(`\nAdding an HTML file to the index`);
-    const page = await index.addHTMLFile("dogs/index.html", "<html><body><h1>Testing, testing</h1></body></html>");
+    const page = await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
     console.log(page);
 
     console.log(`\nAdding a custom file to the index`);

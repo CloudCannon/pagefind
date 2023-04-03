@@ -67,7 +67,7 @@ export const createIndex = () => new Promise((resolve, reject) => {
  */
 const indexFns = (indexId) => {
     return {
-        addHTMLFile: (filePath, fileContents) => addHTMLFile(indexId, filePath, fileContents),
+        addHTMLFile: (file) => addHTMLFile(indexId, file),
         addCustomRecord: (record) => addCustomRecord(indexId, record),
         writeFiles: () => writeFiles(indexId)
     }
@@ -77,19 +77,18 @@ const indexFns = (indexId) => {
  * @typedef {import('pagefindService').NewFileResponse} NewFileResponse
  * 
  * @param {number} indexId 
- * @param {string} filePath 
- * @param {string} fileContents 
+ * @param {import('pagefindService').HTMLFile} file
  * @returns {Promise<NewFileResponse>}
  */
-const addHTMLFile = (indexId, filePath, fileContents) => new Promise((resolve, reject) => {
+const addHTMLFile = (indexId, file) => new Promise((resolve, reject) => {
     const action = 'AddFile';
     const responseAction = 'IndexedFile';
     launch().sendMessage(
         {
             type: action,
             index_id: indexId,
-            file_path: filePath,
-            file_contents: fileContents
+            file_path: file.path,
+            file_contents: file.content
         }, (response) => {
             /** @type {function(InternalResponsePayload): Omit<NewFileResponse, 'errors'>?} */
             const successCallback = (success) => {
