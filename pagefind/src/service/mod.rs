@@ -164,6 +164,7 @@ pub async fn run_service(options: SearchOptions) {
                 let index = indexes
                     .get_mut(index_id as usize)
                     .expect("Requested index should exist");
+                index.build_indexes().await;
                 let files = index.get_files().await;
                 send(ResponseAction::GetFiles {
                     files: files
