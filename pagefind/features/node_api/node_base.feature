@@ -59,12 +59,17 @@ Feature: Node API Base Tests
 #                 const { index } = await pagefind.createIndex();
 #                 await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
 #                 const { files } = await index.getFiles();
+
 #                 const jsFile = files.filter(file => file.path.includes("pagefind.js"))[0];
 #                 console.log(jsFile.content.toString());
+
+#                 const fragments = files.filter(file => file.path.includes("fragment"));
+#                 console.log(`${fragments.length} fragment(s)`);
 #             }
 
 #             run();
 #         """
 #     When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #     Then I should see "pagefind_version=" in stdout
+#     Then I should see "1 fragment(s)" in stdout
 #     Then I should not see the file "public/_pagefind/pagefind.js"
