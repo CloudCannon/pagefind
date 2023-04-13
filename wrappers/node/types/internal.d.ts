@@ -11,7 +11,7 @@ export interface InternalServiceRequest {
 /**
  * The payload describing an action to the backend binary
  */
-export type InternalRequestPayload = InternalNewIndexRequest | InternalAddFileRequest | InternalAddRecordRequest | InternalWriteFilesRequest;
+export type InternalRequestPayload = InternalNewIndexRequest | InternalAddFileRequest | InternalAddRecordRequest | InternalWriteFilesRequest | InternalGetFilesRequest;
 
 export interface InternalNewIndexRequest {
     type: 'NewIndex'
@@ -40,6 +40,11 @@ export interface InternalWriteFilesRequest {
     index_id: number
 }
 
+export interface InternalGetFilesRequest {
+    type: 'GetFiles',
+    index_id: number
+}
+
 // Responses from the backend.
 
 /**
@@ -61,7 +66,7 @@ export interface InternalResponseError {
 /**
  * The response payload in the case of a success
  */
-export type InternalResponsePayload = InternalNewIndexResponse | InternalIndexedFileResponse | InternalWriteFilesResponse;
+export type InternalResponsePayload = InternalNewIndexResponse | InternalIndexedFileResponse | InternalWriteFilesResponse | InternalGetFilesResponse;
 
 export interface InternalNewIndexResponse {
     type: 'NewIndex',
@@ -78,6 +83,16 @@ export interface InternalIndexedFileResponse {
 export interface InternalWriteFilesResponse {
     type: 'WriteFiles',
     bundle_location: string,
+}
+
+export interface InternalGetFilesResponse {
+    type: 'GetFiles',
+    files: InternalSyntheticFile[],
+}
+
+export interface InternalSyntheticFile {
+    path: string,
+    content: string
 }
 
 /**

@@ -8,6 +8,12 @@ pub(super) struct ServiceResponse {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub(super) struct SyntheticFileResponse {
+    pub(super) path: String,
+    pub(super) content: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub(super) enum ResponseAction {
     Error {
@@ -24,5 +30,8 @@ pub(super) enum ResponseAction {
     BuildIndex {},
     WriteFiles {
         bundle_location: String,
+    },
+    GetFiles {
+        files: Vec<SyntheticFileResponse>,
     },
 }

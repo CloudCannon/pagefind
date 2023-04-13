@@ -69,7 +69,8 @@ const indexFns = (indexId) => {
     return {
         addHTMLFile: (file) => addHTMLFile(indexId, file),
         addCustomRecord: (record) => addCustomRecord(indexId, record),
-        writeFiles: () => writeFiles(indexId)
+        writeFiles: () => writeFiles(indexId),
+        getFiles: () => getFiles(indexId)
     }
 }
 
@@ -171,6 +172,40 @@ const writeFiles = (indexId) => new Promise((resolve, reject) => {
 
                 return {
                     bundleLocation: success.bundle_location
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
+/**
+ * @typedef {import ('pagefindService').GetFilesResponse} GetFilesResponse
+ * 
+ * @param {number} indexId 
+ * @returns {Promise<GetFilesResponse>}
+ */
+const getFiles = (indexId) => new Promise((resolve, reject) => {
+    const action = 'GetFiles';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<GetFilesResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== action) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    files: success.files.map(file => {
+                        return {
+                            path: file.path,
+                            content: Buffer.from(file.content, 'base64')
+                        }
+                    })
                 }
             };
             handleApiResponse(resolve, reject, response, successCallback);

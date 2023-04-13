@@ -72,7 +72,22 @@ pub struct LanguageMeta {
     pub wasm: Option<String>,
 }
 
-pub async fn write_common(options: &SearchOptions, language_indexes: Vec<LanguageMeta>) {
+pub async fn write_common_to_disk(options: &SearchOptions, language_indexes: Vec<LanguageMeta>) {
+    write_common(options, language_indexes, false).await;
+}
+
+pub async fn write_common_to_memory(
+    options: &SearchOptions,
+    language_indexes: Vec<LanguageMeta>,
+) -> Vec<SyntheticFile> {
+    write_common(options, language_indexes, true).await.unwrap()
+}
+
+async fn write_common(
+    options: &SearchOptions,
+    language_indexes: Vec<LanguageMeta>,
+    synthetic: bool,
+) -> Option<Vec<SyntheticFile>> {
     let outdir = options.source.join(&options.bundle_dir);
 
     let js_version = format!("const pagefind_version = \"{PAGEFIND_VERSION}\";");
@@ -96,79 +111,147 @@ pub async fn write_common(options: &SearchOptions, language_indexes: Vec<Languag
     };
     let encoded_entry_meta = serde_json::to_string(&entry_meta).unwrap();
 
+    let write_behavior = if synthetic {
+        WriteBehavior::Synthetic
+    } else {
+        WriteBehavior::Disk
+    };
+
     let files = vec![
         write(
             outdir.join("pagefind.js"),
             vec![&js],
             Compress::None,
-            WriteBehavior::None,
+            write_behavior,
         ),
         write(
             outdir.join("pagefind-ui.js"),
             vec![WEB_UI_JS],
             Compress::None,
-            WriteBehavior::None,
+            write_behavior,
         ),
         write(
             outdir.join("pagefind-ui.css"),
             vec![WEB_UI_CSS],
             Compress::None,
-            WriteBehavior::None,
+            write_behavior,
         ),
         write(
             outdir.join("pagefind-modular-ui.js"),
             vec![WEB_MODULAR_UI_JS],
             Compress::None,
-            WriteBehavior::None,
+            write_behavior,
         ),
         write(
             outdir.join("pagefind-modular-ui.css"),
             vec![WEB_MODULAR_UI_CSS],
             Compress::None,
-            WriteBehavior::None,
+            write_behavior,
         ),
         write(
             outdir.join("wasm.unknown.pagefind"),
             vec![GENERIC_WEB_WASM],
             Compress::None,
-            WriteBehavior::None,
+            write_behavior,
         ),
         write(
             outdir.join("pagefind-entry.json"),
             vec![encoded_entry_meta.as_bytes()],
             Compress::None,
-            WriteBehavior::None,
+            write_behavior,
         ),
     ];
 
-    join_all(files).await;
+    let output_files = join_all(files).await;
+
+    if synthetic {
+        Some(output_files.into_iter().flatten().collect())
+    } else {
+        None
+    }
 }
 
 impl PagefindIndexes {
-    pub async fn write_files(self, options: &SearchOptions) -> LanguageMeta {
-        let outdir = options.source.join(&options.bundle_dir);
+    fn lang_wasm_path(&self) -> Option<String> {
+        let base_language = self.language.split('-').next().unwrap();
+        let wasm_path = format!(
+            "pagefind_web_bg.{}.{}.wasm.gz",
+            base_language,
+            env!("CARGO_PKG_VERSION")
+        );
+
+        if WEB_WASM_FILES.contains(&wasm_path) {
+            Some(wasm_path)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_lang_meta(&self, options: &SearchOptions) -> LanguageMeta {
         let mut wasm_file = None;
+
+        if self.language != "unknown" {
+            if self.lang_wasm_path().is_some() {
+                wasm_file = Some(self.language.to_string());
+            } else {
+                options.logger.v_warn(format!(
+                    "Note: Pagefind doesn't support stemming for the language {}. \n\
+                    Search will still work, but will not match across root words.",
+                    self.language
+                ));
+            }
+        }
+
+        LanguageMeta {
+            page_count: self.fragments.len(),
+            language: self.language.clone(),
+            hash: self.meta_index.0.clone(),
+            wasm: wasm_file,
+        }
+    }
+
+    pub async fn write_files_to_disk(self, options: &SearchOptions) {
+        self.write_files(options, false).await;
+    }
+
+    pub async fn write_files_to_memory(&self, options: &SearchOptions) -> Vec<SyntheticFile> {
+        self.write_files(options, true).await.unwrap()
+    }
+
+    async fn write_files(
+        &self,
+        options: &SearchOptions,
+        synthetic: bool,
+    ) -> Option<Vec<SyntheticFile>> {
+        let outdir = options.source.join(&options.bundle_dir);
+
+        let immutable_write_behaviour = if synthetic {
+            WriteBehavior::Synthetic
+        } else {
+            WriteBehavior::Immutable
+        };
 
         let mut files = vec![write(
             outdir.join(format!("pagefind.{}.pf_meta", &self.meta_index.0)),
             vec![&self.meta_index.1],
             Compress::GZ,
-            WriteBehavior::Immutable,
+            immutable_write_behaviour,
         )];
 
         if self.language != "unknown" {
-            let base_language = self.language.split('-').next().unwrap();
-            if let Some(wasm) = WEB_WASM_FILES.get_file(format!(
-                "pagefind_web_bg.{}.{}.wasm.gz",
-                base_language,
-                env!("CARGO_PKG_VERSION")
-            )) {
-                wasm_file = Some(self.language.to_string());
+            if let Some(wasm_path) = self.lang_wasm_path() {
                 files.push(write(
                     outdir.join(format!("wasm.{}.pagefind", self.language)),
-                    vec![wasm.contents()],
+                    vec![WEB_WASM_FILES
+                        .get_file(wasm_path)
+                        .expect("WASM should exist")
+                        .contents()],
                     Compress::None,
-                    WriteBehavior::None,
+                    if synthetic {
+                        WriteBehavior::Synthetic
+                    } else {
+                        WriteBehavior::Disk
+                    },
                 ));
             } else {
                 options.logger.v_warn(format!(
@@ -184,7 +267,7 @@ impl PagefindIndexes {
                 outdir.join(format!("fragment/{}.pf_fragment", hash)),
                 vec![fragment.as_bytes()],
                 Compress::GZ,
-                WriteBehavior::Immutable,
+                immutable_write_behaviour,
             )
         }));
 
@@ -193,7 +276,7 @@ impl PagefindIndexes {
                 outdir.join(format!("index/{}.pf_index", hash)),
                 vec![index],
                 Compress::GZ,
-                WriteBehavior::Immutable,
+                immutable_write_behaviour,
             )
         }));
 
@@ -202,67 +285,91 @@ impl PagefindIndexes {
                 outdir.join(format!("filter/{}.pf_filter", hash)),
                 vec![index],
                 Compress::GZ,
-                WriteBehavior::Immutable,
+                immutable_write_behaviour,
             )
         }));
 
-        join_all(files).await;
-
-        LanguageMeta {
-            page_count: self.fragments.len(),
-            language: self.language,
-            hash: self.meta_index.0,
-            wasm: wasm_file,
+        let output_files = join_all(files).await;
+        if synthetic {
+            Some(output_files.into_iter().flatten().collect())
+        } else {
+            None
         }
     }
 }
 
+#[derive(Copy, Clone)]
 enum Compress {
     GZ,
     None,
 }
 
+#[derive(Copy, Clone)]
 enum WriteBehavior {
+    Synthetic,
     Immutable,
-    None,
+    Disk,
+}
+
+#[derive(Clone)]
+pub struct SyntheticFile {
+    pub filename: PathBuf,
+    pub contents: Vec<u8>,
 }
 
 async fn write(
     filename: PathBuf,
-    contents: Vec<&[u8]>,
+    content_chunks: Vec<&[u8]>,
     compression: Compress,
     write_behavior: WriteBehavior,
-) {
-    // For "immutable" (hashed) files, don't re-write them as the contents _should_ be unchanged.
-    if matches!(write_behavior, WriteBehavior::Immutable) && filename.exists() {
-        return;
-    }
+) -> Option<SyntheticFile> {
+    let mut file = None;
 
-    if let Some(parent) = filename.parent() {
-        create_dir_all(parent).await.unwrap();
-    }
+    match write_behavior {
+        WriteBehavior::Synthetic => {}
+        // For "immutable" (hashed) files, don't re-write them as the contents _should_ be unchanged.
+        WriteBehavior::Immutable if filename.exists() => return None,
+        WriteBehavior::Immutable | WriteBehavior::Disk => {
+            if let Some(parent) = filename.parent() {
+                create_dir_all(parent).await.unwrap();
+            }
 
-    let mut file = File::create(&filename).await;
-    while file.is_err() {
-        sleep(Duration::from_millis(100)).await;
-        file = File::create(&filename).await;
-    }
-    let mut file = file.unwrap();
+            let mut output_file = File::create(&filename).await;
+            while output_file.is_err() {
+                sleep(Duration::from_millis(100)).await;
+                output_file = File::create(&filename).await;
+            }
+            file = output_file.ok();
+        }
+    };
 
     match compression {
         Compress::GZ => {
             let mut gz = GzEncoder::new(Vec::new(), Compression::best());
-            for chunk in contents {
+            for chunk in content_chunks {
                 gz.write_all(b"pagefind_dcd").unwrap();
                 gz.write_all(chunk).unwrap();
             }
-            if let Ok(bytes) = gz.finish() {
-                file.write_all(&bytes).await.unwrap();
+            if let Ok(contents) = gz.finish() {
+                if let Some(mut file) = file {
+                    file.write_all(&contents).await.unwrap();
+                } else {
+                    return Some(SyntheticFile { filename, contents });
+                }
             }
+            None
         }
         Compress::None => {
-            for chunk in contents {
-                file.write_all(chunk).await.unwrap();
+            if let Some(mut file) = file {
+                for chunk in content_chunks {
+                    file.write_all(chunk).await.unwrap();
+                }
+                None
+            } else {
+                return Some(SyntheticFile {
+                    filename,
+                    contents: content_chunks.into_iter().flatten().cloned().collect(),
+                });
             }
         }
     }

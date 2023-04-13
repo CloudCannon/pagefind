@@ -6,6 +6,7 @@ use hashbrown::HashMap;
 use index::PagefindIndexes;
 use logging::Logger;
 pub use options::{PagefindInboundConfig, SearchOptions};
+use output::SyntheticFile;
 use wax::{Glob, WalkEntry};
 
 use crate::index::build_indexes;
@@ -273,14 +274,46 @@ impl SearchState {
     pub async fn write_files(self) -> Logger {
         let index_entries: Vec<_> = self
             .built_indexes
-            .into_iter()
-            .map(|indexes| async { indexes.write_files(&self.options).await })
+            .iter()
+            .map(|indexes| indexes.get_lang_meta(&self.options))
             .collect();
-        let index_entries = join_all(index_entries).await;
 
-        output::write_common(&self.options, index_entries).await;
+        join_all(
+            self.built_indexes
+                .into_iter()
+                .map(|indexes| async { indexes.write_files_to_disk(&self.options).await }),
+        )
+        .await;
+
+        output::write_common_to_disk(&self.options, index_entries).await;
 
         self.options.logger
+    }
+
+    pub async fn get_files(&self) -> Vec<SyntheticFile> {
+        let index_entries: Vec<_> = self
+            .built_indexes
+            .iter()
+            .map(|indexes| indexes.get_lang_meta(&self.options))
+            .collect();
+
+        let mut files: Vec<_> = join_all(
+            self.built_indexes
+                .iter()
+                .map(|indexes| async { indexes.write_files_to_memory(&self.options).await }),
+        )
+        .await
+        .into_iter()
+        .flatten()
+        .collect();
+
+        files.extend(
+            output::write_common_to_memory(&self.options, index_entries)
+                .await
+                .into_iter(),
+        );
+
+        files
     }
 
     pub fn log_start(&self) {

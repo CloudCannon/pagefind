@@ -15,6 +15,7 @@ export interface PagefindIndex {
     addHTMLFile: typeof addHTMLFile,
     addCustomRecord: typeof addCustomRecord,
     writeFiles: typeof writeFiles,
+    getFiles: typeof getFiles,
 }
 
 /**
@@ -91,4 +92,19 @@ declare function writeFiles(): Promise<WriteFilesResponse>;
 export interface WriteFilesResponse {
     errors: string[],
     bundleLocation: string
+}
+
+/**
+ * Get an in-memory copy of the built index files
+ */
+declare function getFiles(): Promise<GetFilesResponse>;
+
+export interface GetFilesResponse {
+    errors: string[],
+    files: IndexFile[]
+}
+
+export interface IndexFile {
+    path: string,
+    content: Buffer
 }

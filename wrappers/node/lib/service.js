@@ -72,7 +72,7 @@ export class PagefindService {
         try {
             while (chunk.length) {
                 let delim = chunk.indexOf(',');
-                if (!delim) {
+                if (delim === -1) {
                     this.incomingMessageBuffer = this.incomingMessageBuffer + chunk;
                     return;
                 }
@@ -95,7 +95,7 @@ export class PagefindService {
      */
     handleIncomingMessage(message) {
         let parsed_message = PagefindService.parseMessage(message);
-        if (this.callbacks[parsed_message.message_id]) {
+        if (parsed_message && this.callbacks[parsed_message.message_id]) {
             const isError = parsed_message.payload.type === "Error";
             this.returnValue(
                 parsed_message.message_id,
@@ -164,10 +164,15 @@ export class PagefindService {
     /**
      * 
      * @param {string} message 
-     * @returns {InternalServiceResponse}
+     * @returns {InternalServiceResponse?}
      */
     static parseMessage(message) {
         const data = Buffer.from(message, 'base64');
-        return JSON.parse(data.toString());
+        try {
+            return JSON.parse(data.toString());
+        } catch {
+            console.error("Failed to parse message from backend");
+            return null;
+        }
     }
 }
