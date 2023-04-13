@@ -119,3 +119,13 @@ These resources are created by helpful community members, and aren't guaranteed 
         archive_url="https://web.archive.org/web/20230117105349/https://pinchlime.com/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/"
         translated_url="https://pinchlime-com.translate.goog/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en-GB"
     >}}
+- **VitePress**
+  - {{< 
+        resource
+        site="juejin.cn"
+        date="April 2023"
+        title="使用 Pagefind 为 VitePress 文档添加离线全文搜索能力"
+        url="https://juejin.cn/post/7217381222025068600"
+        archive_url="https://web.archive.org/web/20230404011714/https://juejin.cn/post/7217381222025068600"
+        translated_url="https://juejin-cn.translate.goog/post/7217381222025068600?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en-GB&_x_tr_hist=true"
+    >}}
