@@ -23,6 +23,10 @@ const run = async () => {
     });
     console.log(newfile);
 
+    console.log(`\nWriting files to memory`);
+    const memfiles = await index.getFiles();
+    console.log("Got files", memfiles);
+
     console.log(`\nWriting files to disk`);
     const files = await index.writeFiles();
     console.log("Wrote files", files);

@@ -31,4 +31,7 @@ pub(super) enum RequestAction {
     WriteFiles {
         index_id: u32,
     },
+    GetFiles {
+        index_id: u32,
+    },
 }

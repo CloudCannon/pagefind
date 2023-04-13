@@ -160,6 +160,21 @@ pub async fn run_service(options: SearchOptions) {
                     bundle_location: "TODO".into(),
                 });
             }
+            RequestAction::GetFiles { index_id } => {
+                let index = indexes
+                    .get_mut(index_id as usize)
+                    .expect("Requested index should exist");
+                let files = index.get_files().await;
+                send(ResponseAction::GetFiles {
+                    files: files
+                        .into_iter()
+                        .map(|file| SyntheticFileResponse {
+                            path: file.filename.to_string_lossy().into(),
+                            content: general_purpose::STANDARD.encode(file.contents),
+                        })
+                        .collect(),
+                });
+            }
         }
     }
 }
