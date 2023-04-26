@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Andrija Sagicc",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Претрага",
+        "clear_search": "Брисање",
+        "load_more": "Приказ више резултата",
+        "search_label": "Претрага сајта",
+        "filters_label": "Филтери",
+        "zero_results": "Нема резултата за [SEARCH_TERM]",
+        "many_results": "[COUNT] резултата за [SEARCH_TERM]",
+        "one_result": "[COUNT] резултата за [SEARCH_TERM]",
+        "alt_search": "Нема резултата за [SEARCH_TERM]. Приказ додатник резултата за [DIFFERENT_TERM]",
+        "search_suggestion": "Нема резултата за [SEARCH_TERM]. Покушајте са неком од следећих претрага:",
+        "searching": "Претрага термина [SEARCH_TERM]..."
+    }
+}
