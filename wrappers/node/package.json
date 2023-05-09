@@ -41,6 +41,6 @@
   },
   "homepage": "https://github.com/CloudCannon/pagefind#readme",
   "devDependencies": {
-    "@types/node": "^18.15.11"
+    "@types/node": "^20.1.1"
   }
 }
