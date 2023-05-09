@@ -15,7 +15,7 @@
     "esbuild": "^0.17.11",
     "esbuild-plugin-import-glob": "^0.1.1",
     "esbuild-svelte": "^0.7.3",
-    "svelte": "^3.59.0",
+    "svelte": "^3.59.1",
     "typescript": "^5.0.4"
   },
   "files": [
