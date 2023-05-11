@@ -57,7 +57,7 @@ lol_html = "0.4"
 html-escape = "0.2.11"
 bit-set = "0.5"
 flate2 = "1.0"
-async-compression = { version = "0.3", features = ["tokio", "gzip"] }
+async-compression = { version = "0.4", features = ["tokio", "gzip"] }
 minifier = "0.2.2"
 sha-1 = "0.10"
 serde_json = "1"
