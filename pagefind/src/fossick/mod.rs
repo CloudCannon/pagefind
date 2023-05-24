@@ -238,6 +238,24 @@ impl Fossicker {
                 continue;
             }
 
+            // Auto weights are provided by the parser, and should only
+            // apply if we aren't inside an explicitly weighted block,
+            // in which case we should just inherit that weight.
+            if word.contains("___PAGEFIND_AUTO_WEIGHT___") {
+                if weight_stack.len() == 1 {
+                    let weight = word
+                        .replace("___PAGEFIND_AUTO_WEIGHT___", "")
+                        .parse::<u32>()
+                        .ok()
+                        .unwrap_or(1);
+                    weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
+                } else {
+                    weight_stack.push(weight_stack.last().cloned().unwrap_or_default());
+                }
+                offset_word_index += 1;
+                continue;
+            }
+
             if word.contains("___END_PAGEFIND_WEIGHT___") {
                 weight_stack.pop();
                 offset_word_index += 1;
@@ -427,8 +445,7 @@ mod tests {
     #[tokio::test]
     async fn parse_file() {
         let mut f =
-            test_fossick(["<html><body>", "<h1>Hello World!</h1>", "</body></html>"].concat())
-                .await;
+            test_fossick(["<html><body>", "<p>Hello World!</p>", "</body></html>"].concat()).await;
 
         let (digest, words, anchors) = f.parse_digest();
 
@@ -460,7 +477,7 @@ mod tests {
             [
                 "<html><body>",
                 "<div>The",
-                "<h1 data-pagefind-weight='2'>Quick Brown</h1>",
+                "<p data-pagefind-weight='2'>Quick Brown</p>",
                 "Fox</div>",
                 "</body></html>",
             ]
@@ -503,6 +520,64 @@ mod tests {
                     }]
                 )
             ])
+        );
+    }
+
+    #[tokio::test]
+    async fn parse_auto_weighted_file() {
+        let mut f = test_fossick(
+            [
+                "<html><body>",
+                "<h1>Pagefind</h1>",
+                "<h2>Pagefind</h2>",
+                "<h3>Pagefind</h3>",
+                "<h4>Pagefind</h4>",
+                "<h5>Pagefind</h5>",
+                "<h6>Pagefind</h6>",
+                "<p>Pagefind</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors) = f.parse_digest();
+
+        assert_eq!(
+            words,
+            HashMap::from_iter([(
+                "pagefind".to_string(),
+                vec![
+                    FossickedWord {
+                        position: 0,
+                        weight: 7
+                    },
+                    FossickedWord {
+                        position: 1,
+                        weight: 6
+                    },
+                    FossickedWord {
+                        position: 2,
+                        weight: 5
+                    },
+                    FossickedWord {
+                        position: 3,
+                        weight: 4
+                    },
+                    FossickedWord {
+                        position: 4,
+                        weight: 3
+                    },
+                    FossickedWord {
+                        position: 5,
+                        weight: 2
+                    },
+                    FossickedWord {
+                        position: 6,
+                        weight: 1
+                    }
+                ]
+            )])
         );
     }
 

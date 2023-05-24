@@ -153,7 +153,7 @@ impl<'a> DomParser<'a> {
                             }
                         });
                         let treat_as_body = el.has_attribute("data-pagefind-body");
-                        let weight = el.get_attribute("data-pagefind-weight").map(|attr| attr.to_string());
+                        let mut weight = el.get_attribute("data-pagefind-weight").map(|attr| attr.to_string());
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let element_id = el.get_attribute("id").map(|e| ALL_SPACES.replace_all(&e, "").to_string());
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
@@ -329,6 +329,24 @@ impl<'a> DomParser<'a> {
                                     &node.current_value,
                                     " ___END_PAGEFIND_WEIGHT___ "
                                 ].concat();
+                            } else {
+                                if let Some(auto_weight) = match &tag_name[..] {
+                                    "h1" => Some("7".to_string()),
+                                    "h2" => Some("6".to_string()),
+                                    "h3" => Some("5".to_string()),
+                                    "h4" => Some("4".to_string()),
+                                    "h5" => Some("3".to_string()),
+                                    "h6" => Some("2".to_string()),
+                                    _ => None,
+                                } {
+                                    node.current_value = [
+                                        " ___PAGEFIND_AUTO_WEIGHT___",
+                                        &auto_weight,
+                                        " ",
+                                        &node.current_value,
+                                        " ___END_PAGEFIND_WEIGHT___ "
+                                    ].concat();
+                                }
                             }
 
                             // Huck all of the content we have onto the end of the
