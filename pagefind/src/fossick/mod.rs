@@ -537,6 +537,7 @@ mod tests {
                 "<h5>Pagefind</h5>",
                 "<h6>Pagefind</h6>",
                 "<p>Pagefind</p>",
+                "<div data-pagefind-weight='0'><h1>Pagefind</h1></div>",
                 "</body></html>",
             ]
             .concat(),
@@ -577,6 +578,10 @@ mod tests {
                     FossickedWord {
                         position: 6,
                         weight: 1
+                    },
+                    FossickedWord {
+                        position: 7,
+                        weight: 0
                     }
                 ]
             )])
