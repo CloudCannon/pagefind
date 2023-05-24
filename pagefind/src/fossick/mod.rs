@@ -213,53 +213,55 @@ impl Fossicker {
         for (word_index, word) in segments.into_iter().enumerate() {
             let word_index = word_index - offset_word_index;
 
-            if word.contains("___PAGEFIND_ANCHOR___") {
-                if let [element_name, element_id] =
-                    word.split("___PAGEFIND_ANCHOR___").collect::<Vec<_>>()[..]
-                {
-                    anchors.push((
-                        element_name.to_string(),
-                        element_id.to_string(),
-                        word_index as u32,
-                    ));
+            if word.chars().next() == Some('_') {
+                if word.starts_with("___PAGEFIND_ANCHOR___") {
+                    if let Some((element_name, element_id)) =
+                        word.replace("___PAGEFIND_ANCHOR___", "").split_once(':')
+                    {
+                        anchors.push((
+                            element_name.to_string(),
+                            element_id.to_string(),
+                            word_index as u32,
+                        ));
+                    }
                     offset_word_index += 1;
                     continue;
                 }
-            }
 
-            if word.contains("___PAGEFIND_WEIGHT___") {
-                let weight = word
-                    .replace("___PAGEFIND_WEIGHT___", "")
-                    .parse::<u32>()
-                    .ok()
-                    .unwrap_or(1);
-                weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
-                offset_word_index += 1;
-                continue;
-            }
-
-            // Auto weights are provided by the parser, and should only
-            // apply if we aren't inside an explicitly weighted block,
-            // in which case we should just inherit that weight.
-            if word.contains("___PAGEFIND_AUTO_WEIGHT___") {
-                if weight_stack.len() == 1 {
+                if word.starts_with("___PAGEFIND_WEIGHT___") {
                     let weight = word
-                        .replace("___PAGEFIND_AUTO_WEIGHT___", "")
+                        .replace("___PAGEFIND_WEIGHT___", "")
                         .parse::<u32>()
                         .ok()
                         .unwrap_or(1);
                     weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
-                } else {
-                    weight_stack.push(weight_stack.last().cloned().unwrap_or_default());
+                    offset_word_index += 1;
+                    continue;
                 }
-                offset_word_index += 1;
-                continue;
-            }
 
-            if word.contains("___END_PAGEFIND_WEIGHT___") {
-                weight_stack.pop();
-                offset_word_index += 1;
-                continue;
+                // Auto weights are provided by the parser, and should only
+                // apply if we aren't inside an explicitly weighted block,
+                // in which case we should just inherit that weight.
+                if word.starts_with("___PAGEFIND_AUTO_WEIGHT___") {
+                    if weight_stack.len() == 1 {
+                        let weight = word
+                            .replace("___PAGEFIND_AUTO_WEIGHT___", "")
+                            .parse::<u32>()
+                            .ok()
+                            .unwrap_or(1);
+                        weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
+                    } else {
+                        weight_stack.push(weight_stack.last().cloned().unwrap_or_default());
+                    }
+                    offset_word_index += 1;
+                    continue;
+                }
+
+                if word.starts_with("___END_PAGEFIND_WEIGHT___") {
+                    weight_stack.pop();
+                    offset_word_index += 1;
+                    continue;
+                }
             }
 
             let word_weight = weight_stack.last().unwrap_or(&1);

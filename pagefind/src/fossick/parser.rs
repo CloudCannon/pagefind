@@ -178,7 +178,7 @@ impl<'a> DomParser<'a> {
                                 if !(parent.status == NodeStatus::ParentOfBody
                                     && status != NodeStatus::Body
                                     && status != NodeStatus::ParentOfBody) {
-                                    parent.current_value.push_str(&format!(" {tag_name}___PAGEFIND_ANCHOR___{element_id} "));
+                                    parent.current_value.push_str(&format!(" ___PAGEFIND_ANCHOR___{tag_name}:{element_id} "));
                                 }
                             }
                         }
@@ -685,7 +685,7 @@ mod tests {
 
         assert_eq!(
             data.digest,
-            "Sentence one. br___PAGEFIND_ANCHOR___break p___PAGEFIND_ANCHOR___pid Sentence two."
+            "Sentence one. ___PAGEFIND_ANCHOR___br:break ___PAGEFIND_ANCHOR___p:pid Sentence two."
         )
     }
 
