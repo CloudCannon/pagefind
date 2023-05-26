@@ -153,7 +153,7 @@ impl<'a> DomParser<'a> {
                             }
                         });
                         let treat_as_body = el.has_attribute("data-pagefind-body");
-                        let mut weight = el.get_attribute("data-pagefind-weight").map(|attr| attr.to_string());
+                        let weight = el.get_attribute("data-pagefind-weight").map(|attr| attr.to_string());
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let element_id = el.get_attribute("id").map(|e| ALL_SPACES.replace_all(&e, "").to_string());
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));

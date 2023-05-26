@@ -588,6 +588,58 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn parse_bad_weights() {
+        let mut f = test_fossick(
+            [
+                "<html><body>",
+                "<p data-pagefind-weight='lots'>The</p>",
+                "<p data-pagefind-weight='99999999'>Quick</p>",
+                "<p data-pagefind-weight='-1234'>Brown</p>",
+                "<p data-pagefind-weight='65.4'>Fox</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors) = f.parse_digest();
+
+        assert_eq!(
+            words,
+            HashMap::from_iter([
+                (
+                    "the".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 1
+                    }]
+                ),
+                (
+                    "quick".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 255
+                    }]
+                ),
+                (
+                    "brown".to_string(),
+                    vec![FossickedWord {
+                        position: 2,
+                        weight: 1
+                    }]
+                ),
+                (
+                    "fox".to_string(),
+                    vec![FossickedWord {
+                        position: 3,
+                        weight: 1
+                    }]
+                )
+            ])
+        );
+    }
+
     #[cfg(not(target_os = "windows"))]
     #[test]
     fn building_url() {
