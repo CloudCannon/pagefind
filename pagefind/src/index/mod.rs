@@ -135,7 +135,7 @@ pub async fn build_indexes(
             positions
                 .into_iter()
                 .for_each(|FossickedWord { position, weight }| {
-                    if weight != weight {
+                    if weight != current_weight {
                         weighted_positions.extend([(weight as i32) * -1 - 1, position as i32]);
                         current_weight = weight;
                     } else {

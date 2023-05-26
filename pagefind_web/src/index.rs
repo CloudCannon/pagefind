@@ -48,9 +48,23 @@ impl SearchIndex {
                 };
 
                 let word_locations = consume_arr_len!(decoder);
-                page.locs = Vec::with_capacity(word_locations as usize);
+                let mut weight = 1;
                 for _ in 0..word_locations {
-                    page.locs.push(consume_num!(decoder));
+                    let loc = consume_inum!(decoder);
+                    // Negative numbers represent a change in the weighting of subsequent words.
+                    if loc.is_negative() {
+                        let abs_weight = loc * -1 + 1;
+                        weight = if abs_weight > 255 {
+                            255
+                        } else {
+                            abs_weight.try_into().unwrap_or_default()
+                        };
+                        debug!({
+                            format!("Encountered word position {loc:#?}, weighting subsequent words as {weight:#?}")
+                        });
+                    } else {
+                        page.locs.push((weight, loc as u32));
+                    }
                 }
 
                 page_arr.push(page);

@@ -25,6 +25,9 @@ pub fn calculate_excerpt(word_positions: &[u32], excerpt_length: u32) -> u32 {
             window_start = pair[0].checked_sub(start_distance).unwrap_or_default();
         }
     }
+    debug!({
+        format! {"Best excerpt starts at {window_start}"}
+    });
     window_start
 }
 

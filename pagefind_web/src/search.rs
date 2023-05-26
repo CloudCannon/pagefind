@@ -61,7 +61,7 @@ impl SearchIndex {
                 .iter()
                 .filter_map(|p| {
                     if p.page as usize == page_index {
-                        Some(p.locs.clone())
+                        Some(p.locs.iter().map(|(_, i)| *i).collect())
                     } else {
                         None
                     }
@@ -165,7 +165,7 @@ impl SearchIndex {
         let mut pages: Vec<PageSearchResult> = vec![];
 
         for page_index in results.iter() {
-            let mut word_locations: Vec<u32> = words
+            let mut word_locations: Vec<(u8, u32)> = words
                 .iter()
                 .filter_map(|p| {
                     if p.page as usize == page_index {
@@ -179,7 +179,7 @@ impl SearchIndex {
             debug!({
                 format! {"Word locations {:?}", word_locations}
             });
-            word_locations.sort_unstable();
+            word_locations.sort_unstable_by_key(|(_, loc)| *loc);
             debug!({
                 format! {"Word locations {:?}", word_locations}
             });
@@ -197,11 +197,17 @@ impl SearchIndex {
                     });
                 }
             }
+            for (weight, _) in word_locations.iter() {
+                // Boost pages if words in the index are explicitly weighted higher.
+                if *weight > 1 {
+                    page_score += (weight - 1) as f32;
+                }
+            }
             let search_result = PageSearchResult {
                 page: page.hash.clone(),
                 page_index,
                 page_score,
-                word_locations,
+                word_locations: word_locations.into_iter().map(|(_, i)| i).collect(),
             };
 
             debug!({

@@ -16,7 +16,7 @@ mod util;
 
 pub struct PageWord {
     page: u32,
-    locs: Vec<u32>,
+    locs: Vec<(u8, u32)>,
 }
 
 pub struct IndexChunk {
@@ -246,6 +246,8 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
         search_index.search_term(query, filter_set)
     };
     let unfiltered_total = unfiltered_results.len();
+    debug!({ format!("Raw total of {} results", unfiltered_total) });
+    debug!({ format!("Filtered total of {} results", query.len()) });
 
     let filter_string =
         search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
@@ -270,6 +272,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
         }
     }
 
+    debug!({ "Building the result string" });
     let result_string = results
         .into_iter()
         .map(|result| {
@@ -290,6 +293,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
         .collect::<Vec<String>>()
         .join(" ");
 
+    debug!({ "Boxing and returning the result" });
     let _ = Box::into_raw(search_index);
 
     #[cfg(debug_assertions)]
