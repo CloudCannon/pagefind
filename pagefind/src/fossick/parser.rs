@@ -90,6 +90,7 @@ struct DomParsingNode {
     sort: Option<Vec<String>>,
     meta: Option<Vec<String>>,
     default_meta: Option<Vec<String>>,
+    weight: Option<String>,
     status: NodeStatus,
 }
 
@@ -152,6 +153,7 @@ impl<'a> DomParser<'a> {
                             }
                         });
                         let treat_as_body = el.has_attribute("data-pagefind-body");
+                        let weight = el.get_attribute("data-pagefind-weight").map(|attr| attr.to_string());
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
                         let element_id = el.get_attribute("id").map(|e| ALL_SPACES.replace_all(&e, "").to_string());
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
@@ -176,7 +178,7 @@ impl<'a> DomParser<'a> {
                                 if !(parent.status == NodeStatus::ParentOfBody
                                     && status != NodeStatus::Body
                                     && status != NodeStatus::ParentOfBody) {
-                                    parent.current_value.push_str(&format!("{tag_name}___PAGEFIND_ANCHOR___{element_id}"));
+                                    parent.current_value.push_str(&format!(" ___PAGEFIND_ANCHOR___{tag_name}:{element_id} "));
                                 }
                             }
                         }
@@ -220,7 +222,8 @@ impl<'a> DomParser<'a> {
                                 meta,
                                 default_meta,
                                 sort,
-                                ..DomParsingNode::default()
+                                current_value: String::default(),
+                                weight,
                             }));
 
                             data.current_node = Rc::clone(&node);
@@ -304,9 +307,7 @@ impl<'a> DomParser<'a> {
                                 // don't hug each other without whitespace.
                                 // We normalize repeated whitespace later, so we
                                 // can add this indiscriminately.
-                                let mut padded = " ".to_owned();
-                                padded.push_str(&node.current_value);
-                                node.current_value = padded;
+                                node.current_value.insert(0, ' ');
 
                                 // Similarly, we want to separate block elements
                                 // with punctuation, so that the excerpts read nicely.
@@ -318,6 +319,34 @@ impl<'a> DomParser<'a> {
                                         node.current_value.push('.');
                                 }
                                 node.current_value.push(' ');
+                            }
+
+                            if let Some(weight) = &node.weight {
+                                node.current_value = [
+                                    " ___PAGEFIND_WEIGHT___",
+                                    &weight,
+                                    " ",
+                                    &node.current_value,
+                                    " ___END_PAGEFIND_WEIGHT___ "
+                                ].concat();
+                            } else {
+                                if let Some(auto_weight) = match &tag_name[..] {
+                                    "h1" => Some("7".to_string()),
+                                    "h2" => Some("6".to_string()),
+                                    "h3" => Some("5".to_string()),
+                                    "h4" => Some("4".to_string()),
+                                    "h5" => Some("3".to_string()),
+                                    "h6" => Some("2".to_string()),
+                                    _ => None,
+                                } {
+                                    node.current_value = [
+                                        " ___PAGEFIND_AUTO_WEIGHT___",
+                                        &auto_weight,
+                                        " ",
+                                        &node.current_value,
+                                        " ___END_PAGEFIND_WEIGHT___ "
+                                    ].concat();
+                                }
                             }
 
                             // Huck all of the content we have onto the end of the
@@ -631,6 +660,33 @@ mod tests {
         input.insert(0, "<html><body>");
         input.push("</body></html>");
         test_raw_parse(input)
+    }
+
+    #[test]
+    fn words_weights() {
+        let data = test_parse(vec![
+            "<p>Weight one</p>",
+            "<p data-pagefind-weight='2'>Weight two</p>",
+        ]);
+
+        assert_eq!(
+            data.digest,
+            "Weight one. ___PAGEFIND_WEIGHT___2 Weight two. ___END_PAGEFIND_WEIGHT___"
+        )
+    }
+
+    #[test]
+    fn words_ids() {
+        let data = test_parse(vec![
+            "<p>Sentence one</p>",
+            "<br id='break' />",
+            "<p id='pid'>Sentence two</p>",
+        ]);
+
+        assert_eq!(
+            data.digest,
+            "Sentence one. ___PAGEFIND_ANCHOR___br:break ___PAGEFIND_ANCHOR___p:pid Sentence two."
+        )
     }
 
     #[test]

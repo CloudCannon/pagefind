@@ -38,3 +38,10 @@ macro_rules! consume_num {
     };
 }
 pub(crate) use consume_num;
+
+macro_rules! consume_inum {
+    ($decoder:ident) => {
+        $decoder.i32()?
+    };
+}
+pub(crate) use consume_inum;

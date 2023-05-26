@@ -76,3 +76,26 @@ Attributes of HTML elements can be added to the main search index with the `data
 ```
 
 This will be indexed as: `Condimentum Nullam. Image Title. Image Alt. Nullam id dolor id nibh ultricies.`
+
+## Ranking content higher with weights
+
+By default, Pagefind will boost the `h1` through `h6` tags above any other content on the page. 
+
+You can also use your own custom ranking via the `data-pagefind-weight` attribute:
+
+```html
+<body>
+    <p data-pagefind-weight="2">
+        The main description text of the page.
+        If the search term matches this section,
+        this page will be boosted higher in the
+        result ranking.
+    </p>
+    <p>
+        Other, less important text.
+        This defaults to a weight of 1.
+    </p>
+</body>
+```
+
+The default weight of body content is `1`, and you can a custom weight of any whole number from `1` to `255`.

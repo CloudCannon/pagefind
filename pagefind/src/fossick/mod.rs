@@ -26,11 +26,17 @@ lazy_static! {
 
 pub mod parser;
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct FossickedWord {
+    pub position: u32,
+    pub weight: u8,
+}
+
 #[derive(Debug, Clone)]
 pub struct FossickedData {
     pub url: String,
     pub fragment: PageFragment,
-    pub word_data: HashMap<String, Vec<u32>>,
+    pub word_data: HashMap<String, Vec<FossickedWord>>,
     pub sort: HashMap<String, String>,
     pub has_custom_body: bool,
     pub force_inclusion: bool,
@@ -164,10 +170,10 @@ impl Fossicker {
         &mut self,
     ) -> (
         String,
-        HashMap<String, Vec<u32>>,
+        HashMap<String, Vec<FossickedWord>>,
         Vec<(String, String, u32)>,
     ) {
-        let mut map: HashMap<String, Vec<u32>> = HashMap::new();
+        let mut map: HashMap<String, Vec<FossickedWord>> = HashMap::new();
         let mut anchors = Vec::new();
         // TODO: push this error handling up a level and return an Err from parse_digest
         if self.data.as_ref().is_none() {
@@ -202,23 +208,63 @@ impl Fossicker {
         #[cfg(not(feature = "extended"))]
         let segments = data.digest.split_whitespace();
 
-        let mut anchor_count = 0;
+        let mut offset_word_index = 0;
+        let mut weight_stack: Vec<u8> = vec![1];
         for (word_index, word) in segments.into_iter().enumerate() {
-            let word_index = word_index - anchor_count;
+            let word_index = word_index - offset_word_index;
 
-            if word.contains("___PAGEFIND_ANCHOR___") {
-                if let [element_name, element_id] =
-                    word.split("___PAGEFIND_ANCHOR___").collect::<Vec<_>>()[..]
-                {
-                    anchors.push((
-                        element_name.to_string(),
-                        element_id.to_string(),
-                        word_index as u32,
-                    ));
-                    anchor_count += 1;
+            if word.chars().next() == Some('_') {
+                if word.starts_with("___PAGEFIND_ANCHOR___") {
+                    if let Some((element_name, element_id)) =
+                        word.replace("___PAGEFIND_ANCHOR___", "").split_once(':')
+                    {
+                        anchors.push((
+                            element_name.to_string(),
+                            element_id.to_string(),
+                            word_index as u32,
+                        ));
+                    }
+                    offset_word_index += 1;
+                    continue;
+                }
+
+                if word.starts_with("___PAGEFIND_WEIGHT___") {
+                    let weight = word
+                        .replace("___PAGEFIND_WEIGHT___", "")
+                        .parse::<u32>()
+                        .ok()
+                        .unwrap_or(1);
+                    weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
+                    offset_word_index += 1;
+                    continue;
+                }
+
+                // Auto weights are provided by the parser, and should only
+                // apply if we aren't inside an explicitly weighted block,
+                // in which case we should just inherit that weight.
+                if word.starts_with("___PAGEFIND_AUTO_WEIGHT___") {
+                    if weight_stack.len() == 1 {
+                        let weight = word
+                            .replace("___PAGEFIND_AUTO_WEIGHT___", "")
+                            .parse::<u32>()
+                            .ok()
+                            .unwrap_or(1);
+                        weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
+                    } else {
+                        weight_stack.push(weight_stack.last().cloned().unwrap_or_default());
+                    }
+                    offset_word_index += 1;
+                    continue;
+                }
+
+                if word.starts_with("___END_PAGEFIND_WEIGHT___") {
+                    weight_stack.pop();
+                    offset_word_index += 1;
                     continue;
                 }
             }
+
+            let word_weight = weight_stack.last().unwrap_or(&1);
 
             content.push_str(&word.replace('\u{200B}', ""));
             content.push(' ');
@@ -238,10 +284,14 @@ impl Fossicker {
                     normalized_word = stemmer.stem(&normalized_word).into_owned();
                 }
 
+                let entry = FossickedWord {
+                    position: word_index.try_into().unwrap(),
+                    weight: *word_weight,
+                };
                 if let Some(repeat) = map.get_mut(&normalized_word) {
-                    repeat.push(word_index.try_into().unwrap());
+                    repeat.push(entry);
                 } else {
-                    map.insert(normalized_word, vec![word_index.try_into().unwrap()]);
+                    map.insert(normalized_word, vec![entry]);
                 }
             }
         }
@@ -375,6 +425,220 @@ mod tests {
     use twelf::Layer;
 
     use super::*;
+
+    async fn test_fossick(s: String) -> Fossicker {
+        std::env::set_var("PAGEFIND_SOURCE", "somewhere");
+        let config =
+            PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
+        let opts = SearchOptions::load(config).unwrap();
+
+        let mut f = Fossicker {
+            file_path: Some("test/index.html".into()),
+            page_url: Some("/test/".into()),
+            synthetic_content: Some(s),
+            data: None,
+        };
+
+        _ = f.read_synthetic(&opts).await;
+
+        f
+    }
+
+    #[tokio::test]
+    async fn parse_file() {
+        let mut f =
+            test_fossick(["<html><body>", "<p>Hello World!</p>", "</body></html>"].concat()).await;
+
+        let (digest, words, anchors) = f.parse_digest();
+
+        assert_eq!(digest, "Hello World!".to_string());
+        assert_eq!(
+            words,
+            HashMap::from_iter([
+                (
+                    "hello".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 1
+                    }]
+                ),
+                (
+                    "world".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 1
+                    }]
+                )
+            ])
+        );
+    }
+
+    #[tokio::test]
+    async fn parse_weighted_file() {
+        let mut f = test_fossick(
+            [
+                "<html><body>",
+                "<div>The",
+                "<p data-pagefind-weight='2'>Quick Brown</p>",
+                "Fox</div>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors) = f.parse_digest();
+
+        assert_eq!(digest, "The Quick Brown. Fox.".to_string());
+        assert_eq!(
+            words,
+            HashMap::from_iter([
+                (
+                    "the".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 1
+                    }]
+                ),
+                (
+                    "quick".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 2
+                    }]
+                ),
+                (
+                    "brown".to_string(),
+                    vec![FossickedWord {
+                        position: 2,
+                        weight: 2
+                    }]
+                ),
+                (
+                    "fox".to_string(),
+                    vec![FossickedWord {
+                        position: 3,
+                        weight: 1
+                    }]
+                )
+            ])
+        );
+    }
+
+    #[tokio::test]
+    async fn parse_auto_weighted_file() {
+        let mut f = test_fossick(
+            [
+                "<html><body>",
+                "<h1>Pagefind</h1>",
+                "<h2>Pagefind</h2>",
+                "<h3>Pagefind</h3>",
+                "<h4>Pagefind</h4>",
+                "<h5>Pagefind</h5>",
+                "<h6>Pagefind</h6>",
+                "<p>Pagefind</p>",
+                "<div data-pagefind-weight='0'><h1>Pagefind</h1></div>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors) = f.parse_digest();
+
+        assert_eq!(
+            words,
+            HashMap::from_iter([(
+                "pagefind".to_string(),
+                vec![
+                    FossickedWord {
+                        position: 0,
+                        weight: 7
+                    },
+                    FossickedWord {
+                        position: 1,
+                        weight: 6
+                    },
+                    FossickedWord {
+                        position: 2,
+                        weight: 5
+                    },
+                    FossickedWord {
+                        position: 3,
+                        weight: 4
+                    },
+                    FossickedWord {
+                        position: 4,
+                        weight: 3
+                    },
+                    FossickedWord {
+                        position: 5,
+                        weight: 2
+                    },
+                    FossickedWord {
+                        position: 6,
+                        weight: 1
+                    },
+                    FossickedWord {
+                        position: 7,
+                        weight: 0
+                    }
+                ]
+            )])
+        );
+    }
+
+    #[tokio::test]
+    async fn parse_bad_weights() {
+        let mut f = test_fossick(
+            [
+                "<html><body>",
+                "<p data-pagefind-weight='lots'>The</p>",
+                "<p data-pagefind-weight='99999999'>Quick</p>",
+                "<p data-pagefind-weight='-1234'>Brown</p>",
+                "<p data-pagefind-weight='65.4'>Fox</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors) = f.parse_digest();
+
+        assert_eq!(
+            words,
+            HashMap::from_iter([
+                (
+                    "the".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 1
+                    }]
+                ),
+                (
+                    "quick".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 255
+                    }]
+                ),
+                (
+                    "brown".to_string(),
+                    vec![FossickedWord {
+                        position: 2,
+                        weight: 1
+                    }]
+                ),
+                (
+                    "fox".to_string(),
+                    vec![FossickedWord {
+                        position: 3,
+                        weight: 1
+                    }]
+                )
+            ])
+        );
+    }
 
     #[cfg(not(target_os = "windows"))]
     #[test]
