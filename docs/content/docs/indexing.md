@@ -98,4 +98,4 @@ You can also use your own custom ranking via the `data-pagefind-weight` attribut
 </body>
 ```
 
-The default weight of body content is `1`, and you can a custom weight of any whole number from `1` to `255`.
+The default weight of body content is `1`, and you can set a custom weight of any whole number from `1` to `255`.
