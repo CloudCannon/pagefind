@@ -11,6 +11,8 @@
 
 * Fixed an issue where multiple `data-pagefind-body` tags on a page would conflict if one was nested deeper than the other
 * Added anchor data to the fragments loaded for search results
+* Added `data-pagefind-weight` tag to rank certain content higher
+* Automatically treat `h1` through `h6` tags as a higher weight than body content
 
 ## v0.12.0 (March 1, 2023)
 
