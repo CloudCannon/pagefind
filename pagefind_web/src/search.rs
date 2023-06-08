@@ -117,7 +117,7 @@ impl SearchIndex {
 
         let mut unfiltered_results: Vec<usize> = vec![];
         let mut maps = Vec::new();
-        let mut unique_maps = Vec::new();
+        let mut length_maps = Vec::new();
         let mut words = Vec::new();
         let split_term = stems_from_term(term);
 
@@ -129,7 +129,9 @@ impl SearchIndex {
                 for page in word_index {
                     set.insert(page.page as usize);
                 }
-                unique_maps.push((word.len().abs_diff(term.len()) + 1, set.clone()));
+                // Track how far off the matched word our search word was,
+                // to help ranking results later.
+                length_maps.push((word.len().abs_diff(term.len()) + 1, set.clone()));
                 word_maps.push(set);
             }
             if let Some(result) = union_maps(word_maps) {
@@ -186,7 +188,7 @@ impl SearchIndex {
 
             let page = &self.pages[page_index];
             let mut page_score = word_locations.len() as f32 / page.word_count as f32;
-            for (len, map) in unique_maps.iter() {
+            for (len, map) in length_maps.iter() {
                 // Boost pages that match shorter words, as they are closer
                 // to the term that was searched. Combine the weight with
                 // a word frequency to boost high quality results.
