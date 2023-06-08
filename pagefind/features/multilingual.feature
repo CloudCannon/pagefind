@@ -249,7 +249,7 @@ Feature: Multilingual
                     <title>Document</title>
                 </head>
                 <body>
-                    <p>I am a mystery document</p>
+                    <p>I am a documentation</p>
                 </body>
             </html>
             """
@@ -266,7 +266,7 @@ Feature: Multilingual
             async function() {
                 let pagefind = await import("/_pagefind/pagefind.js");
 
-                let search = await pagefind.search("document");
+                let search = await pagefind.search("documentation");
                 let stem_search = await pagefind.search("documenting");
 
                 let data = search.results[0] ? await search.results[0].data() : "None";
