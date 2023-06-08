@@ -141,10 +141,13 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
     for term in terms {
         let term_index = search_index.chunks.iter().find(|chunk| {
             if load_all_possible {
-                // Trim chunk boundaries down to the length of the search term
-                // so that we load any chunk that may contain an extension of the search term
-                term >= &chunk.from.chars().take(term.len()).collect::<String>()
-                    && term <= &chunk.to.chars().take(term.len()).collect::<String>()
+                // Trim chunk boundaries and search terms to the shortest of either,
+                // so that we load any chunk that may contain an extension or prefix of the search term
+                let from_length = term.len().min(chunk.from.len());
+                let to_length = term.len().min(chunk.to.len());
+
+                term[0..from_length] >= chunk.from[0..from_length]
+                    && term[0..to_length] <= chunk.to[0..to_length]
             } else {
                 term >= &chunk.from && term <= &chunk.to
             }
