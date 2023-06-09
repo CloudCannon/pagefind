@@ -2,7 +2,7 @@ Feature: Node API Base Tests
     Background:
         Given I have a "public/index.html" file with the body:
             """
-        <p data-url>Nothing</p>
+            <p data-url>Nothing</p>
             """
         Given I have a "public/package.json" file with the content:
             """
@@ -17,6 +17,7 @@ Feature: Node API Base Tests
             }
             """
 
+    @platform-unix
     Scenario: Build a synthetic index to disk via the api
         Given I have a "public/index.js" file with the content:
             """
@@ -50,6 +51,7 @@ Feature: Node API Base Tests
         Then There should be no logs
         Then The selector "[data-url]" should contain "/dogs/"
 
+    @platform-unix
     Scenario: Build a synthetic index to memory via the api
         Given I have a "public/index.js" file with the content:
             """
@@ -74,6 +76,7 @@ Feature: Node API Base Tests
         Then I should see "1 fragment(s)" in stdout
         Then I should not see the file "public/_pagefind/pagefind.js"
 
+    @platform-unix
     Scenario: Build a true index to disk via the api
         Given I have a "public/custom_files/real/index.html" file with the body:
             """
@@ -111,6 +114,7 @@ Feature: Node API Base Tests
         Then There should be no logs
         Then The selector "[data-url]" should contain "/real/"
 
+    @platform-unix
     Scenario: Build a blended index to memory via the api
         Given I have a "public/custom_files/real/index.html" file with the body:
             """
