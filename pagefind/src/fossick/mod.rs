@@ -695,12 +695,12 @@ mod tests {
         let opts = SearchOptions::load(config).unwrap();
 
         let p: PathBuf = "C:\\hello\\world\\index.html".into();
-        assert_eq!(&build_url(&p, &opts), "/");
+        assert_eq!(&build_url(&p, None, &opts), "/");
 
         let p: PathBuf = "C:\\hello\\world\\about\\index.html".into();
-        assert_eq!(&build_url(&p, &opts), "/about/");
+        assert_eq!(&build_url(&p, None, &opts), "/about/");
 
         let p: PathBuf = "C:\\hello\\world\\about\\index.htm".into();
-        assert_eq!(&build_url(&p, &opts), "/about/index.htm");
+        assert_eq!(&build_url(&p, None, &opts), "/about/index.htm");
     }
 }
