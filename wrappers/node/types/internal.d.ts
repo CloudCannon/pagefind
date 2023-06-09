@@ -11,7 +11,13 @@ export interface InternalServiceRequest {
 /**
  * The payload describing an action to the backend binary
  */
-export type InternalRequestPayload = InternalNewIndexRequest | InternalAddFileRequest | InternalAddRecordRequest | InternalWriteFilesRequest | InternalGetFilesRequest;
+export type InternalRequestPayload =
+  | InternalNewIndexRequest
+  | InternalAddFileRequest
+  | InternalAddRecordRequest
+  | InternalAddDirRequest
+  | InternalWriteFilesRequest
+  | InternalGetFilesRequest;
 
 export interface InternalNewIndexRequest {
     type: 'NewIndex'
@@ -25,7 +31,7 @@ export interface InternalAddFileRequest {
 }
 
 export interface InternalAddRecordRequest {
-    type: 'AddRecord'
+    type: 'AddRecord',
     index_id: number,
     url: string,
     content: string,
@@ -33,6 +39,13 @@ export interface InternalAddRecordRequest {
     meta?: Record<string, string>,
     filters?: Record<string, string[]>,
     sort?: Record<string, string>
+}
+
+export interface InternalAddDirRequest {
+    type: 'AddDir',
+    index_id: number,
+    path: string,
+    glob?: string
 }
 
 export interface InternalWriteFilesRequest {
@@ -66,7 +79,12 @@ export interface InternalResponseError {
 /**
  * The response payload in the case of a success
  */
-export type InternalResponsePayload = InternalNewIndexResponse | InternalIndexedFileResponse | InternalWriteFilesResponse | InternalGetFilesResponse;
+export type InternalResponsePayload = 
+  | InternalNewIndexResponse
+  | InternalIndexedFileResponse
+  | InternalIndexedDirResponse
+  | InternalWriteFilesResponse
+  | InternalGetFilesResponse;
 
 export interface InternalNewIndexResponse {
     type: 'NewIndex',
@@ -78,6 +96,11 @@ export interface InternalIndexedFileResponse {
     page_word_count: number,
     page_url: string,
     page_meta: Record<string, string>
+}
+
+export interface InternalIndexedDirResponse {
+    type: 'IndexedDir',
+    page_count: number
 }
 
 export interface InternalWriteFilesResponse {

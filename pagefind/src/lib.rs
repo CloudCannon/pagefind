@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, path::PathBuf};
 
-use fossick::{FossickedData, Fossicker};
+pub use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
 use index::PagefindIndexes;
@@ -37,27 +37,28 @@ impl SearchState {
         }
     }
 
-    pub async fn walk_for_files(&mut self) -> Vec<Fossicker> {
+    pub async fn walk_for_files(&mut self, dir: PathBuf, glob: String) -> Vec<Fossicker> {
         let log = &self.options.logger;
 
         log.status("[Walking source directory]");
-        if let Ok(glob) = Glob::new(&self.options.glob) {
-            glob.walk(&self.options.source)
+        if let Ok(glob) = Glob::new(&glob) {
+            glob.walk(&dir)
                 .filter_map(Result::ok)
                 .map(WalkEntry::into_path)
-                .map(Fossicker::new)
+                .map(|file_path| Fossicker::new_relative_to(file_path, dir.clone()))
                 .collect()
         } else {
             log.error(format!(
                 "Error: Provided glob \"{}\" did not parse as a valid glob.",
                 self.options.glob
             ));
+            // TODO: Bubble this error back to the Node API if applicable
             std::process::exit(1);
         }
     }
 
-    pub async fn fossick_all_files(&mut self) {
-        let files = self.walk_for_files().await;
+    pub async fn fossick_many(&mut self, dir: PathBuf, glob: String) -> Result<usize, ()> {
+        let files = self.walk_for_files(dir, glob).await;
         let log = &self.options.logger;
 
         log.info(format!(
@@ -72,7 +73,12 @@ impl SearchState {
             .into_iter()
             .map(|f| f.fossick(&self.options))
             .collect();
-        self.fossicked_pages = join_all(results).await.into_iter().flatten().collect();
+
+        let existing_page_count = self.fossicked_pages.len();
+        self.fossicked_pages
+            .extend(join_all(results).await.into_iter().flatten());
+
+        Ok(self.fossicked_pages.len() - existing_page_count)
     }
 
     pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData, ()> {

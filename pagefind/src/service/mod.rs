@@ -9,7 +9,7 @@ use tokio::sync::mpsc;
 use crate::{
     fossick::{parser::DomParserResult, FossickedData, Fossicker},
     fragments::{PageFragment, PageFragmentData},
-    SearchOptions, SearchState,
+    PagefindInboundConfig, SearchOptions, SearchState,
 };
 
 use requests::*;
@@ -143,6 +143,26 @@ pub async fn run_service(options: SearchOptions) {
                         page_meta: data.fragment.data.meta.clone(),
                     }),
                     Err(_) => err("Failed to add file"),
+                }
+            }
+            RequestAction::AddDir {
+                index_id,
+                path,
+                glob,
+            } => {
+                let defaults: PagefindInboundConfig =
+                    serde_json::from_str("{}").expect("Inbound config has all defaults");
+                let glob = glob.unwrap_or_else(|| defaults.glob);
+
+                let index = indexes
+                    .get_mut(index_id as usize)
+                    .expect("Requested index should exist");
+                let data = index.fossick_many(PathBuf::from(path), glob).await;
+                match data {
+                    Ok(page_count) => send(ResponseAction::IndexedDir {
+                        page_count: page_count as u32,
+                    }),
+                    Err(_) => err("Failed to index directory"),
                 }
             }
             RequestAction::BuildIndex { index_id } => {

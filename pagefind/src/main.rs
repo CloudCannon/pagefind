@@ -59,10 +59,11 @@ async fn main() {
                 if config.service {
                     run_service(options).await;
                 } else {
-                    let mut runner = SearchState::new(options);
+                    let mut runner = SearchState::new(options.clone());
 
                     runner.log_start();
-                    runner.fossick_all_files().await;
+                    // TODO: Error handling
+                    _ = runner.fossick_many(options.source, options.glob).await;
                     runner.build_indexes().await;
                     let logger = runner.write_files().await;
 

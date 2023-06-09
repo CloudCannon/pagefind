@@ -14,6 +14,7 @@ export interface NewIndexResponse {
 export interface PagefindIndex {
     addHTMLFile: typeof addHTMLFile,
     addCustomRecord: typeof addCustomRecord,
+    addDirectory: typeof addDirectory,
     writeFiles: typeof writeFiles,
     getFiles: typeof getFiles,
 }
@@ -26,6 +27,10 @@ declare function addHTMLFile(file: HTMLFile): Promise<NewFileResponse>;
  * Index a custom record that isn't backed by an HTML file
  */
 declare function addCustomRecord(record: CustomRecord): Promise<NewFileResponse>;
+/**
+ * Index a directory of HTML files from disk
+ */
+declare function addDirectory(path: SiteDirectory): Promise<IndexingResponse>;
 
 /**
  * The data required for Pagefind to index an HTML file that isn't on disk
@@ -68,6 +73,29 @@ export interface CustomRecord {
     filters?: Record<string, string[]>,
     /** The sort keys to attach to this record */
     sort?: Record<string, string>
+}
+
+/**
+ * The data required for Pagefind to index the files in a directory
+ * @example
+ * {
+ *   path: "public",
+ *   glob: "**\/*.{html}"
+ * }
+ */
+export interface SiteDirectory {
+    /**
+     * The path to the directory to index.
+     * If relative, is relative to the cwd.
+     */
+    path: string,
+    /** Optionally, a custom glob to evaluate for finding files. Default to all HTML files. */
+    glob?: string
+}
+
+export interface IndexingResponse {
+    errors: string[],
+    page_count: number
 }
 
 export interface NewFileResponse {

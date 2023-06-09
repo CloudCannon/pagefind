@@ -25,6 +25,11 @@ pub(super) enum RequestAction {
         filters: Option<HashMap<String, Vec<String>>>,
         sort: Option<HashMap<String, String>>,
     },
+    AddDir {
+        index_id: u32,
+        path: String,
+        glob: Option<String>,
+    },
     BuildIndex {
         index_id: u32,
     },

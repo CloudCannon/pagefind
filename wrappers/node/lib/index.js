@@ -69,6 +69,7 @@ const indexFns = (indexId) => {
     return {
         addHTMLFile: (file) => addHTMLFile(indexId, file),
         addCustomRecord: (record) => addCustomRecord(indexId, record),
+        addDirectory: (dir) => addDirectory(indexId, dir),
         writeFiles: () => writeFiles(indexId),
         getFiles: () => getFiles(indexId)
     }
@@ -143,6 +144,40 @@ const addCustomRecord = (indexId, record) => new Promise((resolve, reject) => {
                         url: success.page_url,
                         meta: success.page_meta,
                     }
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
+
+/**
+ * @typedef {import('pagefindService').IndexingResponse} IndexingResponse
+ * 
+ * @param {number} indexId 
+ * @param {import('pagefindService').SiteDirectory} dir
+ * @returns {Promise<IndexingResponse>}
+ */
+const addDirectory = (indexId, dir) => new Promise((resolve, reject) => {
+    const action = 'AddDir';
+    const responseAction = 'IndexedDir';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+            path: dir.path,
+            glob: dir.glob
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<IndexingResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== responseAction) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    page_count: success.page_count
                 }
             };
             handleApiResponse(resolve, reject, response, successCallback);
