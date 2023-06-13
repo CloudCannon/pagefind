@@ -167,3 +167,41 @@ Feature: Node API Base Tests
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "/real/, /synth/"
+
+    @platform-unix
+    Scenario: Build an index to a custom disk location via the api
+        Given I have a "output/index.html" file with the body:
+            """
+            <p data-url>Nothing</p>
+            """
+        Given I have a "public/index.js" file with the content:
+            """
+            import * as pagefind from "pagefind";
+
+            const run = async () => {
+                const { index } = await pagefind.createIndex();
+                await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                await index.writeFiles({ bundlePath: "../output/_pagefind" });
+                console.log(`Successfully wrote files`);
+            }
+
+            run();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        Then I should see "Successfully wrote files" in stdout
+        Then I should see the file "output/_pagefind/pagefind.js"
+        When I serve the "output" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("testing");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-url]').innerText = data.url;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/dogs/"

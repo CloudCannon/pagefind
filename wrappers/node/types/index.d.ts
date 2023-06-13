@@ -115,11 +115,24 @@ export interface NewFile {
 /**
  * Write the index files to the cwd
  */
-declare function writeFiles(): Promise<WriteFilesResponse>;
+declare function writeFiles(options?: WriteOptions): Promise<WriteFilesResponse>;
+
+/**
+ * Options for writing a Pagefind index to disk
+ */
+export interface WriteOptions {
+    /** 
+     * The path of the pagefind bundle directory to write to disk.
+     * If relative, is relative to the cwd.
+     * @example "./public/_pagefind"
+     */
+    bundlePath: string
+}
+
 
 export interface WriteFilesResponse {
     errors: string[],
-    bundleLocation: string
+    bundlePath: string
 }
 
 /**

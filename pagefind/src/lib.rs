@@ -277,7 +277,10 @@ impl SearchState {
         }
     }
 
-    pub async fn write_files(self) -> Logger {
+    pub async fn write_files(self, custom_outdir: Option<PathBuf>) -> (PathBuf, Logger) {
+        let outdir =
+            custom_outdir.unwrap_or_else(|| self.options.source.join(&self.options.bundle_dir));
+
         let index_entries: Vec<_> = self
             .built_indexes
             .iter()
@@ -287,34 +290,35 @@ impl SearchState {
         join_all(
             self.built_indexes
                 .into_iter()
-                .map(|indexes| async { indexes.write_files_to_disk(&self.options).await }),
+                .map(|indexes| async { indexes.write_files_to_disk(&self.options, &outdir).await }),
         )
         .await;
 
-        output::write_common_to_disk(&self.options, index_entries).await;
+        output::write_common_to_disk(&self.options, index_entries, &outdir).await;
 
-        self.options.logger
+        (outdir, self.options.logger)
     }
 
     pub async fn get_files(&self) -> Vec<SyntheticFile> {
+        let outdir = self.options.source.join(&self.options.bundle_dir);
+
         let index_entries: Vec<_> = self
             .built_indexes
             .iter()
             .map(|indexes| indexes.get_lang_meta(&self.options))
             .collect();
 
-        let mut files: Vec<_> = join_all(
-            self.built_indexes
-                .iter()
-                .map(|indexes| async { indexes.write_files_to_memory(&self.options).await }),
-        )
-        .await
-        .into_iter()
-        .flatten()
-        .collect();
+        let mut files: Vec<_> =
+            join_all(self.built_indexes.iter().map(|indexes| async {
+                indexes.write_files_to_memory(&self.options, &outdir).await
+            }))
+            .await
+            .into_iter()
+            .flatten()
+            .collect();
 
         files.extend(
-            output::write_common_to_memory(&self.options, index_entries)
+            output::write_common_to_memory(&self.options, index_entries, &outdir)
                 .await
                 .into_iter(),
         );

@@ -70,7 +70,7 @@ const indexFns = (indexId) => {
         addHTMLFile: (file) => addHTMLFile(indexId, file),
         addCustomRecord: (record) => addCustomRecord(indexId, record),
         addDirectory: (dir) => addDirectory(indexId, dir),
-        writeFiles: () => writeFiles(indexId),
+        writeFiles: (options) => writeFiles(indexId, options),
         getFiles: () => getFiles(indexId)
     }
 }
@@ -189,14 +189,16 @@ const addDirectory = (indexId, dir) => new Promise((resolve, reject) => {
  * @typedef {import ('pagefindService').WriteFilesResponse} WriteFilesResponse
  * 
  * @param {number} indexId 
+ * @param {import('pagefindService').WriteOptions | undefined} options
  * @returns {Promise<WriteFilesResponse>}
  */
-const writeFiles = (indexId) => new Promise((resolve, reject) => {
+const writeFiles = (indexId, options) => new Promise((resolve, reject) => {
     const action = 'WriteFiles';
     launch().sendMessage(
         {
             type: action,
             index_id: indexId,
+            bundle_path: options?.bundlePath
         }, (response) => {
             /** @type {function(InternalResponsePayload): Omit<WriteFilesResponse, 'errors'>?} */
             const successCallback = (success) => {
@@ -206,7 +208,7 @@ const writeFiles = (indexId) => new Promise((resolve, reject) => {
                 }
 
                 return {
-                    bundleLocation: success.bundle_location
+                    bundlePath: success.bundle_path
                 }
             };
             handleApiResponse(resolve, reject, response, successCallback);

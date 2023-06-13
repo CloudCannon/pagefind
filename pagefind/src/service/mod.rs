@@ -172,12 +172,15 @@ pub async fn run_service(options: SearchOptions) {
                 index.build_indexes().await;
                 send(ResponseAction::BuildIndex {});
             }
-            RequestAction::WriteFiles { index_id } => {
+            RequestAction::WriteFiles {
+                index_id,
+                bundle_path,
+            } => {
                 let mut index = indexes.remove(index_id as usize);
                 index.build_indexes().await;
-                index.write_files().await;
+                let (bundle_path, _) = index.write_files(bundle_path.map(Into::into)).await;
                 send(ResponseAction::WriteFiles {
-                    bundle_location: "TODO".into(),
+                    bundle_path: bundle_path.to_string_lossy().into(),
                 });
             }
             RequestAction::GetFiles { index_id } => {
