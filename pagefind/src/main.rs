@@ -65,11 +65,11 @@ async fn main() {
                     // TODO: Error handling
                     _ = runner.fossick_many(options.source, options.glob).await;
                     runner.build_indexes().await;
-                    let (_, logger) = runner.write_files(None).await;
+                    _ = &runner.write_files(None).await;
 
                     let duration = start.elapsed();
 
-                    logger.status(&format!(
+                    runner.options.logger.status(&format!(
                         "Finished in {}.{} seconds",
                         duration.as_secs(),
                         duration.subsec_millis()

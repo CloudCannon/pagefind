@@ -176,9 +176,11 @@ pub async fn run_service(options: SearchOptions) {
                 index_id,
                 bundle_path,
             } => {
-                let mut index = indexes.remove(index_id as usize);
+                let index = indexes
+                    .get_mut(index_id as usize)
+                    .expect("Requested index should exist");
                 index.build_indexes().await;
-                let (bundle_path, _) = index.write_files(bundle_path.map(Into::into)).await;
+                let bundle_path = index.write_files(bundle_path.map(Into::into)).await;
                 send(ResponseAction::WriteFiles {
                     bundle_path: bundle_path.to_string_lossy().into(),
                 });

@@ -277,7 +277,7 @@ impl SearchState {
         }
     }
 
-    pub async fn write_files(self, custom_outdir: Option<PathBuf>) -> (PathBuf, Logger) {
+    pub async fn write_files(&self, custom_outdir: Option<PathBuf>) -> PathBuf {
         let outdir =
             custom_outdir.unwrap_or_else(|| self.options.source.join(&self.options.bundle_dir));
 
@@ -289,14 +289,14 @@ impl SearchState {
 
         join_all(
             self.built_indexes
-                .into_iter()
+                .iter()
                 .map(|indexes| async { indexes.write_files_to_disk(&self.options, &outdir).await }),
         )
         .await;
 
         output::write_common_to_disk(&self.options, index_entries, &outdir).await;
 
-        (outdir, self.options.logger)
+        outdir
     }
 
     pub async fn get_files(&self) -> Vec<SyntheticFile> {

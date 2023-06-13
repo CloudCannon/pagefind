@@ -113,7 +113,7 @@ export interface NewFile {
 }
 
 /**
- * Write the index files to the cwd
+ * Write the index files to disk
  */
 declare function writeFiles(options?: WriteOptions): Promise<WriteFilesResponse>;
 

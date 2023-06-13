@@ -205,3 +205,67 @@ Feature: Node API Base Tests
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "/dogs/"
+
+    @platform-unix
+    Scenario: An index is not consumed on write
+        Given I have a "output/index.html" file with the body:
+            """
+            <p data-url>Nothing</p>
+            """
+        Given I have a "public/index.js" file with the content:
+            """
+            import * as pagefind from "pagefind";
+
+            const run = async () => {
+                const { index } = await pagefind.createIndex();
+                await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                await index.writeFiles({ bundlePath: "../output/_pagefind" });
+
+                await index.addHTMLFile({path: "rabbits/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                const { files } = await index.getFiles();
+
+                const fragments = files.filter(file => file.path.includes("fragment"));
+                console.log(`${fragments.length} fragment(s)`);
+
+                await index.addHTMLFile({path: "cats/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                await index.writeFiles({ bundlePath: "./_pagefind" });
+
+                console.log(`Successfully wrote files`);
+            }
+
+            run();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        Then I should see "Successfully wrote files" in stdout
+        Then I should see "2 fragment(s)" in stdout
+        Then I should see the file "output/_pagefind/pagefind.js"
+        When I serve the "output" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("testing");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-url]').innerText = pages.map(p => p.url).sort().join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/dogs/"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("testing");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-url]').innerText = pages.map(p => p.url).sort().join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/cats/, /dogs/, /rabbits/"

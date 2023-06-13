@@ -216,7 +216,7 @@ impl PagefindIndexes {
         }
     }
 
-    pub async fn write_files_to_disk(self, options: &SearchOptions, outdir: &PathBuf) {
+    pub async fn write_files_to_disk(&self, options: &SearchOptions, outdir: &PathBuf) {
         self.write_files(options, outdir, false).await;
     }
 
