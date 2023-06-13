@@ -101,7 +101,7 @@ export interface CustomRecord {
     url: string,
     /** The raw content of this record */
     content: string,
-    /** What language is this record written in. Multiple languages will be split into separate indexes */
+    /** What language is this record written in. Multiple languages will be split into separate indexes. Expects an ISO 639-1 code. */
     language: string,
     /** The metadata to attach to this record. Supplying a `title` is highly recommended */
     meta?: Record<string, string>,
