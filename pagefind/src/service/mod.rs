@@ -4,11 +4,11 @@ use std::{
 };
 
 use base64::{engine::general_purpose, Engine as _};
+use rust_patch::Patch;
 use tokio::sync::mpsc;
 
 use crate::{
-    fossick::{parser::DomParserResult, FossickedData, Fossicker},
-    fragments::{PageFragment, PageFragmentData},
+    fossick::{parser::DomParserResult, Fossicker},
     PagefindInboundConfig, SearchOptions, SearchState,
 };
 
@@ -18,7 +18,7 @@ use responses::*;
 mod requests;
 mod responses;
 
-pub async fn run_service(options: SearchOptions) {
+pub async fn run_service() {
     let (incoming_tx, mut incoming_rx) = mpsc::unbounded_channel::<ServiceRequest>();
     let (outgoing_tx, mut outgoing_rx) = mpsc::unbounded_channel::<ServiceResponse>();
 
@@ -86,12 +86,27 @@ pub async fn run_service(options: SearchOptions) {
         };
 
         match msg.payload {
-            RequestAction::NewIndex => {
+            RequestAction::NewIndex { config } => {
                 let index_id = indexes.len();
-                indexes.insert(index_id, SearchState::new(options.clone()));
-                send(ResponseAction::NewIndex {
-                    index_id: index_id as u32,
-                });
+
+                let mut service_options: PagefindInboundConfig =
+                    serde_json::from_str("{}").expect("All fields have serde defaults");
+                service_options.service = true;
+                if let Some(config) = config {
+                    service_options = config.apply(service_options);
+                }
+
+                match SearchOptions::load(service_options) {
+                    Ok(opts) => {
+                        indexes.insert(index_id, SearchState::new(opts));
+                        send(ResponseAction::NewIndex {
+                            index_id: index_id as u32,
+                        });
+                    }
+                    Err(_) => {
+                        err("Invalid config supplied");
+                    }
+                }
             }
             RequestAction::AddFile {
                 index_id,

@@ -1,7 +1,42 @@
 /**
  * Create a new Pagefind index that files can be added to
  */
-export function createIndex(): Promise<NewIndexResponse>;
+export function createIndex(config: PagefindServiceConfig): Promise<NewIndexResponse>;
+
+export interface PagefindServiceConfig {
+    /** 
+     * The element Pagefind should treat as the root of the document, defaults to `html`.
+     * Usually you will want to use the data-pagefind-body attribute instead.
+     * @example ".my-html-outer"
+     */
+    rootSelector?: string,
+    /** 
+     * Custom selectors that Pagefind should ignore when indexing.
+     * Usually you will want to use the data-pagefind-ignore attribute instead.
+     * @example ["svg", ".my-code-blocks"]
+     */
+    excludeSelectors?: string[],
+    /**
+     * Ignore any detected languages and index the whole site as a single language.
+     * Expects an ISO 639-1 code.
+     */
+    forceLanguage?: string,
+    /**
+     * Print verbose logging while indexing the site. Does not impact the web-facing search.
+     * When running as a service, only impacts the logfile (if present).
+     */
+    verbose?: boolean,
+    /**
+     * Path to a logfile to write to. Will replace the file on each run.
+     */
+    logfile?: string,
+    /**
+     * Keep `index.html` at the end of search result paths.
+     * Defaults to false, stripping `index.html`.
+     */
+    keepIndexUrl?: boolean,
+}
+
 
 export interface NewIndexResponse {
     errors: string[],

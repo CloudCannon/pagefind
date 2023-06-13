@@ -1,6 +1,8 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
+use crate::options::PagefindServiceConfig;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub(super) struct ServiceRequest {
     pub(super) message_id: u32,
@@ -10,7 +12,9 @@ pub(super) struct ServiceRequest {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub(super) enum RequestAction {
-    NewIndex,
+    NewIndex {
+        config: Option<PagefindServiceConfig>,
+    },
     AddFile {
         index_id: u32,
         file_path: String,

@@ -37,13 +37,22 @@ const handleApiResponse = (resolve, reject, { exception, err, result }, resultFn
 /** 
  * @typedef {import('pagefindService').NewIndexResponse} NewIndexResponse
  * 
+ * @param {import('pagefindService').PagefindServiceConfig=} config
  * @type {import('pagefindService').createIndex} 
  * */
-export const createIndex = () => new Promise((resolve, reject) => {
+export const createIndex = (config) => new Promise((resolve, reject) => {
     const action = 'NewIndex';
     launch().sendMessage(
         {
-            type: action
+            type: action,
+            config: {
+                root_selector: config?.rootSelector,
+                exclude_selectors: config?.excludeSelectors,
+                force_language: config?.forceLanguage,
+                verbose: config?.verbose,
+                logfile: config?.logfile,
+                keep_index_url: config?.keepIndexUrl,
+            }
         }, (response) => {
             /** @type {function(InternalResponsePayload): Omit<NewIndexResponse, 'errors'>?} */
             const successCallback = (success) => {
@@ -190,7 +199,7 @@ const addDirectory = (indexId, dir) => new Promise((resolve, reject) => {
  * @typedef {import ('pagefindService').WriteFilesResponse} WriteFilesResponse
  * 
  * @param {number} indexId 
- * @param {import('pagefindService').WriteOptions | undefined} options
+ * @param {import('pagefindService').WriteOptions=} options
  * @returns {Promise<WriteFilesResponse>}
  */
 const writeFiles = (indexId, options) => new Promise((resolve, reject) => {

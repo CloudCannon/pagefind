@@ -1,9 +1,20 @@
 use anyhow::{bail, Result};
 use clap::Parser;
+use rust_patch::Patch;
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, env, path::PathBuf};
 use twelf::config;
 
 use crate::logging::{LogLevel, Logger};
+
+//
+// If editing this configuration struct,
+// also make sure to edit the patch config below,
+// (if it makes sense for that option to be set via the service),
+// and also update any wrapper packages to include definitions for that option.
+//
+// No options should be added that are required.
+//
 
 #[config]
 #[derive(Parser, Debug, Clone)]
@@ -93,6 +104,22 @@ pub struct PagefindInboundConfig {
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
     pub service: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, Patch)]
+#[patch = "PagefindInboundConfig"]
+/// Fields that can be set via the Pagefind service.
+/// In other words, the subset of the above fields that make sense to set globally,
+/// excluding those that are set when each individual method is called.
+pub struct PagefindServiceConfig {
+    pub root_selector: Option<String>,
+    pub exclude_selectors: Option<Vec<String>>,
+    #[patch(as_option)]
+    pub force_language: Option<String>,
+    pub verbose: Option<bool>,
+    #[patch(as_option)]
+    pub logfile: Option<String>,
+    pub keep_index_url: Option<bool>,
 }
 
 mod defaults {

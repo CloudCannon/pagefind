@@ -21,7 +21,17 @@ export type InternalRequestPayload =
   | InternalDeleteIndexRequest;
 
 export interface InternalNewIndexRequest {
-    type: 'NewIndex'
+    type: 'NewIndex',
+    config?: InternalPagefindServiceConfig
+}
+
+export interface InternalPagefindServiceConfig {
+    root_selector?: string,
+    exclude_selectors?: string[],
+    force_language?: string,
+    verbose?: boolean,
+    logfile?: string,
+    keep_index_url?: boolean,
 }
 
 export interface InternalAddFileRequest {

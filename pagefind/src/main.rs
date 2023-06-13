@@ -57,7 +57,7 @@ async fn main() {
         Ok(config) => {
             if let Ok(options) = SearchOptions::load(config.clone()) {
                 if config.service {
-                    run_service(options).await;
+                    run_service().await;
                 } else {
                     let mut runner = SearchState::new(options.clone());
 

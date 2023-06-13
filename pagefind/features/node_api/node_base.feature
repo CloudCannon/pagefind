@@ -269,3 +269,41 @@ Feature: Node API Base Tests
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cats/, /dogs/, /rabbits/"
+
+    @platform-unix
+    Scenario: Pagefind service config
+        Given I have a "public/index.js" file with the content:
+            """
+            import * as pagefind from "pagefind";
+
+            const run = async () => {
+                const { index } = await pagefind.createIndex({
+                    rootSelector: "h1",
+                    excludeSelectors: ["span"],
+                    keepIndexUrl: true,
+                });
+                await index.addHTMLFile({path: "dogs/index.html", content: "<h1>Testing, <span>testing</span></h1>"});
+                await index.writeFiles();
+                console.log(`Successfully wrote files`);
+            }
+
+            run();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        Then I should see "Successfully wrote files" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("testing");
+
+                let data = await search.results[0].data();
+                document.querySelector('[data-url]').innerText = `${data.url} • ${data.content}`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/dogs/index.html • Testing,"
