@@ -22,6 +22,8 @@ pub async fn run_service() {
     let (incoming_tx, mut incoming_rx) = mpsc::unbounded_channel::<ServiceRequest>();
     let (outgoing_tx, mut outgoing_rx) = mpsc::unbounded_channel::<ServiceResponse>();
 
+    let parse_error_outgoing_tx = outgoing_tx.clone();
+
     std::thread::spawn(move || {
         let mut stdin = std::io::stdin().lock();
 
@@ -34,15 +36,43 @@ pub async fn run_service() {
                 std::process::exit(0);
             }
 
-            let decoded = general_purpose::STANDARD
-                .decode(buf)
-                .expect("should be valid base64");
+            let Ok(decoded) = general_purpose::STANDARD
+                .decode(buf) else {
+                    parse_error_outgoing_tx
+                        .send(ServiceResponse {
+                            message_id: None,
+                            payload: ResponseAction::Error {
+                                original_message: None,
+                                message: "Unparseable message, not valid base64".into()
+                            },
+                        })
+                        .expect("Channel is open");
+                    return;
+                };
 
             match serde_json::from_slice::<ServiceRequest>(&decoded) {
                 Ok(msg) => {
                     incoming_tx.send(msg).expect("Channel is open");
                 }
-                Err(_) => {}
+                Err(e) => {
+                    let error = match std::str::from_utf8(&decoded[..]) {
+                        Ok(msg) => ResponseAction::Error {
+                            original_message: Some(msg.to_string()),
+                            message: format!("{e}"),
+                        },
+                        Err(_) => ResponseAction::Error {
+                            original_message: None,
+                            message: "Pagefind was unable to parse the message it was provided via the service".to_string(),
+                        },
+                    };
+
+                    parse_error_outgoing_tx
+                        .send(ServiceResponse {
+                            message_id: None,
+                            payload: error,
+                        })
+                        .expect("Channel is open");
+                }
             }
         }
     });
@@ -71,7 +101,7 @@ pub async fn run_service() {
 
         let send = |payload| {
             if let Err(e) = outgoing_tx.send(ServiceResponse {
-                message_id,
+                message_id: Some(message_id),
                 payload,
             }) {
                 eprintln!("Internal error: Failed to respond to message {message_id}: {e}");
@@ -81,6 +111,7 @@ pub async fn run_service() {
 
         let err = |msg: &str| {
             send(ResponseAction::Error {
+                original_message: None,
                 message: msg.into(),
             })
         };
@@ -98,7 +129,7 @@ pub async fn run_service() {
 
                 match SearchOptions::load(service_options) {
                     Ok(opts) => {
-                        indexes.insert(index_id, SearchState::new(opts));
+                        indexes.insert(index_id, Some(SearchState::new(opts)));
                         send(ResponseAction::NewIndex {
                             index_id: index_id as u32,
                         });
@@ -113,9 +144,11 @@ pub async fn run_service() {
                 file_path,
                 file_contents,
             } => {
-                let index = indexes
-                    .get_mut(index_id as usize)
-                    .expect("Requested index should exist");
+                let Some(Some(index)) = indexes
+                    .get_mut(index_id as usize) else {
+                        err("Index does not exist in the Pagefind service");
+                        return;
+                    };
                 let file = Fossicker::new_synthetic(PathBuf::from(file_path), file_contents);
                 let data = index.fossick_one(file).await;
                 match data {
@@ -136,9 +169,11 @@ pub async fn run_service() {
                 filters,
                 sort,
             } => {
-                let index = indexes
-                    .get_mut(index_id as usize)
-                    .expect("Requested index should exist");
+                let Some(Some(index)) = indexes
+                    .get_mut(index_id as usize) else {
+                        err("Index does not exist in the Pagefind service");
+                        return;
+                    };
                 let data = DomParserResult {
                     digest: content,
                     filters: filters.unwrap_or_default(),
@@ -165,13 +200,16 @@ pub async fn run_service() {
                 path,
                 glob,
             } => {
+                let Some(Some(index)) = indexes
+                    .get_mut(index_id as usize) else {
+                        err("Index does not exist in the Pagefind service");
+                        return;
+                    };
+
                 let defaults: PagefindInboundConfig =
-                    serde_json::from_str("{}").expect("Inbound config has all defaults");
+                    serde_json::from_str("{}").expect("All fields have serde defaults");
                 let glob = glob.unwrap_or_else(|| defaults.glob);
 
-                let index = indexes
-                    .get_mut(index_id as usize)
-                    .expect("Requested index should exist");
                 let data = index.fossick_many(PathBuf::from(path), glob).await;
                 match data {
                     Ok(page_count) => send(ResponseAction::IndexedDir {
@@ -181,9 +219,11 @@ pub async fn run_service() {
                 }
             }
             RequestAction::BuildIndex { index_id } => {
-                let index = indexes
-                    .get_mut(index_id as usize)
-                    .expect("Requested index should exist");
+                let Some(Some(index)) = indexes
+                    .get_mut(index_id as usize) else {
+                        err("Index does not exist in the Pagefind service");
+                        return;
+                    };
                 index.build_indexes().await;
                 send(ResponseAction::BuildIndex {});
             }
@@ -191,9 +231,11 @@ pub async fn run_service() {
                 index_id,
                 bundle_path,
             } => {
-                let index = indexes
-                    .get_mut(index_id as usize)
-                    .expect("Requested index should exist");
+                let Some(Some(index)) = indexes
+                    .get_mut(index_id as usize) else {
+                        err("Index does not exist in the Pagefind service");
+                        return;
+                    };
                 index.build_indexes().await;
                 let bundle_path = index.write_files(bundle_path.map(Into::into)).await;
                 send(ResponseAction::WriteFiles {
@@ -201,9 +243,11 @@ pub async fn run_service() {
                 });
             }
             RequestAction::GetFiles { index_id } => {
-                let index = indexes
-                    .get_mut(index_id as usize)
-                    .expect("Requested index should exist");
+                let Some(Some(index)) = indexes
+                    .get_mut(index_id as usize) else {
+                        err("Index does not exist in the Pagefind service");
+                        return;
+                    };
                 index.build_indexes().await;
                 let files = index.get_files().await;
                 send(ResponseAction::GetFiles {
@@ -217,8 +261,13 @@ pub async fn run_service() {
                 });
             }
             RequestAction::DeleteIndex { index_id } => {
-                indexes.remove(index_id as usize);
-                send(ResponseAction::DeletedIndex {});
+                let Some(slot) = indexes.get_mut(index_id as usize) else {
+                    err("Index does not exist in the Pagefind service");
+                    return;
+                };
+                // Delete the index but reserve its ID so we don't reassign it
+                *slot = None;
+                send(ResponseAction::DeleteIndex {});
             }
         }
     }

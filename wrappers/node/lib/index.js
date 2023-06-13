@@ -41,6 +41,10 @@ const handleApiResponse = (resolve, reject, { exception, err, result }, resultFn
  * @type {import('pagefindService').createIndex} 
  * */
 export const createIndex = (config) => new Promise((resolve, reject) => {
+
+    // TODO: Validate `config` here, instead of waiting for the backend to throw an error.
+    // Ideally we create a global Pagefind config JSON schema that (a subset of) can be used here.
+
     const action = 'NewIndex';
     launch().sendMessage(
         {

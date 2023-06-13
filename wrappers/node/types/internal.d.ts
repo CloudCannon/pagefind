@@ -4,7 +4,7 @@
  * The raw object passed to the backend binary
  */
 export interface InternalServiceRequest {
-    message_id: number,
+    message_id?: number,
     payload: InternalRequestPayload
 }
 
@@ -90,6 +90,7 @@ export interface InternalServiceResponse {
  */
 export interface InternalResponseError {
     type: 'Error',
+    original_message?: string,
     message: string
 }
 

@@ -307,3 +307,32 @@ Feature: Node API Base Tests
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "/dogs/index.html • Testing,"
+
+    @platform-unix
+    Scenario: Pagefind error handling
+        Given I have a "public/index.js" file with the content:
+            """
+            import * as pagefind from "pagefind";
+
+            const bad_option = async () => {
+                try {
+                    const response = await pagefind.createIndex({
+                        rootSelector: 5
+                    });
+                } catch(e) {
+                    console.log(e.toString());
+                }
+            }
+            bad_option();
+
+            const no_index = async () => {
+                const { index } = await pagefind.createIndex();
+                await index.deleteIndex();
+                const { errors, files } = await index.getFiles();
+                console.log(JSON.stringify(errors));
+            }
+            no_index();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        Then I should see "invalid type: integer `5`" in stdout
+        Then I should see "Index does not exist in the Pagefind service" in stdout
