@@ -333,3 +333,24 @@ Feature: Node API Base Tests
         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
         Then I should see "invalid type: integer `5`" in stdout
         Then I should see "Index has been deleted from the Pagefind service and no longer exists" in stdout
+
+    @platform-unix
+    Scenario: Pagefind empty index returns assets
+        Given I have a "public/index.js" file with the content:
+            """
+            import * as pagefind from "pagefind";
+
+            const run = async () => {
+                const { index } = await pagefind.createIndex();
+                const { errors, files } = await index.getFiles();
+                console.log(files.map(f => f.path).join(', '));
+            }
+            run();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        Then I should see "_pagefind/pagefind.js" in stdout
+        Then I should see "_pagefind/pagefind-ui.js" in stdout
+        Then I should see "_pagefind/pagefind-ui.css" in stdout
+        Then I should see "_pagefind/pagefind-modular-ui.js" in stdout
+        Then I should see "_pagefind/pagefind-modular-ui.css" in stdout
+        Then I should see "_pagefind/wasm.unknown.pagefind" in stdout

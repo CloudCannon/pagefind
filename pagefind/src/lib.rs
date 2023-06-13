@@ -267,7 +267,7 @@ impl SearchState {
             plural!(stats.3)
         ));
 
-        if stats.1 == 0 {
+        if stats.1 == 0 && !self.options.running_as_service {
             log.error(
                 "Error: Pagefind wasn't able to build an index. \n\
                 Most likely, the directory passed to Pagefind was empty \

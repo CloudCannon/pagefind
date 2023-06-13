@@ -150,6 +150,7 @@ pub struct SearchOptions {
     pub version: &'static str,
     pub logger: Logger,
     pub keep_index_url: bool,
+    pub running_as_service: bool,
 }
 
 impl SearchOptions {
@@ -182,6 +183,7 @@ impl SearchOptions {
                     config.logfile.map(PathBuf::from),
                 ),
                 keep_index_url: config.keep_index_url,
+                running_as_service: config.service,
             })
         }
     }
