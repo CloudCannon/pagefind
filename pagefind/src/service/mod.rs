@@ -116,6 +116,24 @@ pub async fn run_service() {
             })
         };
 
+        fn get_index<'a>(
+            indexes: &'a mut Vec<Option<SearchState>>,
+            index_id: u32,
+            err: impl FnOnce(&str),
+        ) -> Option<&'a mut SearchState> {
+            match indexes.get_mut(index_id as usize) {
+                Some(Some(index)) => Some(index),
+                Some(None) => {
+                    err("Index has been deleted from the Pagefind service and no longer exists");
+                    None
+                }
+                None => {
+                    err("Invalid index, does not yet exist in the Pagefind service");
+                    None
+                }
+            }
+        }
+
         match msg.payload {
             RequestAction::NewIndex { config } => {
                 let index_id = indexes.len();
@@ -144,20 +162,17 @@ pub async fn run_service() {
                 file_path,
                 file_contents,
             } => {
-                let Some(Some(index)) = indexes
-                    .get_mut(index_id as usize) else {
-                        err("Index does not exist in the Pagefind service");
-                        return;
-                    };
-                let file = Fossicker::new_synthetic(PathBuf::from(file_path), file_contents);
-                let data = index.fossick_one(file).await;
-                match data {
-                    Ok(data) => send(ResponseAction::IndexedFile {
-                        page_word_count: data.fragment.data.word_count as u32,
-                        page_url: data.fragment.data.url.clone(),
-                        page_meta: data.fragment.data.meta.clone(),
-                    }),
-                    Err(_) => err("Failed to add file"),
+                if let Some(index) = get_index(&mut indexes, index_id, err) {
+                    let file = Fossicker::new_synthetic(PathBuf::from(file_path), file_contents);
+                    let data = index.fossick_one(file).await;
+                    match data {
+                        Ok(data) => send(ResponseAction::IndexedFile {
+                            page_word_count: data.fragment.data.word_count as u32,
+                            page_url: data.fragment.data.url.clone(),
+                            page_meta: data.fragment.data.meta.clone(),
+                        }),
+                        Err(_) => err("Failed to add file"),
+                    }
                 }
             }
             RequestAction::AddRecord {
@@ -169,30 +184,27 @@ pub async fn run_service() {
                 filters,
                 sort,
             } => {
-                let Some(Some(index)) = indexes
-                    .get_mut(index_id as usize) else {
-                        err("Index does not exist in the Pagefind service");
-                        return;
+                if let Some(index) = get_index(&mut indexes, index_id, err) {
+                    let data = DomParserResult {
+                        digest: content,
+                        filters: filters.unwrap_or_default(),
+                        sort: sort.unwrap_or_default(),
+                        meta: meta.unwrap_or_default(),
+                        has_custom_body: false,
+                        force_inclusion: true,
+                        has_html_element: true,
+                        language,
                     };
-                let data = DomParserResult {
-                    digest: content,
-                    filters: filters.unwrap_or_default(),
-                    sort: sort.unwrap_or_default(),
-                    meta: meta.unwrap_or_default(),
-                    has_custom_body: false,
-                    force_inclusion: true,
-                    has_html_element: true,
-                    language,
-                };
-                let file = Fossicker::new_with_data(url, data);
-                let data = index.fossick_one(file).await;
-                match data {
-                    Ok(data) => send(ResponseAction::IndexedFile {
-                        page_word_count: data.fragment.data.word_count as u32,
-                        page_url: data.fragment.data.url.clone(),
-                        page_meta: data.fragment.data.meta.clone(),
-                    }),
-                    Err(_) => err("Failed to add file"),
+                    let file = Fossicker::new_with_data(url, data);
+                    let data = index.fossick_one(file).await;
+                    match data {
+                        Ok(data) => send(ResponseAction::IndexedFile {
+                            page_word_count: data.fragment.data.word_count as u32,
+                            page_url: data.fragment.data.url.clone(),
+                            page_meta: data.fragment.data.meta.clone(),
+                        }),
+                        Err(_) => err("Failed to add file"),
+                    }
                 }
             }
             RequestAction::AddDir {
@@ -200,75 +212,62 @@ pub async fn run_service() {
                 path,
                 glob,
             } => {
-                let Some(Some(index)) = indexes
-                    .get_mut(index_id as usize) else {
-                        err("Index does not exist in the Pagefind service");
-                        return;
-                    };
+                if let Some(index) = get_index(&mut indexes, index_id, err) {
+                    let defaults: PagefindInboundConfig =
+                        serde_json::from_str("{}").expect("All fields have serde defaults");
+                    let glob = glob.unwrap_or_else(|| defaults.glob);
 
-                let defaults: PagefindInboundConfig =
-                    serde_json::from_str("{}").expect("All fields have serde defaults");
-                let glob = glob.unwrap_or_else(|| defaults.glob);
-
-                let data = index.fossick_many(PathBuf::from(path), glob).await;
-                match data {
-                    Ok(page_count) => send(ResponseAction::IndexedDir {
-                        page_count: page_count as u32,
-                    }),
-                    Err(_) => err("Failed to index directory"),
+                    let data = index.fossick_many(PathBuf::from(path), glob).await;
+                    match data {
+                        Ok(page_count) => send(ResponseAction::IndexedDir {
+                            page_count: page_count as u32,
+                        }),
+                        Err(_) => err("Failed to index directory"),
+                    }
                 }
             }
             RequestAction::BuildIndex { index_id } => {
-                let Some(Some(index)) = indexes
-                    .get_mut(index_id as usize) else {
-                        err("Index does not exist in the Pagefind service");
-                        return;
-                    };
-                index.build_indexes().await;
-                send(ResponseAction::BuildIndex {});
+                if let Some(index) = get_index(&mut indexes, index_id, err) {
+                    index.build_indexes().await;
+                    send(ResponseAction::BuildIndex {});
+                }
             }
             RequestAction::WriteFiles {
                 index_id,
                 bundle_path,
             } => {
-                let Some(Some(index)) = indexes
-                    .get_mut(index_id as usize) else {
-                        err("Index does not exist in the Pagefind service");
-                        return;
-                    };
-                index.build_indexes().await;
-                let bundle_path = index.write_files(bundle_path.map(Into::into)).await;
-                send(ResponseAction::WriteFiles {
-                    bundle_path: bundle_path.to_string_lossy().into(),
-                });
+                if let Some(index) = get_index(&mut indexes, index_id, err) {
+                    index.build_indexes().await;
+                    let bundle_path = index.write_files(bundle_path.map(Into::into)).await;
+                    send(ResponseAction::WriteFiles {
+                        bundle_path: bundle_path.to_string_lossy().into(),
+                    });
+                }
             }
             RequestAction::GetFiles { index_id } => {
-                let Some(Some(index)) = indexes
-                    .get_mut(index_id as usize) else {
-                        err("Index does not exist in the Pagefind service");
-                        return;
-                    };
-                index.build_indexes().await;
-                let files = index.get_files().await;
-                send(ResponseAction::GetFiles {
-                    files: files
-                        .into_iter()
-                        .map(|file| SyntheticFileResponse {
-                            path: file.filename.to_string_lossy().into(),
-                            content: general_purpose::STANDARD.encode(file.contents),
-                        })
-                        .collect(),
-                });
+                if let Some(index) = get_index(&mut indexes, index_id, err) {
+                    index.build_indexes().await;
+                    let files = index.get_files().await;
+                    send(ResponseAction::GetFiles {
+                        files: files
+                            .into_iter()
+                            .map(|file| SyntheticFileResponse {
+                                path: file.filename.to_string_lossy().into(),
+                                content: general_purpose::STANDARD.encode(file.contents),
+                            })
+                            .collect(),
+                    });
+                }
             }
-            RequestAction::DeleteIndex { index_id } => {
-                let Some(slot) = indexes.get_mut(index_id as usize) else {
+            RequestAction::DeleteIndex { index_id } => match indexes.get_mut(index_id as usize) {
+                Some(slot) => {
+                    *slot = None;
+                    send(ResponseAction::DeleteIndex {});
+                }
+                None => {
                     err("Index does not exist in the Pagefind service");
-                    return;
-                };
-                // Delete the index but reserve its ID so we don't reassign it
-                *slot = None;
-                send(ResponseAction::DeleteIndex {});
-            }
+                }
+            },
         }
     }
 }

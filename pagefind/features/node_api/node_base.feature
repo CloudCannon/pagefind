@@ -332,4 +332,4 @@ Feature: Node API Base Tests
             """
         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
         Then I should see "invalid type: integer `5`" in stdout
-        Then I should see "Index does not exist in the Pagefind service" in stdout
+        Then I should see "Index has been deleted from the Pagefind service and no longer exists" in stdout
