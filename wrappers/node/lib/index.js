@@ -71,7 +71,8 @@ const indexFns = (indexId) => {
         addCustomRecord: (record) => addCustomRecord(indexId, record),
         addDirectory: (dir) => addDirectory(indexId, dir),
         writeFiles: (options) => writeFiles(indexId, options),
-        getFiles: () => getFiles(indexId)
+        getFiles: () => getFiles(indexId),
+        deleteIndex: () => deleteIndex(indexId)
     }
 }
 
@@ -244,6 +245,31 @@ const getFiles = (indexId) => new Promise((resolve, reject) => {
                         }
                     })
                 }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
+/**
+ * @param {number} indexId 
+ * @returns {Promise<null>}
+ */
+const deleteIndex = (indexId) => new Promise((resolve, reject) => {
+    const action = 'DeleteIndex';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<GetFilesResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== action) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return null;
             };
             handleApiResponse(resolve, reject, response, successCallback);
         }

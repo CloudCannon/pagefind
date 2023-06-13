@@ -201,6 +201,10 @@ pub async fn run_service(options: SearchOptions) {
                         .collect(),
                 });
             }
+            RequestAction::DeleteIndex { index_id } => {
+                indexes.remove(index_id as usize);
+                send(ResponseAction::DeletedIndex {});
+            }
         }
     }
 }

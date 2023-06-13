@@ -17,7 +17,8 @@ export type InternalRequestPayload =
   | InternalAddRecordRequest
   | InternalAddDirRequest
   | InternalWriteFilesRequest
-  | InternalGetFilesRequest;
+  | InternalGetFilesRequest
+  | InternalDeleteIndexRequest;
 
 export interface InternalNewIndexRequest {
     type: 'NewIndex'
@@ -59,6 +60,11 @@ export interface InternalGetFilesRequest {
     index_id: number
 }
 
+export interface InternalDeleteIndexRequest {
+    type: 'DeleteIndex',
+    index_id: number
+}
+
 // Responses from the backend.
 
 /**
@@ -85,7 +91,8 @@ export type InternalResponsePayload =
   | InternalIndexedFileResponse
   | InternalIndexedDirResponse
   | InternalWriteFilesResponse
-  | InternalGetFilesResponse;
+  | InternalGetFilesResponse
+  | InternalDeleteIndexResponse;
 
 export interface InternalNewIndexResponse {
     type: 'NewIndex',
@@ -117,6 +124,10 @@ export interface InternalGetFilesResponse {
 export interface InternalSyntheticFile {
     path: string,
     content: string
+}
+
+export interface InternalDeleteIndexResponse {
+    type: 'DeleteIndex'
 }
 
 /**

@@ -17,6 +17,7 @@ export interface PagefindIndex {
     addDirectory: typeof addDirectory,
     writeFiles: typeof writeFiles,
     getFiles: typeof getFiles,
+    deleteIndex: typeof deleteIndex,
 }
 
 /**
@@ -149,3 +150,8 @@ export interface IndexFile {
     path: string,
     content: Buffer
 }
+
+/**
+ * Delete this index and clear it from memory
+ */
+declare function deleteIndex(): Promise<null>;

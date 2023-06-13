@@ -37,4 +37,5 @@ pub(super) enum ResponseAction {
     GetFiles {
         files: Vec<SyntheticFileResponse>,
     },
+    DeletedIndex {},
 }
