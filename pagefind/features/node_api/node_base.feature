@@ -314,7 +314,12 @@ Feature: Node API Base Tests
             """
             import * as pagefind from "pagefind";
 
-            const bad_option = async () => {
+            const bad = async () => {
+                const { index } = await pagefind.createIndex();
+                await index.deleteIndex();
+                const { errors, files } = await index.getFiles();
+                console.log(JSON.stringify(errors));
+
                 try {
                     const response = await pagefind.createIndex({
                         rootSelector: 5
@@ -323,15 +328,7 @@ Feature: Node API Base Tests
                     console.log(e.toString());
                 }
             }
-            bad_option();
-
-            const no_index = async () => {
-                const { index } = await pagefind.createIndex();
-                await index.deleteIndex();
-                const { errors, files } = await index.getFiles();
-                console.log(JSON.stringify(errors));
-            }
-            no_index();
+            bad();
             """
         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
         Then I should see "invalid type: integer `5`" in stdout
