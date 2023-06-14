@@ -4,17 +4,34 @@
  * The raw object passed to the backend binary
  */
 export interface InternalServiceRequest {
-    message_id: number,
+    message_id?: number,
     payload: InternalRequestPayload
 }
 
 /**
  * The payload describing an action to the backend binary
  */
-export type InternalRequestPayload = InternalNewIndexRequest | InternalAddFileRequest | InternalAddRecordRequest | InternalWriteFilesRequest | InternalGetFilesRequest;
+export type InternalRequestPayload =
+  | InternalNewIndexRequest
+  | InternalAddFileRequest
+  | InternalAddRecordRequest
+  | InternalAddDirRequest
+  | InternalWriteFilesRequest
+  | InternalGetFilesRequest
+  | InternalDeleteIndexRequest;
 
 export interface InternalNewIndexRequest {
-    type: 'NewIndex'
+    type: 'NewIndex',
+    config?: InternalPagefindServiceConfig
+}
+
+export interface InternalPagefindServiceConfig {
+    root_selector?: string,
+    exclude_selectors?: string[],
+    force_language?: string,
+    verbose?: boolean,
+    logfile?: string,
+    keep_index_url?: boolean,
 }
 
 export interface InternalAddFileRequest {
@@ -25,7 +42,7 @@ export interface InternalAddFileRequest {
 }
 
 export interface InternalAddRecordRequest {
-    type: 'AddRecord'
+    type: 'AddRecord',
     index_id: number,
     url: string,
     content: string,
@@ -35,13 +52,26 @@ export interface InternalAddRecordRequest {
     sort?: Record<string, string>
 }
 
+export interface InternalAddDirRequest {
+    type: 'AddDir',
+    index_id: number,
+    path: string,
+    glob?: string
+}
+
 export interface InternalWriteFilesRequest {
     type: 'WriteFiles',
-    index_id: number
+    index_id: number,
+    bundle_path?: string
 }
 
 export interface InternalGetFilesRequest {
     type: 'GetFiles',
+    index_id: number
+}
+
+export interface InternalDeleteIndexRequest {
+    type: 'DeleteIndex',
     index_id: number
 }
 
@@ -60,13 +90,20 @@ export interface InternalServiceResponse {
  */
 export interface InternalResponseError {
     type: 'Error',
+    original_message?: string,
     message: string
 }
 
 /**
  * The response payload in the case of a success
  */
-export type InternalResponsePayload = InternalNewIndexResponse | InternalIndexedFileResponse | InternalWriteFilesResponse | InternalGetFilesResponse;
+export type InternalResponsePayload = 
+  | InternalNewIndexResponse
+  | InternalIndexedFileResponse
+  | InternalIndexedDirResponse
+  | InternalWriteFilesResponse
+  | InternalGetFilesResponse
+  | InternalDeleteIndexResponse;
 
 export interface InternalNewIndexResponse {
     type: 'NewIndex',
@@ -80,9 +117,14 @@ export interface InternalIndexedFileResponse {
     page_meta: Record<string, string>
 }
 
+export interface InternalIndexedDirResponse {
+    type: 'IndexedDir',
+    page_count: number
+}
+
 export interface InternalWriteFilesResponse {
     type: 'WriteFiles',
-    bundle_location: string,
+    bundle_path: string,
 }
 
 export interface InternalGetFilesResponse {
@@ -93,6 +135,10 @@ export interface InternalGetFilesResponse {
 export interface InternalSyntheticFile {
     path: string,
     content: string
+}
+
+export interface InternalDeleteIndexResponse {
+    type: 'DeleteIndex'
 }
 
 /**

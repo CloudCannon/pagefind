@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, path::PathBuf};
 
-use fossick::{FossickedData, Fossicker};
+pub use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
 use index::PagefindIndexes;
@@ -37,27 +37,28 @@ impl SearchState {
         }
     }
 
-    pub async fn walk_for_files(&mut self) -> Vec<Fossicker> {
+    pub async fn walk_for_files(&mut self, dir: PathBuf, glob: String) -> Vec<Fossicker> {
         let log = &self.options.logger;
 
         log.status("[Walking source directory]");
-        if let Ok(glob) = Glob::new(&self.options.glob) {
-            glob.walk(&self.options.source)
+        if let Ok(glob) = Glob::new(&glob) {
+            glob.walk(&dir)
                 .filter_map(Result::ok)
                 .map(WalkEntry::into_path)
-                .map(Fossicker::new)
+                .map(|file_path| Fossicker::new_relative_to(file_path, dir.clone()))
                 .collect()
         } else {
             log.error(format!(
                 "Error: Provided glob \"{}\" did not parse as a valid glob.",
                 self.options.glob
             ));
+            // TODO: Bubble this error back to the Node API if applicable
             std::process::exit(1);
         }
     }
 
-    pub async fn fossick_all_files(&mut self) {
-        let files = self.walk_for_files().await;
+    pub async fn fossick_many(&mut self, dir: PathBuf, glob: String) -> Result<usize, ()> {
+        let files = self.walk_for_files(dir, glob).await;
         let log = &self.options.logger;
 
         log.info(format!(
@@ -72,7 +73,12 @@ impl SearchState {
             .into_iter()
             .map(|f| f.fossick(&self.options))
             .collect();
-        self.fossicked_pages = join_all(results).await.into_iter().flatten().collect();
+
+        let existing_page_count = self.fossicked_pages.len();
+        self.fossicked_pages
+            .extend(join_all(results).await.into_iter().flatten());
+
+        Ok(self.fossicked_pages.len() - existing_page_count)
     }
 
     pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData, ()> {
@@ -261,7 +267,7 @@ impl SearchState {
             plural!(stats.3)
         ));
 
-        if stats.1 == 0 {
+        if stats.1 == 0 && !self.options.running_as_service {
             log.error(
                 "Error: Pagefind wasn't able to build an index. \n\
                 Most likely, the directory passed to Pagefind was empty \
@@ -271,7 +277,10 @@ impl SearchState {
         }
     }
 
-    pub async fn write_files(self) -> Logger {
+    pub async fn write_files(&self, custom_outdir: Option<PathBuf>) -> PathBuf {
+        let outdir =
+            custom_outdir.unwrap_or_else(|| self.options.source.join(&self.options.bundle_dir));
+
         let index_entries: Vec<_> = self
             .built_indexes
             .iter()
@@ -280,35 +289,36 @@ impl SearchState {
 
         join_all(
             self.built_indexes
-                .into_iter()
-                .map(|indexes| async { indexes.write_files_to_disk(&self.options).await }),
+                .iter()
+                .map(|indexes| async { indexes.write_files_to_disk(&self.options, &outdir).await }),
         )
         .await;
 
-        output::write_common_to_disk(&self.options, index_entries).await;
+        output::write_common_to_disk(&self.options, index_entries, &outdir).await;
 
-        self.options.logger
+        outdir
     }
 
     pub async fn get_files(&self) -> Vec<SyntheticFile> {
+        let outdir = self.options.source.join(&self.options.bundle_dir);
+
         let index_entries: Vec<_> = self
             .built_indexes
             .iter()
             .map(|indexes| indexes.get_lang_meta(&self.options))
             .collect();
 
-        let mut files: Vec<_> = join_all(
-            self.built_indexes
-                .iter()
-                .map(|indexes| async { indexes.write_files_to_memory(&self.options).await }),
-        )
-        .await
-        .into_iter()
-        .flatten()
-        .collect();
+        let mut files: Vec<_> =
+            join_all(self.built_indexes.iter().map(|indexes| async {
+                indexes.write_files_to_memory(&self.options, &outdir).await
+            }))
+            .await
+            .into_iter()
+            .flatten()
+            .collect();
 
         files.extend(
-            output::write_common_to_memory(&self.options, index_entries)
+            output::write_common_to_memory(&self.options, index_entries, &outdir)
                 .await
                 .into_iter(),
         );

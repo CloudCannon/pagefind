@@ -57,18 +57,19 @@ async fn main() {
         Ok(config) => {
             if let Ok(options) = SearchOptions::load(config.clone()) {
                 if config.service {
-                    run_service(options).await;
+                    run_service().await;
                 } else {
-                    let mut runner = SearchState::new(options);
+                    let mut runner = SearchState::new(options.clone());
 
                     runner.log_start();
-                    runner.fossick_all_files().await;
+                    // TODO: Error handling
+                    _ = runner.fossick_many(options.source, options.glob).await;
                     runner.build_indexes().await;
-                    let logger = runner.write_files().await;
+                    _ = &runner.write_files(None).await;
 
                     let duration = start.elapsed();
 
-                    logger.status(&format!(
+                    runner.options.logger.status(&format!(
                         "Finished in {}.{} seconds",
                         duration.as_secs(),
                         duration.subsec_millis()

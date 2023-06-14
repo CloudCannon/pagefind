@@ -47,6 +47,8 @@ pub struct FossickedData {
 #[derive(Debug)]
 pub struct Fossicker {
     file_path: Option<PathBuf>,
+    /// Built URLs should be relative to this directory
+    root_path: Option<PathBuf>,
     page_url: Option<String>,
     synthetic_content: Option<String>,
     data: Option<DomParserResult>,
@@ -56,6 +58,17 @@ impl Fossicker {
     pub fn new(file_path: PathBuf) -> Self {
         Self {
             file_path: Some(file_path),
+            root_path: None,
+            page_url: None,
+            synthetic_content: None,
+            data: None,
+        }
+    }
+
+    pub fn new_relative_to(file_path: PathBuf, root_path: PathBuf) -> Self {
+        Self {
+            file_path: Some(file_path),
+            root_path: Some(root_path),
             page_url: None,
             synthetic_content: None,
             data: None,
@@ -65,6 +78,7 @@ impl Fossicker {
     pub fn new_synthetic(file_path: PathBuf, contents: String) -> Self {
         Self {
             file_path: Some(file_path),
+            root_path: None,
             page_url: None,
             synthetic_content: Some(contents),
             data: None,
@@ -74,6 +88,7 @@ impl Fossicker {
     pub fn new_with_data(url: String, data: DomParserResult) -> Self {
         Self {
             file_path: None,
+            root_path: None,
             page_url: Some(url),
             synthetic_content: None,
             data: Some(data),
@@ -324,7 +339,11 @@ impl Fossicker {
         let url = if let Some(url) = &self.page_url {
             url.clone()
         } else if let Some(path) = &self.file_path {
-            build_url(path, options)
+            if let Some(root) = &self.root_path {
+                build_url(path, Some(root), options)
+            } else {
+                build_url(path, None, options)
+            }
         } else {
             options
                 .logger
@@ -363,13 +382,14 @@ impl Fossicker {
     }
 }
 
-fn build_url(page_url: &Path, options: &SearchOptions) -> String {
-    let trimmed = page_url.strip_prefix(&options.source);
+fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOptions) -> String {
+    let prefix = relative_to.unwrap_or(&options.source);
+    let trimmed = page_url.strip_prefix(prefix);
     let Ok(url) = trimmed else {
         options.logger.error(format!(
             "File was found that does not start with the source directory: {}\nSource: {:?}\nFile: {:?}",
             trimmed.err().unwrap(),
-            options.source,
+            prefix,
             page_url
         ));
         return "/unknown/".to_string();
@@ -434,6 +454,7 @@ mod tests {
 
         let mut f = Fossicker {
             file_path: Some("test/index.html".into()),
+            root_path: None,
             page_url: Some("/test/".into()),
             synthetic_content: Some(s),
             data: None,
@@ -649,16 +670,20 @@ mod tests {
         let opts = SearchOptions::load(config).unwrap();
 
         let p: PathBuf = "hello/world/index.html".into();
-        assert_eq!(&build_url(&p, &opts), "/");
+        assert_eq!(&build_url(&p, None, &opts), "/");
 
         let p: PathBuf = "hello/world/about/index.html".into();
-        assert_eq!(&build_url(&p, &opts), "/about/");
+        assert_eq!(&build_url(&p, None, &opts), "/about/");
 
         let p: PathBuf = "hello/world/about.html".into();
-        assert_eq!(&build_url(&p, &opts), "/about.html");
+        assert_eq!(&build_url(&p, None, &opts), "/about.html");
 
         let p: PathBuf = "hello/world/about/index.htm".into();
-        assert_eq!(&build_url(&p, &opts), "/about/index.htm");
+        assert_eq!(&build_url(&p, None, &opts), "/about/index.htm");
+
+        let p: PathBuf = "hello/world/index.html".into();
+        let root: PathBuf = "hello".into();
+        assert_eq!(&build_url(&p, Some(&root), &opts), "/world/");
     }
 
     #[cfg(target_os = "windows")]
@@ -670,12 +695,12 @@ mod tests {
         let opts = SearchOptions::load(config).unwrap();
 
         let p: PathBuf = "C:\\hello\\world\\index.html".into();
-        assert_eq!(&build_url(&p, &opts), "/");
+        assert_eq!(&build_url(&p, None, &opts), "/");
 
         let p: PathBuf = "C:\\hello\\world\\about\\index.html".into();
-        assert_eq!(&build_url(&p, &opts), "/about/");
+        assert_eq!(&build_url(&p, None, &opts), "/about/");
 
         let p: PathBuf = "C:\\hello\\world\\about\\index.htm".into();
-        assert_eq!(&build_url(&p, &opts), "/about/index.htm");
+        assert_eq!(&build_url(&p, None, &opts), "/about/index.htm");
     }
 }

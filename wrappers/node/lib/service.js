@@ -95,6 +95,29 @@ export class PagefindService {
      */
     handleIncomingMessage(message) {
         let parsed_message = PagefindService.parseMessage(message);
+        if (parsed_message && typeof parsed_message.message_id !== "number") {
+            if (parsed_message.payload.type !== "Error") {
+                // Unreachable (hopefully)
+                return;
+            }
+            if (!parsed_message.payload.original_message) {
+                throw new Error(`Failed to communicate with the Pagefind service backend: ${parsed_message.payload.message}`);
+            }
+            try {
+                let our_message = JSON.parse(parsed_message.payload.original_message);
+                if (our_message.message_id && this.callbacks[our_message.message_id]) {
+                    this.returnValue(
+                        our_message.message_id,
+                        {
+                            exception: new Error(`Pagefind service error when parsing a message: ${parsed_message.payload.message}\nMessage being parsed:\n${parsed_message.payload.original_message}`),
+                            err: null,
+                            result: null,
+                        });
+                }
+            } catch (e) {
+                throw new Error(`Failed to communicate with the Pagefind service backend: ${parsed_message.payload.message}`);
+            }
+        }
         if (parsed_message && this.callbacks[parsed_message.message_id]) {
             const isError = parsed_message.payload.type === "Error";
             this.returnValue(
@@ -127,8 +150,7 @@ export class PagefindService {
      */
     sendMessage(message, callback) {
         if (this.backend === null) {
-            console.error(`Cannot send message, backend is closed: `, message);
-            return;
+            throw new Error(`Cannot send message, backend is closed: ${message}`);
         }
         let wrapped_message = this.wrapOutgoingMessage(message, callback);
         this.ref();
@@ -171,8 +193,7 @@ export class PagefindService {
         try {
             return JSON.parse(data.toString());
         } catch {
-            console.error("Failed to parse message from backend");
-            return null;
+            throw new Error(`Failed to parse a message from the Pagefind service backend`);
         }
     }
 }

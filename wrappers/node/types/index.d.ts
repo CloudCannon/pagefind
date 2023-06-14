@@ -1,7 +1,42 @@
 /**
  * Create a new Pagefind index that files can be added to
  */
-export function createIndex(): Promise<NewIndexResponse>;
+export function createIndex(config: PagefindServiceConfig): Promise<NewIndexResponse>;
+
+export interface PagefindServiceConfig {
+    /** 
+     * The element Pagefind should treat as the root of the document, defaults to `html`.
+     * Usually you will want to use the data-pagefind-body attribute instead.
+     * @example ".my-html-outer"
+     */
+    rootSelector?: string,
+    /** 
+     * Custom selectors that Pagefind should ignore when indexing.
+     * Usually you will want to use the data-pagefind-ignore attribute instead.
+     * @example ["svg", ".my-code-blocks"]
+     */
+    excludeSelectors?: string[],
+    /**
+     * Ignore any detected languages and index the whole site as a single language.
+     * Expects an ISO 639-1 code.
+     */
+    forceLanguage?: string,
+    /**
+     * Print verbose logging while indexing the site. Does not impact the web-facing search.
+     * When running as a service, only impacts the logfile (if present).
+     */
+    verbose?: boolean,
+    /**
+     * Path to a logfile to write to. Will replace the file on each run.
+     */
+    logfile?: string,
+    /**
+     * Keep `index.html` at the end of search result paths.
+     * Defaults to false, stripping `index.html`.
+     */
+    keepIndexUrl?: boolean,
+}
+
 
 export interface NewIndexResponse {
     errors: string[],
@@ -14,8 +49,10 @@ export interface NewIndexResponse {
 export interface PagefindIndex {
     addHTMLFile: typeof addHTMLFile,
     addCustomRecord: typeof addCustomRecord,
+    addDirectory: typeof addDirectory,
     writeFiles: typeof writeFiles,
     getFiles: typeof getFiles,
+    deleteIndex: typeof deleteIndex,
 }
 
 /**
@@ -26,6 +63,10 @@ declare function addHTMLFile(file: HTMLFile): Promise<NewFileResponse>;
  * Index a custom record that isn't backed by an HTML file
  */
 declare function addCustomRecord(record: CustomRecord): Promise<NewFileResponse>;
+/**
+ * Index a directory of HTML files from disk
+ */
+declare function addDirectory(path: SiteDirectory): Promise<IndexingResponse>;
 
 /**
  * The data required for Pagefind to index an HTML file that isn't on disk
@@ -60,7 +101,7 @@ export interface CustomRecord {
     url: string,
     /** The raw content of this record */
     content: string,
-    /** What language is this record written in. Multiple languages will be split into separate indexes */
+    /** What language is this record written in. Multiple languages will be split into separate indexes. Expects an ISO 639-1 code. */
     language: string,
     /** The metadata to attach to this record. Supplying a `title` is highly recommended */
     meta?: Record<string, string>,
@@ -68,6 +109,29 @@ export interface CustomRecord {
     filters?: Record<string, string[]>,
     /** The sort keys to attach to this record */
     sort?: Record<string, string>
+}
+
+/**
+ * The data required for Pagefind to index the files in a directory
+ * @example
+ * {
+ *   path: "public",
+ *   glob: "**\/*.{html}"
+ * }
+ */
+export interface SiteDirectory {
+    /**
+     * The path to the directory to index.
+     * If relative, is relative to the cwd.
+     */
+    path: string,
+    /** Optionally, a custom glob to evaluate for finding files. Default to all HTML files. */
+    glob?: string
+}
+
+export interface IndexingResponse {
+    errors: string[],
+    page_count: number
 }
 
 export interface NewFileResponse {
@@ -85,13 +149,26 @@ export interface NewFile {
 }
 
 /**
- * Write the index files to the cwd
+ * Write the index files to disk
  */
-declare function writeFiles(): Promise<WriteFilesResponse>;
+declare function writeFiles(options?: WriteOptions): Promise<WriteFilesResponse>;
+
+/**
+ * Options for writing a Pagefind index to disk
+ */
+export interface WriteOptions {
+    /** 
+     * The path of the pagefind bundle directory to write to disk.
+     * If relative, is relative to the cwd.
+     * @example "./public/_pagefind"
+     */
+    bundlePath: string
+}
+
 
 export interface WriteFilesResponse {
     errors: string[],
-    bundleLocation: string
+    bundlePath: string
 }
 
 /**
@@ -108,3 +185,8 @@ export interface IndexFile {
     path: string,
     content: Buffer
 }
+
+/**
+ * Delete this index and clear it from memory
+ */
+declare function deleteIndex(): Promise<null>;

@@ -72,24 +72,30 @@ pub struct LanguageMeta {
     pub wasm: Option<String>,
 }
 
-pub async fn write_common_to_disk(options: &SearchOptions, language_indexes: Vec<LanguageMeta>) {
-    write_common(options, language_indexes, false).await;
+pub async fn write_common_to_disk(
+    options: &SearchOptions,
+    language_indexes: Vec<LanguageMeta>,
+    outdir: &PathBuf,
+) {
+    write_common(options, language_indexes, outdir, false).await;
 }
 
 pub async fn write_common_to_memory(
     options: &SearchOptions,
     language_indexes: Vec<LanguageMeta>,
+    outdir: &PathBuf,
 ) -> Vec<SyntheticFile> {
-    write_common(options, language_indexes, true).await.unwrap()
+    write_common(options, language_indexes, outdir, true)
+        .await
+        .unwrap()
 }
 
 async fn write_common(
     options: &SearchOptions,
     language_indexes: Vec<LanguageMeta>,
+    outdir: &PathBuf,
     synthetic: bool,
 ) -> Option<Vec<SyntheticFile>> {
-    let outdir = options.source.join(&options.bundle_dir);
-
     let js_version = format!("const pagefind_version = \"{PAGEFIND_VERSION}\";");
     let mut js = vec![];
     minify(&format!("{js_version}\n{WEB_JS}\n{GUNZIP_JS}\n{SEARCH_JS}"))
@@ -210,21 +216,24 @@ impl PagefindIndexes {
         }
     }
 
-    pub async fn write_files_to_disk(self, options: &SearchOptions) {
-        self.write_files(options, false).await;
+    pub async fn write_files_to_disk(&self, options: &SearchOptions, outdir: &PathBuf) {
+        self.write_files(options, outdir, false).await;
     }
 
-    pub async fn write_files_to_memory(&self, options: &SearchOptions) -> Vec<SyntheticFile> {
-        self.write_files(options, true).await.unwrap()
+    pub async fn write_files_to_memory(
+        &self,
+        options: &SearchOptions,
+        outdir: &PathBuf,
+    ) -> Vec<SyntheticFile> {
+        self.write_files(options, outdir, true).await.unwrap()
     }
 
     async fn write_files(
         &self,
         options: &SearchOptions,
+        outdir: &PathBuf,
         synthetic: bool,
     ) -> Option<Vec<SyntheticFile>> {
-        let outdir = options.source.join(&options.bundle_dir);
-
         let immutable_write_behaviour = if synthetic {
             WriteBehavior::Synthetic
         } else {

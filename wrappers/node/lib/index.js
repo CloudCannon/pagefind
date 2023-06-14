@@ -37,13 +37,26 @@ const handleApiResponse = (resolve, reject, { exception, err, result }, resultFn
 /** 
  * @typedef {import('pagefindService').NewIndexResponse} NewIndexResponse
  * 
+ * @param {import('pagefindService').PagefindServiceConfig=} config
  * @type {import('pagefindService').createIndex} 
  * */
-export const createIndex = () => new Promise((resolve, reject) => {
+export const createIndex = (config) => new Promise((resolve, reject) => {
+
+    // TODO: Validate `config` here, instead of waiting for the backend to throw an error.
+    // Ideally we create a global Pagefind config JSON schema that (a subset of) can be used here.
+
     const action = 'NewIndex';
     launch().sendMessage(
         {
-            type: action
+            type: action,
+            config: {
+                root_selector: config?.rootSelector,
+                exclude_selectors: config?.excludeSelectors,
+                force_language: config?.forceLanguage,
+                verbose: config?.verbose,
+                logfile: config?.logfile,
+                keep_index_url: config?.keepIndexUrl,
+            }
         }, (response) => {
             /** @type {function(InternalResponsePayload): Omit<NewIndexResponse, 'errors'>?} */
             const successCallback = (success) => {
@@ -69,8 +82,10 @@ const indexFns = (indexId) => {
     return {
         addHTMLFile: (file) => addHTMLFile(indexId, file),
         addCustomRecord: (record) => addCustomRecord(indexId, record),
-        writeFiles: () => writeFiles(indexId),
-        getFiles: () => getFiles(indexId)
+        addDirectory: (dir) => addDirectory(indexId, dir),
+        writeFiles: (options) => writeFiles(indexId, options),
+        getFiles: () => getFiles(indexId),
+        deleteIndex: () => deleteIndex(indexId)
     }
 }
 
@@ -150,18 +165,54 @@ const addCustomRecord = (indexId, record) => new Promise((resolve, reject) => {
     );
 });
 
+
+/**
+ * @typedef {import('pagefindService').IndexingResponse} IndexingResponse
+ * 
+ * @param {number} indexId 
+ * @param {import('pagefindService').SiteDirectory} dir
+ * @returns {Promise<IndexingResponse>}
+ */
+const addDirectory = (indexId, dir) => new Promise((resolve, reject) => {
+    const action = 'AddDir';
+    const responseAction = 'IndexedDir';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+            path: dir.path,
+            glob: dir.glob
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<IndexingResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== responseAction) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    page_count: success.page_count
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
 /**
  * @typedef {import ('pagefindService').WriteFilesResponse} WriteFilesResponse
  * 
  * @param {number} indexId 
+ * @param {import('pagefindService').WriteOptions=} options
  * @returns {Promise<WriteFilesResponse>}
  */
-const writeFiles = (indexId) => new Promise((resolve, reject) => {
+const writeFiles = (indexId, options) => new Promise((resolve, reject) => {
     const action = 'WriteFiles';
     launch().sendMessage(
         {
             type: action,
             index_id: indexId,
+            bundle_path: options?.bundlePath
         }, (response) => {
             /** @type {function(InternalResponsePayload): Omit<WriteFilesResponse, 'errors'>?} */
             const successCallback = (success) => {
@@ -171,7 +222,7 @@ const writeFiles = (indexId) => new Promise((resolve, reject) => {
                 }
 
                 return {
-                    bundleLocation: success.bundle_location
+                    bundlePath: success.bundle_path
                 }
             };
             handleApiResponse(resolve, reject, response, successCallback);
@@ -207,6 +258,31 @@ const getFiles = (indexId) => new Promise((resolve, reject) => {
                         }
                     })
                 }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
+/**
+ * @param {number} indexId 
+ * @returns {Promise<null>}
+ */
+const deleteIndex = (indexId) => new Promise((resolve, reject) => {
+    const action = 'DeleteIndex';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<GetFilesResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== action) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return null;
             };
             handleApiResponse(resolve, reject, response, successCallback);
         }
