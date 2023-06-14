@@ -14,6 +14,8 @@
 * Added `data-pagefind-weight` tag to rank certain content higher
 * Automatically treat `h1` through `h6` tags as a higher weight than body content
 * Tweak partial word matching by returning the prefix of a search word if otherwise not found
+* NodeJS API Release
+* Added Italian translations (PR #323 — thanks @apjanco !)
 
 ## v0.12.0 (March 1, 2023)
 
