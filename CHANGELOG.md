@@ -16,6 +16,7 @@
 * Tweak partial word matching by returning the prefix of a search word if otherwise not found
 * NodeJS API Release
 * Added Italian translations (PR #323 — thanks @apjanco !)
+* Don't reset the browser-provided outlines when resetting UI styles
 
 ## v0.12.0 (March 1, 2023)
 
