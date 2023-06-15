@@ -1,0 +1,18 @@
+{
+	"thanks_to": "Amit Yadav <amit@thetechbasket.com>",
+	"comments": "",
+	"direction": "ltr",
+	"strings": {
+		"placeholder": "खोजें",
+		"clear_search": "साफ करें",
+		"load_more": "और अधिक परिणाम लोड करें",
+		"search_label": "इस साइट में खोजें",
+		"filters_label": "फ़िल्टर",
+		"zero_results": "कोई परिणाम [SEARCH_TERM] के लिए नहीं मिला",
+		"many_results": "[COUNT] परिणाम [SEARCH_TERM] के लिए मिले",
+		"one_result": "[COUNT] परिणाम [SEARCH_TERM] के लिए मिला",
+		"alt_search": "[SEARCH_TERM] के लिए कोई परिणाम नहीं मिला। इसके बजाय [DIFFERENT_TERM] के लिए परिणाम दिखा रहा है",
+		"search_suggestion": "[SEARCH_TERM] के लिए कोई परिणाम नहीं मिला। निम्नलिखित खोजों में से कोई एक आज़माएं:",
+		"searching": "[SEARCH_TERM] की खोज की जा रही है..."
+	}
+}
