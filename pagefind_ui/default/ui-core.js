@@ -37,7 +37,7 @@ export class PagefindUI {
         delete opts["mergeIndex"];
         delete opts["translations"];
 
-        const dom = document.querySelector(selector);
+        const dom = selector instanceof HTMLElement ? selector : document.querySelector(selector);
         if (dom) {
             this._pfs = new PagefindSvelte({
                 target: dom,
