@@ -17,11 +17,13 @@ declare global {
         sort?: Object,
     }
 
+    type PagefindFilterCounts = Record<string, Record<string, number>>;
+
     type PagefindSearchResults = {
         results: PagefindSearchResult[],
         unfilteredResultCount: number,
-        filters: Object,
-        totalFilters: Object,
+        filters: PagefindFilterCounts,
+        totalFilters: PagefindFilterCounts,
         timings: {
             preload: number,
             search: number,
@@ -30,16 +32,18 @@ declare global {
     }
 
     type PagefindSearchResult = {
-        id: number,
+        id: string,
         score: number,
         words: number[],
         excerpt_range: number[],
-        data: () => Promise<any>
+        data: () => Promise<PagefindSearchFragment>
     }
 
     type PagefindSearchFragment = {
         url: string,
+        raw_url?: string
         content: string,
+        raw_content?: string;
         excerpt: string,
         word_count: number,
         locations: number[],

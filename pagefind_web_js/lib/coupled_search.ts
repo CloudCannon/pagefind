@@ -266,7 +266,7 @@ class PagefindInstance {
         return fragment;
     }
 
-    fullUrl(raw) {
+    fullUrl(raw: string) {
         return `${this.baseUrl}/${raw}`.replace(/\/+/g, "/").replace(/^(https?:\/)/, "$1/");
     }
 
@@ -281,8 +281,8 @@ class PagefindInstance {
         return this.raw_ptr;
     }
 
-    parseFilters(str) {
-        let output = {};
+    parseFilters(str: string) {
+        let output: PagefindFilterCounts = {};
         if (!str) return output;
         for (const block of str.split("__PF_FILTER_DELIM__")) {
             let [filter, values] = block.split(/:(.*)$/);
@@ -290,8 +290,11 @@ class PagefindInstance {
             if (values) {
                 for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
                     if (valueBlock) {
-                        let [, value, count] = valueBlock.match(/^(.*):(\d+)$/);
-                        output[filter][value] = parseInt(count) ?? count;
+                        let extract = valueBlock.match(/^(.*):(\d+)$/);
+                        if (extract) {
+                            let [, value, count] = extract;
+                            output[filter][value] = parseInt(count) ?? count;
+                        }
                     }
                 }
             }
@@ -335,7 +338,8 @@ class PagefindInstance {
     async filters() {
         let ptr = await this.getPtr();
 
-        let filter_chunks = this.backend.request_all_filter_indexes(ptr).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
+        let filters = this.backend.request_all_filter_indexes(ptr) as string;
+        let filter_chunks = filters.split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
         await Promise.all([...filter_chunks]);
 
         // pointer may have updated from the loadChunk calls
@@ -345,19 +349,19 @@ class PagefindInstance {
         return this.parseFilters(results);
     }
 
-    async preload(term, options: PagefindSearchOptions = {}) {
+    async preload(term: string, options: PagefindSearchOptions = {}) {
         options.preload = true;
         await this.search(term, options);
     }
 
-    async search(term, options: PagefindSearchOptions = {}): Promise<PagefindSearchResults | null> {
+    async search(term: string, options: PagefindSearchOptions = {}): Promise<PagefindSearchResults | null> {
         options = {
             verbose: false,
             filters: {},
             sort: {},
             ...options,
         };
-        const log = str => { if (options.verbose) console.log(str) };
+        const log = (str: string) => { if (options.verbose) console.log(str) };
         log(`Starting search on ${this.basePath}`);
         let start = Date.now();
         let ptr = await this.getPtr();
@@ -392,8 +396,11 @@ class PagefindInstance {
         const filter_list = this.stringifyFilters(options.filters);
         log(`Stringified filters to ${filter_list}`);
 
-        let chunks = this.backend.request_indexes(ptr, term).split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
-        let filter_chunks = this.backend.request_filter_indexes(ptr, filter_list).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
+        let index_resp = this.backend.request_indexes(ptr, term) as string;
+        let filter_resp = this.backend.request_filter_indexes(ptr, filter_list) as string;
+
+        let chunks = index_resp.split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
+        let filter_chunks = filter_resp.split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
         await Promise.all([...chunks, ...filter_chunks]);
         log(`Loaded necessary chunks to run search`);
 
@@ -405,19 +412,19 @@ class PagefindInstance {
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search);
+        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search) as string;
         log(`Got the raw search result: ${result}`);
-        let [unfilteredResultCount, results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
+        let [unfilteredResultCount, all_results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
         let filterObj = this.parseFilters(filters);
         let totalFilterObj = this.parseFilters(totalFilters);
         log(`Remaining filters: ${JSON.stringify(result)}`);
-        results = results.length ? results.split(" ") : [];
+        let results = all_results.length ? all_results.split(" ") : [];
 
         let resultsInterface = results.map(result => {
-            let [hash, score, excerpt, locations] = result.split('@');
-            log(`Processing result: \n  hash:${hash}\n  score:${score}\n  excerpt:${excerpt}\n  locations:${locations}`);
-            locations = locations.split(',').map(l => parseInt(l));
-            excerpt = excerpt.split(',').map(l => parseInt(l));
+            let [hash, score, full_excerpt, all_locations] = result.split('@');
+            log(`Processing result: \n  hash:${hash}\n  score:${score}\n  excerpt:${full_excerpt}\n  locations:${all_locations}`);
+            let locations = all_locations.split(',').map(l => parseInt(l));
+            let excerpt = full_excerpt.split(',').map(l => parseInt(l));
             return {
                 id: hash,
                 score: parseFloat(score) * this.indexWeight,
@@ -481,7 +488,7 @@ class Pagefind {
         });
     }
 
-    async mergeIndex(indexPath, options: PagefindIndexOptions = {}) {
+    async mergeIndex(indexPath: string, options: PagefindIndexOptions = {}) {
         if (this.primary.basePath.startsWith(indexPath)) {
             console.warn(`Skipping mergeIndex ${indexPath} that appears to be the same as the primary index (${this.primary.basePath})`);
             return;
@@ -505,8 +512,8 @@ class Pagefind {
         await newInstance.options(options);
     }
 
-    mergeFilters(filters: Object[]) {
-        const merged = {};
+    mergeFilters(filters: PagefindFilterCounts[]) {
+        const merged: PagefindFilterCounts = {};
         for (const searchFilter of filters) {
             for (const [filterKey, values] of Object.entries(searchFilter)) {
                 if (!merged[filterKey]) {
@@ -528,11 +535,11 @@ class Pagefind {
         return this.mergeFilters(filters);
     }
 
-    async preload(term, options = {}) {
+    async preload(term: string, options = {}) {
         await Promise.all(this.instances.map(i => i.preload(term, options)));
     }
 
-    async debouncedSearch(term, options, debounceTimeoutMs = 300) {
+    async debouncedSearch(term: string, options: PagefindSearchOptions, debounceTimeoutMs: number) {
         const thisSearchID = ++this.searchID;
         this.preload(term, options);
         await asyncSleep(debounceTimeoutMs);
@@ -548,7 +555,7 @@ class Pagefind {
         return searchResult;
     }
 
-    async search(term: string, options = {}) {
+    async search(term: string, options: PagefindSearchOptions = {}) {
         let search = await Promise.all(this.instances.map(i => i.search(term, options) as Promise<PagefindSearchResults>));
 
         const filters = this.mergeFilters(search.map(s => s.filters));
@@ -563,10 +570,10 @@ class Pagefind {
 
 const pagefind = new Pagefind();
 
-export const mergeIndex = async (indexPath, options) => await pagefind.mergeIndex(indexPath, options);
-export const options = async (options) => await pagefind.options(options);
+export const mergeIndex = async (indexPath: string, options: PagefindIndexOptions) => await pagefind.mergeIndex(indexPath, options);
+export const options = async (options: PagefindIndexOptions) => await pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
-export const search = async (term, options) => await pagefind.search(term, options);
-export const debouncedSearch = async (term, options, debounceTimeoutMs) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
-export const preload = async (term, options) => await pagefind.preload(term, options);
+export const search = async (term: string, options: PagefindSearchOptions) => await pagefind.search(term, options);
+export const debouncedSearch = async (term: string, options: PagefindSearchOptions, debounceTimeoutMs: number = 300) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
+export const preload = async (term: string, options: PagefindSearchOptions) => await pagefind.preload(term, options);
 export const filters = async () => await pagefind.filters();
