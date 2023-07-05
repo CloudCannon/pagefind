@@ -172,29 +172,8 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
 
 #[wasm_bindgen]
 pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
-    debug!({
-        format! {"Finding the filter chunks needed for {:?}", filters}
-    });
-
     let search_index = unsafe { Box::from_raw(ptr) };
-    let mut indexes = Vec::new();
-    let filters = filters.split("__PF_FILTER_DELIM__");
-
-    for filter in filters {
-        if let Some((filter, _)) = filter.split_once(':') {
-            if let Some(hash) = search_index.filter_chunks.get(filter) {
-                debug!({
-                    format! {"Need {:?} for {:?}", hash, filter}
-                });
-                indexes.push(hash.clone());
-            } else {
-                debug!({
-                    format! {"No hash found for {:?}", filter}
-                })
-            }
-        }
-    }
-
+    let mut indexes = search_index.filter_chunks(filters);
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();

@@ -1,8 +1,7 @@
 declare var wasm_bindgen: any;
 declare var pagefind_version: string;
 
-import "pagefindWeb";
-import * as internals from "pagefindWebInternal";
+import type * as internal from "pagefindWebInternal";
 
 import gunzip from "./gz.js";
 
@@ -27,7 +26,7 @@ class PagefindInstance {
 
     raw_ptr: number | null;
     searchMeta: any;
-    languages: Record<string, internals.PagefindEntryLanguage> | null;
+    languages: Record<string, internal.PagefindEntryLanguage> | null;
 
     version: string;
 
@@ -131,7 +130,7 @@ class PagefindInstance {
             // We always load a fresh copy of the entry metadata,
             // as it ensures we don't try to load an old build's chunks,
             let entry_response = await fetch(`${this.basePath}pagefind-entry.json?ts=${Date.now()}`);
-            let entry_json = await entry_response.json() as internals.PagefindEntryJson;
+            let entry_json = await entry_response.json() as internal.PagefindEntryJson;
             this.languages = entry_json.languages;
             if (entry_json.version !== this.version) {
                 if (this.primary) {
@@ -304,18 +303,7 @@ class PagefindInstance {
     }
 
     stringifyFilters(obj = {}) {
-        let filter_list: string[] = [];
-        for (let [filter, values] of Object.entries(obj)) {
-            if (Array.isArray(values)) {
-                for (let value of values) {
-                    filter_list.push(`${filter}:${value}`);
-                }
-            } else {
-                filter_list.push(`${filter}:${values}`);
-            }
-        }
-
-        return filter_list.join("__PF_FILTER_DELIM__");
+        return JSON.stringify(obj);
     }
 
     stringifySorts(obj = {}) {

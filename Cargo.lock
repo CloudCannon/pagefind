@@ -1656,6 +1656,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
+name = "microjson"
+version = "0.1.4"
+source = "git+https://github.com/rspencer01/microjson.git?rev=379b16211a81805856be0b2ac14643a54d96b45a#379b16211a81805856be0b2ac14643a54d96b45a"
+
+[[package]]
 name = "mime"
 version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1835,6 +1840,7 @@ name = "pagefind_web"
 version = "0.0.0"
 dependencies = [
  "bit-set",
+ "microjson",
  "minicbor",
  "pagefind_stem 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "wasm-bindgen",

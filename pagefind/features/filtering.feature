@@ -160,27 +160,6 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "Black White Cat."
 
-    @skip
-    # Currently only an AND filtering is supported. Need to restructure to support boolean logic
-    Scenario: Filtering to multiple values
-        When I evaluate:
-            """
-            async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
-
-                let search = await pagefind.search("Cat", {
-                    filters: {
-                        color: ["Tabby", "Orange"]
-                    }
-                });
-                let data = await Promise.all(search.results.map(result => result.data()));
-
-                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
-            }
-            """
-        Then There should be no logs
-        Then The selector "[data-results]" should contain "/ali/, /theodore/"
-
     Scenario: Non-existent filters return no results
         When I evaluate:
             """

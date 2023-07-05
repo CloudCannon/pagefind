@@ -19,10 +19,11 @@ const build = async () => {
     // Coupled search vendor build
     const esbuildVendorOptions = {
         ...commonOpts,
-        entryPoints: [path.join(__dirname, 'src/coupled_search.ts')],
+        entryPoints: [path.join(__dirname, 'lib/coupled_search.ts')],
         entryNames: `pagefind_[name].${version}`,
         outdir: path.join(__dirname, `../pagefind/vendor/`),
         format: 'esm',
+        target: 'es2020'
     }
     const compiledVendor = await esbuild.build(esbuildVendorOptions);
     console.log(`Vendor Build: `, compiledVendor);
