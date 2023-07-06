@@ -55,6 +55,10 @@ impl SearchIndex {
         results.join("__PF_FILTER_DELIM__")
     }
 
+    fn invert(&self, set: &mut BitSet) {
+        set.symmetric_difference_with(&BitSet::<u32>::from_iter(0..self.pages.len()));
+    }
+
     fn parse_filter_value(
         &self,
         filter_key: &str,
@@ -116,22 +120,24 @@ impl SearchIndex {
             JSONValueType::Object => {
                 if let Ok(obj) = filter.iter_object() {
                     for (k, value) in obj.filter_map(|o| o.ok()) {
-                        match (k, value.value_type) {
-                            ("any", J::Object | J::Array) => maps.push(self.parse_filter_value(
-                                filter_key,
-                                value,
-                                FilterBehaviour::Any,
-                            )),
-                            ("all", J::Object | J::Array) => maps.push(self.parse_filter_value(
-                                filter_key,
-                                value,
-                                FilterBehaviour::All,
-                            )),
+                        if let Some(mut map) = match (k, value.value_type) {
+                            ("any" | "none", J::Object | J::Array | J::String) => Some(
+                                self.parse_filter_value(filter_key, value, FilterBehaviour::Any),
+                            ),
+                            ("all" | "not", J::Object | J::Array | J::String) => Some(
+                                self.parse_filter_value(filter_key, value, FilterBehaviour::All),
+                            ),
                             _ => {
                                 debug!({
                                     format! {"Unsupported filter key {k} value {:?}", value.value_type}
                                 });
+                                None
                             }
+                        } {
+                            if matches!(k, "none" | "not") {
+                                self.invert(&mut map);
+                            }
+                            maps.push(map);
                         }
                     }
                 }
@@ -184,21 +190,23 @@ impl SearchIndex {
 
         if let Ok(obj) = filter.iter_object() {
             for (k, value) in obj.filter_map(|o| o.ok()) {
-                match (k, value.value_type) {
-                    ("any", J::Object) => {
-                        maps.push(self.parse_filter_obj(value, FilterBehaviour::Any))
+                let mut map = match (k, value.value_type) {
+                    ("any" | "none", J::Object) => {
+                        self.parse_filter_obj(value, FilterBehaviour::Any)
                     }
-                    ("all", J::Object) => {
-                        maps.push(self.parse_filter_obj(value, FilterBehaviour::All))
+                    ("all" | "not", J::Object) => {
+                        self.parse_filter_obj(value, FilterBehaviour::All)
                     }
-                    ("any", J::Array) => {
-                        maps.push(self.parse_filter_arr(value, FilterBehaviour::Any))
+                    ("any" | "none", J::Array) => {
+                        self.parse_filter_arr(value, FilterBehaviour::Any)
                     }
-                    ("all", J::Array) => {
-                        maps.push(self.parse_filter_arr(value, FilterBehaviour::All))
-                    }
-                    (k, _) => maps.push(self.parse_filter_value(k, value, FilterBehaviour::All)),
+                    ("all" | "not", J::Array) => self.parse_filter_arr(value, FilterBehaviour::All),
+                    (k, _) => self.parse_filter_value(k, value, FilterBehaviour::All),
+                };
+                if matches!(k, "none" | "not") {
+                    self.invert(&mut map);
                 }
+                maps.push(map);
             }
         }
 
@@ -244,7 +252,7 @@ impl SearchIndex {
                 if let Ok(obj) = filter.iter_object() {
                     for (k, value) in obj.filter_map(|o| o.ok()) {
                         match (k, value.value_type) {
-                            ("any" | "all", J::Object | J::Array) => {
+                            ("any" | "all" | "not" | "none", J::Object | J::Array) => {
                                 if let Some(nested_filters) = self.dig_filter(value) {
                                     has_filters = true;
                                     indexes.extend(nested_filters)

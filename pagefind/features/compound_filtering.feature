@@ -156,3 +156,82 @@ Feature: Filtering
             """
         Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /grey/, /treacle/"
+
+    Scenario: Filtering with an exclusion
+        When I evaluate:
+            """
+            async function() {
+                await test(pagefind.search("Cat", {
+                    filters: {
+                        color: {
+                            any: ["Black", "Orange"]
+                        },
+                        mood: {
+                            not: "Lazy"
+                        }
+                    }
+                }));
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/smudge/, /theodore/"
+
+    Scenario: Filtering with nested exclusions
+        When I evaluate:
+            """
+            async function() {
+                await test(pagefind.search("Cat", {
+                    filters: {
+                        all: [
+                            {
+                                all: [
+                                    {
+                                        color: {
+                                            any: ["Orange", "White"]
+                                        },
+                                        mood: {
+                                            any: ["Lazy", "Zen"]
+                                        }
+                                    },
+                                    {
+                                        not: {
+                                            color: "Black"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                mood: {
+                                    none: ["Lazy", "Nervous"]
+                                }
+                            }
+                        ],
+                    }
+                }));
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/theodore/"
+
+    Scenario: Filtering with top-level exclusion
+        When I evaluate:
+            """
+            async function() {
+                await test(pagefind.search("Cat", {
+                    filters: {
+                        none: [
+                            {
+                                color: {
+                                    any: ["Orange", "White"]
+                                }
+                            },
+                            {
+                                mood: "Angry"
+                            }
+                        ]
+                    }
+                }));
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/grey/"
