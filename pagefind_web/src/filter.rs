@@ -212,7 +212,7 @@ impl SearchIndex {
             format! {"Filtering with {:?}", filter}
         });
 
-        if self.filter_chunks(filter).is_empty() {
+        if self.filter_chunks(filter).is_none() {
             debug!({ "No filter names anywhere in this object. Pretending it doesn't exist." });
             return None;
         }
@@ -229,13 +229,14 @@ impl SearchIndex {
         Some(self.parse_filter_obj(all_filters, FilterBehaviour::All))
     }
 
-    pub fn dig_filter(&self, filter: JSONValue) -> Vec<String> {
+    pub fn dig_filter(&self, filter: JSONValue) -> Option<Vec<String>> {
         use JSONValueType as J;
 
         debug!({
             format! {"Digging into {:?} to look for filters", filter}
         });
 
+        let mut has_filters = false;
         let mut indexes = Vec::new();
 
         match filter.value_type {
@@ -244,9 +245,13 @@ impl SearchIndex {
                     for (k, value) in obj.filter_map(|o| o.ok()) {
                         match (k, value.value_type) {
                             ("any" | "all", J::Object | J::Array) => {
-                                indexes.extend(self.dig_filter(value))
+                                if let Some(nested_filters) = self.dig_filter(value) {
+                                    has_filters = true;
+                                    indexes.extend(nested_filters)
+                                }
                             }
                             (filter, _) => {
+                                has_filters = true;
                                 if let Some(hash) = self.filter_chunks.get(filter) {
                                     debug!({
                                         format! {"Need {:?} for {:?}", hash, filter}
@@ -266,7 +271,12 @@ impl SearchIndex {
                 if let Ok(arr) = filter.iter_array() {
                     for value in arr {
                         match value.value_type {
-                            J::Object | J::Array => indexes.extend(self.dig_filter(value)),
+                            J::Object | J::Array => {
+                                if let Some(nested_filters) = self.dig_filter(value) {
+                                    has_filters = true;
+                                    indexes.extend(nested_filters)
+                                }
+                            }
                             _ => {}
                         }
                     }
@@ -275,10 +285,14 @@ impl SearchIndex {
             _ => {}
         }
 
-        indexes
+        if has_filters {
+            Some(indexes)
+        } else {
+            None
+        }
     }
 
-    pub fn filter_chunks(&self, filter: &str) -> Vec<String> {
+    pub fn filter_chunks(&self, filter: &str) -> Option<Vec<String>> {
         debug!({
             format! {"Finding the filter chunks needed for {:?}", filter}
         });
@@ -287,11 +301,11 @@ impl SearchIndex {
 
         let Ok(all_filters) = JSONValue::parse(filter) else {
             debug!({ "Malformed object passed to Pagefind filters" });
-            return vec![];
+            return None;
         };
         if !matches!(all_filters.value_type, J::Object) {
             debug!({ "Filters was passed a non-object" });
-            return vec![];
+            return None;
         }
 
         self.dig_filter(all_filters)

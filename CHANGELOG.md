@@ -17,6 +17,7 @@
 * NodeJS API Release
 * Added Italian translations (PR #323 — thanks @apjanco !)
 * Don't reset the browser-provided outlines when resetting UI styles
+* Compoung filtering (TODO: Pin to stable microjson release)
 
 ## v0.12.0 (March 1, 2023)
 

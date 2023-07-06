@@ -173,7 +173,7 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
 #[wasm_bindgen]
 pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
-    let mut indexes = search_index.filter_chunks(filters);
+    let mut indexes = search_index.filter_chunks(filters).unwrap_or_default();
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
