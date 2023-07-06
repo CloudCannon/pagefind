@@ -471,12 +471,6 @@ jobs:
         working-directory: ./pagefind
         run: cargo test --release --target ${{ matrix.target }} --features extended
 
-      # TODO: This is ugly, but the NodeJS Indexing API tests look for the file here.
-      # We should update the tests to look at the TEST_BINARY environment variable instead.
-      - name: Copy the testing binary for testing
-        run: |
-          cp -R target/${{ matrix.target }}/release/ target/release
-
       - name: Test CLI
         if: matrix.run_tests == true
         working-directory: ./pagefind
