@@ -56,13 +56,11 @@ const WEB_MODULAR_UI_CSS: &[u8] = include_bytes!(concat!(
     env!("CARGO_PKG_VERSION"),
     ".css"
 ));
-const GUNZIP_JS: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/src/output/stubs/gz.js"
-));
 const SEARCH_JS: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/src/output/stubs/search.js"
+    "/vendor/pagefind_coupled_search.",
+    env!("CARGO_PKG_VERSION"),
+    ".js"
 ));
 
 pub struct LanguageMeta {
@@ -98,7 +96,7 @@ async fn write_common(
 ) -> Option<Vec<SyntheticFile>> {
     let js_version = format!("const pagefind_version = \"{PAGEFIND_VERSION}\";");
     let mut js = vec![];
-    minify(&format!("{js_version}\n{WEB_JS}\n{GUNZIP_JS}\n{SEARCH_JS}"))
+    minify(&format!("{js_version}\n{WEB_JS}\n{SEARCH_JS}"))
         .write(&mut js)
         .expect("Minifying Pagefind JS failed");
 

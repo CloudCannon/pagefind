@@ -21,6 +21,14 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "npm"
+    directory: "/pagefind_web_js"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
+    ignore:
+      - dependency-name: "esbuild"
+        update-types: ["version-update:semver-patch"]
+  - package-ecosystem: "npm"
     directory: "/pagefind_ui/default"
     open-pull-requests-limit: 1
     schedule:

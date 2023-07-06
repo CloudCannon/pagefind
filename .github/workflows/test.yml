@@ -82,6 +82,10 @@ jobs:
           name: "humane"
           version: ${{env.HUMANE_VERSION}}
 
+      - name: Build Coupled JS
+        working-directory: ./pagefind_web_js
+        run: npm i && npm run build-coupled
+
       - name: Build WASM
         working-directory: ./pagefind_web
         run: ./local_build.sh

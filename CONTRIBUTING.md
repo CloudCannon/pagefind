@@ -6,8 +6,7 @@
 This lives in the `pagefind` directory, and houses the code for indexing a built static site.
 
 ### [JavaScript] The Pagefind search interface
-Currently, this live in `pagefind/src/output/stubs/search.js`, but it should really be floated to a new top-level project
-and released as a NPM package.
+This lives in the `pagefind_web_js` directory.
 
 ### [Rust] The Pagefind WebAssembly 
 This lives in `pagefind_web`, and is what performs the actual search actions in the browser.
@@ -43,7 +42,10 @@ To do so, you'll just need to run the applicable commands from the bash scripts 
 Ultimately, most contributions will require the ability to build the main Pagefind binary.
 That binary compiles in some of our supporting facets, so you'll need to build those first.
 
-First, build the UI packages with:
+First, build the web JS bindings with:
+- `cd pagefind_web_js && npm i && npm run build`
+
+Next, build the UI packages with:
 - `cd pagefind_ui/default && npm i && npm run build`
 - `cd pagefind_ui/modular && npm i && npm run build`
 

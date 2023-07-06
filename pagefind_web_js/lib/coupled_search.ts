@@ -1,11 +1,39 @@
+declare var wasm_bindgen: any;
+declare var pagefind_version: string;
+
+import type * as internal from "pagefindWebInternal";
+
+import gunzip from "./gz.js";
 
 const asyncSleep = async (ms = 100) => {
     return new Promise(r => setTimeout(r, ms));
 };
 
 class PagefindInstance {
-    constructor(opts = {}) {
+    backend: any;
+    decoder: TextDecoder;
+    wasm: any;
+
+    basePath: string;
+    baseUrl: string;
+    primary: boolean;
+    indexWeight: number;
+    mergeFilter: Object;
+
+    loaded_chunks: Record<string, Promise<void>>;
+    loaded_filters: Record<string, Promise<void>>;
+    loaded_fragments: Record<string, Promise<PagefindSearchFragment>>;
+
+    raw_ptr: number | null;
+    searchMeta: any;
+    languages: Record<string, internal.PagefindEntryLanguage> | null;
+
+    version: string;
+
+    constructor(opts: PagefindIndexOptions = {}) {
+        this.version = pagefind_version;
         this.backend = wasm_bindgen;
+
         this.decoder = new TextDecoder('utf-8');
         this.wasm = null;
 
@@ -39,9 +67,10 @@ class PagefindInstance {
     }
 
     initPrimary() {
-        try {
-            this.basePath = import.meta.url.match(/^(.*\/)pagefind.js.*$/)[1];
-        } catch (e) {
+        let derivedBasePath = import.meta.url.match(/^(.*\/)pagefind.js.*$/)?.[1];
+        if (derivedBasePath) {
+            this.basePath = derivedBasePath;
+        } else {
             console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
         }
     }
@@ -51,7 +80,7 @@ class PagefindInstance {
         return default_base || "/";
     }
 
-    async options(options) {
+    async options(options: PagefindIndexOptions) {
         const opts = ["basePath", "baseUrl", "indexWeight", "mergeFilter"];
         for (const [k, v] of Object.entries(options)) {
             if (k === "mergeFilter") {
@@ -59,14 +88,17 @@ class PagefindInstance {
                 let ptr = await this.getPtr();
                 this.raw_ptr = this.backend.add_synthetic_filter(ptr, filters);
             } else if (opts.includes(k)) {
-                this[k] = v;
+                if (k === "basePath" && typeof v === "string") this.basePath = v;
+                if (k === "baseUrl" && typeof v === "string") this.baseUrl = v;
+                if (k === "indexWeight" && typeof v === "number") this.indexWeight = v;
+                if (k === "mergeFilter" && typeof v === "object") this.mergeFilter = v;
             } else {
                 console.warn(`Unknown Pagefind option ${k}. Allowed options: [${opts.join(', ')}]`);
             }
         }
     }
 
-    decompress(data, file = "unknown file") {
+    decompress(data: Uint8Array, file = "unknown file") {
         if (this.decoder.decode(data.slice(0, 12)) === "pagefind_dcd") {
             // File is already decompressed
             return data.slice(12);
@@ -80,7 +112,7 @@ class PagefindInstance {
         return data.slice(12);
     }
 
-    async init(language, opts) {
+    async init(language: string, opts: { load_wasm: boolean }) {
         await this.loadEntry();
         let index = this.findIndex(language);
         let lang_wasm = index.wasm ? index.wasm : "unknown";
@@ -97,32 +129,32 @@ class PagefindInstance {
         try {
             // We always load a fresh copy of the entry metadata,
             // as it ensures we don't try to load an old build's chunks,
-            let entry_json = await fetch(`${this.basePath}pagefind-entry.json?ts=${Date.now()}`);
-            entry_json = await entry_json.json();
+            let entry_response = await fetch(`${this.basePath}pagefind-entry.json?ts=${Date.now()}`);
+            let entry_json = await entry_response.json() as internal.PagefindEntryJson;
             this.languages = entry_json.languages;
-            if (entry_json.version !== pagefind_version) {
+            if (entry_json.version !== this.version) {
                 if (this.primary) {
                     console.warn([
                         "Pagefind JS version doesn't match the version in your search index.",
-                        `Pagefind JS: ${pagefind_version}. Pagefind index: ${entry_json.version}`,
+                        `Pagefind JS: ${this.version}. Pagefind index: ${entry_json.version}`,
                         "If you upgraded Pagefind recently, you likely have a cached pagefind.js file.",
                         "If you encounter any search errors, try clearing your cache."
                     ].join('\n'));
                 } else {
                     console.warn([
                         "Merging a Pagefind index from a different version than the main Pagefind instance.",
-                        `Main Pagefind JS: ${pagefind_version}. Merged index (${this.basePath}): ${entry_json.version}`,
+                        `Main Pagefind JS: ${this.version}. Merged index (${this.basePath}): ${entry_json.version}`,
                         "If you encounter any search errors, make sure that both sites are running the same version of Pagefind."
                     ].join('\n'));
                 }
             }
         } catch (e) {
-            console.error(`Failed to load Pagefind metadata:\n${e.toString()}`);
+            console.error(`Failed to load Pagefind metadata:\n${e?.toString()}`);
             throw new Error("Failed to load Pagefind metadata");
         }
     }
 
-    findIndex(language) {
+    findIndex(language: string) {
         if (this.languages) {
             let index = this.languages[language];
             if (index) return index;
@@ -137,46 +169,46 @@ class PagefindInstance {
         throw new Error("Pagefind Error: No language indexes found.");
     }
 
-    async loadMeta(index) {
+    async loadMeta(index: string) {
         try {
-            let compressed_meta = await fetch(`${this.basePath}pagefind.${index}.pf_meta`);
-            compressed_meta = await compressed_meta.arrayBuffer();
+            let compressed_resp = await fetch(`${this.basePath}pagefind.${index}.pf_meta`);
+            let compressed_meta = await compressed_resp.arrayBuffer();
             this.searchMeta = this.decompress(new Uint8Array(compressed_meta), "Pagefind metadata");
         } catch (e) {
-            console.error(`Failed to load the meta index:\n${e.toString()}`);
+            console.error(`Failed to load the meta index:\n${e?.toString()}`);
         }
     }
 
-    async loadWasm(language) {
+    async loadWasm(language: string) {
         try {
             const wasm_url = `${this.basePath}wasm.${language}.pagefind`;
-            let compressed_wasm = await fetch(wasm_url);
-            compressed_wasm = await compressed_wasm.arrayBuffer();
+            let compressed_resp = await fetch(wasm_url);
+            let compressed_wasm = await compressed_resp.arrayBuffer();
             const final_wasm = this.decompress(new Uint8Array(compressed_wasm), "Pagefind WebAssembly");
             if (!final_wasm) {
                 throw new Error("No WASM after decompression");
             }
             this.wasm = await this.backend(final_wasm);
         } catch (e) {
-            console.error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
-            throw new Error(`Failed to load the Pagefind WASM:\n${e.toString()}`);
+            console.error(`Failed to load the Pagefind WASM:\n${e?.toString()}`);
+            throw new Error(`Failed to load the Pagefind WASM:\n${e?.toString()}`);
         }
     }
 
-    async _loadGenericChunk(url, method) {
+    async _loadGenericChunk(url: string, method: string) {
         try {
-            let compressed_chunk = await fetch(url);
-            compressed_chunk = await compressed_chunk.arrayBuffer();
+            let compressed_resp = await fetch(url);
+            let compressed_chunk = await compressed_resp.arrayBuffer();
             let chunk = this.decompress(new Uint8Array(compressed_chunk), url);
 
             let ptr = await this.getPtr();
             this.raw_ptr = this.backend[method](ptr, chunk);
         } catch (e) {
-            console.error(`Failed to load the index chunk ${url}:\n${e.toString()}`);
+            console.error(`Failed to load the index chunk ${url}:\n${e?.toString()}`);
         }
     }
 
-    async loadChunk(hash) {
+    async loadChunk(hash: string) {
         if (!this.loaded_chunks[hash]) {
             const url = `${this.basePath}index/${hash}.pf_index`;
             this.loaded_chunks[hash] = this._loadGenericChunk(url, "load_index_chunk");
@@ -184,7 +216,7 @@ class PagefindInstance {
         return await this.loaded_chunks[hash];
     }
 
-    async loadFilterChunk(hash) {
+    async loadFilterChunk(hash: string) {
         if (!this.loaded_filters[hash]) {
             const url = `${this.basePath}filter/${hash}.pf_filter`;
             this.loaded_filters[hash] = this._loadGenericChunk(url, "load_filter_chunk");
@@ -192,18 +224,21 @@ class PagefindInstance {
         return await this.loaded_filters[hash];
     }
 
-    async _loadFragment(hash) {
-        let compressed_fragment = await fetch(`${this.basePath}fragment/${hash}.pf_fragment`);
-        compressed_fragment = await compressed_fragment.arrayBuffer();
+    async _loadFragment(hash: string) {
+        let compressed_resp = await fetch(`${this.basePath}fragment/${hash}.pf_fragment`);
+        let compressed_fragment = await compressed_resp.arrayBuffer();
         let fragment = this.decompress(new Uint8Array(compressed_fragment), `Fragment ${hash}`);
         return JSON.parse(new TextDecoder().decode(fragment));
     }
 
-    async loadFragment(hash, excerpt = [0, 0], locations = []) {
+    async loadFragment(hash: string, excerpt = [0, 0], locations: number[] = []) {
         if (!this.loaded_fragments[hash]) {
             this.loaded_fragments[hash] = this._loadFragment(hash);
         }
-        let fragment = await this.loaded_fragments[hash];
+        let fragment = await this.loaded_fragments[hash] as PagefindSearchFragment & { 
+            raw_content: string,
+            raw_url: string,
+        };
 
         if (!fragment.raw_content) {
             fragment.raw_content = fragment.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -211,7 +246,7 @@ class PagefindInstance {
         }
 
         let is_zws_delimited = fragment.raw_content.includes('\u200B');
-        let fragment_words = [];
+        let fragment_words: string[] = [];
         if (is_zws_delimited) {
             // If segmentation was run on the backend, count words by ZWS boundaries
             fragment_words = fragment.raw_content.split('\u200B');
@@ -230,7 +265,7 @@ class PagefindInstance {
         return fragment;
     }
 
-    fullUrl(raw) {
+    fullUrl(raw: string) {
         return `${this.baseUrl}/${raw}`.replace(/\/+/g, "/").replace(/^(https?:\/)/, "$1/");
     }
 
@@ -245,8 +280,8 @@ class PagefindInstance {
         return this.raw_ptr;
     }
 
-    parseFilters(str) {
-        let output = {};
+    parseFilters(str: string) {
+        let output: PagefindFilterCounts = {};
         if (!str) return output;
         for (const block of str.split("__PF_FILTER_DELIM__")) {
             let [filter, values] = block.split(/:(.*)$/);
@@ -254,8 +289,11 @@ class PagefindInstance {
             if (values) {
                 for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
                     if (valueBlock) {
-                        let [, value, count] = valueBlock.match(/^(.*):(\d+)$/);
-                        output[filter][value] = parseInt(count) ?? count;
+                        let extract = valueBlock.match(/^(.*):(\d+)$/);
+                        if (extract) {
+                            let [, value, count] = extract;
+                            output[filter][value] = parseInt(count) ?? count;
+                        }
                     }
                 }
             }
@@ -265,18 +303,7 @@ class PagefindInstance {
     }
 
     stringifyFilters(obj = {}) {
-        let filter_list = [];
-        for (let [filter, values] of Object.entries(obj)) {
-            if (Array.isArray(values)) {
-                for (let value of values) {
-                    filter_list.push(`${filter}:${value}`);
-                }
-            } else {
-                filter_list.push(`${filter}:${values}`);
-            }
-        }
-
-        return filter_list.join("__PF_FILTER_DELIM__");
+        return JSON.stringify(obj);
     }
 
     stringifySorts(obj = {}) {
@@ -299,7 +326,8 @@ class PagefindInstance {
     async filters() {
         let ptr = await this.getPtr();
 
-        let filter_chunks = this.backend.request_all_filter_indexes(ptr).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
+        let filters = this.backend.request_all_filter_indexes(ptr) as string;
+        let filter_chunks = filters.split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
         await Promise.all([...filter_chunks]);
 
         // pointer may have updated from the loadChunk calls
@@ -309,19 +337,19 @@ class PagefindInstance {
         return this.parseFilters(results);
     }
 
-    async preload(term, options = {}) {
+    async preload(term: string, options: PagefindSearchOptions = {}) {
         options.preload = true;
         await this.search(term, options);
     }
 
-    async search(term, options = {}) {
+    async search(term: string, options: PagefindSearchOptions = {}): Promise<PagefindSearchResults | null> {
         options = {
             verbose: false,
             filters: {},
             sort: {},
             ...options,
         };
-        const log = str => { if (options.verbose) console.log(str) };
+        const log = (str: string) => { if (options.verbose) console.log(str) };
         log(`Starting search on ${this.basePath}`);
         let start = Date.now();
         let ptr = await this.getPtr();
@@ -356,32 +384,35 @@ class PagefindInstance {
         const filter_list = this.stringifyFilters(options.filters);
         log(`Stringified filters to ${filter_list}`);
 
-        let chunks = this.backend.request_indexes(ptr, term).split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
-        let filter_chunks = this.backend.request_filter_indexes(ptr, filter_list).split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
+        let index_resp = this.backend.request_indexes(ptr, term) as string;
+        let filter_resp = this.backend.request_filter_indexes(ptr, filter_list) as string;
+
+        let chunks = index_resp.split(' ').filter(v => v).map(chunk => this.loadChunk(chunk));
+        let filter_chunks = filter_resp.split(' ').filter(v => v).map(chunk => this.loadFilterChunk(chunk));
         await Promise.all([...chunks, ...filter_chunks]);
         log(`Loaded necessary chunks to run search`);
 
         if (options.preload) {
             log(`Preload — bailing out of search operation now.`);
-            return;
+            return null;
         }
 
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search);
+        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search) as string;
         log(`Got the raw search result: ${result}`);
-        let [unfilteredResultCount, results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
+        let [unfilteredResultCount, all_results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
         let filterObj = this.parseFilters(filters);
         let totalFilterObj = this.parseFilters(totalFilters);
         log(`Remaining filters: ${JSON.stringify(result)}`);
-        results = results.length ? results.split(" ") : [];
+        let results = all_results.length ? all_results.split(" ") : [];
 
         let resultsInterface = results.map(result => {
-            let [hash, score, excerpt, locations] = result.split('@');
-            log(`Processing result: \n  hash:${hash}\n  score:${score}\n  excerpt:${excerpt}\n  locations:${locations}`);
-            locations = locations.split(',').map(l => parseInt(l));
-            excerpt = excerpt.split(',').map(l => parseInt(l));
+            let [hash, score, full_excerpt, all_locations] = result.split('@');
+            log(`Processing result: \n  hash:${hash}\n  score:${score}\n  excerpt:${full_excerpt}\n  locations:${all_locations}`);
+            let locations = all_locations.split(',').map(l => parseInt(l));
+            let excerpt = full_excerpt.split(',').map(l => parseInt(l));
             return {
                 id: hash,
                 score: parseFloat(score) * this.indexWeight,
@@ -410,6 +441,12 @@ class PagefindInstance {
 }
 
 class Pagefind {
+    backend: any;
+    primaryLanguage: string;
+    searchID: number;
+    primary: PagefindInstance;
+    instances: PagefindInstance[];
+
     constructor() {
         this.backend = wasm_bindgen;
         this.primaryLanguage = "unknown";
@@ -423,14 +460,14 @@ class Pagefind {
         this.init();
     }
 
-    async options(options) {
+    async options(options: PagefindIndexOptions) {
         // Using .options() only affects the primary Pagefind instance.
         await this.primary.options(options);
     }
 
     async init() {
         if (document?.querySelector) {
-            const langCode = document.querySelector("html").getAttribute("lang") || "unknown";
+            const langCode = document.querySelector("html")?.getAttribute("lang") || "unknown";
             this.primaryLanguage = langCode.toLocaleLowerCase();
         }
 
@@ -439,7 +476,7 @@ class Pagefind {
         });
     }
 
-    async mergeIndex(indexPath, options = {}) {
+    async mergeIndex(indexPath: string, options: PagefindIndexOptions = {}) {
         if (this.primary.basePath.startsWith(indexPath)) {
             console.warn(`Skipping mergeIndex ${indexPath} that appears to be the same as the primary index (${this.primary.basePath})`);
             return;
@@ -463,8 +500,8 @@ class Pagefind {
         await newInstance.options(options);
     }
 
-    mergeFilters(filters) {
-        const merged = {};
+    mergeFilters(filters: PagefindFilterCounts[]) {
+        const merged: PagefindFilterCounts = {};
         for (const searchFilter of filters) {
             for (const [filterKey, values] of Object.entries(searchFilter)) {
                 if (!merged[filterKey]) {
@@ -486,11 +523,11 @@ class Pagefind {
         return this.mergeFilters(filters);
     }
 
-    async preload(term, options = {}) {
+    async preload(term: string, options = {}) {
         await Promise.all(this.instances.map(i => i.preload(term, options)));
     }
 
-    async debouncedSearch(term, options, debounceTimeoutMs = 300) {
+    async debouncedSearch(term: string, options: PagefindSearchOptions, debounceTimeoutMs: number) {
         const thisSearchID = ++this.searchID;
         this.preload(term, options);
         await asyncSleep(debounceTimeoutMs);
@@ -506,8 +543,8 @@ class Pagefind {
         return searchResult;
     }
 
-    async search(term, options = {}) {
-        let search = await Promise.all(this.instances.map(i => i.search(term, options)));
+    async search(term: string, options: PagefindSearchOptions = {}) {
+        let search = await Promise.all(this.instances.map(i => i.search(term, options) as Promise<PagefindSearchResults>));
 
         const filters = this.mergeFilters(search.map(s => s.filters));
         const totalFilters = this.mergeFilters(search.map(s => s.totalFilters));
@@ -521,10 +558,10 @@ class Pagefind {
 
 const pagefind = new Pagefind();
 
-export const mergeIndex = async (indexPath, options) => await pagefind.mergeIndex(indexPath, options);
-export const options = async (options) => await pagefind.options(options);
+export const mergeIndex = async (indexPath: string, options: PagefindIndexOptions) => await pagefind.mergeIndex(indexPath, options);
+export const options = async (options: PagefindIndexOptions) => await pagefind.options(options);
 // TODO: Add a language function that can change the language before pagefind is initialised
-export const search = async (term, options) => await pagefind.search(term, options);
-export const debouncedSearch = async (term, options, debounceTimeoutMs) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
-export const preload = async (term, options) => await pagefind.preload(term, options);
+export const search = async (term: string, options: PagefindSearchOptions) => await pagefind.search(term, options);
+export const debouncedSearch = async (term: string, options: PagefindSearchOptions, debounceTimeoutMs: number = 300) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
+export const preload = async (term: string, options: PagefindSearchOptions) => await pagefind.preload(term, options);
 export const filters = async () => await pagefind.filters();
