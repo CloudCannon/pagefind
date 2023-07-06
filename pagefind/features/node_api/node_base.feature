@@ -1,4 +1,4 @@
-# Feature: Node API Base Tests
+Feature: Node API Base Tests
 #     Background:
 #         Given I have a "public/index.html" file with the body:
 #             """
