@@ -63,6 +63,10 @@ jobs:
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
 
+      - name: Build Coupled JS
+        working-directory: ./pagefind_web_js
+        run: npm i && npm run build-coupled
+
       - name: Build WASM
         working-directory: ./pagefind_web
         run: ./local_build.sh
@@ -436,6 +440,10 @@ jobs:
           git add ./pagefind_ui/modular/package.json
           # Commit changes so cargo doesn't complain about dirty repo
           git commit -m "Deploy changes."
+
+      - name: Build Coupled JS
+        working-directory: ./pagefind_web_js
+        run: npm i && npm run build-coupled
 
       - name: Build WASM
         working-directory: ./pagefind_web
