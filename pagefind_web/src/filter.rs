@@ -64,7 +64,7 @@ impl SearchIndex {
         filter_key: &str,
         filter: JSONValue,
         behaviour: FilterBehaviour,
-    ) -> BitSet {
+    ) -> Option<BitSet> {
         use JSONValueType as J;
 
         debug!({
@@ -73,7 +73,7 @@ impl SearchIndex {
 
         let Some(filter_map) = self.filters.get(filter_key) else {
             debug!({ format! {"No map for {filter_key}"} });
-            return BitSet::new();
+            return Some(BitSet::new());
         };
 
         let mut maps = Vec::new();
@@ -106,11 +106,11 @@ impl SearchIndex {
                                 maps.push(build_set(value));
                             }
                             J::Object => {
-                                maps.push(self.parse_filter_value(
-                                    filter_key,
-                                    value,
-                                    FilterBehaviour::All,
-                                ));
+                                if let Some(inner_set) =
+                                    self.parse_filter_value(filter_key, value, FilterBehaviour::All)
+                                {
+                                    maps.push(inner_set);
+                                }
                             }
                             _ => continue,
                         }
@@ -120,7 +120,7 @@ impl SearchIndex {
             JSONValueType::Object => {
                 if let Ok(obj) = filter.iter_object() {
                     for (k, value) in obj.filter_map(|o| o.ok()) {
-                        if let Some(mut map) = match (k, value.value_type) {
+                        if let Some(Some(mut map)) = match (k, value.value_type) {
                             ("any" | "none", J::Object | J::Array | J::String) => Some(
                                 self.parse_filter_value(filter_key, value, FilterBehaviour::Any),
                             ),
@@ -146,14 +146,18 @@ impl SearchIndex {
                 debug!({
                     format! {"Unsupported filter value {:?}", filter.value_type}
                 });
-                return BitSet::new();
+                return None;
             }
         }
 
-        collapse(maps, behaviour)
+        if maps.is_empty() {
+            None
+        } else {
+            Some(collapse(maps, behaviour))
+        }
     }
 
-    fn parse_filter_arr(&self, filter: JSONValue, behaviour: FilterBehaviour) -> BitSet {
+    fn parse_filter_arr(&self, filter: JSONValue, behaviour: FilterBehaviour) -> Option<BitSet> {
         use JSONValueType as J;
         debug_assert!(matches!(filter.value_type, J::Array));
 
@@ -171,14 +175,20 @@ impl SearchIndex {
                     });
                     continue;
                 }
-                maps.push(self.parse_filter_obj(value, FilterBehaviour::All))
+                if let Some(map) = self.parse_filter_obj(value, FilterBehaviour::All) {
+                    maps.push(map)
+                }
             }
         }
 
-        collapse(maps, behaviour)
+        if maps.is_empty() {
+            None
+        } else {
+            Some(collapse(maps, behaviour))
+        }
     }
 
-    fn parse_filter_obj(&self, filter: JSONValue, behaviour: FilterBehaviour) -> BitSet {
+    fn parse_filter_obj(&self, filter: JSONValue, behaviour: FilterBehaviour) -> Option<BitSet> {
         use JSONValueType as J;
         debug_assert!(matches!(filter.value_type, J::Object));
 
@@ -190,7 +200,7 @@ impl SearchIndex {
 
         if let Ok(obj) = filter.iter_object() {
             for (k, value) in obj.filter_map(|o| o.ok()) {
-                let mut map = match (k, value.value_type) {
+                let map = match (k, value.value_type) {
                     ("any" | "none", J::Object) => {
                         self.parse_filter_obj(value, FilterBehaviour::Any)
                     }
@@ -203,14 +213,20 @@ impl SearchIndex {
                     ("all" | "not", J::Array) => self.parse_filter_arr(value, FilterBehaviour::All),
                     (k, _) => self.parse_filter_value(k, value, FilterBehaviour::All),
                 };
-                if matches!(k, "none" | "not") {
-                    self.invert(&mut map);
+                if let Some(mut map) = map {
+                    if matches!(k, "none" | "not") {
+                        self.invert(&mut map);
+                    }
+                    maps.push(map);
                 }
-                maps.push(map);
             }
         }
 
-        collapse(maps, behaviour)
+        if maps.is_empty() {
+            None
+        } else {
+            Some(collapse(maps, behaviour))
+        }
     }
 
     pub fn filter(&self, filter: &str) -> Option<BitSet> {
@@ -234,7 +250,7 @@ impl SearchIndex {
             return None;
         }
 
-        Some(self.parse_filter_obj(all_filters, FilterBehaviour::All))
+        self.parse_filter_obj(all_filters, FilterBehaviour::All)
     }
 
     pub fn dig_filter(&self, filter: JSONValue) -> Option<Vec<String>> {
