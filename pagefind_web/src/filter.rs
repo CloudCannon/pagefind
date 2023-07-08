@@ -71,17 +71,21 @@ impl SearchIndex {
             format! {"Processing value object {filter:?} with {behaviour:?}" }
         });
 
-        let Some(filter_map) = self.filters.get(filter_key) else {
-            debug!({ format! {"No map for {filter_key}"} });
-            return Some(BitSet::new());
-        };
+        let filter_map = self.filters.get(filter_key);
+        if filter_map.is_none() {
+            debug!({
+                format! {"No map for {filter_key}"}
+            });
+        }
 
         let mut maps = Vec::new();
         let build_set = |val: JSONValue| {
             debug!({
                 format! {"Adding the filter {filter_key}: {val:?}" }
             });
-            if let Some(filter_pages) = filter_map.get(val.read_string().unwrap_or_default()) {
+            if let Some(Some(filter_pages)) =
+                filter_map.map(|m| m.get(val.read_string().unwrap_or_default()))
+            {
                 let mut set = BitSet::new();
                 for page in filter_pages {
                     set.insert(*page as usize);

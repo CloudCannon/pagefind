@@ -296,3 +296,22 @@ Feature: Filtering
             """
         Then There should be no logs
         Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
+
+    Scenario: Filtering with an _empty_ bogus filter does nothing
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("Cat", {
+                    filters: {
+                        something_nonexistent: []
+                    }
+                });
+                let data = await Promise.all(search.results.map(result => result.data()));
+
+                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
