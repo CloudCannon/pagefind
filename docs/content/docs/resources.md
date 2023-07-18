@@ -53,6 +53,14 @@ These resources are created by helpful community members, and aren't guaranteed 
 - **Astro**
   - {{< 
         resource
+        site="github.com"
+        date="June 2023"
+        title="Pagefind Astro integration"
+        url="https://github.com/shishkin/astro-pagefind"
+        archive_url="https://web.archive.org/web/20230626193724/https://github.com/shishkin/astro-pagefind"
+    >}}
+  - {{< 
+        resource
         site="blog.otterlord.dev"
         date="January 2023"
         title="Add Searching To Your Astro Static Site"
