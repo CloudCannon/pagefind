@@ -41,7 +41,7 @@
     {{ partial "banner.html" }}
     {{ partial "nav.html" }}
     <div class="search">
-        <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+        <script src="/_pagefind/pagefind-ui.js"></script>
         <div id="search"></div>
     </div>
     <div class="column">
@@ -66,6 +66,6 @@
     </script>
 
     {{ $js := resources.Get "js/site.js" | js.Build }}
-    <script type="text/javascript" src="{{ $js.RelPermalink }}" defer></script>
+    <script src="{{ $js.RelPermalink }}" defer></script>
 </body>
 </html>

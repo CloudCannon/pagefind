@@ -19,7 +19,7 @@ The Pagefind CLI outputs assets for the Modular UI that can be loaded directly:
 
 ```html
 <link href="/_pagefind/pagefind-modular-ui.css" rel="stylesheet">
-<script src="/_pagefind/pagefind-modular-ui.js" type="text/javascript"></script>
+<script src="/_pagefind/pagefind-modular-ui.js"></script>
 
 <script>
     window.addEventListener('DOMContentLoaded', (event) => {

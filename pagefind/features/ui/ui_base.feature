@@ -5,7 +5,7 @@ Feature: Base UI Tests
         Given I have a "public/index.html" file with the body:
             """
             <div id="search"></div>
-            <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+            <script src="/_pagefind/pagefind-ui.js"></script>
 
             <script>
                 window.pui = new PagefindUI({ element: "#search" });

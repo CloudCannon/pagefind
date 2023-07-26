@@ -14,7 +14,7 @@ Pagefind UI can be added to any page with the following snippet. The `/_pagefind
 
 ```html
 <link href="/_pagefind/pagefind-ui.css" rel="stylesheet">
-<script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script src="/_pagefind/pagefind-ui.js"></script>
 
 <div id="search"></div>
 <script>
