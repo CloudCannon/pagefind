@@ -7,7 +7,7 @@ Feature: Base Modular UI Tests
             <div id="search"></div>
             <div id="summary"></div>
             <div id="results"></div>
-            <script src="/_pagefind/pagefind-modular-ui.js" type="text/javascript"></script>
+            <script src="/_pagefind/pagefind-modular-ui.js"></script>
 
             <script>
                 window.pagefind = new PagefindModularUI.Instance();
