@@ -87,7 +87,13 @@ export class Input {
                 "data-pfmod-sr-hidden": "true"
             }).text("Search this site").addTo(wrapper)
 
-            this.inputEl = new El("input").id(`pfmod-input-${id}`).class("pagefind-modular-input").addTo(wrapper);
+            this.inputEl = new El("input").id(`pfmod-input-${id}`)
+                .class("pagefind-modular-input")
+                .attrs({
+                    autocapitalize: "none",
+                    enterkeyhint: "search"
+                })
+                .addTo(wrapper);
 
             this.clearEl = new El("button")
                 .class("pagefind-modular-input-clear")

@@ -204,6 +204,8 @@
             bind:this={input_el}
             type="text"
             placeholder={translate("placeholder")}
+            autocapitalize="none"
+            enterkeyhint="search"
         />
 
         <button
