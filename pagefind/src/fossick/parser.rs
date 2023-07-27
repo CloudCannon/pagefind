@@ -710,7 +710,7 @@ mod tests {
 
         assert_eq!(
             data.digest,
-            "Sentence one. ___PAGEFIND_ANCHOR___br:break ___PAGEFIND_ANCHOR___p:pid Sentence two."
+            "Sentence one. ___PAGEFIND_ANCHOR___br:0:break ___PAGEFIND_ANCHOR___p:1:pid Sentence two."
         )
     }
 
