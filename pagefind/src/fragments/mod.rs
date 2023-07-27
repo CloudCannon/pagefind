@@ -6,7 +6,7 @@ use serde::Serialize;
 pub struct PageAnchorData {
     pub element: String,
     pub id: String,
-    pub text: Option<String>,
+    pub text: String,
     pub location: u32,
 }
 

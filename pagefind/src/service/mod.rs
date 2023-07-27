@@ -4,6 +4,7 @@ use std::{
 };
 
 use base64::{engine::general_purpose, Engine as _};
+use hashbrown::HashMap;
 use rust_patch::Patch;
 use tokio::sync::mpsc;
 
@@ -190,6 +191,7 @@ pub async fn run_service() {
                         filters: filters.unwrap_or_default(),
                         sort: sort.unwrap_or_default(),
                         meta: meta.unwrap_or_default(),
+                        anchor_content: HashMap::new(),
                         has_custom_body: false,
                         force_inclusion: true,
                         has_html_element: true,
