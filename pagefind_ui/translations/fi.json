@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Valtteri Laitinen <dev@valtlai.fi>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Haku",
+        "clear_search": "Tyhjennä",
+        "load_more": "Lataa lisää tuloksia",
+        "search_label": "Hae tältä sivustolta",
+        "filters_label": "Suodattimet",
+        "zero_results": "Ei tuloksia haulle [SEARCH_TERM]",
+        "many_results": "[COUNT] tulosta haulle [SEARCH_TERM]",
+        "one_result": "[COUNT] tulos haulle [SEARCH_TERM]",
+        "alt_search": "Ei tuloksia haulle [SEARCH_TERM]. Näytetään tulokset sen sijaan haulle [DIFFERENT_TERM]",
+        "search_suggestion": "Ei tuloksia haulle [SEARCH_TERM]. Kokeile jotain seuraavista:",
+        "searching": "Haetaan [SEARCH_TERM]..."
+    }
+}
