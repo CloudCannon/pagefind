@@ -44,7 +44,7 @@ Feature: Multisite Search
         Given I have a "root/index.html" file with the body:
             """
             <div id="search"></div>
-            <script src="/website_a/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+            <script src="/website_a/_pagefind/pagefind-ui.js"></script>
             """
         When I run my program with the flags:
             | --source root/website_a |
@@ -107,7 +107,7 @@ Feature: Multisite Search
         Given I have a "root/index.html" file with the body:
             """
             <div id="search"></div>
-            <script src="/website_a/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+            <script src="/website_a/_pagefind/pagefind-ui.js"></script>
             """
         When I run my program with the flags:
             | --source root/website_a |

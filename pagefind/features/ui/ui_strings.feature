@@ -12,7 +12,7 @@ Feature: UI Test Strings
                 <body>
                     <h1>Search</h1>
                     <div id="search"></div>
-                    <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+                    <script src="/_pagefind/pagefind-ui.js"></script>
 
                     <script>
                         window.pui = new PagefindUI({ element: "#search" });
@@ -44,7 +44,7 @@ Feature: UI Test Strings
                 <body>
                     <h1>Search</h1>
                     <div id="search"></div>
-                    <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+                    <script src="/_pagefind/pagefind-ui.js"></script>
 
                     <script>
                         window.pui = new PagefindUI({

@@ -8,7 +8,7 @@ Feature: UI Hooks
             """
             <h1>Search</h1>
             <div id="search"></div>
-            <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+            <script src="/_pagefind/pagefind-ui.js"></script>
 
             <script>
                 window.pui = new PagefindUI({
@@ -43,7 +43,7 @@ Feature: UI Hooks
             <h1>Search</h1>
             <img src="my.png" />
             <div id="search"></div>
-            <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+            <script src="/_pagefind/pagefind-ui.js"></script>
 
             <script>
                 window.pui = new PagefindUI({

@@ -14,7 +14,7 @@ Pagefind provides a prebuilt search UI out of the box. Add the following snippet
 
 ```html
 <link href="/_pagefind/pagefind-ui.css" rel="stylesheet">
-<script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script src="/_pagefind/pagefind-ui.js"></script>
 <div id="search"></div>
 <script>
     window.addEventListener('DOMContentLoaded', (event) => {
