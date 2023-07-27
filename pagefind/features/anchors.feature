@@ -52,7 +52,7 @@ Feature: Anchors
             }
             """
         Then There should be no logs
-        Then The selector "[data-search]" should contain "0, 10"
+        Then The selector "[data-search]" should contain "0, 9"
 
     Scenario: Pagefind returns full content without anchors
         When I evaluate:
@@ -80,7 +80,7 @@ Feature: Anchors
             }
             """
         Then There should be no logs
-        Then The selector "[data-search]" should contain "h2#cats: 4, ul#list: 5, li#ali: 6, h2#pagefind: 9"
+        Then The selector "[data-search]" should contain "h2#cats: 3, ul#list: 4, li#ali: 5, h2#pagefind: 8"
 
     Scenario: Pagefind returns page anchor content in the fragment
         When I evaluate:
