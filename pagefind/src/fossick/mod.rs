@@ -20,6 +20,9 @@ use parser::DomParser;
 use self::parser::DomParserResult;
 
 lazy_static! {
+    static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
+    static ref TRIM_NEWLINES: Regex = Regex::new("^[\n\r\\s]+|[\n\r\\s]+$").unwrap();
+    static ref EXTRANEOUS_SPACES: Regex = Regex::new("\\s{2,}").unwrap();
     // TODO: i18n?
     static ref SPECIAL_CHARS: Regex = Regex::new("[^\\w]").unwrap();
 }
@@ -186,7 +189,7 @@ impl Fossicker {
     ) -> (
         String,
         HashMap<String, Vec<FossickedWord>>,
-        Vec<(String, String, u32)>,
+        Vec<(String, String, String, u32)>,
     ) {
         let mut map: HashMap<String, Vec<FossickedWord>> = HashMap::new();
         let mut anchors = Vec::new();
@@ -230,14 +233,23 @@ impl Fossicker {
 
             if word.chars().next() == Some('_') {
                 if word.starts_with("___PAGEFIND_ANCHOR___") {
-                    if let Some((element_name, element_id)) =
+                    if let Some((element_name, anchor_id)) =
                         word.replace("___PAGEFIND_ANCHOR___", "").split_once(':')
                     {
-                        anchors.push((
-                            element_name.to_string(),
-                            element_id.to_string(),
-                            word_index as u32,
-                        ));
+                        let element_text = data
+                            .anchor_content
+                            .get(anchor_id)
+                            .map(|t| normalize_content(t))
+                            .unwrap_or_default();
+
+                        if let Some((_, element_id)) = anchor_id.split_once(':') {
+                            anchors.push((
+                                element_name.to_string(),
+                                element_id.to_string(),
+                                normalize_content(&element_text),
+                                word_index as u32,
+                            ));
+                        }
                     }
                     offset_word_index += 1;
                     continue;
@@ -367,11 +379,11 @@ impl Fossicker {
                     word_count: word_data.len(),
                     anchors: anchors
                         .into_iter()
-                        .map(|(element, id, location)| PageAnchorData {
+                        .map(|(element, id, text, location)| PageAnchorData {
                             element,
                             id,
                             location,
-                            text: None,
+                            text,
                         })
                         .collect(),
                 },
@@ -402,6 +414,15 @@ fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOption
     };
 
     format!("/{}", final_url)
+}
+
+fn normalize_content(content: &str) -> String {
+    let content = html_escape::decode_html_entities(content);
+    let content = TRIM_NEWLINES.replace_all(&content, "");
+    let content = NEWLINES.replace_all(&content, " ");
+    let content = EXTRANEOUS_SPACES.replace_all(&content, " ");
+
+    content.to_string()
 }
 
 // TODO: These language codes are duplicated with pagefind_web's Cargo.toml
@@ -445,6 +466,14 @@ mod tests {
     use twelf::Layer;
 
     use super::*;
+
+    #[test]
+    fn normalizing_content() {
+        let input = "\nHello  Wor\n ld? \n \n";
+        let output = normalize_content(input);
+
+        assert_eq!(&output, "Hello Wor ld?");
+    }
 
     async fn test_fossick(s: String) -> Fossicker {
         std::env::set_var("PAGEFIND_SOURCE", "somewhere");
