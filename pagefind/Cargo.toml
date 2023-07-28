@@ -53,7 +53,7 @@ hashbrown = { version = "0.13.1", features = ["serde"] }
 regex = "1.1"
 minicbor = { version = "0.19.1", features = ["alloc", "derive"] }
 base64 = "0.21"
-lol_html = "0.4"
+lol_html = "1.1"
 html-escape = "0.2.11"
 bit-set = "0.5"
 flate2 = "1.0"
