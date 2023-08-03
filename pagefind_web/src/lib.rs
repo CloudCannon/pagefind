@@ -2,11 +2,9 @@
 
 use std::collections::HashMap;
 
-use excerpt::calculate_excerpt;
 use util::*;
 use wasm_bindgen::prelude::*;
 
-mod excerpt;
 mod filter;
 mod filter_index;
 mod index;
@@ -259,11 +257,9 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
         .into_iter()
         .map(|result| {
             format!(
-                "{}@{}@{},{}@{}",
+                "{}@{}@{}",
                 &result.page,
                 result.page_score,
-                calculate_excerpt(&result.word_locations, 30),
-                30,
                 result
                     .word_locations
                     .iter()

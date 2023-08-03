@@ -35,7 +35,6 @@ declare global {
         id: string,
         score: number,
         words: number[],
-        excerpt_range: number[],
         data: () => Promise<PagefindSearchFragment>
     }
 
@@ -45,11 +44,19 @@ declare global {
         content: string,
         raw_content?: string;
         excerpt: string,
+        sub_results: PagefindSubResult[],
         word_count: number,
         locations: number[],
         filters: Record<string, string[]>
         meta: Record<string, string>,
         anchors: PagefindSearchAnchor[],
+    }
+
+    type PagefindSubResult = {
+        title: string,
+        url: string,
+        excerpt: string,
+        anchor?: PagefindSearchAnchor,
     }
 
     type PagefindSearchAnchor = {
