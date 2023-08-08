@@ -4,6 +4,8 @@ declare var pagefind_version: string;
 import type * as internal from "pagefindWebInternal";
 
 import gunzip from "./gz.js";
+import { build_excerpt, calculate_excerpt_region } from "./excerpt";
+import { calculate_sub_results } from "./sub_results.js";
 
 const asyncSleep = async (ms = 100) => {
     return new Promise(r => setTimeout(r, ms));
@@ -231,7 +233,7 @@ class PagefindInstance {
         return JSON.parse(new TextDecoder().decode(fragment));
     }
 
-    async loadFragment(hash: string, excerpt = [0, 0], locations: number[] = []) {
+    async loadFragment(hash: string, locations: number[] = []) {
         if (!this.loaded_fragments[hash]) {
             this.loaded_fragments[hash] = this._loadFragment(hash);
         }
@@ -239,29 +241,22 @@ class PagefindInstance {
             raw_content: string,
             raw_url: string,
         };
+        fragment.locations = locations;
 
         if (!fragment.raw_content) {
             fragment.raw_content = fragment.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
             fragment.content = fragment.content.replace(/\u200B/g, '');
         }
-
-        let is_zws_delimited = fragment.raw_content.includes('\u200B');
-        let fragment_words: string[] = [];
-        if (is_zws_delimited) {
-            // If segmentation was run on the backend, count words by ZWS boundaries
-            fragment_words = fragment.raw_content.split('\u200B');
-        } else {
-            fragment_words = fragment.raw_content.split(/[\r\n\s]+/g);
-        }
-        for (let word of locations) {
-            fragment_words[word] = `<mark>${fragment_words[word]}</mark>`;
-        }
-        fragment.excerpt = fragment_words.slice(excerpt[0], excerpt[0] + excerpt[1]).join(is_zws_delimited ? '' : ' ').trim();
         if (!fragment.raw_url) {
             fragment.raw_url = fragment.url;
             fragment.url = this.fullUrl(fragment.raw_url);
         }
-        fragment.locations = locations;
+
+        const excerpt_start = calculate_excerpt_region(locations, 30);
+        fragment.excerpt = build_excerpt(fragment, excerpt_start, 30, locations);
+
+        fragment.sub_results = calculate_sub_results(fragment);
+
         return fragment;
     }
 
@@ -409,16 +404,14 @@ class PagefindInstance {
         let results = all_results.length ? all_results.split(" ") : [];
 
         let resultsInterface = results.map(result => {
-            let [hash, score, full_excerpt, all_locations] = result.split('@');
-            log(`Processing result: \n  hash:${hash}\n  score:${score}\n  excerpt:${full_excerpt}\n  locations:${all_locations}`);
-            let locations = all_locations.split(',').map(l => parseInt(l));
-            let excerpt = full_excerpt.split(',').map(l => parseInt(l));
+            let [hash, score, all_locations] = result.split('@');
+            log(`Processing result: \n  hash:${hash}\n  score:${score}\n  locations:${all_locations}`);
+            let locations = all_locations.length ? all_locations.split(',').map(l => parseInt(l)) : [];
             return {
                 id: hash,
                 score: parseFloat(score) * this.indexWeight,
                 words: locations,
-                excerpt_range: excerpt,
-                data: async () => await this.loadFragment(hash, excerpt, locations)
+                data: async () => await this.loadFragment(hash, locations)
             }
         });
 

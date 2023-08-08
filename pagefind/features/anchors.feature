@@ -28,11 +28,22 @@ Feature: Anchors
             """
             <div data-pagefind-body>
                 <h1 id="h1">PageTwo, from Pagefind</h1>
+                <p>Some text nested under the h1</p>
+
                 <p id="p_spans">Words <span>in</span> <span><span>spans</span></span> should be extracted</p>
+                <p>Some text nested under the p with spans</p>
+
                 <h2 id="h2_hrefs">Links <a href="/">should be extracted</a></h2>
+                <p>Some text nested under the h2</p>
+
                 <span id="span_formatted">Text that is <b>bold</b> or <i>italic</i> should be extracted</span>
+                <p>Some text nested under the span</p>
+
                 <p id="p_nested_ids">Text containing <span id="span_nested">nested IDs</span> should extract both</p>
+                <p>Some text nested under the p with IDs</p>
+
                 <div id="double_div">Divs containing <div>💀 he he he 💀</div> divs should only take from the top level</div>
+                <p>Some text nested under the divs</p>
             </div>
             """
         When I run my program
@@ -106,7 +117,7 @@ Feature: Anchors
                 let searchdata = await search.results[0].data();
                 document.querySelector('[data-search]').innerHTML = `
                     <ul>
-                        ${searchdata.anchors.map(a => `<li>#${a.id}: '${a.text}'</li>`)}
+                        ${searchdata.anchors.map(a => `<li>#${a.id}: '${a.text}'</li>`).join('')}
                     </ul>
                 `;
             }
@@ -119,3 +130,22 @@ Feature: Anchors
         Then The selector "[data-search]>ul>li:nth-of-type(5)" should contain "#p_nested_ids: 'Text containing nested IDs should extract both'"
         Then The selector "[data-search]>ul>li:nth-of-type(6)" should contain "#span_nested: 'nested IDs'"
         Then The selector "[data-search]>ul>li:nth-of-type(7)" should contain "#double_div: 'Divs containing divs should only take from the top level'"
+
+    Scenario: Pagefind returns subresults based on headings
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("extracted");
+                let searchdata = await search.results[0].data();
+                document.querySelector('[data-search]').innerHTML = `
+                    <ul>
+                        ${searchdata.sub_results.map(r => `<li>${r.url}: ${r.title} / '${r.excerpt}'</li>`).join('')}
+                    </ul>
+                `;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-search]>ul>li:nth-of-type(1)" should contain "/dog/#h1: PageTwo, from Pagefind / 'text nested under the h1. Words in spans should be <mark>extracted.</mark> Some text nested under the p with spans.'"
+        Then The selector "[data-search]>ul>li:nth-of-type(2)" should contain "/dog/#h2_hrefs: Links should be extracted / 'the h2. Text that is bold or italic should be <mark>extracted</mark> Some text nested under the span. Text containing nested IDs should <mark>extract</mark> both. Some text nested under the p'"
