@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Taylan Özgür Bildik",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Araştır",
+        "clear_search": "Temizle",
+        "load_more": "Daha fazla sonuç",
+        "search_label": "Site genelinde arama",
+        "filters_label": "Filtreler",
+        "zero_results": "[SEARCH_TERM] için sonuç yok",
+        "many_results": "[SEARCH_TERM] için [COUNT] sonuç bulundu",
+        "one_result": "[SEARCH_TERM] için [COUNT] sonuç bulundu",
+        "alt_search": "[SEARCH_TERM] için sonuç yok. Bunun yerine [DIFFERENT_TERM] için sonuçlar gösteriliyor",
+        "search_suggestion": "[SEARCH_TERM] için sonuç yok. Alternatif olarak aşağıdaki kelimelerden birini deneyebilirsiniz:",
+        "searching": "[SEARCH_TERM] araştırılıyor..."
+    }
+}
