@@ -18,6 +18,7 @@ use crate::SearchOptions;
 use parser::DomParser;
 
 use self::parser::DomParserResult;
+use self::splitting::get_discrete_words;
 
 lazy_static! {
     static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
@@ -28,6 +29,7 @@ lazy_static! {
 }
 
 pub mod parser;
+mod splitting;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FossickedWord {
@@ -202,6 +204,24 @@ impl Fossicker {
 
         let mut content = String::with_capacity(data.digest.len());
 
+        let mut store_word = |full_word: &str, word_index: usize, word_weight: u8| {
+            let word = if let Some(stemmer) = &stemmer {
+                stemmer.stem(&full_word).into_owned()
+            } else {
+                full_word.to_string()
+            };
+
+            let entry = FossickedWord {
+                position: word_index.try_into().unwrap(),
+                weight: word_weight,
+            };
+            if let Some(repeat) = map.get_mut(&word) {
+                repeat.push(entry);
+            } else {
+                map.insert(word, vec![entry]);
+            }
+        };
+
         // TODO: Consider reading newlines and jump the word_index up some amount,
         // so that separate bodies of text don't return exact string
         // matches across the boundaries. Or otherwise use some marker byte for the boundary.
@@ -295,30 +315,28 @@ impl Fossicker {
 
             content.push_str(&word.replace('\u{200B}', ""));
             content.push(' ');
-
-            let mut normalized_word = SPECIAL_CHARS
-                .replace_all(word, "")
-                .into_owned()
-                .to_lowercase();
-
             #[cfg(feature = "extended")]
             if should_segment {
                 content.push('\u{200B}');
             }
 
-            if !normalized_word.is_empty() {
-                if let Some(stemmer) = &stemmer {
-                    normalized_word = stemmer.stem(&normalized_word).into_owned();
-                }
+            let normalized_word = SPECIAL_CHARS
+                .replace_all(word, "")
+                .into_owned()
+                .to_lowercase();
 
-                let entry = FossickedWord {
-                    position: word_index.try_into().unwrap(),
-                    weight: *word_weight,
-                };
-                if let Some(repeat) = map.get_mut(&normalized_word) {
-                    repeat.push(entry);
-                } else {
-                    map.insert(normalized_word, vec![entry]);
+            if !normalized_word.is_empty() {
+                store_word(&normalized_word, word_index, *word_weight);
+            }
+
+            // For words that may be CompoundWords, also index them as their constituent parts
+            if normalized_word != word {
+                let parts = get_discrete_words(word);
+                // Only proceed if the word was broken into multiple parts
+                if parts.contains(|c: char| c.is_whitespace()) {
+                    for part_word in parts.split_whitespace() {
+                        store_word(part_word, word_index, *word_weight);
+                    }
                 }
             }
         }

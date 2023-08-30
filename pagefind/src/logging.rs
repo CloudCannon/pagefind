@@ -69,7 +69,7 @@ impl Logger {
 
         Self {
             log_level,
-            out: if (use_terminal) {
+            out: if use_terminal {
                 Some(Term::stdout())
             } else {
                 None

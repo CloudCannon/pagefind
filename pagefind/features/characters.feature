@@ -104,3 +104,156 @@ Feature: Character Tests
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain '[0]'
+
+    Scenario: Punctuated compound words are indexed per word
+        Given I have a "public/hyphen/index.html" file with the body:
+            """
+            <p>beet-root</p>
+            """
+        Given I have a "public/period/index.html" file with the body:
+            """
+            <p>image.png</p>
+            """
+        Given I have a "public/camel/index.html" file with the body:
+            """
+            <p>WKWebVIEWComponent</p>
+            """
+        Given I have a "public/underscore/index.html" file with the body:
+            """
+            <p>Word_Boundaries</p>
+            """
+        Given I have a "public/slash/index.html" file with the body:
+            """
+            <p>sandwich/salad</p>
+            """
+        Given I have a "public/comma/index.html" file with the body:
+            """
+            <p>Cloud,Cannon</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let pages = [
+                    ...(await Promise.all((await pagefind.search("beet")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("root")).results.map(r => r.data()))),
+                ];
+
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '/hyphen/, /hyphen/'
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let pages = [
+                    ...(await Promise.all((await pagefind.search("image")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("png")).results.map(r => r.data()))),
+                ];
+
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '/period/, /period/'
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let pages = [
+                    ...(await Promise.all((await pagefind.search("WkWebVIEWComponent")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("web")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("component")).results.map(r => r.data()))),
+                ];
+
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '/camel/, /camel/, /camel/'
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let pages = [
+                    ...(await Promise.all((await pagefind.search("word")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("bound")).results.map(r => r.data()))),
+                ];
+
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '/underscore/, /underscore/'
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let pages = [
+                    ...(await Promise.all((await pagefind.search("sandwich")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("salad")).results.map(r => r.data()))),
+                ];
+
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '/slash/, /slash/'
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let pages = [
+                    ...(await Promise.all((await pagefind.search("CloudCannon")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("cloud")).results.map(r => r.data()))),
+                    ...(await Promise.all((await pagefind.search("cannon")).results.map(r => r.data()))),
+                ];
+
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '/comma/, /comma/, /comma/'
+
+    Scenario: Standard punctionation isn't indexed per word
+        Given I have a "public/standard/index.html" file with the body:
+            """
+            <p>not'anotherword</p>
+            <p>not(anotherword</p>
+            <p>not@anotherword</p>
+            <p>not#anotherword</p>
+            <p>not~anotherword</p>
+            <p>not+anotherword</p>
+            <p>not"anotherword"</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/_pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/_pagefind/pagefind.js");
+
+                let search = await pagefind.search("anotherword");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerText = `${pages.length} result(s)`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain '0 result(s)'
