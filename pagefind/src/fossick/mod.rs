@@ -413,7 +413,7 @@ impl Fossicker {
 }
 
 fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOptions) -> String {
-    let prefix = relative_to.unwrap_or(&options.source);
+    let prefix = relative_to.unwrap_or(&options.site_source);
     let trimmed = page_url.strip_prefix(prefix);
     let Ok(url) = trimmed else {
         options.logger.error(format!(

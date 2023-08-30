@@ -20,19 +20,34 @@ use crate::logging::{LogLevel, Logger};
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct PagefindInboundConfig {
+    #[clap(long, help = "DEPRECATED: Use the `site` option instead")]
+    #[clap(required = false, hide = true)]
+    #[serde(default)] // This is actually required, but we validate that later
+    pub source: String,
+
     #[clap(long, short, help = "The location of your built static website")]
     #[clap(required = false)]
     #[serde(default)] // This is actually required, but we validate that later
-    pub source: String,
+    pub site: String,
+
+    #[clap(long, short, help = "DEPRECATED: Use . . .")]
+    #[clap(required = false, hide = true)]
+    pub bundle_dir: Option<String>,
 
     #[clap(
         long,
         short,
-        help = "Where to output the search files, relative to source"
+        help = "Where to output the search files, relative to the processed site"
     )]
     #[clap(required = false)]
-    #[serde(default = "defaults::default_bundle_dir")]
-    pub bundle_dir: String,
+    pub output_subdir: Option<String>,
+
+    #[clap(
+        long,
+        help = "Where to output the search files, relative to the working directory of the command"
+    )]
+    #[clap(required = false)]
+    pub output_path: Option<String>,
 
     #[clap(
         long,
@@ -124,7 +139,7 @@ pub struct PagefindServiceConfig {
 
 mod defaults {
     pub fn default_bundle_dir() -> String {
-        "_pagefind".into()
+        "pagefind".into()
     }
     pub fn default_root_selector() -> String {
         "html".into()
@@ -141,8 +156,8 @@ mod defaults {
 #[derive(Debug, Clone)]
 pub struct SearchOptions {
     pub working_directory: PathBuf,
-    pub source: PathBuf,
-    pub bundle_dir: PathBuf,
+    pub site_source: PathBuf,
+    pub bundle_output: PathBuf,
     pub root_selector: String,
     pub exclude_selectors: Vec<String>,
     pub glob: String,
@@ -151,14 +166,22 @@ pub struct SearchOptions {
     pub logger: Logger,
     pub keep_index_url: bool,
     pub running_as_service: bool,
+    pub config_warnings: ConfigWarnings,
+}
+
+#[derive(Debug, Clone)]
+pub struct ConfigWarnings {
+    pub unconfigured_bundle_output: bool,
+    pub using_deprecated_source: bool,
+    pub using_deprecated_bundle_dir: bool,
 }
 
 impl SearchOptions {
     pub fn load(config: PagefindInboundConfig) -> Result<Self> {
-        if !config.service && config.source.is_empty() {
-            eprintln!("Required argument source not supplied. Pagefind needs to know the root of your built static site.");
-            eprintln!("Provide a --source flag, a PAGEFIND_SOURCE environment variable, or a source key in a Pagefind configuration file.");
-            bail!("Missing argument: source");
+        if !config.service && config.site.is_empty() && config.source.is_empty() {
+            eprintln!("Required argument site not supplied. Pagefind needs to know the root of your built static site.");
+            eprintln!("Provide a --site flag, a PAGEFIND_SITE environment variable, or a site key in a Pagefind configuration file.");
+            bail!("Missing argument: site");
         } else {
             let log_level = if config.verbose {
                 LogLevel::Verbose
@@ -167,11 +190,40 @@ impl SearchOptions {
             };
 
             let log_to_terminal = !config.service;
+            let working_directory = env::current_dir().unwrap();
+
+            let site_source = if !config.site.is_empty() {
+                working_directory.join(PathBuf::from(config.site))
+            } else {
+                working_directory.join(PathBuf::from(config.source.clone()))
+            };
+
+            // For backwards compat pre-1.0, we output files for older defaults
+            // when the path hasn't been set
+            let configured_bundle_output = config
+                .output_path
+                .as_ref()
+                .or(config.output_subdir.as_ref())
+                .or(config.bundle_dir.as_ref())
+                .is_some();
+
+            let warnings = ConfigWarnings {
+                unconfigured_bundle_output: !configured_bundle_output,
+                using_deprecated_source: !config.source.is_empty(),
+                using_deprecated_bundle_dir: config.bundle_dir.is_some(),
+            };
+
+            let bundle_output = config
+                .output_path
+                .map(|o| working_directory.join(o))
+                .or(config.output_subdir.map(|o| site_source.join(o)))
+                .or(config.bundle_dir.map(|o| site_source.join(o)))
+                .unwrap_or_else(|| site_source.join(PathBuf::from("_pagefind")));
 
             Ok(Self {
-                working_directory: env::current_dir().unwrap(),
-                source: PathBuf::from(config.source),
-                bundle_dir: PathBuf::from(config.bundle_dir),
+                working_directory,
+                site_source,
+                bundle_output,
                 root_selector: config.root_selector,
                 exclude_selectors: config.exclude_selectors,
                 glob: config.glob,
@@ -184,7 +236,45 @@ impl SearchOptions {
                 ),
                 keep_index_url: config.keep_index_url,
                 running_as_service: config.service,
+                config_warnings: warnings,
             })
         }
+    }
+}
+
+impl ConfigWarnings {
+    pub fn get_strings(&self) -> Vec<String> {
+        let mut strings = vec![];
+        if self.using_deprecated_bundle_dir {
+            strings.push(
+                "\n\
+                 The `bundle-dir` option is deprecated as of Pagefind 1.0. \
+                 Use either `output-subdir` or `output-path` instead:\n\n\
+                 cli:    --output-subdir\n\
+                 config: output_subdir\n\
+                 env:    PAGEFIND_OUTPUT_SUBDIR\n\
+                 └─ \"Where to output the search files, relative to the processed site\"\n\n\
+                 cli:    --output-path\n\
+                 config: output_path\n\
+                 env:    PAGEFIND_OUTPUT_PATH\n\
+                 └─ \"Where to output the search files, relative to the working directory of the command\"\n"
+                    .into(),
+            );
+        }
+
+        if self.using_deprecated_source {
+            strings.push(
+                "\n\
+                 The `source` option is deprecated as of Pagefind 1.0. \
+                 The `source` option has been renamed to `site`:\n\n\
+                 cli:    --site\n\
+                 config: site\n\
+                 env:    PAGEFIND_SITE\n\
+                 └─ \"The location of your built static website\"\n"
+                    .into(),
+            );
+        }
+
+        strings
     }
 }

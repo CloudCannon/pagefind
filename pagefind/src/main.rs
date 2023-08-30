@@ -63,7 +63,7 @@ async fn main() {
 
                     runner.log_start();
                     // TODO: Error handling
-                    _ = runner.fossick_many(options.source, options.glob).await;
+                    _ = runner.fossick_many(options.site_source, options.glob).await;
                     runner.build_indexes().await;
                     _ = &runner.write_files(None).await;
 
@@ -74,6 +74,18 @@ async fn main() {
                         duration.as_secs(),
                         duration.subsec_millis()
                     ));
+
+                    let warnings = options.config_warnings.get_strings();
+                    if !warnings.is_empty() {
+                        runner
+                            .options
+                            .logger
+                            .warn(&format!("{} configuration warning(s):", warnings.len()));
+
+                        for warning in options.config_warnings.get_strings() {
+                            runner.options.logger.warn(warning);
+                        }
+                    }
 
                     if config.serve {
                         pagefind::serve::serve_dir(PathBuf::from(config.source)).await;
