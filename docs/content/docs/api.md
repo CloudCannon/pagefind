@@ -13,10 +13,10 @@ Pagefind can be accessed as an API directly from JavaScript, for you to build cu
 Anywhere on your site, you can initialize Pagefind with:
 
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 ```
 
-This will load the Pagefind library and the metadata about the site. If your site is on a subpath, this should be included — e.g. in the CloudCannon documentation, we load `/documentation/_pagefind/pagefind.js`.
+This will load the Pagefind library and the metadata about the site. If your site is on a subpath, this should be included — e.g. in the CloudCannon documentation, we load `/documentation/pagefind/pagefind.js`.
 
 > If building your own search UI, it is a good idea to only run this import once your search component has received interaction. This saves the user from loading the Pagefind library on every page request.
 
@@ -25,7 +25,7 @@ This will load the Pagefind library and the metadata about the site. If your sit
 To perform a search, await `pagefind.search`:
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +const search = await pagefind.search("static");
 ```
 {{< /diffcode >}}
@@ -50,7 +50,7 @@ To load the data for a result, await the data function:
 
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 const search = await pagefind.search("static");
 +const oneResult = await search.results[0].data();
 ```
@@ -80,7 +80,7 @@ To load a "page" of results, you can run something like the following:
 
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 const search = await pagefind.search("static");
 +const fiveResults = await Promise.all(search.results.slice(0, 5).map(r => r.data()));
 ```
@@ -215,7 +215,7 @@ const search = await pagefind.search(null, {
 The helper function `pagefind.debouncedSearch` is available and can be used in place of `pagefind.search`:
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +const search = await pagefind.debouncedSearch("static");
 ```
 {{< /diffcode >}}
@@ -223,7 +223,7 @@ const pagefind = await import("/_pagefind/pagefind.js");
 A custom debounce timeout (default: `300`) can optionally be specified as the third argument:
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +const search = await pagefind.debouncedSearch("static", {/* options */}, 300);
 ```
 {{< /diffcode >}}
@@ -247,7 +247,7 @@ If you have a debounced search input, Pagefind won't start loading indexes until
 
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +pagefind.preload("s");
 
 // later...

@@ -12,28 +12,35 @@ The Pagefind CLI has the following options:
 
 ## Required arguments
 
-### Source
+### Site
 The location of your built static site.
 
-| CLI Flag            | ENV Variable      | Config Key |
-|---------------------|-------------------|------------|
-| `--source <SOURCE>` | `PAGEFIND_SOURCE` | `source`   |
+| CLI Flag        | ENV Variable    | Config Key |
+|-----------------|-----------------|------------|
+| `--site <PATH>` | `PAGEFIND_SITE` | `site`     |
 
 ## Optional arguments
 
 ### Serve
-Serve the source directory after creating the search index. Useful for testing search on a local build of your site without having to serve the source directory manually.
+Serve the site directory after creating the search index. Useful for testing search on a local build of your site without having to serve the site directory manually.
 
 | CLI Flag  | ENV Variable     | Config Key |
 |-----------|------------------|------------|
 | `--serve` | `PAGEFIND_SERVE` | `serve`    |
 
-### Bundle directory
-The folder to output search files into, relative to source. Defaults to `_pagefind`.
+### Output subdirectory
+The folder to output the search bundle into, relative to the processed site. Defaults to `pagefind`.
 
-| CLI Flag             | ENV Variable          | Config Key   |
-|----------------------|-----------------------|--------------|
-| `--bundle-dir <DIR>` | `PAGEFIND_BUNDLE_DIR` | `bundle_dir` |
+| CLI Flag                | ENV Variable             | Config Key      |
+|-------------------------|--------------------------|-----------------|
+| `--output-subdir <DIR>` | `PAGEFIND_OUTPUT_SUBDIR` | `output_subdir` |
+
+### Output path
+The folder to output the search bundle into, relative to the working directory. Overrides `output-subdir` if supplied.
+
+| CLI Flag               | ENV Variable           | Config Key    |
+|------------------------|------------------------|---------------|
+| `--output-path <PATH>` | `PAGEFIND_OUTPUT_PATH` | `output_path` |
 
 ### Root selector
 The element that Pagefind should treat as the root of the document. Defaults to `html`.

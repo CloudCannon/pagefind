@@ -13,8 +13,8 @@ Since Pagefind indexes your site _after_ it builds, we'll do things slightly out
 Pagefind provides a prebuilt search UI out of the box. Add the following snippet to a page of your choice:
 
 ```html
-<link href="/_pagefind/pagefind-ui.css" rel="stylesheet">
-<script src="/_pagefind/pagefind-ui.js"></script>
+<link href="/pagefind/pagefind-ui.css" rel="stylesheet">
+<script src="/pagefind/pagefind-ui.js"></script>
 <div id="search"></div>
 <script>
     window.addEventListener('DOMContentLoaded', (event) => {
@@ -23,7 +23,7 @@ Pagefind provides a prebuilt search UI out of the box. Add the following snippet
 </script>
 ```
 
-> The `/_pagefind/pagefind-ui.css` and `/_pagefind/pagefind-ui.js` assets will be created by Pagefind when we index the site.
+> The `/pagefind/pagefind-ui.css` and `/pagefind/pagefind-ui.js` assets will be created by Pagefind when we index the site.
 
 Now build your site to an output directory — this guide assumes that you're running `hugo` and that your site is output to the `public/` directory. Pagefind works with any set of static HTML files, so adjust these configurations as needed.
 
@@ -31,12 +31,12 @@ Now build your site to an output directory — this guide assumes that you're ru
 
 ## Indexing your site
 
-The easiest way to run pagefind is through npx, where `--source` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
+The easiest way to run pagefind is through npx, where `--site` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
 
 > Note that Pagefind itself does not have any server component — the search integration is fully baked into your static site. The `--serve` flag here is a shortcut for running Pagefind, followed by serving your output site through any static web server.
 
 ```bash
-npx -y pagefind --source public --serve
+npx -y pagefind --site public --serve
 ```
 
 You should see some output along the lines of:

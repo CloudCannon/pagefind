@@ -36,15 +36,14 @@ pub struct PagefindInboundConfig {
 
     #[clap(
         long,
-        short,
-        help = "Where to output the search files, relative to the processed site"
+        help = "Where to output the search bundle, relative to the processed site"
     )]
     #[clap(required = false)]
     pub output_subdir: Option<String>,
 
     #[clap(
         long,
-        help = "Where to output the search files, relative to the working directory of the command"
+        help = "Where to output the search bundle, relative to the working directory of the command"
     )]
     #[clap(required = false)]
     pub output_path: Option<String>,
@@ -116,7 +115,7 @@ pub struct PagefindInboundConfig {
     pub keep_index_url: bool,
 
     #[clap(long)]
-    #[clap(required = false)]
+    #[clap(required = false, hide = true)]
     #[serde(default = "defaults::default_false")]
     pub service: bool,
 }
@@ -218,7 +217,7 @@ impl SearchOptions {
                 .map(|o| working_directory.join(o))
                 .or(config.output_subdir.map(|o| site_source.join(o)))
                 .or(config.bundle_dir.map(|o| site_source.join(o)))
-                .unwrap_or_else(|| site_source.join(PathBuf::from("_pagefind")));
+                .unwrap_or_else(|| site_source.join(PathBuf::from("pagefind")));
 
             Ok(Self {
                 working_directory,

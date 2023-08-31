@@ -21,7 +21,7 @@ When initializing the Pagefind UI, include a `mergeIndex` option with an array o
 new PagefindUI({
     element: "#search",
 +    mergeIndex: [{
-+        bundlePath: "https://docs.example.com/_pagefind"
++        bundlePath: "https://docs.example.com/pagefind"
 +    }]
 })
 ```
@@ -37,7 +37,7 @@ new PagefindUI({
     element: "#search",
 +    // ... options for the blog.example.com index
     mergeIndex: [{
-        bundlePath: "https://docs.example.com/_pagefind",
+        bundlePath: "https://docs.example.com/pagefind",
 +        // ... options for the docs.example.com index
     }]
 })
@@ -52,8 +52,8 @@ Using an initialized instance of Pagefind, await the `mergeIndex` function to ad
 ```js
 // Running on blog.example.com
 
-const pagefind = await import("/_pagefind/pagefind.js");
-+await pagefind.mergeIndex("https://docs.example.com/_pagefind");
+const pagefind = await import("/pagefind/pagefind.js");
++await pagefind.mergeIndex("https://docs.example.com/pagefind");
 ```
 {{< /diffcode >}}
 
@@ -63,10 +63,10 @@ Pagefind options can be passed to the additional index as a second argument:
 ```js
 // Running on blog.example.com
 
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +await pagefind.options({/* ... options for the blog.example.com index */});
 await pagefind.mergeIndex(
-  "https://docs.example.com/_pagefind",
+  "https://docs.example.com/pagefind",
 +  {/* ... options for the docs.example.com index */}
 );
 ```
@@ -83,15 +83,15 @@ new PagefindUI({
     element: "#search",
 +   indexWeight: 2,
     mergeIndex: [{
-        bundlePath: "https://docs.example.com/_pagefind",
+        bundlePath: "https://docs.example.com/pagefind",
 +        indexWeight: 0.5
     }]
 })
 
 // JS API:
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +await pagefind.options({ indexWeight: 2 });
-await pagefind.mergeIndex("https://docs.example.com/_pagefind", {
+await pagefind.mergeIndex("https://docs.example.com/pagefind", {
 +    indexWeight: 0.5
 });
 ```
@@ -110,7 +110,7 @@ new PagefindUI({
 +        resource: "Blog"
 +    },
     mergeIndex: [{
-        bundlePath: "https://docs.example.com/_pagefind",
+        bundlePath: "https://docs.example.com/pagefind",
 +        mergeFilter: {
 +            resource: "Documentation"
 +        }
@@ -118,9 +118,9 @@ new PagefindUI({
 })
 
 // JS API:
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +await pagefind.options({ mergeFilter: { resource: "Blog" } });
-await pagefind.mergeIndex("https://docs.example.com/_pagefind", {
+await pagefind.mergeIndex("https://docs.example.com/pagefind", {
 +    mergeFilter: {
 +        resource: "Documentation"
 +    }
@@ -138,14 +138,14 @@ Pagefind will attempt to grab a matching language when merging an index, falling
 new PagefindUI({
     element: "#search",
     mergeIndex: [{
-        bundlePath: "https://docs.example.com/_pagefind",
+        bundlePath: "https://docs.example.com/pagefind",
 +        language: "pt-br"
     }]
 })
 
 // JS API:
-const pagefind = await import("/_pagefind/pagefind.js");
-await pagefind.mergeIndex("https://docs.example.com/_pagefind", {
+const pagefind = await import("/pagefind/pagefind.js");
+await pagefind.mergeIndex("https://docs.example.com/pagefind", {
 +    language: "pt-br"
 });
 ```
@@ -161,7 +161,7 @@ Due to index merging happening in the browser, your additional search indexes mu
 {
   "headers": [
     {
-      "match": "/_pagefind/.*",
+      "match": "/pagefind/.*",
       "headers": [
         {
           "name": "Access-Control-Allow-Origin",
