@@ -1,8 +1,8 @@
 use minicbor::Encode;
 
-/// The filter index chunks in `_pagefind/filter/`
+/// The filter index chunks in `pagefind/filter/`
 
-/// A single filter index chunk: `_pagefind/filter/*.pf_filter`
+/// A single filter index chunk: `pagefind/filter/*.pf_filter`
 #[derive(Encode)]
 pub struct FilterIndex {
     #[n(0)]

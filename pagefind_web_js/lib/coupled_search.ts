@@ -39,7 +39,7 @@ class PagefindInstance {
         this.decoder = new TextDecoder('utf-8');
         this.wasm = null;
 
-        this.basePath = opts.basePath || "/_pagefind/";
+        this.basePath = opts.basePath || "/pagefind/";
         this.primary = opts.primary || false;
         if (this.primary) {
             this.initPrimary();
@@ -78,7 +78,7 @@ class PagefindInstance {
     }
 
     defaultBasePath() {
-        let default_base = this.basePath.match(/^(.*\/)_pagefind/)?.[1];
+        let default_base = this.basePath.match(/^(.*\/)pagefind/)?.[1];
         return default_base || "/";
     }
 
