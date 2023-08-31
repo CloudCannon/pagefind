@@ -30,7 +30,11 @@ pub struct PagefindInboundConfig {
     #[serde(default)] // This is actually required, but we validate that later
     pub site: String,
 
-    #[clap(long, short, help = "DEPRECATED: Use . . .")]
+    #[clap(
+        long,
+        short,
+        help = "DEPRECATED: Use `output_subdir` or `output_path` instead"
+    )]
     #[clap(required = false, hide = true)]
     pub bundle_dir: Option<String>,
 
