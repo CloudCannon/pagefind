@@ -78,7 +78,7 @@ class PagefindInstance {
     }
 
     defaultBasePath() {
-        let default_base = this.basePath.match(/^(.*\/)pagefind/)?.[1];
+        let default_base = this.basePath.match(/^(.*\/)_?pagefind/)?.[1];
         return default_base || "/";
     }
 
