@@ -195,6 +195,7 @@ pub async fn run_service() {
                         has_custom_body: false,
                         force_inclusion: true,
                         has_html_element: true,
+                        has_old_bundle_reference: false,
                         language,
                     };
                     let file = Fossicker::new_with_data(url, data);

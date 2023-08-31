@@ -60,16 +60,38 @@ async fn main() {
                     run_service().await;
                 } else {
                     let mut runner = SearchState::new(options.clone());
+                    let logger = runner.options.logger.clone();
 
                     runner.log_start();
                     // TODO: Error handling
-                    _ = runner.fossick_many(options.site_source, options.glob).await;
+                    _ = runner
+                        .fossick_many(options.site_source.clone(), options.glob)
+                        .await;
+
+                    let use_old_bundle = options.config_warnings.unconfigured_bundle_output
+                        && runner
+                            .fossicked_pages
+                            .iter()
+                            .filter(|p| p.has_old_bundle_reference)
+                            .next()
+                            .is_some();
+                    if use_old_bundle {
+                        logger.warn(
+                            "!! Found references to a /_pagefind/ resource, running in pre-1.0 compatibility mode.",
+                        );
+                    }
+
                     runner.build_indexes().await;
                     _ = &runner.write_files(None).await;
 
+                    if use_old_bundle {
+                        let old_bundle_location = options.site_source.join("_pagefind");
+                        _ = &runner.write_files(Some(old_bundle_location)).await;
+                    }
+
                     let duration = start.elapsed();
 
-                    runner.options.logger.status(&format!(
+                    logger.status(&format!(
                         "Finished in {}.{} seconds",
                         duration.as_secs(),
                         duration.subsec_millis()
@@ -77,18 +99,26 @@ async fn main() {
 
                     let warnings = options.config_warnings.get_strings();
                     if !warnings.is_empty() {
-                        runner
-                            .options
-                            .logger
-                            .warn(&format!("{} configuration warning(s):", warnings.len()));
+                        logger.warn(&format!("{} configuration warning(s):", warnings.len()));
 
                         for warning in options.config_warnings.get_strings() {
-                            runner.options.logger.warn(warning);
+                            logger.warn(warning);
                         }
                     }
 
+                    if use_old_bundle {
+                        logger.warn(&format!(
+                            "\n\nWarning: Running in pre-1.0 compatibility mode.\n\
+                            Pagefind 1.0 changes the default output directory from /_pagefind/ to /pagefind/\n\
+                            but references to the /_pagefind/ URL were found on your site, and the output directory is unconfigured.\n\
+                            To preserve your setup, the search files have been written twice, to both /_pagefind/ and /pagefind/\n\n\
+                            To remove this warning, either update your script and style references to the new `/pagefind/` URL\n\
+                            or run Pagefind with `--output-subdir _pagefind` to ensure pre-1.0 behaviour"
+                        ));
+                    }
+
                     if config.serve {
-                        pagefind::serve::serve_dir(PathBuf::from(config.source)).await;
+                        pagefind::serve::serve_dir(PathBuf::from(options.site_source)).await;
                     }
                 }
             }
