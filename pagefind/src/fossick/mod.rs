@@ -713,32 +713,34 @@ mod tests {
     #[cfg(not(target_os = "windows"))]
     #[test]
     fn building_url() {
-        std::env::set_var("PAGEFIND_SOURCE", "hello/world");
+        std::env::set_var("PAGEFIND_SITE", "hello/world");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
         let opts = SearchOptions::load(config).unwrap();
 
-        let p: PathBuf = "hello/world/index.html".into();
+        let cwd = std::env::current_dir().unwrap();
+
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/index.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/");
 
-        let p: PathBuf = "hello/world/about/index.html".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about/index.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/about/");
 
-        let p: PathBuf = "hello/world/about.html".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/about.html");
 
-        let p: PathBuf = "hello/world/about/index.htm".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about/index.htm".into());
         assert_eq!(&build_url(&p, None, &opts), "/about/index.htm");
 
-        let p: PathBuf = "hello/world/index.html".into();
-        let root: PathBuf = "hello".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/index.html".into());
+        let root: PathBuf = cwd.join::<PathBuf>("hello".into());
         assert_eq!(&build_url(&p, Some(&root), &opts), "/world/");
     }
 
     #[cfg(target_os = "windows")]
     #[test]
     fn building_windows_urls() {
-        std::env::set_var("PAGEFIND_SOURCE", "C:\\hello\\world");
+        std::env::set_var("PAGEFIND_SITE", "C:\\hello\\world");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
         let opts = SearchOptions::load(config).unwrap();
