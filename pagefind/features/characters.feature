@@ -1,7 +1,7 @@
 Feature: Character Tests
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-result>Nothing</p>
@@ -14,13 +14,13 @@ Feature: Character Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Béës");
 
@@ -38,13 +38,13 @@ Feature: Character Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("bees");
 
@@ -62,13 +62,13 @@ Feature: Character Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("beet-root");
 
@@ -86,13 +86,13 @@ Feature: Character Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 // Preload some pages that Pagefind might then return as "all pages"
                 await pagefind.preload("can");
@@ -132,13 +132,13 @@ Feature: Character Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let pages = [
                     ...(await Promise.all((await pagefind.search("beet")).results.map(r => r.data()))),
@@ -153,7 +153,7 @@ Feature: Character Tests
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let pages = [
                     ...(await Promise.all((await pagefind.search("image")).results.map(r => r.data()))),
@@ -168,7 +168,7 @@ Feature: Character Tests
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let pages = [
                     ...(await Promise.all((await pagefind.search("WkWebVIEWComponent")).results.map(r => r.data()))),
@@ -184,7 +184,7 @@ Feature: Character Tests
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let pages = [
                     ...(await Promise.all((await pagefind.search("word")).results.map(r => r.data()))),
@@ -199,7 +199,7 @@ Feature: Character Tests
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let pages = [
                     ...(await Promise.all((await pagefind.search("sandwich")).results.map(r => r.data()))),
@@ -214,7 +214,7 @@ Feature: Character Tests
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let pages = [
                     ...(await Promise.all((await pagefind.search("CloudCannon")).results.map(r => r.data()))),
@@ -241,13 +241,13 @@ Feature: Character Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("anotherword");
 

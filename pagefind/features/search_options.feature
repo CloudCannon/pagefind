@@ -2,7 +2,7 @@ Feature: Search Options
 
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
 
     Scenario: Base URL can be configured
         Given I have a "public/index.html" file with the body:
@@ -15,13 +15,13 @@ Feature: Search Options
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
                 await pagefind.options({
                     baseUrl: "/docs/"
                 });
@@ -45,15 +45,15 @@ Feature: Search Options
             <h1>world</h1>
             """
         When I run my program with the flags:
-            | --bundle-dir blog/_pagefind |
+            | --output-subdir blog/pagefind |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/blog/_pagefind/pagefind.js"
+        Then I should see the file "public/blog/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/blog/_pagefind/pagefind.js");
+                let pagefind = await import("/blog/pagefind/pagefind.js");
 
                 let search = await pagefind.search("world");
 
@@ -74,16 +74,16 @@ Feature: Search Options
             <h1>world</h1>
             """
         When I run my program with the flags:
-            | --bundle-dir blog/_pagefind |
-            | --keep-index-url |
+            | --output-subdir blog/pagefind |
+            | --keep-index-url              |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/blog/_pagefind/pagefind.js"
+        Then I should see the file "public/blog/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/blog/_pagefind/pagefind.js");
+                let pagefind = await import("/blog/pagefind/pagefind.js");
 
                 let search = await pagefind.search("world");
 

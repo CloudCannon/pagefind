@@ -34,13 +34,13 @@ Feature: Node API Base Tests
 #             """
 #         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #         Then I should see "Successfully wrote files" in stdout
-#         Then I should see the file "public/_pagefind/pagefind.js"
+#         Then I should see the file "public/pagefind/pagefind.js"
 #         When I serve the "public" directory
 #         When I load "/"
 #         When I evaluate:
 #             """
 #             async function() {
-#                 let pagefind = await import("/_pagefind/pagefind.js");
+#                 let pagefind = await import("/pagefind/pagefind.js");
 
 #                 let search = await pagefind.search("testing");
 
@@ -74,7 +74,7 @@ Feature: Node API Base Tests
 #         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #         Then I should see "pagefind_version=" in stdout
 #         Then I should see "1 fragment(s)" in stdout
-#         Then I should not see the file "public/_pagefind/pagefind.js"
+#         Then I should not see the file "public/pagefind/pagefind.js"
 
 #     @platform-unix
 #     Scenario: Build a true index to disk via the api
@@ -97,13 +97,13 @@ Feature: Node API Base Tests
 #             """
 #         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #         Then I should see "Successfully wrote files" in stdout
-#         Then I should see the file "public/_pagefind/pagefind.js"
+#         Then I should see the file "public/pagefind/pagefind.js"
 #         When I serve the "public" directory
 #         When I load "/"
 #         When I evaluate:
 #             """
 #             async function() {
-#                 let pagefind = await import("/_pagefind/pagefind.js");
+#                 let pagefind = await import("/pagefind/pagefind.js");
 
 #                 let search = await pagefind.search("testing");
 
@@ -151,13 +151,13 @@ Feature: Node API Base Tests
 #             """
 #         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #         Then I should see "Donezo!" in stdout
-#         Then I should see the file "public/_pagefind/pagefind.js"
+#         Then I should see the file "public/pagefind/pagefind.js"
 #         When I serve the "public" directory
 #         When I load "/"
 #         When I evaluate:
 #             """
 #             async function() {
-#                 let pagefind = await import("/_pagefind/pagefind.js");
+#                 let pagefind = await import("/pagefind/pagefind.js");
 
 #                 let search = await pagefind.search("testing");
 
@@ -181,7 +181,7 @@ Feature: Node API Base Tests
 #             const run = async () => {
 #                 const { index } = await pagefind.createIndex();
 #                 await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
-#                 await index.writeFiles({ bundlePath: "../output/_pagefind" });
+#                 await index.writeFiles({ bundlePath: "../output/pagefind" });
 #                 console.log(`Successfully wrote files`);
 #             }
 
@@ -189,13 +189,13 @@ Feature: Node API Base Tests
 #             """
 #         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #         Then I should see "Successfully wrote files" in stdout
-#         Then I should see the file "output/_pagefind/pagefind.js"
+#         Then I should see the file "output/pagefind/pagefind.js"
 #         When I serve the "output" directory
 #         When I load "/"
 #         When I evaluate:
 #             """
 #             async function() {
-#                 let pagefind = await import("/_pagefind/pagefind.js");
+#                 let pagefind = await import("/pagefind/pagefind.js");
 
 #                 let search = await pagefind.search("testing");
 
@@ -219,7 +219,7 @@ Feature: Node API Base Tests
 #             const run = async () => {
 #                 const { index } = await pagefind.createIndex();
 #                 await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
-#                 await index.writeFiles({ bundlePath: "../output/_pagefind" });
+#                 await index.writeFiles({ bundlePath: "../output/pagefind" });
 
 #                 await index.addHTMLFile({path: "rabbits/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
 #                 const { files } = await index.getFiles();
@@ -228,7 +228,7 @@ Feature: Node API Base Tests
 #                 console.log(`${fragments.length} fragment(s)`);
 
 #                 await index.addHTMLFile({path: "cats/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
-#                 await index.writeFiles({ bundlePath: "./_pagefind" });
+#                 await index.writeFiles({ bundlePath: "./pagefind" });
 
 #                 console.log(`Successfully wrote files`);
 #             }
@@ -238,13 +238,13 @@ Feature: Node API Base Tests
 #         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #         Then I should see "Successfully wrote files" in stdout
 #         Then I should see "2 fragment(s)" in stdout
-#         Then I should see the file "output/_pagefind/pagefind.js"
+#         Then I should see the file "output/pagefind/pagefind.js"
 #         When I serve the "output" directory
 #         When I load "/"
 #         When I evaluate:
 #             """
 #             async function() {
-#                 let pagefind = await import("/_pagefind/pagefind.js");
+#                 let pagefind = await import("/pagefind/pagefind.js");
 
 #                 let search = await pagefind.search("testing");
 
@@ -259,7 +259,7 @@ Feature: Node API Base Tests
 #         When I evaluate:
 #             """
 #             async function() {
-#                 let pagefind = await import("/_pagefind/pagefind.js");
+#                 let pagefind = await import("/pagefind/pagefind.js");
 
 #                 let search = await pagefind.search("testing");
 
@@ -291,13 +291,13 @@ Feature: Node API Base Tests
 #             """
 #         When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
 #         Then I should see "Successfully wrote files" in stdout
-#         Then I should see the file "public/_pagefind/pagefind.js"
+#         Then I should see the file "public/pagefind/pagefind.js"
 #         When I serve the "public" directory
 #         When I load "/"
 #         When I evaluate:
 #             """
 #             async function() {
-#                 let pagefind = await import("/_pagefind/pagefind.js");
+#                 let pagefind = await import("/pagefind/pagefind.js");
 
 #                 let search = await pagefind.search("testing");
 

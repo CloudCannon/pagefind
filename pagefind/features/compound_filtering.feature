@@ -1,7 +1,7 @@
 Feature: Filtering
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-results>Nothing</p>
@@ -53,7 +53,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                window.pagefind = await import("/_pagefind/pagefind.js");
+                window.pagefind = await import("/pagefind/pagefind.js");
 
                 window.test = async function(pagefind_incantation) {
                     let search = await pagefind_incantation;

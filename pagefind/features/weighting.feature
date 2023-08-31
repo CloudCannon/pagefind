@@ -1,7 +1,7 @@
 Feature: Word Weighting
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p>no results</p>
@@ -43,7 +43,7 @@ Feature: Word Weighting
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search(`antelope`);
 
@@ -84,7 +84,7 @@ Feature: Word Weighting
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search(`antelope`);
 
