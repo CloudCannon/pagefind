@@ -160,7 +160,7 @@ export interface WriteOptions {
     /** 
      * The path of the pagefind bundle directory to write to disk.
      * If relative, is relative to the cwd.
-     * @example "./public/_pagefind"
+     * @example "./public/pagefind"
      */
     bundlePath: string
 }

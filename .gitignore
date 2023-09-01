@@ -4,8 +4,10 @@ public
 .hugo_build.lock
 _gen
 pagefind_ui/default/_dev_files/_pagefind/ui.*
+pagefind_ui/default/_dev_files/pagefind/ui.*
 pagefind_ui/default/css
 pagefind_ui/modular/_dev_files/_pagefind/modular.*
+pagefind_ui/modular/_dev_files/pagefind/modular.*
 
 npm_dist
 

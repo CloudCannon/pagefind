@@ -2,7 +2,7 @@ Feature: Spellcheck
 
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <ul>
@@ -21,13 +21,13 @@ Feature: Spellcheck
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("w");
 

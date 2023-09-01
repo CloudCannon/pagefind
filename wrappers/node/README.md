@@ -47,7 +47,7 @@ await index.getFiles();
 
 // Write the index to disk
 await index.writeFiles({
-    bundlePath: "./public/_pagefind"
+    bundlePath: "./public/pagefind"
 });
 ```
 
@@ -173,7 +173,7 @@ Writes the index files to disk, as they would be written when running the standa
 
 ```js
 const { errors } = await index.writeFiles({
-    bundlePath: "./public/_pagefind"
+    bundlePath: "./public/pagefind"
 });
 ```
 

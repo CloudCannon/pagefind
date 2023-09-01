@@ -46,6 +46,7 @@ pub struct FossickedData {
     pub has_custom_body: bool,
     pub force_inclusion: bool,
     pub has_html_element: bool,
+    pub has_old_bundle_reference: bool,
     pub language: String,
 }
 
@@ -386,6 +387,7 @@ impl Fossicker {
             has_custom_body: data.has_custom_body,
             force_inclusion: data.force_inclusion,
             has_html_element: data.has_html_element,
+            has_old_bundle_reference: data.has_old_bundle_reference,
             language: data.language,
             fragment: PageFragment {
                 page_number: 0, // This page number is updated later once determined
@@ -413,7 +415,7 @@ impl Fossicker {
 }
 
 fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOptions) -> String {
-    let prefix = relative_to.unwrap_or(&options.source);
+    let prefix = relative_to.unwrap_or(&options.site_source);
     let trimmed = page_url.strip_prefix(prefix);
     let Ok(url) = trimmed else {
         options.logger.error(format!(
@@ -711,32 +713,34 @@ mod tests {
     #[cfg(not(target_os = "windows"))]
     #[test]
     fn building_url() {
-        std::env::set_var("PAGEFIND_SOURCE", "hello/world");
+        std::env::set_var("PAGEFIND_SITE", "hello/world");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
         let opts = SearchOptions::load(config).unwrap();
 
-        let p: PathBuf = "hello/world/index.html".into();
+        let cwd = std::env::current_dir().unwrap();
+
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/index.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/");
 
-        let p: PathBuf = "hello/world/about/index.html".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about/index.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/about/");
 
-        let p: PathBuf = "hello/world/about.html".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/about.html");
 
-        let p: PathBuf = "hello/world/about/index.htm".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about/index.htm".into());
         assert_eq!(&build_url(&p, None, &opts), "/about/index.htm");
 
-        let p: PathBuf = "hello/world/index.html".into();
-        let root: PathBuf = "hello".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/index.html".into());
+        let root: PathBuf = cwd.join::<PathBuf>("hello".into());
         assert_eq!(&build_url(&p, Some(&root), &opts), "/world/");
     }
 
     #[cfg(target_os = "windows")]
     #[test]
     fn building_windows_urls() {
-        std::env::set_var("PAGEFIND_SOURCE", "C:\\hello\\world");
+        std::env::set_var("PAGEFIND_SITE", "C:\\hello\\world");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
         let opts = SearchOptions::load(config).unwrap();

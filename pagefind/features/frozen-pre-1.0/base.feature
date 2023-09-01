@@ -1,7 +1,13 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# This file represents a backwards-compatible setup as it existed before 1.0  #
+# These tests should remain as a permanent regresison check for older sites   #
+# It is very unlikely that the tests in this file should be touched           #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 Feature: Base Tests
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SITE | public |
+            | PAGEFIND_SOURCE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-url>Nothing</p>
@@ -10,17 +16,19 @@ Feature: Base Tests
     Scenario: Search for a word
         Given I have a "public/cat/index.html" file with the body:
             """
+            <link rel="pre-1.0-signal" href="_pagefind" >
             <h1>world</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/pagefind/pagefind.js"
+        Then I should see "pre-1.0 compatibility mode" in stderr
+        Then I should see the file "public/_pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/pagefind/pagefind.js");
+                let pagefind = await import("/_pagefind/pagefind.js");
 
                 let search = await pagefind.search("world");
 
@@ -34,17 +42,19 @@ Feature: Base Tests
     Scenario: Preload indexes then search for a word
         Given I have a "public/cat/index.html" file with the body:
             """
+            <link rel="pre-1.0-signal" href="_pagefind" >
             <h1>world</h1>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/pagefind/pagefind.js"
+        Then I should see "pre-1.0 compatibility mode" in stderr
+        Then I should see the file "public/_pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/pagefind/pagefind.js");
+                let pagefind = await import("/_pagefind/pagefind.js");
 
                 await pagefind.preload("wo");
                 let search = await pagefind.search("world");
@@ -55,27 +65,3 @@ Feature: Base Tests
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
-
-    Scenario: Return all results
-        Given I have a "public/cat/index.html" file with the body:
-            """
-            <h1>world</h1>
-            """
-        When I run my program
-        Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/pagefind/pagefind.js"
-        When I serve the "public" directory
-        When I load "/"
-        When I evaluate:
-            """
-            async function() {
-                let pagefind = await import("/pagefind/pagefind.js");
-
-                let search = await pagefind.search(null);
-
-                let pages = await Promise.all(search.results.map(r => r.data()));
-                document.querySelector('[data-url]').innerText = pages.map(p => p.url).sort().join(", ");
-            }
-            """
-        Then There should be no logs
-        Then The selector "[data-url]" should contain "/, /cat/"

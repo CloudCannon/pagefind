@@ -1,12 +1,19 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# This file represents a backwards-compatible setup as it existed before 1.0  #
+# These tests should remain as a permanent regresison check for older sites   #
+# It is very unlikely that the tests in this file should be touched           #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 Feature: Search Options
 
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SITE | public |
+            | PAGEFIND_SOURCE | public |
 
     Scenario: Base URL can be configured
         Given I have a "public/index.html" file with the body:
             """
+            <link rel="pre-1.0-signal" href="_pagefind" >
             <p data-url>Nothing</p>
             """
         Given I have a "public/cat/index.html" file with the body:
@@ -15,13 +22,14 @@ Feature: Search Options
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/pagefind/pagefind.js"
+        Then I should see "pre-1.0 compatibility mode" in stderr
+        Then I should see the file "public/_pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/pagefind/pagefind.js");
+                let pagefind = await import("/_pagefind/pagefind.js");
                 await pagefind.options({
                     baseUrl: "/docs/"
                 });
@@ -38,6 +46,7 @@ Feature: Search Options
     Scenario: Base URL auto-detects the default directory being moved
         Given I have a "public/index.html" file with the body:
             """
+            <link rel="pre-1.0-signal" href="_pagefind" >
             <p data-url>Nothing</p>
             """
         Given I have a "public/cat/index.html" file with the body:
@@ -45,15 +54,15 @@ Feature: Search Options
             <h1>world</h1>
             """
         When I run my program with the flags:
-            | --output-subdir blog/pagefind |
+            | --bundle-dir blog/_pagefind |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/blog/pagefind/pagefind.js"
+        Then I should see the file "public/blog/_pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/blog/pagefind/pagefind.js");
+                let pagefind = await import("/blog/_pagefind/pagefind.js");
 
                 let search = await pagefind.search("world");
 
@@ -67,6 +76,7 @@ Feature: Search Options
     Scenario: Keep Index URL can be configured
         Given I have a "public/index.html" file with the body:
             """
+            <link rel="pre-1.0-signal" href="_pagefind" >
             <p data-url>Nothing</p>
             """
         Given I have a "public/cat/index.html" file with the body:
@@ -74,16 +84,16 @@ Feature: Search Options
             <h1>world</h1>
             """
         When I run my program with the flags:
-            | --output-subdir blog/pagefind |
-            | --keep-index-url              |
+            | --bundle-dir blog/_pagefind |
+            | --keep-index-url            |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/blog/pagefind/pagefind.js"
+        Then I should see the file "public/blog/_pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/blog/pagefind/pagefind.js");
+                let pagefind = await import("/blog/_pagefind/pagefind.js");
 
                 let search = await pagefind.search("world");
 

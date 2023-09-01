@@ -18,13 +18,13 @@ Feature: Multisite Filters
             <span data-pagefind-filter="emote">happy</span>
             """
         When I run my program with the flags:
-            | --source root/website_a |
+            | --site root/website_a |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_a/_pagefind/pagefind.js"
+        Then I should see the file "root/website_a/pagefind/pagefind.js"
         When I run my program with the flags:
-            | --source root/website_b |
+            | --site root/website_b |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_b/_pagefind/pagefind.js"
+        Then I should see the file "root/website_b/pagefind/pagefind.js"
         When I serve the "root" directory
         When I load "/"
 
@@ -32,8 +32,8 @@ Feature: Multisite Filters
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/_pagefind/pagefind.js");
-                await pagefind.mergeIndex("/website_b/_pagefind/");
+                let pagefind = await import("/website_a/pagefind/pagefind.js");
+                await pagefind.mergeIndex("/website_b/pagefind/");
 
                 let search = await pagefind.search("web", {
                     filters: {
@@ -52,8 +52,8 @@ Feature: Multisite Filters
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/_pagefind/pagefind.js");
-                await pagefind.mergeIndex("/website_b/_pagefind/");
+                let pagefind = await import("/website_a/pagefind/pagefind.js");
+                await pagefind.mergeIndex("/website_b/pagefind/");
 
                 let search = await pagefind.search("web", {
                     filters: {
@@ -72,13 +72,13 @@ Feature: Multisite Filters
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/_pagefind/pagefind.js");
+                let pagefind = await import("/website_a/pagefind/pagefind.js");
                 await pagefind.options({
                     mergeFilter: {
                         site: "A"
                     }
                 });
-                await pagefind.mergeIndex("/website_b/_pagefind/", {
+                await pagefind.mergeIndex("/website_b/pagefind/", {
                     mergeFilter: {
                         site: ["B", "C"]
                     }

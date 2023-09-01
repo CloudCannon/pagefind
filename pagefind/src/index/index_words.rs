@@ -1,8 +1,8 @@
 use minicbor::Encode;
 
-/// The word index chunks in `_pagefind/index/`
+/// The word index chunks in `pagefind/index/`
 
-/// A single word index chunk: `_pagefind/index/*.pf_index`
+/// A single word index chunk: `pagefind/index/*.pf_index`
 #[derive(Encode)]
 pub struct WordIndex {
     #[n(0)]
