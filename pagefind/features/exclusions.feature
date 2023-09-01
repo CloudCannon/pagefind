@@ -2,7 +2,7 @@ Feature: Exclusions
 
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
 
     Scenario: Elements within search regions can be excluded from indexing and excerpts
         Given I have a "public/index.html" file with the body:
@@ -26,7 +26,7 @@ Feature: Exclusions
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let searchone = await pagefind.search("hello");
                 let searchonedata = await searchone.results[0].data();
@@ -67,7 +67,7 @@ Feature: Exclusions
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let searchone = await pagefind.search("hello");
                 let searchonedata = await searchone.results[0].data();
@@ -106,7 +106,7 @@ Feature: Exclusions
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("hello");
                 let searchdata = await search.results[0].data();
@@ -150,7 +150,7 @@ Feature: Exclusions
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let searchone = await pagefind.search("hello");
                 let searchonedata = await searchone.results[0].data();

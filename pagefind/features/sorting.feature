@@ -1,7 +1,7 @@
 Feature: Result Sorting
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-asc></p>
@@ -39,7 +39,7 @@ Feature: Result Sorting
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let asc_search = await pagefind.search("Robe", { sort: { model: "asc" } });
                 let asc_data = await Promise.all(asc_search.results.map(result => result.data()));
@@ -58,7 +58,7 @@ Feature: Result Sorting
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let asc_search = await pagefind.search("Robe", { sort: { lumens: "asc" } });
                 let asc_data = await Promise.all(asc_search.results.map(result => result.data()));
@@ -77,7 +77,7 @@ Feature: Result Sorting
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let asc_search = await pagefind.search("Robe", { sort: { weight: "asc" } });
                 let asc_data = await Promise.all(asc_search.results.map(result => result.data()));
@@ -96,7 +96,7 @@ Feature: Result Sorting
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let asc_search = await pagefind.search("Robe", { sort: { mixed: "asc" } });
                 let asc_data = await Promise.all(asc_search.results.map(result => result.data()));
@@ -115,7 +115,7 @@ Feature: Result Sorting
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let asc_search = await pagefind.search("Robe", { sort: { color: "asc" } });
                 let asc_data = await Promise.all(asc_search.results.map(result => result.data()));

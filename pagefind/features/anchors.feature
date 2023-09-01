@@ -2,7 +2,7 @@ Feature: Anchors
 
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-search>Nothing</p>
@@ -55,7 +55,7 @@ Feature: Anchors
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("pageone");
                 let searchdata = await search.results[0].data();
@@ -69,7 +69,7 @@ Feature: Anchors
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("pageone");
                 let searchdata = await search.results[0].data();
@@ -83,7 +83,7 @@ Feature: Anchors
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("pageone");
                 let searchdata = await search.results[0].data();
@@ -97,7 +97,7 @@ Feature: Anchors
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("pageone");
                 let searchdata = await search.results[0].data();
@@ -111,7 +111,7 @@ Feature: Anchors
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("pagetwo");
                 let searchdata = await search.results[0].data();
@@ -135,7 +135,7 @@ Feature: Anchors
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("extracted");
                 let searchdata = await search.results[0].data();

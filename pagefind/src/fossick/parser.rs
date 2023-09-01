@@ -61,6 +61,7 @@ struct DomParserData {
     anchor_content: HashMap<String, String>,
     language: Option<String>,
     has_html_element: bool,
+    has_old_bundle_reference: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -111,6 +112,7 @@ pub struct DomParserResult {
     pub has_custom_body: bool,
     pub force_inclusion: bool, // Include this page even if there is no body
     pub has_html_element: bool,
+    pub has_old_bundle_reference: bool,
     pub language: String,
 }
 
@@ -508,6 +510,25 @@ impl<'a> DomParser<'a> {
                         }
                         Ok(())
                     })},
+                    // Dig into script and style references to see if they refer to pre-1.0 conventions
+                    enclose! { (data) element!("script, link", move |el| {
+                        if el.tag_name() == "script" {
+                            if let Some(src) = el.get_attribute("src") {
+                                if src.starts_with("_pagefind") || src.contains("/_pagefind") {
+                                    let mut data = data.borrow_mut();
+                                    data.has_old_bundle_reference = true;
+                                }
+                            }
+                        } else if el.tag_name() == "link" {
+                            if let Some(href) = el.get_attribute("href") {
+                                if href.starts_with("_pagefind") || href.contains("/_pagefind") {
+                                    let mut data = data.borrow_mut();
+                                    data.has_old_bundle_reference = true;
+                                }
+                            }
+                        }
+                        Ok(())
+                    })},
                 ],
                 strict: false,
                 ..Settings::default()
@@ -588,6 +609,7 @@ impl<'a> DomParser<'a> {
             has_custom_body: node.status == NodeStatus::ParentOfBody,
             force_inclusion: false,
             has_html_element: data.has_html_element,
+            has_old_bundle_reference: data.has_old_bundle_reference,
             language: data
                 .language
                 .filter(|lang| !lang.is_empty())

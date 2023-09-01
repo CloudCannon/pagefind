@@ -28,7 +28,7 @@ If interfacing with Pagefind directly, options can be passed via awaiting `pagef
 
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +await pagefind.options({
 +    baseUrl: "/",
 +    // ... more search options
@@ -53,7 +53,7 @@ Defaults to "/". If hosting a site on a subpath, `baseUrl` can be provided, and 
 
 ```json
 {
-    "bundlePath": "/subpath/_pagefind/"
+    "bundlePath": "/subpath/pagefind/"
 }
 ```
 

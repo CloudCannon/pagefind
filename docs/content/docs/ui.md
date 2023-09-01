@@ -10,11 +10,11 @@ Pagefind provides a UI component that supports searching, filtering, and metadat
 
 ## Adding the Pagefind UI to a page
 
-Pagefind UI can be added to any page with the following snippet. The `/_pagefind/` directory and containing files will be created for you when running the Pagefind CLI.
+Pagefind UI can be added to any page with the following snippet. The `/pagefind/` directory and containing files will be created for you when running the Pagefind CLI.
 
 ```html
-<link href="/_pagefind/pagefind-ui.css" rel="stylesheet">
-<script src="/_pagefind/pagefind-ui.js"></script>
+<link href="/pagefind/pagefind-ui.css" rel="stylesheet">
+<script src="/pagefind/pagefind-ui.js"></script>
 
 <div id="search"></div>
 <script>
@@ -56,7 +56,7 @@ body.dark {
 
 ## Styling Pagefind UI yourself
 
-Pagefind UI can be styled manually by omitting the `/_pagefind/pagefind-ui.css` stylesheet. In this case it will function as a pure HTML component.
+Pagefind UI can be styled manually by omitting the `/pagefind/pagefind-ui.css` stylesheet. In this case it will function as a pure HTML component.
 
 The classnames within Pagefind UI that begin with `pagefind-ui` should be targeted. These may change, so if you are styling them yourself make sure to test new releases of Pagefind with your stylesheet. Changes to classnames will be highlighted in the release notes, but will not be signalled by a major release.
 
@@ -184,7 +184,7 @@ By default, Pagefind UI applies a CSS reset to itself. Pass `false` to omit this
 ```javascript
 new PagefindUI({
     element: "#search",
-+    bundlePath: "/subpath/_pagefind/"
++    bundlePath: "/subpath/pagefind/"
 });
 ```
 {{< /diffcode >}}

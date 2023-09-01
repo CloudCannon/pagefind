@@ -49,20 +49,20 @@ Feature: Multisite Search Languages
 
     Scenario: Pagefind picks the same language across multiple sites
         When I run my program with the flags:
-            | --source root/website_a |
+            | --site root/website_a |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_a/_pagefind/pagefind.js"
+        Then I should see the file "root/website_a/pagefind/pagefind.js"
         When I run my program with the flags:
-            | --source root/website_b |
+            | --site root/website_b |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_b/_pagefind/pagefind.js"
+        Then I should see the file "root/website_b/pagefind/pagefind.js"
         When I serve the "root" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/_pagefind/pagefind.js");
-                await pagefind.mergeIndex("/website_b/_pagefind/");
+                let pagefind = await import("/website_a/pagefind/pagefind.js");
+                await pagefind.mergeIndex("/website_b/pagefind/");
 
                 let search = await pagefind.search("web"); // <-- TODO search for "website"
 
@@ -75,20 +75,20 @@ Feature: Multisite Search Languages
 
     Scenario: Language of merged indexes can be selected
         When I run my program with the flags:
-            | --source root/website_a |
+            | --site root/website_a |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_a/_pagefind/pagefind.js"
+        Then I should see the file "root/website_a/pagefind/pagefind.js"
         When I run my program with the flags:
-            | --source root/website_b |
+            | --site root/website_b |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_b/_pagefind/pagefind.js"
+        Then I should see the file "root/website_b/pagefind/pagefind.js"
         When I serve the "root" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/_pagefind/pagefind.js");
-                await pagefind.mergeIndex("/website_b/_pagefind/", {
+                let pagefind = await import("/website_a/pagefind/pagefind.js");
+                await pagefind.mergeIndex("/website_b/pagefind/", {
                     language: "pt-br"
                 });
 

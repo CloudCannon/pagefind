@@ -14,8 +14,8 @@ Pagefind will look for a `pagefind.toml`, `pagefind.yml`, `pagefind.yaml`, or `p
 
 ```yaml
 # pagefind.yml
-source: public
-bundle_dir: _pagefind
+site: public
+output_subdir: pagefind
 ```
 ```bash
 npx pagefind
@@ -26,8 +26,8 @@ npx pagefind
 Pagefind will load any values via a `PAGEFIND_*` environment variable.
 
 ```bash
-export PAGEFIND_BUNDLE_DIR="_pagefind"
-PAGEFIND_SOURCE="public" npx pagefind
+export PAGEFIND_OUTPUT_SUBDIR="pagefind"
+PAGEFIND_SITE="public" npx pagefind
 ```
 
 ## CLI flags
@@ -35,5 +35,5 @@ PAGEFIND_SOURCE="public" npx pagefind
 Pagefind can be passed CLI flags directly.
 
 ```bash
-npx pagefind --source public --bundle-dir _pagefind
+npx pagefind --site public --output-subdir pagefind
 ```

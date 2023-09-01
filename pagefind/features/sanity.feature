@@ -3,7 +3,7 @@ Feature: Sanity Tests
   Scenario: CLI tests are working
     Given I have a "public/index.html" file
     When I run my program with the flags:
-      | --source public |
+      | --site public |
     Then I should see "Running Pagefind" in stdout
 
   Scenario: Web tests are working
