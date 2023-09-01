@@ -41,7 +41,7 @@ class PagefindInstance {
 
         this.basePath = opts.basePath || "/pagefind/";
         this.primary = opts.primary || false;
-        if (this.primary) {
+        if (this.primary && !opts.basePath) {
             this.initPrimary();
         }
         if (/[^\/]$/.test(this.basePath)) {
@@ -51,7 +51,7 @@ class PagefindInstance {
             this.basePath = this.basePath.replace(window.location.origin, '');
         }
 
-        this.baseUrl = opts.baseUrl || this.defaultBasePath();
+        this.baseUrl = opts.baseUrl || this.defaultBaseUrl();
         if (!/^(\/|https?:\/\/)/.test(this.baseUrl)) {
             this.baseUrl = `/${this.baseUrl}`;
         }
@@ -73,11 +73,14 @@ class PagefindInstance {
         if (derivedBasePath) {
             this.basePath = derivedBasePath;
         } else {
-            console.warn("Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.");
+            console.warn([
+                "Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.",
+                "Set a basePath option when initialising Pagefind to ignore this message."
+            ].join('\n'));
         }
     }
 
-    defaultBasePath() {
+    defaultBaseUrl() {
         let default_base = this.basePath.match(/^(.*\/)_?pagefind/)?.[1];
         return default_base || "/";
     }
@@ -125,6 +128,12 @@ class PagefindInstance {
         }
         await Promise.all(resources);
         this.raw_ptr = this.backend.init_pagefind(new Uint8Array(this.searchMeta));
+
+        if (Object.keys(this.mergeFilter)?.length) {
+            let filters = this.stringifyFilters(this.mergeFilter);
+            let ptr = await this.getPtr();
+            this.raw_ptr = this.backend.add_synthetic_filter(ptr, filters);
+        }
     }
 
     async loadEntry() {
@@ -440,17 +449,18 @@ class Pagefind {
     primary: PagefindInstance;
     instances: PagefindInstance[];
 
-    constructor() {
+    constructor(options: PagefindIndexOptions = {}) {
         this.backend = wasm_bindgen;
         this.primaryLanguage = "unknown";
         this.searchID = 0;
 
         this.primary = new PagefindInstance({
+            ...options,
             primary: true
         });
         this.instances = [this.primary];
 
-        this.init();
+        this.init(options?.language);
     }
 
     async options(options: PagefindIndexOptions) {
@@ -458,13 +468,13 @@ class Pagefind {
         await this.primary.options(options);
     }
 
-    async init() {
+    async init(overrideLanguage?: string) {
         if (document?.querySelector) {
             const langCode = document.querySelector("html")?.getAttribute("lang") || "unknown";
             this.primaryLanguage = langCode.toLocaleLowerCase();
         }
 
-        await this.primary.init(this.primaryLanguage, {
+        await this.primary.init(overrideLanguage ? overrideLanguage : this.primaryLanguage, {
             load_wasm: true
         });
     }
@@ -549,12 +559,43 @@ class Pagefind {
     }
 }
 
-const pagefind = new Pagefind();
+let pagefind: Pagefind | undefined = undefined;
+let initial_options: PagefindIndexOptions | undefined = undefined;
 
-export const mergeIndex = async (indexPath: string, options: PagefindIndexOptions) => await pagefind.mergeIndex(indexPath, options);
-export const options = async (options: PagefindIndexOptions) => await pagefind.options(options);
-// TODO: Add a language function that can change the language before pagefind is initialised
-export const search = async (term: string, options: PagefindSearchOptions) => await pagefind.search(term, options);
-export const debouncedSearch = async (term: string, options: PagefindSearchOptions, debounceTimeoutMs: number = 300) => await pagefind.debouncedSearch(term, options, debounceTimeoutMs);
-export const preload = async (term: string, options: PagefindSearchOptions) => await pagefind.preload(term, options);
-export const filters = async () => await pagefind.filters();
+const init_pagefind = () => {
+    if (!pagefind) {
+        pagefind = new Pagefind(initial_options ?? {});
+    }
+}
+
+export const options = async (new_options: PagefindIndexOptions) => {
+    if (pagefind) {
+        await pagefind.options(new_options);
+    } else {
+        initial_options = new_options;
+    }
+}
+export const init = async () => {
+    init_pagefind();
+}
+
+export const mergeIndex = async (indexPath: string, options: PagefindIndexOptions) => {
+    init_pagefind();
+    return await pagefind!.mergeIndex(indexPath, options);
+}
+export const search = async (term: string, options: PagefindSearchOptions) => {
+    init_pagefind();
+    return await pagefind!.search(term, options);
+}
+export const debouncedSearch = async (term: string, options: PagefindSearchOptions, debounceTimeoutMs: number = 300) => {
+    init_pagefind();
+    return await pagefind!.debouncedSearch(term, options, debounceTimeoutMs);
+}
+export const preload = async (term: string, options: PagefindSearchOptions) => {
+    init_pagefind();
+    return await pagefind!.preload(term, options);
+}
+export const filters = async () => {
+    init_pagefind();
+    return await pagefind!.filters();
+}
