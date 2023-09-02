@@ -1,5 +1,6 @@
 <script>
     export let show_images = true;
+    export let show_sub_results = false;
     export let process_result = null;
     export let result = { data: async () => {} };
 
@@ -44,6 +45,20 @@
                 >
             </p>
             <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
+            {#if show_sub_results}
+                {#each data.sub_results as subres}
+                    <div class="pagefind-ui__result-nested">
+                        <p class="pagefind-ui__result-title">
+                            <a
+                                class="pagefind-ui__result-link"
+                                href={subres.url}
+                                >{@html subres.title}</a
+                            >
+                        </p>
+                        <p class="pagefind-ui__result-excerpt">{@html subres.excerpt}</p>
+                    </div>
+                {/each}
+            {/if}
             {#if meta.length}
                 <ul class="pagefind-ui__result-tags">
                     {#each meta as [metaTitle, metaValue]}
@@ -85,6 +100,24 @@
     .pagefind-ui__result:last-of-type {
         border-bottom: solid var(--pagefind-ui-border-width)
             var(--pagefind-ui-border);
+    }
+    .pagefind-ui__result-nested {
+        display: flex;
+        flex-direction: column;
+        padding-left: calc(20px * var(--pagefind-ui-scale));
+    }
+    .pagefind-ui__result-nested:first-of-type {
+        padding-top: calc(10px * var(--pagefind-ui-scale));
+    }
+    .pagefind-ui__result-nested .pagefind-ui__result-link {
+        font-size: 0.9em;
+        position: relative;
+    }
+    .pagefind-ui__result-nested .pagefind-ui__result-link::before {
+        content: "⤷ ";
+        position: absolute;
+        top: 0;
+        right: calc(100% + 0.1em);
     }
     .pagefind-ui__result-thumb {
         width: min(

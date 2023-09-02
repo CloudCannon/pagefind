@@ -18,6 +18,8 @@ export class PagefindUI {
         let bundlePath = opts.bundlePath ?? scriptBundlePath;
         let resetStyles = opts.resetStyles ?? true;
         let showImages = opts.showImages ?? true;
+        let showSubResults = opts.showSubResults ?? false;
+        let excerptLength = opts.excerptLength ?? 0;
         let processResult = opts.processResult ?? null;
         let processTerm = opts.processTerm ?? null;
         let showEmptyFilters = opts.showEmptyFilters ?? true;
@@ -30,6 +32,8 @@ export class PagefindUI {
         delete opts["bundlePath"];
         delete opts["resetStyles"];
         delete opts["showImages"];
+        delete opts["showSubResults"];
+        delete opts["excerptLength"];
         delete opts["processResult"];
         delete opts["processTerm"];
         delete opts["showEmptyFilters"];
@@ -45,6 +49,8 @@ export class PagefindUI {
                     base_path: bundlePath,
                     reset_styles: resetStyles,
                     show_images: showImages,
+                    show_sub_results: showSubResults,
+                    excerpt_length: excerptLength,
                     process_result: processResult,
                     process_term: processTerm,
                     show_empty_filters: showEmptyFilters,

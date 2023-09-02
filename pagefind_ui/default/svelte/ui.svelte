@@ -22,6 +22,8 @@
     export let base_path = "/_pagefind/";
     export let reset_styles = true;
     export let show_images = true;
+    export let show_sub_results = false;
+    export let excerpt_length;
     export let process_result = null;
     export let process_term = null;
     export let show_empty_filters = true;
@@ -80,7 +82,16 @@
         initializing = true;
         if (!pagefind) {
             let imported_pagefind = await import(`${base_path}pagefind.js`);
-            await imported_pagefind.options(pagefind_options || {});
+            
+            if (!excerpt_length) {
+                excerpt_length = show_sub_results ? 12 : 30;
+            };
+            let opts = {
+                ...(pagefind_options || {}),
+                excerptLength: excerpt_length,
+            };
+
+            await imported_pagefind.options(opts);
             for (const index of merge_index) {
                 if (!index.bundlePath) {
                     throw new Error(
@@ -270,6 +281,7 @@
                             {#each searchResult.results.slice(0, show) as result (result.id)}
                                 <Result
                                     {show_images}
+                                    {show_sub_results}
                                     {process_result}
                                     {result}
                                 />

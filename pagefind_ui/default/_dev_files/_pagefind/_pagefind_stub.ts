@@ -40,7 +40,7 @@ const stub_results = (term): PagefindSearchResult[] => {
             color: [get_a_word()]
           },
           meta: {
-            title: `Post about ${term}`,
+            title: `${get_a_word()} ${term} ${get_a_word()}`,
             image: `https://placekitten.com/${Math.floor(Math.random() * 1000)}/${Math.floor(Math.random() * 1000)}`,
           },
           anchors: [

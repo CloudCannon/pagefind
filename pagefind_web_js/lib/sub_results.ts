@@ -1,7 +1,7 @@
 import { build_excerpt, calculate_excerpt_region } from "./excerpt";
 
 
-export const calculate_sub_results = (fragment: PagefindSearchFragment): PagefindSubResult[] => {
+export const calculate_sub_results = (fragment: PagefindSearchFragment, desired_excerpt_length: number): PagefindSubResult[] => {
 
     const anchors = fragment.anchors.filter(a => /h\d/i.test(a.element) && a.text?.length && /\w/.test(a.text)).sort((a, b) => a.location - b.location);
     const results: PagefindSubResult[] = [];
@@ -17,8 +17,8 @@ export const calculate_sub_results = (fragment: PagefindSearchFragment): Pagefin
     const add_result = (end_range?: number) => {
         if (current_page_locations.length) {
             const relative_locations = current_page_locations.map(l => l - current_anchor_position);
-            const excerpt_start = calculate_excerpt_region(relative_locations, 30) + current_anchor_position;
-            const excerpt_length = end_range ? Math.min((end_range - excerpt_start), 30) : 30;
+            const excerpt_start = calculate_excerpt_region(relative_locations, desired_excerpt_length) + current_anchor_position;
+            const excerpt_length = end_range ? Math.min((end_range - excerpt_start), desired_excerpt_length) : desired_excerpt_length;
             current_anchor.excerpt = build_excerpt(fragment, excerpt_start, excerpt_length, current_page_locations);
 
             results.push(current_anchor);
