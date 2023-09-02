@@ -32,8 +32,11 @@
     <link href="/pagefind/pagefind-ui.css" rel="stylesheet">
     {{ $style := resources.Get "css/site.scss" | toCSS | minify | fingerprint }}
     <link rel="stylesheet" href="{{ $style.Permalink }}">
+    <link rel="preload" href="/pagefind/pagefind-ui.js" as="script" />
 
     <title>{{.Params.title}} | Pagefind</title>
+
+    <script src="{{ $js.RelPermalink }}" defer></script>
 </head>
 <body {{ with .Params.nav_section -}}{{- if not (eq . "Root") -}}
     data-pagefind-filter="section:{{ . }}"
@@ -55,7 +58,7 @@
     </div>
     <footer>
         <a href="https://cloudcannon.com" target="_blank">
-            <img class="cloudcannon" src="/cloudcannon.svg" alt="CloudCannon">
+            <img class="cloudcannon" src="/cloudcannon.svg" alt="CloudCannon" decoding="async">
         </a>
     </footer>
 
@@ -66,6 +69,5 @@
     </script>
 
     {{ $js := resources.Get "js/site.js" | js.Build }}
-    <script src="{{ $js.RelPermalink }}" defer></script>
 </body>
 </html>
