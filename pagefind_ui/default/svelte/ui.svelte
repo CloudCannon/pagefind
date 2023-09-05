@@ -3,6 +3,7 @@
     import { parse as parseBCP47 } from "bcp-47";
 
     import Result from "./result.svelte";
+    import ResultWithSubs from "./result_with_subs.svelte";
     import Filters from "./filters.svelte";
     import Reset from "./reset.svelte";
 
@@ -279,12 +280,19 @@
                         </p>
                         <ol class="pagefind-ui__results">
                             {#each searchResult.results.slice(0, show) as result (result.id)}
-                                <Result
-                                    {show_images}
-                                    {show_sub_results}
-                                    {process_result}
-                                    {result}
-                                />
+                                {#if show_sub_results}
+                                    <ResultWithSubs
+                                        {show_images}
+                                        {process_result}
+                                        {result}
+                                    />
+                                {:else}
+                                    <Result
+                                        {show_images}
+                                        {process_result}
+                                        {result}
+                                    />
+                                {/if}
                             {/each}
                         </ol>
                         {#if searchResult.results.length > show}
