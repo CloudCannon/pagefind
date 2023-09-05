@@ -56,6 +56,7 @@ declare global {
     type PagefindSubResult = {
         title: string,
         url: string,
+        locations: number[],
         excerpt: string,
         anchor?: PagefindSearchAnchor,
     }
