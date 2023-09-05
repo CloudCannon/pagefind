@@ -1,18 +1,26 @@
-import PagefindSvelte from './svelte/ui.svelte';
+import PagefindSvelte from "./svelte/ui.svelte";
 
 let scriptBundlePath;
 try {
-    scriptBundlePath = new URL(document.currentScript.src).pathname.match(/^(.*\/)(?:pagefind-)?ui.js.*$/)[1];
+  scriptBundlePath = new URL(document.currentScript.src).pathname.match(
+    /^(.*\/)(?:pagefind-)?ui.js.*$/
+  )[1];
 } catch (e) {
-    scriptBundlePath = "/_pagefind/";
-    console.warn(`Pagefind couldn't determine the base of the bundle from the javascript import path. Falling back to the default of ${scriptBundlePath}.`);
-    console.warn("You can configure this by passing a bundlePath option to PagefindUI");
-    console.warn(`[DEBUG: Loaded from ${document?.currentScript?.src ?? "unknown"}]`);
+  scriptBundlePath = "/pagefind/";
+  console.warn(
+    `Pagefind couldn't determine the base of the bundle from the javascript import path. Falling back to the default of ${scriptBundlePath}.`
+  );
+  console.warn(
+    "You can configure this by passing a bundlePath option to PagefindUI"
+  );
+  console.warn(
+    `[DEBUG: Loaded from ${document?.currentScript?.src ?? "unknown"}]`
+  );
 }
 
 export class PagefindUI {
-    constructor(opts) {
-        this._pfs = null;
+  constructor(opts) {
+    this._pfs = null;
 
         let selector = opts.element ?? "[data-pagefind-ui]";
         let bundlePath = opts.bundlePath ?? scriptBundlePath;
@@ -64,8 +72,9 @@ export class PagefindUI {
             console.error(`Pagefind UI couldn't find the selector ${selector}`);
         }
     }
+  }
 
-    triggerSearch(term) {
-        this._pfs.$$set({ "trigger_search_term": term });
-    }
+  triggerSearch(term) {
+    this._pfs.$$set({ trigger_search_term: term });
+  }
 }

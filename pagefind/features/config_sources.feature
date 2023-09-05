@@ -7,11 +7,11 @@ Feature: Config Sources
             """
         Given I have a "pagefind.toml" file with the content:
             """
-            source = "public"
+            site = "public"
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
 
     Scenario: Settings can be pulled from YAML configuration files
         Given I have a "public/index.html" file with the body:
@@ -20,11 +20,11 @@ Feature: Config Sources
             """
         Given I have a "pagefind.yml" file with the content:
             """
-            source: public
+            site: public
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
 
     Scenario: Settings can be pulled from JSON configuration files
         Given I have a "public/index.html" file with the body:
@@ -34,12 +34,12 @@ Feature: Config Sources
         Given I have a "pagefind.json" file with the content:
             """
             {
-                "source": "public"
+                "site": "public"
             }
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
 
     Scenario: Settings can be pulled from command-line flags
         Given I have a "public/index.html" file with the body:
@@ -47,9 +47,9 @@ Feature: Config Sources
             <h1>Hello.</h1>
             """
         When I run my program with the flags:
-            | --source public |
+            | --site public |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
 
     Scenario: Settings can be pulled from environment variables
         Given I have a "public/index.html" file with the body:
@@ -57,10 +57,10 @@ Feature: Config Sources
             <h1>Hello.</h1>
             """
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
 
     Scenario: Settings can be pulled from multiple sources
         Given I have a "public/index.html" file with the body:
@@ -70,10 +70,10 @@ Feature: Config Sources
         Given I have a "pagefind.json" file with the content:
             """
             {
-                "source": "public"
+                "site": "public"
             }
             """
         When I run my program with the flags:
-            | --bundle-dir _out |
+            | --output-subdir _out |
         Then I should see "Running Pagefind" in stdout
         Then I should see the file "public/_out/pagefind.js"

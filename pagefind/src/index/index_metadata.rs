@@ -17,7 +17,7 @@ pub struct MetaIndex {
     pub sorts: Vec<MetaSort>,
 }
 
-/// Communicates the _pagefind/index/*.pf_index file we need to load
+/// Communicates the pagefind/index/*.pf_index file we need to load
 /// when searching for a word that sorts between `from` and `to`
 #[derive(Encode, PartialEq, Debug)]
 pub struct MetaChunk {

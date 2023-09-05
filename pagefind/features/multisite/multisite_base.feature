@@ -14,22 +14,22 @@ Feature: Multisite Search
             <h1>web ipsum</h1>
             """
 
-    Scenario: Pagefind can search across multiple sites
+    Scenario: Pagefind can search across multiple basic sites
         When I run my program with the flags:
-            | --source root/website_a |
+            | --site root/website_a |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_a/_pagefind/pagefind.js"
+        Then I should see the file "root/website_a/pagefind/pagefind.js"
         When I run my program with the flags:
-            | --source root/website_b |
+            | --site root/website_b |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_b/_pagefind/pagefind.js"
+        Then I should see the file "root/website_b/pagefind/pagefind.js"
         When I serve the "root" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/_pagefind/pagefind.js");
-                await pagefind.mergeIndex("/website_b/_pagefind/");
+                let pagefind = await import("/website_a/pagefind/pagefind.js");
+                await pagefind.mergeIndex("/website_b/pagefind/");
 
                 let search = await pagefind.search("web");
 
@@ -44,16 +44,16 @@ Feature: Multisite Search
         Given I have a "root/index.html" file with the body:
             """
             <div id="search"></div>
-            <script src="/website_a/_pagefind/pagefind-ui.js"></script>
+            <script src="/website_a/pagefind/pagefind-ui.js"></script>
             """
         When I run my program with the flags:
-            | --source root/website_a |
+            | --site root/website_a |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_a/_pagefind/pagefind.js"
+        Then I should see the file "root/website_a/pagefind/pagefind.js"
         When I run my program with the flags:
-            | --source root/website_b |
+            | --site root/website_b |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_b/_pagefind/pagefind.js"
+        Then I should see the file "root/website_b/pagefind/pagefind.js"
         When I serve the "root" directory
         When I load "/"
         Then There should be no logs
@@ -63,7 +63,7 @@ Feature: Multisite Search
                 let pui = new PagefindUI({
                     element: "#search",
                     mergeIndex: [{
-                        bundlePath: "/website_b/_pagefind/"
+                        bundlePath: "/website_b/pagefind/"
                     }]
                 });
                 pui.triggerSearch("web");
@@ -79,16 +79,16 @@ Feature: Multisite Search
     @skip
     Scenario: Pagefind can search across discrete domains
         When I run my program with the flags:
-            | --source root/website_a |
+            | --site root/website_a |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_a/_pagefind/pagefind.js"
+        Then I should see the file "root/website_a/pagefind/pagefind.js"
         When I serve the "root" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/_pagefind/pagefind.js");
-                await pagefind.mergeIndex("https://pagefind.app/_pagefind/");
+                let pagefind = await import("/website_a/pagefind/pagefind.js");
+                await pagefind.mergeIndex("https://pagefind.app/pagefind/");
 
                 let search = await pagefind.search("PAGEFIND_ROOT_SELECTOR");
 
@@ -107,12 +107,12 @@ Feature: Multisite Search
         Given I have a "root/index.html" file with the body:
             """
             <div id="search"></div>
-            <script src="/website_a/_pagefind/pagefind-ui.js"></script>
+            <script src="/website_a/pagefind/pagefind-ui.js"></script>
             """
         When I run my program with the flags:
-            | --source root/website_a |
+            | --site root/website_a |
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "root/website_a/_pagefind/pagefind.js"
+        Then I should see the file "root/website_a/pagefind/pagefind.js"
         When I serve the "root" directory
         When I load "/"
         Then There should be no logs
@@ -122,7 +122,7 @@ Feature: Multisite Search
                 let pui = new PagefindUI({
                     element: "#search",
                     mergeIndex: [{
-                        bundlePath: "https://pagefind.app/_pagefind/"
+                        bundlePath: "https://pagefind.app/pagefind/"
                     }]
                 });
                 pui.triggerSearch("PAGEFIND_ROOT_SELECTOR");

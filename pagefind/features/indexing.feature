@@ -2,7 +2,7 @@ Feature: Indexing
 
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
 
     Scenario: Indexing can be limited to a given element
         Given I have a "public/index.html" file with the body:
@@ -41,7 +41,7 @@ Feature: Indexing
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let searchone = await pagefind.search("hello");
                 let searchonedata = await searchone.results[0].data();
@@ -73,7 +73,7 @@ Feature: Indexing
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Alternate");
                 let searchdata = await search.results[0]?.data();

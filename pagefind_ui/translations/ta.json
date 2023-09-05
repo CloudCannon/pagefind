@@ -1,0 +1,18 @@
+{
+    "thanks_to": "",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "தேடுக",
+        "clear_search": "அழிக்குக",
+        "load_more": "மேலும் முடிவுகளைக் காட்டுக",
+        "search_label": "இந்த தளத்தில் தேடுக",
+        "filters_label": "வடிகட்டல்கள்",
+        "zero_results": "[SEARCH_TERM] க்கான முடிவுகள் இல்லை",
+        "many_results": "[SEARCH_TERM] க்கான [COUNT] முடிவுகள்",
+        "one_result": "[SEARCH_TERM] க்கான முடிவு",
+        "alt_search": "[SEARCH_TERM] இத்தேடலுக்கான முடிவுகள் இல்லை, இந்த தேடல்களுக்கான ஒத்த முடிவுகள் [DIFFERENT_TERM]",
+        "search_suggestion": "[SEARCH_TERM] இத் தேடலுக்கான முடிவுகள் இல்லை.இதற்கு பதிலீடான தேடல்களை தேடுக:",
+        "searching": "[SEARCH_TERM] தேடப்படுகின்றது"
+    }
+}

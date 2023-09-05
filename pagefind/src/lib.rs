@@ -278,8 +278,7 @@ impl SearchState {
     }
 
     pub async fn write_files(&self, custom_outdir: Option<PathBuf>) -> PathBuf {
-        let outdir =
-            custom_outdir.unwrap_or_else(|| self.options.source.join(&self.options.bundle_dir));
+        let outdir = custom_outdir.unwrap_or(self.options.bundle_output.clone());
 
         let index_entries: Vec<_> = self
             .built_indexes
@@ -300,7 +299,7 @@ impl SearchState {
     }
 
     pub async fn get_files(&self) -> Vec<SyntheticFile> {
-        let outdir = self.options.source.join(&self.options.bundle_dir);
+        let outdir = &self.options.bundle_output;
 
         let index_entries: Vec<_> = self
             .built_indexes
@@ -310,7 +309,7 @@ impl SearchState {
 
         let mut files: Vec<_> =
             join_all(self.built_indexes.iter().map(|indexes| async {
-                indexes.write_files_to_memory(&self.options, &outdir).await
+                indexes.write_files_to_memory(&self.options, outdir).await
             }))
             .await
             .into_iter()
@@ -318,7 +317,7 @@ impl SearchState {
             .collect();
 
         files.extend(
-            output::write_common_to_memory(&self.options, index_entries, &outdir)
+            output::write_common_to_memory(&self.options, index_entries, outdir)
                 .await
                 .into_iter(),
         );
@@ -342,7 +341,19 @@ impl SearchState {
             "Running from: {:?}",
             self.options.working_directory
         ));
-        log.info(format!("Source:       {:?}", self.options.source));
-        log.info(format!("Bundle Directory:  {:?}", self.options.bundle_dir));
+        log.info(format!(
+            "Source:       {:?}",
+            self.options
+                .site_source
+                .strip_prefix(&self.options.working_directory)
+                .unwrap_or(&self.options.site_source)
+        ));
+        log.info(format!(
+            "Output:       {:?}",
+            self.options
+                .bundle_output
+                .strip_prefix(&self.options.working_directory)
+                .unwrap_or(&self.options.bundle_output)
+        ));
     }
 }

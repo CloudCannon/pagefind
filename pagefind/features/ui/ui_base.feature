@@ -1,11 +1,11 @@
 Feature: Base UI Tests
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <div id="search"></div>
-            <script src="/_pagefind/pagefind-ui.js"></script>
+            <script src="/pagefind/pagefind-ui.js"></script>
 
             <script>
                 window.pui = new PagefindUI({ element: "#search" });
@@ -19,7 +19,7 @@ Feature: Base UI Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         Then There should be no logs
@@ -32,7 +32,7 @@ Feature: Base UI Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:

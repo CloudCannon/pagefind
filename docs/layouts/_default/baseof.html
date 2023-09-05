@@ -29,7 +29,7 @@
     <meta content="summary_large_image" name="twitter:card">
     <meta content="{{"/og.png" | absURL}}" property="twitter:image">
 
-    <link href="/_pagefind/pagefind-ui.css" rel="stylesheet">
+    <link href="/pagefind/pagefind-ui.css" rel="stylesheet">
     {{ $style := resources.Get "css/site.scss" | toCSS | minify | fingerprint }}
     <link rel="stylesheet" href="{{ $style.Permalink }}">
 
@@ -41,7 +41,7 @@
     {{ partial "banner.html" }}
     {{ partial "nav.html" }}
     <div class="search">
-        <script src="/_pagefind/pagefind-ui.js"></script>
+        <script src="/pagefind/pagefind-ui.js"></script>
         <div id="search"></div>
     </div>
     <div class="column">

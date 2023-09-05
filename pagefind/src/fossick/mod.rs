@@ -18,6 +18,7 @@ use crate::SearchOptions;
 use parser::DomParser;
 
 use self::parser::DomParserResult;
+use self::splitting::get_discrete_words;
 
 lazy_static! {
     static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
@@ -28,6 +29,7 @@ lazy_static! {
 }
 
 pub mod parser;
+mod splitting;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FossickedWord {
@@ -44,6 +46,7 @@ pub struct FossickedData {
     pub has_custom_body: bool,
     pub force_inclusion: bool,
     pub has_html_element: bool,
+    pub has_old_bundle_reference: bool,
     pub language: String,
 }
 
@@ -202,6 +205,24 @@ impl Fossicker {
 
         let mut content = String::with_capacity(data.digest.len());
 
+        let mut store_word = |full_word: &str, word_index: usize, word_weight: u8| {
+            let word = if let Some(stemmer) = &stemmer {
+                stemmer.stem(&full_word).into_owned()
+            } else {
+                full_word.to_string()
+            };
+
+            let entry = FossickedWord {
+                position: word_index.try_into().unwrap(),
+                weight: word_weight,
+            };
+            if let Some(repeat) = map.get_mut(&word) {
+                repeat.push(entry);
+            } else {
+                map.insert(word, vec![entry]);
+            }
+        };
+
         // TODO: Consider reading newlines and jump the word_index up some amount,
         // so that separate bodies of text don't return exact string
         // matches across the boundaries. Or otherwise use some marker byte for the boundary.
@@ -295,30 +316,28 @@ impl Fossicker {
 
             content.push_str(&word.replace('\u{200B}', ""));
             content.push(' ');
-
-            let mut normalized_word = SPECIAL_CHARS
-                .replace_all(word, "")
-                .into_owned()
-                .to_lowercase();
-
             #[cfg(feature = "extended")]
             if should_segment {
                 content.push('\u{200B}');
             }
 
-            if !normalized_word.is_empty() {
-                if let Some(stemmer) = &stemmer {
-                    normalized_word = stemmer.stem(&normalized_word).into_owned();
-                }
+            let normalized_word = SPECIAL_CHARS
+                .replace_all(word, "")
+                .into_owned()
+                .to_lowercase();
 
-                let entry = FossickedWord {
-                    position: word_index.try_into().unwrap(),
-                    weight: *word_weight,
-                };
-                if let Some(repeat) = map.get_mut(&normalized_word) {
-                    repeat.push(entry);
-                } else {
-                    map.insert(normalized_word, vec![entry]);
+            if !normalized_word.is_empty() {
+                store_word(&normalized_word, word_index, *word_weight);
+            }
+
+            // For words that may be CompoundWords, also index them as their constituent parts
+            if normalized_word != word {
+                let parts = get_discrete_words(word);
+                // Only proceed if the word was broken into multiple parts
+                if parts.contains(|c: char| c.is_whitespace()) {
+                    for part_word in parts.split_whitespace() {
+                        store_word(part_word, word_index, *word_weight);
+                    }
                 }
             }
         }
@@ -368,6 +387,7 @@ impl Fossicker {
             has_custom_body: data.has_custom_body,
             force_inclusion: data.force_inclusion,
             has_html_element: data.has_html_element,
+            has_old_bundle_reference: data.has_old_bundle_reference,
             language: data.language,
             fragment: PageFragment {
                 page_number: 0, // This page number is updated later once determined
@@ -395,7 +415,7 @@ impl Fossicker {
 }
 
 fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOptions) -> String {
-    let prefix = relative_to.unwrap_or(&options.source);
+    let prefix = relative_to.unwrap_or(&options.site_source);
     let trimmed = page_url.strip_prefix(prefix);
     let Ok(url) = trimmed else {
         options.logger.error(format!(
@@ -693,32 +713,34 @@ mod tests {
     #[cfg(not(target_os = "windows"))]
     #[test]
     fn building_url() {
-        std::env::set_var("PAGEFIND_SOURCE", "hello/world");
+        std::env::set_var("PAGEFIND_SITE", "hello/world");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
         let opts = SearchOptions::load(config).unwrap();
 
-        let p: PathBuf = "hello/world/index.html".into();
+        let cwd = std::env::current_dir().unwrap();
+
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/index.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/");
 
-        let p: PathBuf = "hello/world/about/index.html".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about/index.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/about/");
 
-        let p: PathBuf = "hello/world/about.html".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about.html".into());
         assert_eq!(&build_url(&p, None, &opts), "/about.html");
 
-        let p: PathBuf = "hello/world/about/index.htm".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/about/index.htm".into());
         assert_eq!(&build_url(&p, None, &opts), "/about/index.htm");
 
-        let p: PathBuf = "hello/world/index.html".into();
-        let root: PathBuf = "hello".into();
+        let p: PathBuf = cwd.join::<PathBuf>("hello/world/index.html".into());
+        let root: PathBuf = cwd.join::<PathBuf>("hello".into());
         assert_eq!(&build_url(&p, Some(&root), &opts), "/world/");
     }
 
     #[cfg(target_os = "windows")]
     #[test]
     fn building_windows_urls() {
-        std::env::set_var("PAGEFIND_SOURCE", "C:\\hello\\world");
+        std::env::set_var("PAGEFIND_SITE", "C:\\hello\\world");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
         let opts = SearchOptions::load(config).unwrap();

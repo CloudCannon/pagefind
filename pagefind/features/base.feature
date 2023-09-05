@@ -1,7 +1,7 @@
 Feature: Base Tests
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-url>Nothing</p>
@@ -14,13 +14,13 @@ Feature: Base Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("world");
 
@@ -38,13 +38,13 @@ Feature: Base Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 await pagefind.preload("wo");
                 let search = await pagefind.search("world");
@@ -63,13 +63,13 @@ Feature: Base Tests
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search(null);
 

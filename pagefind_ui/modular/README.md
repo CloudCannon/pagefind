@@ -18,8 +18,8 @@ The Pagefind Modular UI allows you to build a search UI out of Modules, all conn
 The Pagefind CLI outputs assets for the Modular UI that can be loaded directly:
 
 ```html
-<link href="/_pagefind/pagefind-modular-ui.css" rel="stylesheet">
-<script src="/_pagefind/pagefind-modular-ui.js"></script>
+<link href="/pagefind/pagefind-modular-ui.css" rel="stylesheet">
+<script src="/pagefind/pagefind-modular-ui.js"></script>
 
 <script>
     window.addEventListener('DOMContentLoaded', (event) => {
@@ -43,7 +43,7 @@ The Modular UI is also distributed as an NPM package:
 import { Instance, Input, ResultList } from "@pagefind/modular-ui";
 
 const instance = new Instance({
-    bundlePath: "/_pagefind/"
+    bundlePath: "/pagefind/"
 });
 instance.add(new Input({
     containerElement: "#searchbox"
@@ -63,19 +63,19 @@ import styles from "@pagefind/modular-ui/css/ui.css";
 
 ```js
 const instance = new Instance({
-    bundlePath: "/_pagefind/"
+    bundlePath: "/pagefind/"
 });
 ```
 
 An `Instance` serves as the central hub that all modules are connected to, and facilitates communication between each module and the Pagefind JS API.
 
-| Option | Description |
-|-|-|
-| `bundlePath` | See [UI > Bundle path](https://pagefind.app/docs/ui/#bundle-path) |
+| Option       | Description                                                                                                                         |
+|--------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `bundlePath` | See [UI > Bundle path](https://pagefind.app/docs/ui/#bundle-path)                                                                   |
 | `mergeIndex` | See [Searching additional sites from Pagefind UI](https://pagefind.app/docs/multisite/#searching-additional-sites-from-pagefind-ui) |
 
-| Method | Description |
-|-|-|
+| Method        | Description                          |
+|---------------|--------------------------------------|
 | `add(module)` | Connects a module to this `Instance` |
 
 ## Modules
@@ -94,11 +94,11 @@ instance.add(new Input({
 }));
 ```
 
-| Option | Description |
-|-|-|
-| `containerElement` | A selector to an element that a new search input should be placed within |
-| `inputElement` | A selector to an existing `<input />` element that should be used as the search input. _(NB: No Pagefind styling will be applied)_ |
-| `debounceTimeoutMs` | Number of ms (default: `300`) to wait before performing a search while a user is typing |
+| Option              | Description                                                                                                                        |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| `containerElement`  | A selector to an element that a new search input should be placed within                                                           |
+| `inputElement`      | A selector to an existing `<input />` element that should be used as the search input. _(NB: No Pagefind styling will be applied)_ |
+| `debounceTimeoutMs` | Number of ms (default: `300`) to wait before performing a search while a user is typing                                            |
 
 ### ResultList
 
@@ -108,11 +108,11 @@ instance.add(new ResultList({
 }));
 ```
 
-| Option | Description |
-|-|-|
-| `containerElement` | A selector to an element that the results should be placed within |
+| Option                | Description                                                               |
+|-----------------------|---------------------------------------------------------------------------|
+| `containerElement`    | A selector to an element that the results should be placed within         |
 | `placeholderTemplate` | A function that returns the template for a result that has not yet loaded |
-| `resultTemplate` | A function that returns the template for a search result |
+| `resultTemplate`      | A function that returns the template for a search result                  |
 
 ```js
 // Larger example:
@@ -141,13 +141,13 @@ instance.add(new FilterPills({
 }));
 ```
 
-| Option | Description |
-|-|-|
-| `containerElement` | A selector to an element that the filter pill row should be placed within |
-| `filter` | Which filter this row should represent. Filter name should exist in the search index |
-| `ordering` | An array containing the ideal order to display filter values in. Unmatched values will appear at the end |
-| `alwaysShow` | Whether to show the component when there are no results |
-| `selectMultiple` | Whether this component should toggle between single filter values, or allow multiple to be selected at once |
+| Option             | Description                                                                                                 |
+|--------------------|-------------------------------------------------------------------------------------------------------------|
+| `containerElement` | A selector to an element that the filter pill row should be placed within                                   |
+| `filter`           | Which filter this row should represent. Filter name should exist in the search index                        |
+| `ordering`         | An array containing the ideal order to display filter values in. Unmatched values will appear at the end    |
+| `alwaysShow`       | Whether to show the component when there are no results                                                     |
+| `selectMultiple`   | Whether this component should toggle between single filter values, or allow multiple to be selected at once |
 
 
 ### Summary
@@ -158,10 +158,10 @@ instance.add(new Summary({
 }));
 ```
 
-| Option | Description |
-|-|-|
+| Option             | Description                                                                   |
+|--------------------|-------------------------------------------------------------------------------|
 | `containerElement` | A selector to an element that the search summary text should be placed within |
-| `defaultMessage` | The text to show when there is no summary. Defaults to nothing |
+| `defaultMessage`   | The text to show when there is no summary. Defaults to nothing                |
 
 ### Custom Modules
 
@@ -205,7 +205,7 @@ Alternatively, you can react to events from the instance directly:
 
 ```js
 const instance = new Instance({
-    bundlePath: "/_pagefind/"
+    bundlePath: "/pagefind/"
 });
 instance.on("results", (results) => {
     // Search results are available

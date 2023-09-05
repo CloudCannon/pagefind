@@ -48,6 +48,7 @@ pagefind_stem = { version = "0.2.0", features = [
     "turkish",
     "yiddish",
 ] }
+convert_case = "0.6.0"
 charabia = { version = "0.7.0", optional = true }
 hashbrown = { version = "0.13.1", features = ["serde"] }
 regex = "1.1"

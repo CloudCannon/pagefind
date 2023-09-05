@@ -18,8 +18,10 @@
 * Added Italian translations (PR #323 — thanks @apjanco !)
 * Added Hindi translations (PR #324 — thanks @Amitind !)
 * Added Finnish translations (PR #366 — thanks @valtlai !)
+* Added Turkish translations (PR #395 — thanks @taylanbildik !)
 * Don't reset the browser-provided outlines when resetting UI styles
 * Compoung filtering (TODO: Pin to stable microjson release)
+* Indexing compound words
 
 ## v0.12.0 (March 1, 2023)
 

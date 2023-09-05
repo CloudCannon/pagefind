@@ -19,7 +19,7 @@
         };
     }
 
-    export let base_path = "/_pagefind/";
+    export let base_path = "/pagefind/";
     export let reset_styles = true;
     export let show_images = true;
     export let show_sub_results = false;

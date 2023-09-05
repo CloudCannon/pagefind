@@ -10,8 +10,8 @@
   "author": "Cloudcannon",
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "^0.18.2",
-    "typescript": "^5.1.6"
+    "esbuild": "^0.19.0",
+    "typescript": "^5.2.2"
   },
   "files": [
     "src/types/**"
