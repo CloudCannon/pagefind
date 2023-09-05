@@ -27,12 +27,19 @@ const sveltefixPlugin = {
 const serve = async () => {
   const esbuildOptions = {
     outdir: path.join(__dirname, "_dev_files/pagefind"),
-    entryPoints: [path.join(__dirname, "ui.js")],
+    entryPoints: [
+      path.join(__dirname, "ui.js"),
+      {
+        out: "pagefind",
+        in: path.join(__dirname, "_dev_files/pagefind/_pagefind_stub.ts"),
+      },
+    ],
     plugins: [
       ImportGlobPlugin.default(),
       sveltePlugin({ compileOptions: { css: false } }),
       sveltefixPlugin,
     ],
+    format: "esm",
     bundle: true,
   };
 

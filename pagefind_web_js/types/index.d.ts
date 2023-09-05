@@ -4,6 +4,7 @@ declare global {
     type PagefindIndexOptions = {
         basePath?: string,
         baseUrl?: string,
+        excerptLength?: number,
         primary?: boolean,
         indexWeight?: number,
         mergeFilter?: Object,
@@ -55,6 +56,7 @@ declare global {
     type PagefindSubResult = {
         title: string,
         url: string,
+        locations: number[],
         excerpt: string,
         anchor?: PagefindSearchAnchor,
     }

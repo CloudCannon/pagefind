@@ -497,7 +497,9 @@ impl<'a> DomParser<'a> {
                         let element_text = el.as_str();
                         node.current_value.push_str(element_text);
 
-                        if node.anchor_ids.is_some() {
+                        let node_is_ignored = node.status == NodeStatus::Ignored || node.status == NodeStatus::Excluded;
+
+                        if !node_is_ignored && node.anchor_ids.is_some() {
                             let anchor_ids = node.anchor_ids.clone().unwrap();
                             drop(node);
                             for anchor_id in anchor_ids {
