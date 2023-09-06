@@ -47,7 +47,7 @@ await index.getFiles();
 
 // Write the index to disk
 await index.writeFiles({
-    bundlePath: "./public/pagefind"
+    outputPath: "./public/pagefind"
 });
 ```
 
@@ -173,11 +173,11 @@ Writes the index files to disk, as they would be written when running the standa
 
 ```js
 const { errors } = await index.writeFiles({
-    bundlePath: "./public/pagefind"
+    outputPath: "./public/pagefind"
 });
 ```
 
-The `bundlePath` option should contain the path to the desired Pagefind bundle directory. If relative, is relative to the current working directory of your Node process.
+The `outputPath` option should contain the path to the desired Pagefind bundle directory. If relative, is relative to the current working directory of your Node process.
 
 A response with an `errors` array containing error messages indicates that Pagefind failed to action this request.
 

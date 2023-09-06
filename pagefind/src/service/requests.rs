@@ -39,7 +39,7 @@ pub(super) enum RequestAction {
     },
     WriteFiles {
         index_id: u32,
-        bundle_path: Option<String>,
+        output_path: Option<String>,
     },
     GetFiles {
         index_id: u32,

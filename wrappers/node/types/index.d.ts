@@ -162,13 +162,13 @@ export interface WriteOptions {
      * If relative, is relative to the cwd.
      * @example "./public/pagefind"
      */
-    bundlePath: string
+    outputPath: string
 }
 
 
 export interface WriteFilesResponse {
     errors: string[],
-    bundlePath: string
+    outputPath: string
 }
 
 /**
