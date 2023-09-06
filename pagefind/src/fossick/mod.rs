@@ -332,11 +332,17 @@ impl Fossicker {
 
             // For words that may be CompoundWords, also index them as their constituent parts
             if normalized_word != word {
-                let parts = get_discrete_words(word);
+                let (word_parts, extras) = get_discrete_words(word);
                 // Only proceed if the word was broken into multiple parts
-                if parts.contains(|c: char| c.is_whitespace()) {
-                    for part_word in parts.split_whitespace() {
+                if word_parts.contains(|c: char| c.is_whitespace()) {
+                    for part_word in word_parts.split_whitespace() {
                         store_word(part_word, word_index, *word_weight);
+                    }
+                }
+                // Additionally store any special extra characters we are given
+                if let Some(extras) = extras {
+                    for extra in extras {
+                        store_word(&extra, word_index, *word_weight);
                     }
                 }
             }
