@@ -31,6 +31,34 @@ Feature: Character Tests
         Then There should be no logs
         Then The selector "[data-result]" should contain "/apiary/"
 
+    Scenario: Pagefind matches emoji
+        Given I have a "public/fam-seperate/index.html" file with the body:
+            """
+            <h1>Fam 👨‍👩‍👧‍👦</h1>
+            """
+        Given I have a "public/fam-middled/index.html" file with the body:
+            """
+            <h1>F👨‍👩‍👧‍👦am</h1>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search("👨‍👩‍👧‍👦");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerText = pages.map(p => p.url).sort().join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "/fam-middled/, /fam-seperate/"
+
     Scenario: Pagefind doesn't match HTML entities as their text
         Given I have a "public/apiary/index.html" file with the body:
             """
