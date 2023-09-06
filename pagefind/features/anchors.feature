@@ -46,6 +46,12 @@ Feature: Anchors
                 <p>Some text nested under the divs</p>
             </div>
             """
+        Given I have a "public/repr/index.html" file with the body:
+            """
+            <div data-pagefind-body>
+                <h1 id="repr-heading">My <span data-pagefind-ignore>Redacted</span> Heading about Symbiosis</h1>
+            </div>
+            """
         When I run my program
         Then I should see "Running Pagefind" in stdout
         When I serve the "public" directory
@@ -149,3 +155,21 @@ Feature: Anchors
         Then There should be no logs
         Then The selector "[data-search]>ul>li:nth-of-type(1)" should contain "/dog/#h1: PageTwo, from Pagefind / 'text nested under the h1. Words in spans should be <mark>extracted.</mark> Some text nested under the p with spans.'"
         Then The selector "[data-search]>ul>li:nth-of-type(2)" should contain "/dog/#h2_hrefs: Links should be extracted / 'the h2. Text that is bold or italic should be <mark>extracted</mark> Some text nested under the span. Text containing nested IDs should <mark>extract</mark> both. Some text nested under the p'"
+
+    Scenario: Pagefind respects data-pagefind-ignore inside anchors
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search("symbiosis");
+                let searchdata = await search.results[0].data();
+                document.querySelector('[data-search]').innerHTML = `
+                    <ul>
+                        ${searchdata.sub_results.map(r => `<li>${r.url}: ${r.title} / '${r.excerpt}'</li>`).join('')}
+                    </ul>
+                `;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-search]>ul>li:nth-of-type(1)" should contain "/repr/#repr-heading: My Heading about Symbiosis / 'My Heading about <mark>Symbiosis.</mark>'"

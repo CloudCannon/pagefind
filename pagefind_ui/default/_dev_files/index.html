@@ -10,11 +10,16 @@
 </head>
 <body style="max-width: 1000px; padding: 80px; margin: 0 auto;">
     <h1>Hello World from the local dev suite</h1>
-    <p>Searches for words ending in <kbd>y</kbd> will return no results</p>
+    <details>
+        <summary>Shortcuts</summary>
+        <p>Searches for words ending in <kbd>y</kbd> will return no results</p>
+        <p>Searches containing <kbd>r</kbd> will have a sub-result for the page itself</p>
+        <p>Searches containing <kbd>d</kbd> will have sub-results for anchors</p>
+    </details>
     <div id="search"></div>
     <script src="/pagefind/ui.js"></script>
     <script>
-        new PagefindUI({ element: "#search" });
+        new PagefindUI({ element: "#search", showSubResults: true });
     </script>
 </body>
 </html>

@@ -20,6 +20,7 @@ class PagefindInstance {
     baseUrl: string;
     primary: boolean;
     indexWeight: number;
+    excerptLength: number;
     mergeFilter: Object;
 
     loaded_chunks: Record<string, Promise<void>>;
@@ -57,6 +58,7 @@ class PagefindInstance {
         }
 
         this.indexWeight = opts.indexWeight ?? 1;
+        this.excerptLength = opts.excerptLength ?? 30;
         this.mergeFilter = opts.mergeFilter ?? {};
 
         this.loaded_chunks = {};
@@ -86,7 +88,7 @@ class PagefindInstance {
     }
 
     async options(options: PagefindIndexOptions) {
-        const opts = ["basePath", "baseUrl", "indexWeight", "mergeFilter"];
+        const opts = ["basePath", "baseUrl", "indexWeight", "excerptLength", "mergeFilter"];
         for (const [k, v] of Object.entries(options)) {
             if (k === "mergeFilter") {
                 let filters = this.stringifyFilters(v);
@@ -96,6 +98,7 @@ class PagefindInstance {
                 if (k === "basePath" && typeof v === "string") this.basePath = v;
                 if (k === "baseUrl" && typeof v === "string") this.baseUrl = v;
                 if (k === "indexWeight" && typeof v === "number") this.indexWeight = v;
+                if (k === "excerptLength" && typeof v === "number") this.excerptLength = v;
                 if (k === "mergeFilter" && typeof v === "object") this.mergeFilter = v;
             } else {
                 console.warn(`Unknown Pagefind option ${k}. Allowed options: [${opts.join(', ')}]`);
@@ -261,10 +264,10 @@ class PagefindInstance {
             fragment.url = this.fullUrl(fragment.raw_url);
         }
 
-        const excerpt_start = calculate_excerpt_region(locations, 30);
-        fragment.excerpt = build_excerpt(fragment, excerpt_start, 30, locations);
+        const excerpt_start = calculate_excerpt_region(locations, this.excerptLength);
+        fragment.excerpt = build_excerpt(fragment, excerpt_start, this.excerptLength, locations);
 
-        fragment.sub_results = calculate_sub_results(fragment);
+        fragment.sub_results = calculate_sub_results(fragment, this.excerptLength);
 
         return fragment;
     }
