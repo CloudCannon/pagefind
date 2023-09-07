@@ -335,7 +335,8 @@ impl Fossicker {
                 let (word_parts, extras) = get_discrete_words(word);
                 // Only proceed if the word was broken into multiple parts
                 if word_parts.contains(|c: char| c.is_whitespace()) {
-                    for part_word in word_parts.split_whitespace() {
+                    // Only index two+ character words
+                    for part_word in word_parts.split_whitespace().filter(|w| w.len() > 1) {
                         store_word(part_word, word_index, *word_weight);
                     }
                 }
