@@ -71,6 +71,7 @@ Note that currently Pagefind only supports lists of options via configuration fi
 
 ### Glob
 Configures the glob used by Pagefind to discover HTML files. Defaults to `**/*.{html}`.
+See [Wax patterns documentation](https://github.com/olson-sean-k/wax#patterns) for more details.
 
 | CLI Flag        | ENV Variable    | Config Key |
 |-----------------|-----------------|------------|
