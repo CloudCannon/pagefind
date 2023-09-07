@@ -56,8 +56,8 @@
     let selected_filters = {};
     let automatic_translations = availableTranslations["en"];
 
-    const translate = (key) => {
-        return translations[key] ?? automatic_translations[key] ?? "";
+    const translate = (key, auto, overrides) => {
+        return overrides[key] ?? auto[key] ?? "";
     };
 
     onMount(() => {
@@ -196,7 +196,7 @@
     <form
         class="pagefind-ui__form"
         role="search"
-        aria-label={translate("search_label")}
+        aria-label={translate("search_label", automatic_translations, translations)}
         action="javascript:void(0);"
         on:submit={(e) => e.preventDefault()}
     >
@@ -215,7 +215,7 @@
             bind:value={val}
             bind:this={input_el}
             type="text"
-            placeholder={translate("placeholder")}
+            placeholder={translate("placeholder", automatic_translations, translations)}
             autocapitalize="none"
             enterkeyhint="search"
         />
@@ -227,7 +227,7 @@
             on:click={() => {
                 val = "";
                 input_el.blur();
-            }}>{translate("clear_search")}</button
+            }}>{translate("clear_search", automatic_translations, translations)}</button
         >
 
         <div class="pagefind-ui__drawer" class:pagefind-ui__hidden={!searched}>
@@ -236,6 +236,8 @@
                     {show_empty_filters}
                     {available_filters}
                     {translate}
+                    {automatic_translations}
+                    {translations}
                     bind:selected_filters
                 />
             {/if}
@@ -245,7 +247,7 @@
                     {#if loading}
                         {#if search_term}
                             <p class="pagefind-ui__message">
-                                {translate("searching").replace(
+                                {translate("searching", automatic_translations, translations).replace(
                                     /\[SEARCH_TERM\]/,
                                     search_term
                                 )}
@@ -254,12 +256,12 @@
                     {:else}
                         <p class="pagefind-ui__message">
                             {#if searchResult.results.length === 0}
-                                {translate("zero_results").replace(
+                                {translate("zero_results", automatic_translations, translations).replace(
                                     /\[SEARCH_TERM\]/,
                                     search_term
                                 )}
                             {:else if searchResult.results.length === 1}
-                                {translate("one_result")
+                                {translate("one_result", automatic_translations, translations)
                                     .replace(/\[SEARCH_TERM\]/, search_term)
                                     .replace(
                                         /\[COUNT\]/,
@@ -268,7 +270,7 @@
                                         ).format(1)
                                     )}
                             {:else}
-                                {translate("many_results")
+                                {translate("many_results", automatic_translations, translations)
                                     .replace(/\[SEARCH_TERM\]/, search_term)
                                     .replace(
                                         /\[COUNT\]/,
@@ -300,7 +302,7 @@
                                 type="button"
                                 class="pagefind-ui__button"
                                 on:click={showMore}
-                                >{translate("load_more")}</button
+                                >{translate("load_more", automatic_translations, translations)}</button
                             >
                         {/if}
                     {/if}
@@ -322,9 +324,9 @@
         --pagefind-ui-border-radius: 8px;
         --pagefind-ui-image-border-radius: 8px;
         --pagefind-ui-image-box-ratio: 3 / 2;
-        --pagefind-ui-font: system, -apple-system, ".SFNSText-Regular",
+        --pagefind-ui-font: system, -apple-system, "BlinkMacSystemFont", ".SFNSText-Regular",
             "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue",
-            "Lucida Grande", sans-serif;
+            "Lucida Grande", "Ubuntu", "arial", sans-serif;
     }
     .pagefind-ui {
         width: 100%;
