@@ -32,7 +32,7 @@ Feature: Node API Base Tests
 
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "Successfully wrote files" in stdout
         Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
@@ -73,7 +73,7 @@ Feature: Node API Base Tests
 
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "pagefind_version=" in stdout
         Then I should see "JS is at pagefind.js" in stdout
         Then I should see "1 fragment(s)" in stdout
@@ -98,7 +98,7 @@ Feature: Node API Base Tests
 
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "Successfully wrote files" in stdout
         Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
@@ -153,7 +153,7 @@ Feature: Node API Base Tests
 
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "Donezo!" in stdout
         Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
@@ -191,7 +191,7 @@ Feature: Node API Base Tests
 
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "Successfully wrote files" in stdout
         Then I should see the file "output/pagefind/pagefind.js"
         When I serve the "output" directory
@@ -239,7 +239,7 @@ Feature: Node API Base Tests
 
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "Successfully wrote files" in stdout
         Then I should see "2 fragment(s)" in stdout
         Then I should see the file "output/pagefind/pagefind.js"
@@ -293,7 +293,7 @@ Feature: Node API Base Tests
 
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "Successfully wrote files" in stdout
         Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
@@ -334,7 +334,7 @@ Feature: Node API Base Tests
              }
              bad();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "invalid type: integer `5`" in stdout
         Then I should see "Index has been deleted from the Pagefind service and no longer exists" in stdout
 
@@ -351,7 +351,7 @@ Feature: Node API Base Tests
              }
              run();
             """
-        When I run "cd public && npm i && PAGEFIND_BINARY_PATH='{{humane_cwd}}/../target/release/pagefind' node index.js"
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "pagefind.js" in stdout
         Then I should see "pagefind-ui.js" in stdout
         Then I should see "pagefind-ui.css" in stdout
