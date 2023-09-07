@@ -58,7 +58,7 @@ impl SearchState {
     }
 
     pub async fn fossick_many(&mut self, dir: PathBuf, glob: String) -> Result<usize, ()> {
-        let files = self.walk_for_files(dir, glob).await;
+        let files = self.walk_for_files(dir.clone(), glob).await;
         let log = &self.options.logger;
 
         log.info(format!(
@@ -321,6 +321,15 @@ impl SearchState {
                 .await
                 .into_iter(),
         );
+
+        // SyntheticFiles should only return the relative path to the file
+        // _within_ the bundle directory — placing them in a final location
+        // is left to the API consumer.
+        for file in files.iter_mut() {
+            if let Ok(relative_path) = file.filename.strip_prefix(outdir) {
+                file.filename = relative_path.to_path_buf();
+            }
+        }
 
         files
     }
