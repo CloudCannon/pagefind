@@ -1,4 +1,5 @@
 import { PagefindService } from "./service.js";
+import { decode } from "./encoding.js";
 
 /**
  * @typedef {import('pagefindInternal').InternalResponseCallback} InternalResponseCallback
@@ -254,7 +255,7 @@ const getFiles = (indexId) => new Promise((resolve, reject) => {
                     files: success.files.map(file => {
                         return {
                             path: file.path,
-                            content: Buffer.from(file.content, 'base64')
+                            content: decode(file.content)
                         }
                     })
                 }

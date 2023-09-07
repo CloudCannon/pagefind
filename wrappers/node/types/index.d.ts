@@ -183,7 +183,7 @@ export interface GetFilesResponse {
 
 export interface IndexFile {
     path: string,
-    content: Buffer
+    content: Uint8Array
 }
 
 /**
