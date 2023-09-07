@@ -62,7 +62,7 @@ export interface InternalAddDirRequest {
 export interface InternalWriteFilesRequest {
     type: 'WriteFiles',
     index_id: number,
-    bundle_path?: string
+    output_path?: string
 }
 
 export interface InternalGetFilesRequest {
@@ -124,7 +124,7 @@ export interface InternalIndexedDirResponse {
 
 export interface InternalWriteFilesResponse {
     type: 'WriteFiles',
-    bundle_path: string,
+    output_path: string,
 }
 
 export interface InternalGetFilesResponse {

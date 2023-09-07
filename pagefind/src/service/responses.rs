@@ -27,7 +27,7 @@ pub(super) enum ResponseAction {
     },
     BuildIndex {},
     WriteFiles {
-        bundle_path: String,
+        output_path: String,
     },
     GetFiles {
         files: Vec<SyntheticFileResponse>,

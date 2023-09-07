@@ -422,11 +422,14 @@ impl Fossicker {
 
 fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOptions) -> String {
     let prefix = relative_to.unwrap_or(&options.site_source);
-    let trimmed = page_url.strip_prefix(prefix);
-    let Ok(url) = trimmed else {
+
+    let url = if let Ok(trimmed) = page_url.strip_prefix(prefix) {
+        trimmed
+    } else if page_url.is_relative() {
+        page_url
+    } else {
         options.logger.error(format!(
-            "File was found that does not start with the source directory: {}\nSource: {:?}\nFile: {:?}",
-            trimmed.err().unwrap(),
+            "Absolute file was found that does not start with the source directory. Source: {:?}\nFile: {:?}",
             prefix,
             page_url
         ));

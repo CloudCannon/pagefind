@@ -47,7 +47,7 @@ await index.getFiles();
 
 // Write the index to disk
 await index.writeFiles({
-    bundlePath: "./public/pagefind"
+    outputPath: "./public/pagefind"
 });
 ```
 
@@ -152,20 +152,20 @@ If successful, the `file` object is returned containing some metadata about the 
 
 ### index.getFiles
 
-Get buffers of all files in the Pagefind index. Useful for integrating a Pagefind index into the development mode of a static site generator and hosting these files yourself.
+Get raw data of all files in the Pagefind index. Useful for integrating a Pagefind index into the development mode of a static site generator and hosting these files yourself.
 
 ```js
 const { errors, files } = await index.getFiles();
 
 for (const file of files) {
     console.log(file.path);
-    // do something with file.content
+    // do something with the file.content Uint8Array
 }
 ```
 
 A response with an `errors` array containing error messages indicates that Pagefind failed to action this request.
 
-If successful, `files` will be an array containing file objects. Each object contains a `path` key, which is the URL this file should be served at, and a `content` key containing the raw Buffer of this file.
+If successful, `files` will be an array containing file objects. Each object contains a `path` key, which is the URL this file should be served at, and a `content` key containing the raw data as a Uint8Array.
 
 ### index.writeFiles
 
@@ -173,11 +173,11 @@ Writes the index files to disk, as they would be written when running the standa
 
 ```js
 const { errors } = await index.writeFiles({
-    bundlePath: "./public/pagefind"
+    outputPath: "./public/pagefind"
 });
 ```
 
-The `bundlePath` option should contain the path to the desired Pagefind bundle directory. If relative, is relative to the current working directory of your Node process.
+The `outputPath` option should contain the path to the desired Pagefind bundle directory. If relative, is relative to the current working directory of your Node process.
 
 A response with an `errors` array containing error messages indicates that Pagefind failed to action this request.
 

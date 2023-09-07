@@ -237,13 +237,13 @@ pub async fn run_service() {
             }
             RequestAction::WriteFiles {
                 index_id,
-                bundle_path,
+                output_path,
             } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
                     index.build_indexes().await;
-                    let bundle_path = index.write_files(bundle_path.map(Into::into)).await;
+                    let resolved_output_path = index.write_files(output_path.map(Into::into)).await;
                     send(ResponseAction::WriteFiles {
-                        bundle_path: bundle_path.to_string_lossy().into(),
+                        output_path: resolved_output_path.to_string_lossy().into(),
                     });
                 }
             }

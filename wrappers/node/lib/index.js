@@ -1,4 +1,5 @@
 import { PagefindService } from "./service.js";
+import { decode } from "./encoding.js";
 
 /**
  * @typedef {import('pagefindInternal').InternalResponseCallback} InternalResponseCallback
@@ -212,7 +213,7 @@ const writeFiles = (indexId, options) => new Promise((resolve, reject) => {
         {
             type: action,
             index_id: indexId,
-            bundle_path: options?.bundlePath
+            output_path: options?.outputPath
         }, (response) => {
             /** @type {function(InternalResponsePayload): Omit<WriteFilesResponse, 'errors'>?} */
             const successCallback = (success) => {
@@ -222,7 +223,7 @@ const writeFiles = (indexId, options) => new Promise((resolve, reject) => {
                 }
 
                 return {
-                    bundlePath: success.bundle_path
+                    outputPath: success.output_path
                 }
             };
             handleApiResponse(resolve, reject, response, successCallback);
@@ -254,7 +255,7 @@ const getFiles = (indexId) => new Promise((resolve, reject) => {
                     files: success.files.map(file => {
                         return {
                             path: file.path,
-                            content: Buffer.from(file.content, 'base64')
+                            content: decode(file.content)
                         }
                     })
                 }
