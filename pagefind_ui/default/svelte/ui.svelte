@@ -324,9 +324,9 @@
         --pagefind-ui-border-radius: 8px;
         --pagefind-ui-image-border-radius: 8px;
         --pagefind-ui-image-box-ratio: 3 / 2;
-        --pagefind-ui-font: system, -apple-system, ".SFNSText-Regular",
+        --pagefind-ui-font: system, -apple-system, "BlinkMacSystemFont", ".SFNSText-Regular",
             "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue",
-            "Lucida Grande", sans-serif;
+            "Lucida Grande", "Ubuntu", "arial", sans-serif;
     }
     .pagefind-ui {
         width: 100%;
