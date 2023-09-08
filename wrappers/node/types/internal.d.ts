@@ -37,7 +37,8 @@ export interface InternalPagefindServiceConfig {
 export interface InternalAddFileRequest {
     type: 'AddFile',
     index_id: number,
-    file_path: string,
+    file_path?: string,
+    url?: string,
     file_contents: string
 }
 

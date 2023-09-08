@@ -161,10 +161,18 @@ pub async fn run_service() {
             RequestAction::AddFile {
                 index_id,
                 file_path,
+                url,
                 file_contents,
             } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
-                    let file = Fossicker::new_synthetic(PathBuf::from(file_path), file_contents);
+                    if file_path.is_none() && url.is_none() {
+                        return err(
+                            "Either a source path to the file, or an explicit URL must be provided",
+                        );
+                    }
+
+                    let file =
+                        Fossicker::new_synthetic(file_path.map(PathBuf::from), url, file_contents);
                     let data = index.fossick_one(file).await;
                     match data {
                         Ok(data) => send(ResponseAction::IndexedFile {
