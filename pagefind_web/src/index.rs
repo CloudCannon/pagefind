@@ -48,12 +48,12 @@ impl SearchIndex {
                 };
 
                 let word_locations = consume_arr_len!(decoder);
-                let mut weight = 1;
+                let mut weight = 25;
                 for _ in 0..word_locations {
                     let loc = consume_inum!(decoder);
                     // Negative numbers represent a change in the weighting of subsequent words.
                     if loc.is_negative() {
-                        let abs_weight = loc * -1 + 1;
+                        let abs_weight = (loc + 1) * -1;
                         weight = if abs_weight > 255 {
                             255
                         } else {

@@ -125,9 +125,12 @@ pub async fn build_indexes(
 
     for page in pages.into_iter() {
         for (word, mut positions) in page.word_data {
-            positions.sort_by_cached_key(|p| p.weight);
+            // A page weight of 1 is encoded as 25. Since most words should be this weight,
+            // we want to sort them to be first in the locations array to reduce filesize
+            // when we inline weight changes
+            positions.sort_by_cached_key(|p| if p.weight == 25 { 0 } else { p.weight });
 
-            let mut current_weight = 1;
+            let mut current_weight = 25;
             let mut weighted_positions = Vec::with_capacity(positions.len());
             // Calculate our output list of positions with weights.
             // This is a vec of page positions, with a change in weight for subsequent positions

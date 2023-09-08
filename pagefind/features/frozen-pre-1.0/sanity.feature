@@ -6,7 +6,7 @@
 
 Feature: Sanity Tests
 
-  Scenario: CLI tests are working
+  Scenario: LEGACY CLI tests are working
     Given I have a "public/index.html" file with the body:
       """
         <link rel="pre-1.0-signal" href="_pagefind" >
@@ -18,7 +18,7 @@ Feature: Sanity Tests
     Then I should see "pre-1.0 compatibility mode" in stderr
     Then I should see "The `source` option is deprecated" in stderr
 
-  Scenario: Web tests are working
+  Scenario: LEGACY Web tests are working
     Given I have a "public/index.html" file with the body:
       """
       <h1>Hello!</h1>

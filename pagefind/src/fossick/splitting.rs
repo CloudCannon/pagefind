@@ -13,7 +13,7 @@ pub fn get_discrete_words<S: AsRef<str>>(s: S) -> (String, Option<Vec<String>>) 
 
     let words = s
         .as_ref()
-        .replace(|c| c == '.' || c == ',' || c == '/' || c == ':', " ")
+        .replace(|c: char| c.is_ascii_punctuation(), " ")
         .to_case(Case::Lower);
 
     if EMOJI.is_match(s.as_ref()) {
@@ -75,6 +75,21 @@ mod tests {
         assert_eq!(
             get_discrete_words(input),
             ("cloud cannon page find".into(), None)
+        );
+    }
+
+    #[test]
+    fn french() {
+        let input = "l'alphabet";
+        assert_eq!(get_discrete_words(input), ("l alphabet".into(), None));
+    }
+
+    #[test]
+    fn html() {
+        let input = "<FormComponent data-pagefind-meta='[key:(value)]'>";
+        assert_eq!(
+            get_discrete_words(input),
+            ("form component data pagefind meta key value".into(), None)
         );
     }
 

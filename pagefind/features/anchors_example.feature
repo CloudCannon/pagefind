@@ -38,6 +38,7 @@ Feature: Anchors Example
             async function() {
                 let pagefind = await import("/pagefind/pagefind.js");
 
+                await pagefind.options({ excerptLength: 5 });
                 let search = await pagefind.search("pagefind");
                 let searchdata = await search.results[0].data();
                 document.querySelector('[data-search]').innerHTML = `
@@ -48,6 +49,6 @@ Feature: Anchors Example
             }
             """
         Then There should be no logs
-        Then The selector "[data-search]>ul>li:nth-of-type(1)" should contain "/installation/: Installing and running Pagefind / 'Installing and running <mark>Pagefind.</mark> <mark>Pagefind</mark> is a static binary with no dynamic dependencies, so in most cases will be simple to install and run. <mark>Pagefind</mark> is currently supported on Windows,'"
-        Then The selector "[data-search]>ul>li:nth-of-type(2)" should contain "/installation/#running-via-npx: Running via npx / 'versions can be run by passing a version tag. Running <mark>Pagefind</mark> via npx will download the <mark>pagefind_extended</mark> release, which includes specialized support for indexing Chinese and Japanese pages.'"
-        Then The selector "[data-search]>ul>li:nth-of-type(3)" should contain "/installation/#building-from-source: Building from source / 'Building from source. You can run cargo install <mark>pagefind</mark> to build from source.'"
+        Then The selector "[data-search]>ul>li:nth-of-type(1)" should contain "/installation/: Installing and running Pagefind / 'and running <mark>Pagefind.</mark> <mark>Pagefind</mark> is'"
+        Then The selector "[data-search]>ul>li:nth-of-type(2)" should contain "/installation/#running-via-npx: Running via npx / 'via npx. <mark>Pagefind</mark> publishes a'"
+        Then The selector "[data-search]>ul>li:nth-of-type(3)" should contain "/installation/#building-from-source: Building from source / 'run cargo install <mark>pagefind</mark> to'"

@@ -29,7 +29,7 @@ Feature: Base Modular UI Tests
             </script>
             """
 
-    Scenario: Pagefind Modular UI loads
+    Scenario: LEGACY Pagefind Modular UI loads
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>world</h1>
@@ -43,7 +43,7 @@ Feature: Base Modular UI Tests
         Then There should be no logs
         Then The selector "#search input" should exist
 
-    Scenario: Pagefind Modular UI searches
+    Scenario: LEGACY Pagefind Modular UI searches
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>world</h1>

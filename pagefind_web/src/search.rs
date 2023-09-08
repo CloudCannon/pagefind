@@ -10,7 +10,7 @@ pub struct PageSearchResult {
     pub page: String,
     pub page_index: usize,
     pub page_score: f32, // TODO: tf-idf implementation? Paired with the dictionary-in-meta approach
-    pub word_locations: Vec<u32>,
+    pub word_locations: Vec<(u8, u32)>,
 }
 
 impl SearchIndex {
@@ -57,11 +57,11 @@ impl SearchIndex {
         let mut pages: Vec<PageSearchResult> = vec![];
 
         for page_index in results.iter() {
-            let word_locations: Vec<Vec<u32>> = words
+            let word_locations: Vec<Vec<(u8, u32)>> = words
                 .iter()
                 .filter_map(|p| {
                     if p.page as usize == page_index {
-                        Some(p.locs.iter().map(|(_, i)| *i).collect())
+                        Some(p.locs.iter().map(|d| *d).collect())
                     } else {
                         None
                     }
@@ -72,12 +72,12 @@ impl SearchIndex {
             });
 
             if word_locations.len() > 1 {
-                'indexes: for pos in &word_locations[0] {
+                'indexes: for (_, pos) in &word_locations[0] {
                     let mut i = *pos;
                     for subsequent in &word_locations[1..] {
                         i += 1;
                         // Test each subsequent word map to try and find a contiguous block
-                        if !subsequent.contains(&i) {
+                        if !subsequent.iter().any(|(_, p)| *p == i) {
                             continue 'indexes;
                         }
                     }
@@ -86,7 +86,7 @@ impl SearchIndex {
                         page: page.hash.clone(),
                         page_index,
                         page_score: 1.0,
-                        word_locations: (*pos..=i).collect(),
+                        word_locations: ((*pos..=i).map(|w| (1, w))).collect(),
                     };
                     pages.push(search_result);
                     break 'indexes;
@@ -182,12 +182,17 @@ impl SearchIndex {
                 format! {"Word locations {:?}", word_locations}
             });
             word_locations.sort_unstable_by_key(|(_, loc)| *loc);
+            let page = &self.pages[page_index];
             debug!({
-                format! {"Word locations {:?}", word_locations}
+                format! {"Sorted word locations {:?}, {:?} word(s)", word_locations, page.word_count}
             });
 
-            let page = &self.pages[page_index];
-            let mut page_score = word_locations.len() as f32 / page.word_count as f32;
+            let mut page_score = (word_locations
+                .iter()
+                .map(|(weight, _)| *weight as f32)
+                .sum::<f32>()
+                / 25.0)
+                / page.word_count as f32;
             for (len, map) in length_maps.iter() {
                 // Boost pages that match shorter words, as they are closer
                 // to the term that was searched. Combine the weight with
@@ -199,17 +204,11 @@ impl SearchIndex {
                     });
                 }
             }
-            for (weight, _) in word_locations.iter() {
-                // Boost pages if words in the index are explicitly weighted higher.
-                if *weight > 1 {
-                    page_score += (weight - 1) as f32;
-                }
-            }
             let search_result = PageSearchResult {
                 page: page.hash.clone(),
                 page_index,
                 page_score,
-                word_locations: word_locations.into_iter().map(|(_, i)| i).collect(),
+                word_locations,
             };
 
             debug!({
