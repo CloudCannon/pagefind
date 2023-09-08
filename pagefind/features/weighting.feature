@@ -121,3 +121,34 @@ Feature: Word Weighting
             """
         Then There should be no logs
         Then The selector "p" should contain "/r2/, /r1/"
+
+    Scenario: Compound words are implicitly weighted lower
+        Given I have a "public/r1/index.html" file with the body:
+            """
+            <p>A single reference to antelope</p>
+            """
+        Given I have a "public/r2/index.html" file with the body:
+            """
+            <p>Two references to ThreeWordAntelope ThreeWordAntelope</p>
+            """
+        Given I have a "public/r3/index.html" file with the body:
+            """
+            <p>Three of TwoAntelope TwoAntelope TwoAntelope</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search(`antelope`);
+
+                let data = await Promise.all(search.results.map(result => result.data()));
+                document.querySelector('p').innerText = data.map(d => d.url).join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "p" should contain "/r3/, /r1/, /r2/"

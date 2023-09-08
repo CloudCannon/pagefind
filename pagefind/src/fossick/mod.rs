@@ -349,9 +349,15 @@ impl Fossicker {
                 let (word_parts, extras) = get_discrete_words(word);
                 // Only proceed if the word was broken into multiple parts
                 if word_parts.contains(|c: char| c.is_whitespace()) {
+                    let part_words: Vec<_> = word_parts.split_whitespace().collect();
+                    // Index constituents of a compound word as a proportion of the
+                    // weight of the full word.
+                    let per_weight =
+                        (word_weight / part_words.len().try_into().unwrap_or(std::u8::MAX)).max(1);
+
                     // Only index two+ character words
-                    for part_word in word_parts.split_whitespace().filter(|w| w.len() > 1) {
-                        store_word(part_word, word_index, *word_weight);
+                    for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
+                        store_word(part_word, word_index, per_weight);
                     }
                 }
                 // Additionally store any special extra characters we are given
