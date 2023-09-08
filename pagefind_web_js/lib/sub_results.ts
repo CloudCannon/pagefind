@@ -15,42 +15,46 @@ export const calculate_sub_results = (
   let current_anchor: PagefindSubResult = {
     title: fragment.meta["title"],
     url: fragment.url,
+    weightedLocations: [],
     locations: [],
     excerpt: "",
   };
 
   const add_result = (end_range?: number) => {
     if (current_anchor.locations.length) {
-      const relative_locations = current_anchor.locations.map(
-        (l) => l - current_anchor_position
+      const relative_weighted_locations = current_anchor.weightedLocations.map(
+        (l) => { return {weight: l.weight, location: l.location - current_anchor_position}}
       );
       const excerpt_start =
-        calculate_excerpt_region(relative_locations, desired_excerpt_length) +
+        calculate_excerpt_region(relative_weighted_locations, desired_excerpt_length) +
         current_anchor_position;
       const excerpt_length = end_range
         ? Math.min(end_range - excerpt_start, desired_excerpt_length)
         : desired_excerpt_length;
       current_anchor.excerpt = build_excerpt(
-        fragment,
+        fragment.raw_content ?? "",
         excerpt_start,
         excerpt_length,
-        current_anchor.locations
+        current_anchor.locations,
+        current_anchor_position,
+        end_range
       );
 
       results.push(current_anchor);
     }
   };
 
-  for (let word of fragment.locations) {
-    if (!anchors.length || word < anchors[0].location) {
-      current_anchor.locations.push(word);
+  for (let word of fragment.weightedLocations) {
+    if (!anchors.length || word.location < anchors[0].location) {
+      current_anchor.weightedLocations.push(word);
+      current_anchor.locations.push(word.location);
     } else {
       let next_anchor = anchors.shift()!;
 
       // Word is in a new sub result, track the previous one.
       add_result(next_anchor.location);
 
-      while (anchors.length && word >= anchors[0].location) {
+      while (anchors.length && word.location >= anchors[0].location) {
         next_anchor = anchors.shift()!;
       }
 
@@ -82,7 +86,8 @@ export const calculate_sub_results = (
         title: next_anchor.text!,
         url: anchored_url,
         anchor: next_anchor,
-        locations: [word],
+        weightedLocations: [word],
+        locations: [word.location],
         excerpt: "",
       };
     }

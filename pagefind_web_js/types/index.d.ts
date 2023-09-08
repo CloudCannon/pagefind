@@ -48,6 +48,7 @@ declare global {
         sub_results: PagefindSubResult[],
         word_count: number,
         locations: number[],
+        weightedLocations: PagefindWordLocation[],
         filters: Record<string, string[]>
         meta: Record<string, string>,
         anchors: PagefindSearchAnchor[],
@@ -57,8 +58,14 @@ declare global {
         title: string,
         url: string,
         locations: number[],
+        weightedLocations: PagefindWordLocation[],
         excerpt: string,
         anchor?: PagefindSearchAnchor,
+    }
+
+    type PagefindWordLocation = {
+        weight: number,
+        location: number,
     }
 
     type PagefindSearchAnchor = {

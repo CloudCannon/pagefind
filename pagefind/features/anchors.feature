@@ -153,8 +153,8 @@ Feature: Anchors
             }
             """
         Then There should be no logs
-        Then The selector "[data-search]>ul>li:nth-of-type(1)" should contain "/dog/#h1: PageTwo, from Pagefind / 'text nested under the h1. Words in spans should be <mark>extracted.</mark> Some text nested under the p with spans.'"
-        Then The selector "[data-search]>ul>li:nth-of-type(2)" should contain "/dog/#h2_hrefs: Links should be extracted / 'the h2. Text that is bold or italic should be <mark>extracted</mark> Some text nested under the span. Text containing nested IDs should <mark>extract</mark> both. Some text nested under the p'"
+        Then The selector "[data-search]>ul>li:nth-of-type(1)" should contain "/dog/#h1: PageTwo, from Pagefind / 'PageTwo, from Pagefind. Some text nested under the h1. Words in spans should be <mark>extracted.</mark> Some text nested under the p with spans.'"
+        Then The selector "[data-search]>ul>li:nth-of-type(2)" should contain "/dog/#h2_hrefs: Links should be extracted / 'should be <mark>extracted.</mark> Some text nested under the h2. Text that is bold or italic should be <mark>extracted</mark> Some text nested under the span. Text containing nested IDs should <mark>extract</mark>'"
 
     Scenario: Pagefind respects data-pagefind-ignore inside anchors
         When I evaluate:

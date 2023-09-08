@@ -10,7 +10,7 @@ pub struct PageSearchResult {
     pub page: String,
     pub page_index: usize,
     pub page_score: f32, // TODO: tf-idf implementation? Paired with the dictionary-in-meta approach
-    pub word_locations: Vec<u32>,
+    pub word_locations: Vec<(u8, u32)>,
 }
 
 impl SearchIndex {
@@ -57,11 +57,11 @@ impl SearchIndex {
         let mut pages: Vec<PageSearchResult> = vec![];
 
         for page_index in results.iter() {
-            let word_locations: Vec<Vec<u32>> = words
+            let word_locations: Vec<Vec<(u8, u32)>> = words
                 .iter()
                 .filter_map(|p| {
                     if p.page as usize == page_index {
-                        Some(p.locs.iter().map(|(_, i)| *i).collect())
+                        Some(p.locs.iter().map(|d| *d).collect())
                     } else {
                         None
                     }
@@ -72,12 +72,12 @@ impl SearchIndex {
             });
 
             if word_locations.len() > 1 {
-                'indexes: for pos in &word_locations[0] {
+                'indexes: for (_, pos) in &word_locations[0] {
                     let mut i = *pos;
                     for subsequent in &word_locations[1..] {
                         i += 1;
                         // Test each subsequent word map to try and find a contiguous block
-                        if !subsequent.contains(&i) {
+                        if !subsequent.iter().any(|(_, p)| *p == i) {
                             continue 'indexes;
                         }
                     }
@@ -86,7 +86,7 @@ impl SearchIndex {
                         page: page.hash.clone(),
                         page_index,
                         page_score: 1.0,
-                        word_locations: (*pos..=i).collect(),
+                        word_locations: ((*pos..=i).map(|w| (1, w))).collect(),
                     };
                     pages.push(search_result);
                     break 'indexes;
@@ -208,7 +208,7 @@ impl SearchIndex {
                 page: page.hash.clone(),
                 page_index,
                 page_score,
-                word_locations: word_locations.into_iter().map(|(_, i)| i).collect(),
+                word_locations,
             };
 
             debug!({

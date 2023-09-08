@@ -263,7 +263,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
                 result
                     .word_locations
                     .iter()
-                    .map(|l| l.to_string())
+                    .map(|(weight, loc)| format!("{weight}>{loc}"))
                     .collect::<Vec<String>>()
                     .join(",")
             )
