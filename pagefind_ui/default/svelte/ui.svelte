@@ -381,9 +381,9 @@
     }
     .pagefind-ui__search-clear {
         position: absolute;
-        top: calc(2px * var(--pagefind-ui-scale));
-        right: calc(2px * var(--pagefind-ui-scale));
-        height: calc(60px * var(--pagefind-ui-scale));
+        top: calc(3px * var(--pagefind-ui-scale));
+        right: calc(3px * var(--pagefind-ui-scale));
+        height: calc(58px * var(--pagefind-ui-scale));
         padding: 0 calc(15px * var(--pagefind-ui-scale)) 0
             calc(2px * var(--pagefind-ui-scale));
         color: var(--pagefind-ui-text);
