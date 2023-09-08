@@ -17,7 +17,8 @@ pub(super) enum RequestAction {
     },
     AddFile {
         index_id: u32,
-        file_path: String,
+        file_path: Option<String>,
+        url: Option<String>,
         file_contents: String,
     },
     AddRecord {

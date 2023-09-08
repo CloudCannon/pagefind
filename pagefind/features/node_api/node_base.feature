@@ -25,7 +25,7 @@ Feature: Node API Base Tests
 
              const run = async () => {
                  const { index } = await pagefind.createIndex();
-                 await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                 await index.addHTMLFile({sourcePath: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
                  await index.writeFiles();
                  console.log(`Successfully wrote files`);
              }
@@ -52,6 +52,40 @@ Feature: Node API Base Tests
         Then The selector "[data-url]" should contain "/dogs/"
 
     @platform-unix
+    Scenario: Build a synthetic index with overridden urls to disk via the api
+        Given I have a "public/index.js" file with the content:
+            """
+             import * as pagefind from "pagefind";
+
+             const run = async () => {
+                 const { index } = await pagefind.createIndex();
+                 await index.addHTMLFile({url: "/my-custom-url/", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                 await index.writeFiles();
+                 console.log(`Successfully wrote files`);
+             }
+
+             run();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
+        Then I should see "Successfully wrote files" in stdout
+        Then I should see the file "public/pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+             async function() {
+                 let pagefind = await import("/pagefind/pagefind.js");
+
+                 let search = await pagefind.search("testing");
+
+                 let data = await search.results[0].data();
+                 document.querySelector('[data-url]').innerText = data.url;
+             }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/my-custom-url/"
+
+    @platform-unix
     Scenario: Build a synthetic index to memory via the api
         Given I have a "public/index.js" file with the content:
             """
@@ -59,7 +93,7 @@ Feature: Node API Base Tests
 
              const run = async () => {
                  const { index } = await pagefind.createIndex();
-                 await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                 await index.addHTMLFile({sourcePath: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
                  const { files } = await index.getFiles();
 
                  const jsFile = files.filter(file => file.path.includes("pagefind.js"))[0];
@@ -184,7 +218,7 @@ Feature: Node API Base Tests
 
              const run = async () => {
                  const { index } = await pagefind.createIndex();
-                 await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                 await index.addHTMLFile({sourcePath: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
                  await index.writeFiles({ outputPath: "../output/pagefind" });
                  console.log(`Successfully wrote files`);
              }
@@ -222,16 +256,16 @@ Feature: Node API Base Tests
 
              const run = async () => {
                  const { index } = await pagefind.createIndex();
-                 await index.addHTMLFile({path: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                 await index.addHTMLFile({sourcePath: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
                  await index.writeFiles({ outputPath: "../output/pagefind" });
 
-                 await index.addHTMLFile({path: "rabbits/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                 await index.addHTMLFile({sourcePath: "rabbits/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
                  const { files } = await index.getFiles();
 
                  const fragments = files.filter(file => file.path.includes("fragment"));
                  console.log(`${fragments.length} fragment(s)`);
 
-                 await index.addHTMLFile({path: "cats/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+                 await index.addHTMLFile({sourcePath: "cats/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
                  await index.writeFiles({ outputPath: "./pagefind" });
 
                  console.log(`Successfully wrote files`);
@@ -286,7 +320,7 @@ Feature: Node API Base Tests
                      excludeSelectors: ["span"],
                      keepIndexUrl: true,
                  });
-                 await index.addHTMLFile({path: "dogs/index.html", content: "<h1>Testing, <span>testing</span></h1>"});
+                 await index.addHTMLFile({sourcePath: "dogs/index.html", content: "<h1>Testing, <span>testing</span></h1>"});
                  await index.writeFiles();
                  console.log(`Successfully wrote files`);
              }

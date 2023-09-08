@@ -81,11 +81,15 @@ impl Fossicker {
         }
     }
 
-    pub fn new_synthetic(file_path: PathBuf, contents: String) -> Self {
+    pub fn new_synthetic(
+        file_path: Option<PathBuf>,
+        page_url: Option<String>,
+        contents: String,
+    ) -> Self {
         Self {
-            file_path: Some(file_path),
+            file_path,
             root_path: None,
-            page_url: None,
+            page_url,
             synthetic_content: Some(contents),
             data: None,
         }
@@ -156,7 +160,6 @@ impl Fossicker {
     }
 
     async fn read_synthetic(&mut self, options: &SearchOptions) -> Result<(), Error> {
-        let Some(file_path) = &self.file_path else { return Ok(()) }; // TODO: Change to thiserror
         let Some(contents) = self.synthetic_content.as_ref() else { return Ok(()) };
 
         let mut rewriter = DomParser::new(options);
@@ -171,7 +174,13 @@ impl Fossicker {
             if let Err(error) = rewriter.write(&buf[..read]) {
                 println!(
                     "Failed to parse file {} — skipping this file. Error:\n{error}",
-                    file_path.to_str().unwrap_or("[unknown file]")
+                    &self
+                        .file_path
+                        .as_ref()
+                        .map(|p| p.to_str())
+                        .flatten()
+                        .or(self.page_url.as_ref().map(|u| u.as_str()))
+                        .unwrap_or("[unknown file]")
                 );
                 return Ok(());
             }
@@ -366,7 +375,7 @@ impl Fossicker {
     }
 
     pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
-        if self.file_path.is_some() && self.data.is_none() {
+        if (self.file_path.is_some() || self.synthetic_content.is_some()) && self.data.is_none() {
             self.fossick_html(options).await;
         };
 

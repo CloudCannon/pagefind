@@ -104,7 +104,8 @@ const addHTMLFile = (indexId, file) => new Promise((resolve, reject) => {
         {
             type: action,
             index_id: indexId,
-            file_path: file.path,
+            file_path: file.sourcePath,
+            url: file.url,
             file_contents: file.content
         }, (response) => {
             /** @type {function(InternalResponsePayload): Omit<NewFileResponse, 'errors'>?} */
