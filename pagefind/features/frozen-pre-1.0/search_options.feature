@@ -10,7 +10,7 @@ Feature: Search Options
         Given I have the environment variables:
             | PAGEFIND_SOURCE | public |
 
-    Scenario: Base URL can be configured
+    Scenario: LEGACY Base URL can be configured
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -43,7 +43,7 @@ Feature: Search Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/docs/cat/"
 
-    Scenario: Base URL auto-detects the default directory being moved
+    Scenario: LEGACY Base URL auto-detects the default directory being moved
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -73,7 +73,7 @@ Feature: Search Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/blog/cat/"
 
-    Scenario: Keep Index URL can be configured
+    Scenario: LEGACY Keep Index URL can be configured
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >

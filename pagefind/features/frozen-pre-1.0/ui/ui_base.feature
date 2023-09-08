@@ -18,7 +18,7 @@ Feature: Base UI Tests
             </script>
             """
 
-    Scenario: Pagefind UI loads
+    Scenario: LEGACY Pagefind UI loads
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>world</h1>
@@ -32,7 +32,7 @@ Feature: Base UI Tests
         Then There should be no logs
         Then The selector ".pagefind-ui" should exist
 
-    Scenario: Pagefind UI searches
+    Scenario: LEGACY Pagefind UI searches
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>world</h1>

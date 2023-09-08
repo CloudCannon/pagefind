@@ -9,7 +9,7 @@ Feature: Build Options
         Given I have the environment variables:
             | PAGEFIND_SOURCE | public |
 
-    Scenario: Source folder can be configured
+    Scenario: LEGACY Source folder can be configured
         Given I have a "my_website/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -40,7 +40,7 @@ Feature: Build Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
-    Scenario: Output path can be configured
+    Scenario: LEGACY Output path can be configured
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -70,7 +70,7 @@ Feature: Build Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
-    Scenario: Output path can be configured with an absolute path
+    Scenario: LEGACY Output path can be configured with an absolute path
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -102,7 +102,7 @@ Feature: Build Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
-    Scenario: Root selector can be configured
+    Scenario: LEGACY Root selector can be configured
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -137,7 +137,7 @@ Feature: Build Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "Hello, Hello. Ignored is undefined."
 
-    Scenario: File glob can be configured
+    Scenario: LEGACY File glob can be configured
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -171,7 +171,7 @@ Feature: Build Options
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/index.htm"
 
-    Scenario: Complex exclusionary file glob can be configured
+    Scenario: LEGACY Complex exclusionary file glob can be configured
         Given I have a "public/index.html" file with the body:
             """
             <p data-result>Nothing</p>

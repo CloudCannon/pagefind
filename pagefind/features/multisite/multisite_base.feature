@@ -7,7 +7,7 @@ Feature: Multisite Search
             """
         Given I have a "root/website_a/hello/index.html" file with the body:
             """
-            <h1>web web world PAGEFIND_ROOT_SELECTOR</h1>
+            <h1>web web world web PAGEFIND_ROOT_SELECTOR</h1>
             """
         Given I have a "root/website_b/lorem/index.html" file with the body:
             """
@@ -71,7 +71,7 @@ Feature: Multisite Search
             }
             """
         Then There should be no logs
-        Then The selector ".pagefind-ui__result:nth-of-type(1) .pagefind-ui__result-link" should contain "web web world PAGEFIND_ROOT_SELECTOR"
+        Then The selector ".pagefind-ui__result:nth-of-type(1) .pagefind-ui__result-link" should contain "web web world web PAGEFIND_ROOT_SELECTOR"
         Then The selector ".pagefind-ui__result:nth-of-type(2) .pagefind-ui__result-link" should contain "web ipsum"
 
     # Tests that Pagefind can assemble URLs correctly.

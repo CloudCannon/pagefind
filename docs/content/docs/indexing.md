@@ -95,7 +95,11 @@ You can also use your own custom ranking via the `data-pagefind-weight` attribut
         Other, less important text.
         This defaults to a weight of 1.
     </p>
+    <p data-pagefind-weight="0.5">
+        Very unimportant text.
+        Matching words in this block are only worth half a normal word.
+    </p>
 </body>
 ```
 
-The default weight of body content is `1`, and you can set a custom weight of any whole number from `1` to `255`.
+The default weight of body content is `1`, and you can set a custom weight of any number from `0.0` to `10.0`. 

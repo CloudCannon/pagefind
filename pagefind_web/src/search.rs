@@ -182,12 +182,17 @@ impl SearchIndex {
                 format! {"Word locations {:?}", word_locations}
             });
             word_locations.sort_unstable_by_key(|(_, loc)| *loc);
+            let page = &self.pages[page_index];
             debug!({
-                format! {"Word locations {:?}", word_locations}
+                format! {"Sorted word locations {:?}, {:?} word(s)", word_locations, page.word_count}
             });
 
-            let page = &self.pages[page_index];
-            let mut page_score = word_locations.len() as f32 / page.word_count as f32;
+            let mut page_score = (word_locations
+                .iter()
+                .map(|(weight, _)| *weight as f32)
+                .sum::<f32>()
+                / 25.0)
+                / page.word_count as f32;
             for (len, map) in length_maps.iter() {
                 // Boost pages that match shorter words, as they are closer
                 // to the term that was searched. Combine the weight with
@@ -197,12 +202,6 @@ impl SearchIndex {
                     debug!({
                         format! {"{} contains a word {} longer than the search term, boosting by {} to {}", page.hash, len, 1.0 / *len as f32, page_score}
                     });
-                }
-            }
-            for (weight, _) in word_locations.iter() {
-                // Boost pages if words in the index are explicitly weighted higher.
-                if *weight > 1 {
-                    page_score += (weight - 1) as f32;
                 }
             }
             let search_result = PageSearchResult {

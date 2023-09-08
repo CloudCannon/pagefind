@@ -255,33 +255,3 @@ Feature: Character Tests
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain '/comma/, /comma/, /comma/'
-
-    Scenario: Standard punctionation isn't indexed per word
-        Given I have a "public/standard/index.html" file with the body:
-            """
-            <p>not'anotherword</p>
-            <p>not(anotherword</p>
-            <p>not@anotherword</p>
-            <p>not#anotherword</p>
-            <p>not~anotherword</p>
-            <p>not+anotherword</p>
-            <p>not"anotherword"</p>
-            """
-        When I run my program
-        Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/pagefind/pagefind.js"
-        When I serve the "public" directory
-        When I load "/"
-        When I evaluate:
-            """
-            async function() {
-                let pagefind = await import("/pagefind/pagefind.js");
-
-                let search = await pagefind.search("anotherword");
-
-                let pages = await Promise.all(search.results.map(r => r.data()));
-                document.querySelector('[data-result]').innerText = `${pages.length} result(s)`;
-            }
-            """
-        Then There should be no logs
-        Then The selector "[data-result]" should contain '0 result(s)'

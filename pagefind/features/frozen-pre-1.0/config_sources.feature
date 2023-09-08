@@ -6,7 +6,7 @@
 
 Feature: Config Sources
 
-    Scenario: Settings can be pulled from TOML configuration files
+    Scenario: LEGACY Settings can be pulled from TOML configuration files
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -21,7 +21,7 @@ Feature: Config Sources
         Then I should see "pre-1.0 compatibility mode" in stderr
         Then I should see the file "public/_pagefind/pagefind.js"
 
-    Scenario: Settings can be pulled from YAML configuration files
+    Scenario: LEGACY Settings can be pulled from YAML configuration files
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -36,7 +36,7 @@ Feature: Config Sources
         Then I should see "pre-1.0 compatibility mode" in stderr
         Then I should see the file "public/_pagefind/pagefind.js"
 
-    Scenario: Settings can be pulled from JSON configuration files
+    Scenario: LEGACY Settings can be pulled from JSON configuration files
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -53,7 +53,7 @@ Feature: Config Sources
         Then I should see "pre-1.0 compatibility mode" in stderr
         Then I should see the file "public/_pagefind/pagefind.js"
 
-    Scenario: Settings can be pulled from command-line flags
+    Scenario: LEGACY Settings can be pulled from command-line flags
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -65,7 +65,7 @@ Feature: Config Sources
         Then I should see "pre-1.0 compatibility mode" in stderr
         Then I should see the file "public/_pagefind/pagefind.js"
 
-    Scenario: Settings can be pulled from environment variables
+    Scenario: LEGACY Settings can be pulled from environment variables
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -78,7 +78,7 @@ Feature: Config Sources
         Then I should see "pre-1.0 compatibility mode" in stderr
         Then I should see the file "public/_pagefind/pagefind.js"
 
-    Scenario: Settings can be pulled from multiple sources
+    Scenario: LEGACY Settings can be pulled from multiple sources
         Given I have a "public/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >

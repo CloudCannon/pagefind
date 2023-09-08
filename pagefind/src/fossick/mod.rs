@@ -7,6 +7,7 @@ use pagefind_stem::{Algorithm, Stemmer};
 use path_slash::PathExt as _;
 use regex::Regex;
 use std::io::Error;
+use std::ops::Mul;
 use std::path::{Path, PathBuf};
 use tokio::fs::File;
 use tokio::io::AsyncBufReadExt;
@@ -193,12 +194,13 @@ impl Fossicker {
         String,
         HashMap<String, Vec<FossickedWord>>,
         Vec<(String, String, String, u32)>,
+        usize,
     ) {
         let mut map: HashMap<String, Vec<FossickedWord>> = HashMap::new();
         let mut anchors = Vec::new();
         // TODO: push this error handling up a level and return an Err from parse_digest
         if self.data.as_ref().is_none() {
-            return ("".into(), map, anchors); // empty page result, will be dropped from search
+            return ("".into(), map, anchors, 0); // empty page result, will be dropped from search
         }
         let data = self.data.as_ref().unwrap();
         let stemmer = get_stemmer(&data.language);
@@ -248,7 +250,12 @@ impl Fossicker {
         let segments = data.digest.split_whitespace();
 
         let mut offset_word_index = 0;
-        let mut weight_stack: Vec<u8> = vec![1];
+        let mut max_word_index = 0;
+        let weight_multiplier = 25.0;
+        let weight_max = 10.0;
+        debug_assert!(((weight_max * weight_multiplier) as u8) < std::u8::MAX);
+
+        let mut weight_stack: Vec<u8> = vec![(1.0 * weight_multiplier) as u8];
         for (word_index, word) in segments.into_iter().enumerate() {
             let word_index = word_index - offset_word_index;
 
@@ -279,10 +286,16 @@ impl Fossicker {
                 if word.starts_with("___PAGEFIND_WEIGHT___") {
                     let weight = word
                         .replace("___PAGEFIND_WEIGHT___", "")
-                        .parse::<u32>()
+                        .parse::<f32>()
                         .ok()
-                        .unwrap_or(1);
-                    weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
+                        .unwrap_or(1.0);
+                    if weight <= 0.0 {
+                        weight_stack.push(0);
+                    } else {
+                        weight_stack.push(
+                            (weight.clamp(0.0, weight_max).mul(weight_multiplier) as u8).max(1),
+                        );
+                    }
                     offset_word_index += 1;
                     continue;
                 }
@@ -294,10 +307,11 @@ impl Fossicker {
                     if weight_stack.len() == 1 {
                         let weight = word
                             .replace("___PAGEFIND_AUTO_WEIGHT___", "")
-                            .parse::<u32>()
+                            .parse::<f32>()
                             .ok()
-                            .unwrap_or(1);
-                        weight_stack.push(weight.try_into().unwrap_or(std::u8::MAX));
+                            .unwrap_or(1.0);
+                        weight_stack
+                            .push(weight.clamp(0.0, weight_max).mul(weight_multiplier) as u8);
                     } else {
                         weight_stack.push(weight_stack.last().cloned().unwrap_or_default());
                     }
@@ -347,11 +361,13 @@ impl Fossicker {
                     }
                 }
             }
+
+            max_word_index = word_index;
         }
         if content.ends_with(' ') {
             content.pop();
         }
-        (content, map, anchors)
+        (content, map, anchors, max_word_index + 1)
     }
 
     async fn fossick_html(&mut self, options: &SearchOptions) {
@@ -371,7 +387,7 @@ impl Fossicker {
             self.fossick_html(options).await;
         };
 
-        let (content, word_data, anchors) = self.parse_digest();
+        let (content, word_data, anchors, word_count) = self.parse_digest();
 
         let data = self.data.unwrap();
         let url = if let Some(url) = &self.page_url {
@@ -403,7 +419,7 @@ impl Fossicker {
                     content,
                     filters: data.filters,
                     meta: data.meta,
-                    word_count: word_data.len(),
+                    word_count,
                     anchors: anchors
                         .into_iter()
                         .map(|(element, id, text, location)| PageAnchorData {
@@ -529,7 +545,7 @@ mod tests {
         let mut f =
             test_fossick(["<html><body>", "<p>Hello World!</p>", "</body></html>"].concat()).await;
 
-        let (digest, words, anchors) = f.parse_digest();
+        let (digest, words, anchors, word_count) = f.parse_digest();
 
         assert_eq!(digest, "Hello World!".to_string());
         assert_eq!(
@@ -539,14 +555,14 @@ mod tests {
                     "hello".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 1
+                        weight: 1 * 25
                     }]
                 ),
                 (
                     "world".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 1
+                        weight: 1 * 25
                     }]
                 )
             ])
@@ -560,16 +576,18 @@ mod tests {
                 "<html><body>",
                 "<div>The",
                 "<p data-pagefind-weight='2'>Quick Brown</p>",
-                "Fox</div>",
+                "Fox",
+                "<p data-pagefind-weight='0.5'>Jumps Over</p>",
+                "<p data-pagefind-weight='0.00001'>Ryan</p></div>",
                 "</body></html>",
             ]
             .concat(),
         )
         .await;
 
-        let (digest, words, anchors) = f.parse_digest();
+        let (digest, words, anchors, word_count) = f.parse_digest();
 
-        assert_eq!(digest, "The Quick Brown. Fox.".to_string());
+        assert_eq!(digest, "The Quick Brown. Fox Jumps Over. Ryan.".to_string());
         assert_eq!(
             words,
             HashMap::from_iter([
@@ -577,27 +595,48 @@ mod tests {
                     "the".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 1
+                        weight: 1 * 25
                     }]
                 ),
                 (
                     "quick".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 2
+                        weight: 2 * 25
                     }]
                 ),
                 (
                     "brown".to_string(),
                     vec![FossickedWord {
                         position: 2,
-                        weight: 2
+                        weight: 2 * 25
                     }]
                 ),
                 (
                     "fox".to_string(),
                     vec![FossickedWord {
                         position: 3,
+                        weight: 1 * 25
+                    }]
+                ),
+                (
+                    "jumps".to_string(),
+                    vec![FossickedWord {
+                        position: 4,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "over".to_string(),
+                    vec![FossickedWord {
+                        position: 5,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "ryan".to_string(),
+                    vec![FossickedWord {
+                        position: 6,
                         weight: 1
                     }]
                 )
@@ -624,7 +663,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors) = f.parse_digest();
+        let (digest, words, anchors, word_count) = f.parse_digest();
 
         assert_eq!(
             words,
@@ -633,35 +672,35 @@ mod tests {
                 vec![
                     FossickedWord {
                         position: 0,
-                        weight: 7
+                        weight: 7 * 25
                     },
                     FossickedWord {
                         position: 1,
-                        weight: 6
+                        weight: 6 * 25
                     },
                     FossickedWord {
                         position: 2,
-                        weight: 5
+                        weight: 5 * 25
                     },
                     FossickedWord {
                         position: 3,
-                        weight: 4
+                        weight: 4 * 25
                     },
                     FossickedWord {
                         position: 4,
-                        weight: 3
+                        weight: 3 * 25
                     },
                     FossickedWord {
                         position: 5,
-                        weight: 2
+                        weight: 2 * 25
                     },
                     FossickedWord {
                         position: 6,
-                        weight: 1
+                        weight: 1 * 25
                     },
                     FossickedWord {
                         position: 7,
-                        weight: 0
+                        weight: 0 * 25
                     }
                 ]
             )])
@@ -683,7 +722,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors) = f.parse_digest();
+        let (digest, words, anchors, word_count) = f.parse_digest();
 
         assert_eq!(
             words,
@@ -692,28 +731,28 @@ mod tests {
                     "the".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 1
+                        weight: 25
                     }]
                 ),
                 (
                     "quick".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 255
+                        weight: 250
                     }]
                 ),
                 (
                     "brown".to_string(),
                     vec![FossickedWord {
                         position: 2,
-                        weight: 1
+                        weight: 0
                     }]
                 ),
                 (
                     "fox".to_string(),
                     vec![FossickedWord {
                         position: 3,
-                        weight: 1
+                        weight: 250
                     }]
                 )
             ])

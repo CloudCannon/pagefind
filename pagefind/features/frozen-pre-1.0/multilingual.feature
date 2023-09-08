@@ -34,7 +34,7 @@ Feature: Multilingual
             </html>
             """
 
-    Scenario: Pagefind searches for English with English stemming
+    Scenario: LEGACY Pagefind searches for English with English stemming
         Given I have a "public/index.html" file with the content:
             """
             <!DOCTYPE html>
@@ -71,7 +71,7 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /en/"
 
-    Scenario: Pagefind searches for Portugese with Portugese stemming
+    Scenario: LEGACY Pagefind searches for Portugese with Portugese stemming
         Given I have a "public/index.html" file with the content:
             """
             <!DOCTYPE html>
@@ -107,7 +107,7 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /pt-br/"
 
-    Scenario: Pagefind keeps dialects separate
+    Scenario: LEGACY Pagefind keeps dialects separate
         Given I have a "public/pt-pt/index.html" file with the content:
             """
             <!DOCTYPE html>
@@ -157,7 +157,7 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /pt-br/"
 
-    Scenario: Pagefind can be configured to lump all languages together
+    Scenario: LEGACY Pagefind can be configured to lump all languages together
         Given I have a "public/index.html" file with the content:
             """
             <!DOCTYPE html>
@@ -194,7 +194,7 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "2 — /en/, /pt-br/"
 
-    Scenario: Pagefind merges omitted languages into the primary language
+    Scenario: LEGACY Pagefind merges omitted languages into the primary language
         Given I have a "public/index.html" file with the content:
             """
             <!DOCTYPE html>
@@ -241,7 +241,7 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "/en/, /mystery/"
 
-    Scenario: Pagefind searches for unknown languages with no stemming
+    Scenario: LEGACY Pagefind searches for unknown languages with no stemming
         Given I have a "public/index.html" file with the content:
             """
             <!DOCTYPE html>

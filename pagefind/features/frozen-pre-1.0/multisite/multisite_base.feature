@@ -22,7 +22,7 @@ Feature: Multisite Search
             <h1>web ipsum</h1>
             """
 
-    Scenario: Pagefind can search across multiple sites
+    Scenario: LEGACY Pagefind can search across multiple sites
         When I run my program with the flags:
             | --source root/website_a |
         Then I should see "Running Pagefind" in stdout
@@ -50,7 +50,7 @@ Feature: Multisite Search
         Then There should be no logs
         Then The selector "[data-result]" should contain "/website_a/hello/, /website_b/lorem/"
 
-    Scenario: Pagefind UI can search across multiple sites
+    Scenario: LEGACY Pagefind UI can search across multiple sites
         Given I have a "root/index.html" file with the body:
             """
             <div id="search"></div>

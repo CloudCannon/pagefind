@@ -13,7 +13,7 @@ Feature: Base Tests
             <p data-url>Nothing</p>
             """
 
-    Scenario: Search for a word
+    Scenario: LEGACY Search for a word
         Given I have a "public/cat/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
@@ -39,7 +39,7 @@ Feature: Base Tests
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
 
-    Scenario: Preload indexes then search for a word
+    Scenario: LEGACY Preload indexes then search for a word
         Given I have a "public/cat/index.html" file with the body:
             """
             <link rel="pre-1.0-signal" href="_pagefind" >
