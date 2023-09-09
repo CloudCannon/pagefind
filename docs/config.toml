@@ -10,3 +10,6 @@ highlight.noClasses = false
 [markup.goldmark.renderer]
 # ensures html inside markdown is allowed to render
 unsafe = true
+
+[[module.imports]]
+path = 'github.com/bglw/alto-as-module'

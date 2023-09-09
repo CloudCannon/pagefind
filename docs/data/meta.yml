@@ -1,0 +1,7 @@
+project_name: Pagefind — Static low-bandwidth search at scale
+default_og_image: /pagefind.svg
+favicon:
+  small_icon: /meta/favicon-16x16.png
+  large_icon: /meta/favicon-32x32.png
+  apple_touch_icon: /meta/apple-touch-icon.png
+  shortcut_icon: /meta/favicon.ico

@@ -1,5 +1,3 @@
-if [ -z "$HUGO_PAGEFIND_DOCS_VERSION" ]; then
-    export HUGO_PAGEFIND_DOCS_VERSION=$(node ./.backstage/get_version.cjs)
-fi
+export HUGO_PAGEFIND_DOCS_VERSION=$(node ./.backstage/set_version.cjs)
 echo "Building documentation for $HUGO_PAGEFIND_DOCS_VERSION"
 cd docs && npm i

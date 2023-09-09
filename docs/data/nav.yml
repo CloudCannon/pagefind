@@ -1,0 +1,10 @@
+side_nav_title: Docs
+nav_links:
+  - link_title: GitHub
+    link_url: https://github.com/cloudcannon/pagefind
+    link_label: Local
+    link_icon_path: /github.svg
+logo:
+  logo_heading: Pagefind
+  logo_image: /pagefind.svg
+  logo_image_dark: /pagefind-dark.svg
