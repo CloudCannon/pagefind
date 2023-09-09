@@ -9,15 +9,39 @@ Pagefind can be accessed as an API directly from JavaScript, for you to build cu
 
 ## Initializing Pagefind
 
-Anywhere on your site, you can initialize Pagefind with:
+Anywhere on your site, import and initialize Pagefind with:
 
 ```js
 const pagefind = await import("/pagefind/pagefind.js");
+
+pagefind.init();
 ```
 
-This will load the Pagefind library and the metadata about the site. If your site is on a subpath, this should be included — e.g. in the CloudCannon documentation, we load `/documentation/pagefind/pagefind.js`.
+If your site is on a subpath, this should be included — e.g. in the CloudCannon documentation, we load `/documentation/pagefind/pagefind.js`.
 
-> If building your own search UI, it is a good idea to only run this import once your search component has received interaction. This saves the user from loading the Pagefind library on every page request.
+The call to `pagefind.init()` will load the Pagefind dependencies and the metadata about the site. Calling this method is optional, and if it is omitted initialization will happen when the first searching or filtering function is called.
+
+Calling `pagefind.init()` when your search interface gains focus will help the core dependencies load by the time a user types in their search query.
+
+## Configuring Pagefind
+
+Pagefind options can be set before running `pagefind.init()`:
+
+{{< diffcode >}}
+```js
+const pagefind = await import("/pagefind/pagefind.js");
+
++await pagefind.options({
++    bundlePath: "/custom-pagefind-directory/"
++});
+
+pagefind.init();
+```
+{{< /diffcode >}}
+
+Calls to `pagefind.options` may also be made after initialization, however passing in settings such as `bundlePath` will have no further impact.
+
+See all available options in [Configuring the Pagefind search in the browser](/docs/search-config/).
 
 ## Searching
 
