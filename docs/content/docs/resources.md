@@ -1,5 +1,4 @@
 ---
-date: 2023-01-26
 title: "Community Resources"
 nav_title: "Community Resources"
 nav_section: Resources

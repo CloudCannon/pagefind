@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Getting Started with Pagefind"
 nav_title: "Getting Started"
 nav_section: Root

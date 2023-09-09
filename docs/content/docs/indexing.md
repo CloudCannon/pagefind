@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Configuring how content is indexed"
 nav_title: "Customizing the index"
 nav_section: Indexing

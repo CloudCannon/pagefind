@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Installing and running Pagefind"
 nav_title: "Installation"
 nav_section: Installing

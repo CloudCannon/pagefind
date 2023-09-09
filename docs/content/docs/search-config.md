@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Configuring the Pagefind search in the browser"
 nav_title: "Pagefind search config"
 nav_section: Searching

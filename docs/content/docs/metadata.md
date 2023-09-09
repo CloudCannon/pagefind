@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Returning custom metadata"
 nav_title: "Custom metadata"
 nav_section: Indexing

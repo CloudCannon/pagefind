@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Searching multiple sites"
 nav_title: "Searching multiple sites"
 nav_section: Searching

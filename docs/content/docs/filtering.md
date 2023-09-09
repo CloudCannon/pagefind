@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Setting up filters"
 nav_title: "Setting up filters"
 nav_section: Indexing

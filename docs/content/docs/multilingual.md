@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Multilingual search"
 nav_title: "Multilingual search"
 nav_section: Indexing

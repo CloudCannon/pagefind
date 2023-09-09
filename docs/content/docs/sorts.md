@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Custom sort orders"
 nav_title: "Custom sort orders"
 nav_section: Indexing

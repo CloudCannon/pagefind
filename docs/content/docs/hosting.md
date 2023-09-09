@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Troubleshoot Hosting Pagefind"
 nav_title: "Troubleshoot Hosting"
 nav_section: Resources

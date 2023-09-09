@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Using the default Pagefind UI"
 nav_title: "Pagefind UI"
 nav_section: Searching

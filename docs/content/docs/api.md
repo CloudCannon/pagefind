@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Searching manually with the Pagefind JavaScript API"
 nav_title: "Pagefind JS API"
 nav_section: Searching

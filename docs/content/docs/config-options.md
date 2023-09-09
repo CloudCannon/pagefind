@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Configuring the Pagefind CLI"
 nav_title: "Pagefind CLI config"
 nav_section: Installing
