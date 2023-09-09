@@ -78,7 +78,8 @@ declare function addDirectory(path: SiteDirectory): Promise<IndexingResponse>;
  */
 export interface HTMLFile {
     /** 
-     * The source path of the HTML file if it were to exist on disk. Must be a relative path.
+     * The source path of the HTML file if it were to exist on disk.
+     * Must be a relative path, or an absolute path within the current working directory.
      * Pagefind will compute the result URL from this path.
      * 
      * If not supplied, url must be supplied.

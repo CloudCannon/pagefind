@@ -11,7 +11,7 @@ This packages houses a wrapper for running the precompiled Pagefind binary, and 
 This is the recommended way of running Pagefind on a static site.
 
 ```
-npx pagefind --source "public"
+npx pagefind --site "public"
 ```
 
 For more details on using the Pagefind binary, see [Installing and running Pagefind](https://pagefind.app/docs/installation/#running-via-npx), and the rest of the Pagefind documentation.
@@ -21,6 +21,11 @@ For more details on using the Pagefind binary, see [Installing and running Pagef
 This package also provides an interface to the Pagefind binary directly as a package you can import.
 This generally isn't required, and running the binary directly on your source code is the recommended approach
 for the majority of use-cases.
+
+There are situations where using this Node library is beneficial:
+- Authors integrating Pagefind into an existing project, e.g. integrating Pagefind into the dev mode of a static site generator, can provide Pagefind HTML files in-memory. Pagefind can also return the search index in-memory, to be hosted by the existing dev mode.
+- Users looking to index their site, and augment that index with extra non-HTML pages, can run a standard Pagefind crawl with `addDirectory(...)` and augment it with `addCustomRecord(...)`.
+- Users looking to use Pagefind's engine for searching miscellaneous content such as PDFs or subtitles, where `addCustomRecord(...)` can be used to build the entire index from scratch.
 
 The rest of this documentation assumes you have a solid understanding of how to use Pagefind conventionally. Read through the [standard Pagefind documentation](https://pagefind.app/) first, if you haven't.
 
@@ -105,12 +110,19 @@ Adds a virtual HTML file to the Pagefind index. Useful for files that don't exis
 
 ```js
 const { errors, file } = await index.addHTMLFile({
-    path: "contact/index.html",
+    sourcePath: "contact/index.html",
+    content: "<html><body> <h1>A Full HTML Document</h1> <p> . . . </p> </body></html>"
+});
+
+const { errors, file } = await index.addHTMLFile({
+    url: "/contact/",
     content: "<html><body> <h1>A Full HTML Document</h1> <p> . . . </p> </body></html>"
 });
 ```
 
-The `path` here should represent the output path of this HTML file if it were to exist on disk. Pagefind will use this path to generate the URL.
+The `sourcePath` should represent the path of this HTML file if it were to exist on disk. Pagefind will use this path to generate the URL. It should be relative, or absolute to a path within the current working directory.
+
+Instead of `sourcePath`, a `url` may be supplied to explicitly set the URL of this search result.
 
 The `content` should be the full HTML source, including the outer `<html> </html>` tags. This will be run through Pagefind's standard HTML indexing process, and should contain any required Pagefind attributes to control behaviour.
 
