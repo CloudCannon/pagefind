@@ -60,7 +60,7 @@
     <div class="pagefind-ui__result-inner">
       <p class="pagefind-ui__result-title">
         <a class="pagefind-ui__result-link" href={data.meta?.url || data.url}
-          >{@html data.meta?.title}</a
+          >{data.meta?.title}</a
         >
       </p>
       {#if has_root_sub_result}
@@ -71,7 +71,7 @@
         <div class="pagefind-ui__result-nested">
           <p class="pagefind-ui__result-title">
             <a class="pagefind-ui__result-link" href={subres.url}
-              >{@html subres.title}</a
+              >{subres.title}</a
             >
           </p>
           <p class="pagefind-ui__result-excerpt">{@html subres.excerpt}</p>
@@ -82,7 +82,7 @@
         <ul class="pagefind-ui__result-tags">
           {#each meta as [metaTitle, metaValue]}
             <li class="pagefind-ui__result-tag">
-              {@html metaTitle.replace(/^(\w)/, (c) => c.toLocaleUpperCase())}: {@html metaValue}
+              {metaTitle.replace(/^(\w)/, (c) => c.toLocaleUpperCase())}: {metaValue}
             </li>
           {/each}
         </ul>
