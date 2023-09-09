@@ -98,3 +98,10 @@ Prints extra logging while indexing the site. Only affects the CLI, does not imp
 | CLI Flag    | ENV Variable       | Config Key |
 |-------------|--------------------|------------|
 | `--verbose` | `PAGEFIND_VERBOSE` | `verbose`  |
+
+### Logfile
+Writes logs to the given logfile, in addition to the console. Replaces the file on each run.
+
+| CLI Flag           | ENV Variable       | Config Key |
+|--------------------|--------------------|------------|
+| `--logfile <PATH>` | `PAGEFIND_LOGFILE` | `logfile`  |
