@@ -34,6 +34,8 @@ export class PagefindUI {
     let debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
     let mergeIndex = opts.mergeIndex ?? [];
     let translations = opts.translations ?? [];
+    let pagefindQueryParamName =
+      opts.pagefindQueryParamName ?? "pagefind-highlight";
 
     // Remove the UI-specific config before passing it along to the Pagefind backend
     delete opts["element"];
