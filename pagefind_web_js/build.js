@@ -28,6 +28,18 @@ const build = async () => {
     const compiledVendor = await esbuild.build(esbuildVendorOptions);
     console.log(`Vendor Build: `, compiledVendor);
 
+    // Coupled search vendor build
+    const esbuildVendorHighlightOptions = {
+        ...commonOpts,
+        entryPoints: [path.join(__dirname, 'lib/highlight.ts')],
+        entryNames: `pagefind_[name].${version}`,
+        outdir: path.join(__dirname, `../pagefind/vendor/`),
+        format: 'esm',
+        target: 'es2020'
+    }
+    const compiledVendorHighlight = await esbuild.build(esbuildVendorHighlightOptions);
+    console.log(`Vendor Highlight Build: `, compiledVendorHighlight);
+
     // // CJS "main" build
     // const esbuildCjsOptions = {
     //     ...commonOpts,

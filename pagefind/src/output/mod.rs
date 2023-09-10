@@ -62,6 +62,12 @@ const SEARCH_JS: &str = include_str!(concat!(
     env!("CARGO_PKG_VERSION"),
     ".js"
 ));
+const HIGHLIGHT_JS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/vendor/pagefind_highlight.",
+    env!("CARGO_PKG_VERSION"),
+    ".js"
+));
 
 pub struct LanguageMeta {
     pub page_count: usize,
@@ -125,6 +131,12 @@ async fn write_common(
         write(
             outdir.join("pagefind.js"),
             vec![&js],
+            Compress::None,
+            write_behavior,
+        ),
+        write(
+            outdir.join("pagefind-highlight.js"),
+            vec![HIGHLIGHT_JS],
             Compress::None,
             write_behavior,
         ),
