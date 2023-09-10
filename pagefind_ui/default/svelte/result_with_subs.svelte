@@ -2,6 +2,8 @@
   export let show_images = true;
   export let process_result = null;
   export let result = { data: async () => {} };
+  // string or null
+  export let highlight_query_param = null;
 
   const skipMeta = ["title", "image", "image_alt", "url"];
 
@@ -10,6 +12,12 @@
   let non_root_sub_results = [];
   let has_root_sub_result = false;
 
+  // make sure reactive
+  let href = data.meta?.url || data.url;
+
+  if (highlight_query_param) {
+    href = `${href}?${highlight_query_param}`;
+  }
   const thin_sub_results = (results, limit) => {
     if (results.length <= limit) {
       return results;
@@ -59,9 +67,7 @@
     {/if}
     <div class="pagefind-ui__result-inner">
       <p class="pagefind-ui__result-title">
-        <a class="pagefind-ui__result-link" href={data.meta?.url || data.url}
-          >{data.meta?.title}</a
-        >
+        <a class="pagefind-ui__result-link" {href}>{@html data.meta?.title}</a>
       </p>
       {#if has_root_sub_result}
         <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
@@ -71,7 +77,7 @@
         <div class="pagefind-ui__result-nested">
           <p class="pagefind-ui__result-title">
             <a class="pagefind-ui__result-link" href={subres.url}
-              >{subres.title}</a
+              >{@html subres.title}</a
             >
           </p>
           <p class="pagefind-ui__result-excerpt">{@html subres.excerpt}</p>
@@ -82,7 +88,7 @@
         <ul class="pagefind-ui__result-tags">
           {#each meta as [metaTitle, metaValue]}
             <li class="pagefind-ui__result-tag">
-              {metaTitle.replace(/^(\w)/, (c) => c.toLocaleUpperCase())}: {metaValue}
+              {@html metaTitle.replace(/^(\w)/, (c) => c.toLocaleUpperCase())}: {@html metaValue}
             </li>
           {/each}
         </ul>
