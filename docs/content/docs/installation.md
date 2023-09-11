@@ -1,8 +1,8 @@
 ---
 title: "Installing and running Pagefind"
-nav_title: "Installation"
-nav_section: Installing
-weight: 1
+nav_title: "Installing Pagefind"
+nav_section: Pagefind CLI Reference
+weight: 29
 ---
 
 Pagefind is a static binary with no dynamic dependencies, so in most cases will be simple to install and run. Pagefind is currently supported on Windows, macOS, and x86-64 Linux distributions.
@@ -13,7 +13,7 @@ Pagefind is a static binary with no dynamic dependencies, so in most cases will 
 npx pagefind --site "public"
 ```
 
-Pagefind publishes a [wrapper package through npm](https://www.npmjs.com/package/pagefind), which is the easiest way to get started. This package will download the correct [binary of the latest release](https://github.com/CloudCannon/pagefind/releases) from GitHub for your platform and run it.
+Pagefind publishes a [wrapper package through npm](https://www.npmjs.com/package/pagefind), which is the easiest way to get started. This package will download the correct [binary of the latest release](https://github.com/CloudCannon/pagefind/releases) as an npm dependency for your platform and run it.
 
 Specific versions can be run by passing a version tag:
 

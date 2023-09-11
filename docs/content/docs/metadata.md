@@ -1,7 +1,7 @@
 ---
 title: "Returning custom metadata"
 nav_title: "Custom metadata"
-nav_section: Indexing
+nav_section: Metadata
 weight: 6
 ---
 

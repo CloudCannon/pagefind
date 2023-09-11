@@ -1,7 +1,7 @@
 ---
 title: "Showing multiple results per page"
 nav_title: "Multiple results per page"
-nav_section: Features
+nav_section: Searching
 weight: 2
 ---
 

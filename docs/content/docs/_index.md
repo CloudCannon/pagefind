@@ -1,13 +1,13 @@
 ---
 title: "Getting Started with Pagefind"
-nav_title: "Getting Started"
+nav_title: "Quick Start"
 nav_section: Root
 weight: 7
 ---
 
-Pagefind runs after your static generator, and outputs a static search bundle to your generated site. Unlike many search libraries, you don't need to build a search index by hand — the index is generated for you from your generated site.
+Pagefind runs after your static generator, and outputs a static search bundle to your generated site. With Pagefind, you don't need to build a search index by hand — the index is generated for you from your generated site.
 
-Since Pagefind indexes your site _after_ it builds, we'll do things slightly out of order and add search UI first — so that it already exists on our built site when we go to index it.
+Since Pagefind indexes your site _after_ it builds, we'll do things slightly out of order and add a search UI first — so that it already exists on our built site when we go to index it.
 
 Pagefind provides a prebuilt search UI out of the box. Add the following snippet to a page of your choice:
 
@@ -17,7 +17,7 @@ Pagefind provides a prebuilt search UI out of the box. Add the following snippet
 <div id="search"></div>
 <script>
     window.addEventListener('DOMContentLoaded', (event) => {
-        new PagefindUI({ element: "#search" });
+        new PagefindUI({ element: "#search", showSubResults: true });
     });
 </script>
 ```
@@ -30,9 +30,9 @@ Now build your site to an output directory — this guide assumes that you're ru
 
 ## Indexing your site
 
-The easiest way to run pagefind is through npx, where `--site` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
+The easiest way to run pagefind is through npx. If you don't have Node and npm installed, or want to install Pagefind another way, see the [Installing Pagefind](/docs/installation/) guide.
 
-> Note that Pagefind itself does not have any server component — the search integration is fully baked into your static site. The `--serve` flag here is a shortcut for running Pagefind, followed by serving your output site through any static web server.
+Run the following command from your terminal, where `--site` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
 
 ```bash
 npx -y pagefind --site public --serve
@@ -49,7 +49,9 @@ Finished in 2.357 seconds
 
 We can see that a bunch of content was indexed, and Pagefind will be running a preview server (likely on [:1414](http://localhost:1414)).
 
-Loading this in your browser, you should see a search input on your page. Have a play, and bask in how easy that was to integrate.
+> Note that Pagefind itself does not have any server component — the search integration is fully baked into your static site. The `--serve` flag here is a shortcut for running Pagefind, followed by serving your output site through any static web server.
+
+Loading this in your browser, you should see a search input on your page. Try searching for some content and you will see results appear from your site.
 
 The last required step is to run Pagefind after building your site on your CMS or hosting platform. If you're a CloudCannon user, add a [`.cloudcannon/postbuild`](https://cloudcannon.com/documentation/articles/extending-your-build-process-with-hooks/) file containing the npx command above (minus the `--serve` flag). For other platforms, set up an equivalent command to run after your site build — the end goal is that Pagefind will run after every build of your site before it is deployed.
 
