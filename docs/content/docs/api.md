@@ -93,7 +93,57 @@ Which will return an object with the following structure:
     "image": "/weka.png"
   },
   "content": "The full content of the page, formatted as text. <html> will not be escaped. ...",
-  "word_count": 242
+  "word_count": 242,
+  "sub_results": [
+    {
+        "title": "The title from the first h1 element on the page",
+        "url": "/url-of-the-page/",
+        "locations": [ /* ... */ ],
+        "weightedLocations": [ /* ... */ ],
+        "excerpt": "A small snippet of the <mark>static</mark> content, with the search term(s) highlighted in &lt;mark&gt; elements",
+    },
+    {
+        "title": "Inner text of some heading",
+        "url": "/url-of-the-page/#id-of-the-h2",
+        "locations": [ /* ... */ ],
+        "weightedLocations": [ /* ... */ ],
+        "excerpt": "A snippet of the <mark>static</mark> content, scoped between this anchor and the next one",
+        "anchor": {
+            "element": "h2",
+            "id": "id-of-the-h2",
+            "text": "Inner text of some heading",
+            "location": 14
+        }
+    }
+  ],
+  "locations": [ 4, 9, 18 ],
+  "weightedLocations": [
+    {
+        "weight": 1,
+        "location": 4
+    },
+    {
+        "weight": 1,
+        "location": 9
+    },
+    {
+        "weight": 2,
+        "location": 18
+    }
+  ],
+  "anchors": [
+    {
+        "element": "h2",
+        "id": "id-of-the-h2",
+        "text": "Inner text of some heading",
+        "location": 14
+    },
+    {
+        "element": "div",
+        "id": "id-of-the-div",
+        "location": 56
+    }
+  ]
 }
 ```
 

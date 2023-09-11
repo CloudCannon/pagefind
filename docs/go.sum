@@ -4,3 +4,13 @@ github.com/bglw/alto-as-module v0.0.0-20230909074829-aaadfa22b941 h1:sBaGJr/fdgl
 github.com/bglw/alto-as-module v0.0.0-20230909074829-aaadfa22b941/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
 github.com/bglw/alto-as-module v0.0.0-20230909080407-5c3b468a9129 h1:i8+FteWjSUicR5HXRtt2RKFuT5QIkk8PhMhyRdRspS8=
 github.com/bglw/alto-as-module v0.0.0-20230909080407-5c3b468a9129/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
+github.com/bglw/alto-as-module v0.0.0-20230911044913-8021739d1a42 h1:JzBKWgyahWAQ7aP7CVI1jLeUNwyoQ03lnu0N5W+dlzo=
+github.com/bglw/alto-as-module v0.0.0-20230911044913-8021739d1a42/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
+github.com/bglw/alto-as-module v0.0.0-20230911045327-c33b70da33c5 h1:k+8pBW+RnzO7H4eGUzblyAC5K/V2YCwFoBgPd9CqeiY=
+github.com/bglw/alto-as-module v0.0.0-20230911045327-c33b70da33c5/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
+github.com/bglw/alto-as-module v0.0.0-20230911045401-e57dca0e88c4 h1:gIO5IrsOe+e6jlaLDZfsHaZLpIYwRcisyoEZioN4jpw=
+github.com/bglw/alto-as-module v0.0.0-20230911045401-e57dca0e88c4/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
+github.com/bglw/alto-as-module v0.0.0-20230911045419-d41cfe5c7d1a h1:2BFhLRr9J2x/4tbM5uZD518mCNSTxuE15MccT3D99i4=
+github.com/bglw/alto-as-module v0.0.0-20230911045419-d41cfe5c7d1a/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
+github.com/bglw/alto-as-module v0.0.0-20230911045523-57d0476747a6 h1:kSTzXIi495oPY/HIjTTJwLEtZGCOxVzhGtD8NkJmYmw=
+github.com/bglw/alto-as-module v0.0.0-20230911045523-57d0476747a6/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
