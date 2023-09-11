@@ -46,12 +46,12 @@ colors:
       pagefind-ui-tag: '#efefef'
   dark:
     typography:
-      text: '#dbdbdb'
-      flip-text: '#dbdbdb'
-      text-main: '#dbdbdb'
+      text: '#e6edf3'
+      flip-text: '#e6edf3'
+      text-main: '#e6edf3'
       text-bright: '#ffffff'
       text-muted: '#c8c8c8'
-      links: '#de935f'
+      links: '#58a4e0'
       highlight: '#de935f'
       selection: '#616161'
       form-placeholder: '#e0e0e0'
@@ -77,11 +77,11 @@ colors:
     border_colors:
       border: '#dbdbdb'
     focus_colors:
-      focus: '#ff4d4d'
+      focus: '#0096bfab'
     shortcode_colors:
       diffcode-added: '#003506'
       diffcode-removed: '#350000'
-      diffcode-highlighted: '#424100'
+      diffcode-highlighted: '#ffd7002e'
     pagefind_colors:
       pagefind-ui-primary: '#D8D8D8'
       pagefind-ui-secondary: '#D8D8D8'
