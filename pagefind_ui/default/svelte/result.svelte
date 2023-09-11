@@ -8,14 +8,14 @@
 
   let data;
   let meta = [];
-  
-  // make sure reactive
-  let href = data.meta?.url || data.url;
 
   // make sure reactive
-  if (highlight_query_param) {
-    href = `${href}?${highlight_query_param}`;
-  }
+  // let href = data?.meta?.url || data.url;
+
+  // make sure reactive
+  // if (highlight_query_param) {
+  //   href = `${href}?${highlight_query_param}`;
+  // }
 
   const load = async (r) => {
     data = await r.data();
@@ -44,7 +44,12 @@
     {/if}
     <div class="pagefind-ui__result-inner">
       <p class="pagefind-ui__result-title">
-        <a class="pagefind-ui__result-link" {href}>{@html data.meta?.title}</a>
+        <a
+          class="pagefind-ui__result-link"
+          href={(data?.meta?.url || data?.url) +
+            (highlight_query_param ? `?${highlight_query_param}` : "")}
+          >{@html data.meta?.title}</a
+        >
       </p>
       <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
       {#if meta.length}

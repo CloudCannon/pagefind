@@ -13,11 +13,11 @@
   let has_root_sub_result = false;
 
   // make sure reactive
-  let href = data.meta?.url || data.url;
+  // let href = data?.meta?.url || data.url;
 
-  if (highlight_query_param) {
-    href = `${href}?${highlight_query_param}`;
-  }
+  // if (highlight_query_param) {
+  //   href = `${href}?${highlight_query_param}`;
+  // }
   const thin_sub_results = (results, limit) => {
     if (results.length <= limit) {
       return results;
@@ -34,10 +34,12 @@
   const load = async (r) => {
     data = await r.data();
     data = process_result?.(data) ?? data;
-    meta = Object.entries(data.meta).filter(([key]) => !skipMeta.includes(key));
+    meta = Object.entries(data?.meta).filter(
+      ([key]) => !skipMeta.includes(key)
+    );
     if (Array.isArray(data.sub_results)) {
       has_root_sub_result =
-        data.sub_results?.[0]?.url === (data.meta?.url || data.url);
+        data.sub_results?.[0]?.url === (data?.meta?.url || data?.url);
       if (has_root_sub_result) {
         non_root_sub_results = thin_sub_results(data.sub_results.slice(1), 3);
       } else {
@@ -67,7 +69,12 @@
     {/if}
     <div class="pagefind-ui__result-inner">
       <p class="pagefind-ui__result-title">
-        <a class="pagefind-ui__result-link" {href}>{@html data.meta?.title}</a>
+        <a
+          class="pagefind-ui__result-link"
+          href={(data?.meta?.url || data?.url) +
+            (highlight_query_param ? `?${highlight_query_param}` : "")}
+          >{@html data.meta?.title}</a
+        >
       </p>
       {#if has_root_sub_result}
         <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
@@ -76,7 +83,10 @@
       {#each non_root_sub_results as subres}
         <div class="pagefind-ui__result-nested">
           <p class="pagefind-ui__result-title">
-            <a class="pagefind-ui__result-link" href={subres.url}
+            <a
+              class="pagefind-ui__result-link"
+              href={subres.url +
+                (highlight_query_param ? `?${highlight_query_param}` : "")}
               >{@html subres.title}</a
             >
           </p>

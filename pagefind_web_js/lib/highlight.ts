@@ -1,114 +1,100 @@
-// document.querySelector(".test")!.innerHTML = "Hello from the highlight script";
-
 // this script should be imported on the result pages to enable highlighting
 
+import Mark from "mark.js";
+
 // tbh not sure how to read this option
-const pagefindQueryParamName = "pagefind-highlight";
-const highlightNodeElementName = "mark";
-const highlightNodeClassName = "pagefind__highlight";
 
-// wait for the DOM to be ready
-// read the query param
-// find all occurrences of the query param in the DOM, respecting the data-pagefind attributes
-// wrap the text in a mark with a class of pagefind__highlight
+// I think it's ok to let the user decide when to run this script
+// waiting for DOMContentLoaded doesn't work if it already is loaded
+// Ik I could work around, but this is simpler
 
-// code from https://stackoverflow.com/a/31369978
+export default class PagefindHighlight {
+  pagefindQueryParamName: string;
+  // ? should this be an option?
+  highlightNodeElementName: string;
+  highlightNodeClassName: string;
+  markContext: string | HTMLElement | HTMLElement[] | NodeList | null;
+  markOptions: Mark.MarkOptions;
+  addStyles: boolean;
 
-function getElementsToHighlight() {
-  // could have more than one element with [data-pagefind-body]
-  // make sure it falls back correctly if no [data-pagefind-body]
-  // should fall back to the root selector ig
-  let pagefindBody =
-    document.querySelectorAll("[data-pagefind-body]") || document.body;
-}
+  constructor(
+    options = {
+      markContext: null,
+      pagefindQueryParamName: "pagefind-highlight",
+      // ? should this be an option?
+      highlightNodeElementName: "mark",
+      highlightNodeClassName: "pagefind__highlight",
+      markOptions: undefined,
+      addStyles: true,
+    }
+  ) {
+    const {
+      pagefindQueryParamName,
+      highlightNodeElementName,
+      highlightNodeClassName,
+      markContext,
+      markOptions,
+      addStyles,
+    } = options;
 
-function highlight(element, regex: RegExp) {
-  let document = element.ownerDocument;
+    this.pagefindQueryParamName = pagefindQueryParamName;
+    this.highlightNodeElementName = highlightNodeElementName || "mark";
+    this.highlightNodeClassName = highlightNodeClassName;
+    this.addStyles = addStyles;
+    this.markContext = markContext;
 
-  let nodes = [],
-    text = "",
-    node,
-    nodeIterator = document.createNodeIterator(
-      element,
-      NodeFilter.SHOW_TEXT,
-      null,
-      false
-    );
-
-  while ((node = nodeIterator.nextNode())) {
-    nodes.push({
-      textNode: node,
-      start: text.length,
-    });
-    text += node.nodeValue;
-  }
-
-  if (!nodes.length) return;
-
-  let match;
-  while ((match = regex.exec(text))) {
-    let matchLength = match[0].length;
-
-    // Prevent empty matches causing infinite loops
-    if (!matchLength) {
-      regex.lastIndex++;
-      continue;
+    if (markOptions) {
+      this.markOptions = markOptions;
+    } else {
+      this.markOptions = {
+        className: this.highlightNodeClassName,
+        exclude: ["[data-pagefind-ignore]"],
+      };
     }
 
-    for (let i = 0; i < nodes.length; ++i) {
-      node = nodes[i];
-      let nodeLength = node.textNode.nodeValue.length;
+    this.highlight();
+  }
 
-      // Skip nodes before the match
-      if (node.start + nodeLength <= match.index) continue;
+  // wait for the DOM to be ready
+  // read the query param
+  // find all occurrences of the query param in the DOM, respecting the data-pagefind attributes
+  // wrap the text in a mark with a class of pagefind__highlight
 
-      // Break after the match
-      if (node.start >= match.index + matchLength) break;
+  getHighlightParam(paramName: string): string {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(paramName) || "";
+  }
 
-      // Split the start node if required
-      if (node.start < match.index) {
-        nodes.splice(i + 1, 0, {
-          textNode: node.textNode.splitText(match.index - node.start),
-          start: match.index,
-        });
-        continue;
-      }
+  // Inline styles might be too hard to override
+  addHighlightStyles(className: string) {
+    const styleElement = document.createElement("style");
+    styleElement.innerText = `:where(.${className}) { background-color: yellow; color: black; }`;
+    document.head.appendChild(styleElement);
+  }
 
-      // Split the end node if required
-      if (node.start + nodeLength > match.index + matchLength) {
-        nodes.splice(i + 1, 0, {
-          textNode: node.textNode.splitText(
-            match.index + matchLength - node.start
-          ),
-          start: match.index + matchLength,
-        });
-      }
-
-      // Highlight the current node
-      let highlightNode = document.createElement(highlightNodeElementName);
-      highlightNode.className = highlightNodeClassName;
-
-      node.textNode.parentNode.replaceChild(highlightNode, node.textNode);
-      highlightNode.appendChild(node.textNode);
+  createMarkInstance() {
+    if (this.markContext) {
+      return new Mark(this.markContext);
     }
+    const pagefindBody = document.querySelectorAll("[data-pagefind-body]");
+    if (pagefindBody.length !== 0) {
+      return new Mark(pagefindBody);
+    } else {
+      return new Mark(document.body);
+    }
+  }
+
+  markText(instance: Mark, text: string) {
+    instance.mark(text, this.markOptions);
+  }
+
+  highlight() {
+    const param = this.getHighlightParam(this.pagefindQueryParamName);
+    if (!param) return;
+    this.addStyles && this.addHighlightStyles(this.highlightNodeClassName);
+    const markInstance = this.createMarkInstance();
+    this.markText(markInstance, param);
   }
 }
 
-if (window) {
-  window.addEventListener("DOMContentLoaded", () => {
-    const query = new URLSearchParams(window.location.search).get(
-      pagefindQueryParamName
-    );
-    if (!query) return;
-
-    // regex to match the query param
-    const queryRegex = new RegExp(query, "gi");
-
-    highlight(getElementsToHighlight(), queryRegex);
-
-    // add styles
-    document.head.appendChild(
-      document.createElement("style")
-    ).textContent = `:where(.${highlightNodeClassName}) { background-color: yellow; text-color: #ccc;}`;
-  });
-}
+window.PagefindHighlight = PagefindHighlight;
