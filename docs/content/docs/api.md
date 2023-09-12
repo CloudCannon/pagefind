@@ -99,14 +99,14 @@ Which will return an object with the following structure:
         "title": "The title from the first h1 element on the page",
         "url": "/url-of-the-page/",
         "locations": [ /* ... */ ],
-        "weightedLocations": [ /* ... */ ],
+        "weighted_locations": [ /* ... */ ],
         "excerpt": "A small snippet of the <mark>static</mark> content, with the search term(s) highlighted in &lt;mark&gt; elements",
     },
     {
         "title": "Inner text of some heading",
         "url": "/url-of-the-page/#id-of-the-h2",
         "locations": [ /* ... */ ],
-        "weightedLocations": [ /* ... */ ],
+        "weighted_locations": [ /* ... */ ],
         "excerpt": "A snippet of the <mark>static</mark> content, scoped between this anchor and the next one",
         "anchor": {
             "element": "h2",
@@ -117,7 +117,7 @@ Which will return an object with the following structure:
     }
   ],
   "locations": [ 4, 9, 18 ],
-  "weightedLocations": [
+  "weighted_locations": [
     {
         "weight": 1,
         "location": 4
