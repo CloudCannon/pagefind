@@ -12,12 +12,6 @@
   let non_root_sub_results = [];
   let has_root_sub_result = false;
 
-  // make sure reactive
-  // let href = data?.meta?.url || data.url;
-
-  // if (highlight_query_param) {
-  //   href = `${href}?${highlight_query_param}`;
-  // }
   const thin_sub_results = (results, limit) => {
     if (results.length <= limit) {
       return results;
@@ -71,7 +65,7 @@
       <p class="pagefind-ui__result-title">
         <a
           class="pagefind-ui__result-link"
-          href={(data?.meta?.url || data?.url) +
+          href={(data?.meta?.url || data.url) +
             (highlight_query_param ? `?${highlight_query_param}` : "")}
           >{@html data.meta?.title}</a
         >
