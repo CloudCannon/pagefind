@@ -182,16 +182,41 @@ impl SearchIndex {
                 format! {"Word locations {:?}", word_locations}
             });
             word_locations.sort_unstable_by_key(|(_, loc)| *loc);
+
+            let mut working_pair = word_locations.get(0).cloned().unwrap_or_default();
+            let mut unique_word_locations = Vec::with_capacity(word_locations.len());
+            for (weight, loc) in word_locations.into_iter().skip(1) {
+                // If we're matching the same position again (this Vec is in location order)
+                if working_pair.1 == loc {
+                    if working_pair.0 > weight {
+                        // If the new word is weighted _lower_ than the working word,
+                        // we want to use the lower value. (Lowest weight wins)
+                        working_pair.0 = weight;
+                    } else if weight == working_pair.0 {
+                        // If the new word is weighted the same,
+                        // we want to combine them to boost matching both halves of a compound word
+                        working_pair.0 += weight;
+                    } else {
+                        // We don't want to do anything if the new word is weighted higher
+                        // (Lowest weight wins)
+                    }
+                } else {
+                    unique_word_locations.push(working_pair);
+                    working_pair = (weight, loc);
+                }
+            }
+            unique_word_locations.push(working_pair);
+
             let page = &self.pages[page_index];
             debug!({
-                format! {"Sorted word locations {:?}, {:?} word(s)", word_locations, page.word_count}
+                format! {"Sorted word locations {:?}, {:?} word(s)", unique_word_locations, page.word_count}
             });
 
-            let mut page_score = (word_locations
+            let mut page_score = (unique_word_locations
                 .iter()
                 .map(|(weight, _)| *weight as f32)
                 .sum::<f32>()
-                / 25.0)
+                / 24.0)
                 / page.word_count as f32;
             for (len, map) in length_maps.iter() {
                 // Boost pages that match shorter words, as they are closer
@@ -208,7 +233,7 @@ impl SearchIndex {
                 page: page.hash.clone(),
                 page_index,
                 page_score,
-                word_locations,
+                word_locations: unique_word_locations,
             };
 
             debug!({

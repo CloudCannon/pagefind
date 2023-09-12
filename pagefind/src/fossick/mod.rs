@@ -260,7 +260,7 @@ impl Fossicker {
 
         let mut offset_word_index = 0;
         let mut max_word_index = 0;
-        let weight_multiplier = 25.0;
+        let weight_multiplier = 24.0;
         let weight_max = 10.0;
         debug_assert!(((weight_max * weight_multiplier) as u8) < std::u8::MAX);
 
@@ -570,14 +570,14 @@ mod tests {
                     "hello".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 ),
                 (
                     "world".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 )
             ])
@@ -610,28 +610,28 @@ mod tests {
                     "the".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 ),
                 (
                     "quick".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 2 * 25
+                        weight: 2 * 24
                     }]
                 ),
                 (
                     "brown".to_string(),
                     vec![FossickedWord {
                         position: 2,
-                        weight: 2 * 25
+                        weight: 2 * 24
                     }]
                 ),
                 (
                     "fox".to_string(),
                     vec![FossickedWord {
                         position: 3,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 ),
                 (
@@ -687,35 +687,35 @@ mod tests {
                 vec![
                     FossickedWord {
                         position: 0,
-                        weight: 7 * 25
+                        weight: 7 * 24
                     },
                     FossickedWord {
                         position: 1,
-                        weight: 6 * 25
+                        weight: 6 * 24
                     },
                     FossickedWord {
                         position: 2,
-                        weight: 5 * 25
+                        weight: 5 * 24
                     },
                     FossickedWord {
                         position: 3,
-                        weight: 4 * 25
+                        weight: 4 * 24
                     },
                     FossickedWord {
                         position: 4,
-                        weight: 3 * 25
+                        weight: 3 * 24
                     },
                     FossickedWord {
                         position: 5,
-                        weight: 2 * 25
+                        weight: 2 * 24
                     },
                     FossickedWord {
                         position: 6,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     },
                     FossickedWord {
                         position: 7,
-                        weight: 0 * 25
+                        weight: 0 * 24
                     }
                 ]
             )])
@@ -746,14 +746,14 @@ mod tests {
                     "the".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 25
+                        weight: 24
                     }]
                 ),
                 (
                     "quick".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 250
+                        weight: 240
                     }]
                 ),
                 (
@@ -767,7 +767,7 @@ mod tests {
                     "fox".to_string(),
                     vec![FossickedWord {
                         position: 3,
-                        weight: 250
+                        weight: 240
                     }]
                 )
             ])
