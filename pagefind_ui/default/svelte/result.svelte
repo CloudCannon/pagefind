@@ -31,6 +31,7 @@
                         class="pagefind-ui__result-image"
                         src={data.meta?.image}
                         alt={data.meta?.image_alt || data.meta?.title}
+                        decoding="async"
                     />
                 {/if}
             </div>

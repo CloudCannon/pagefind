@@ -186,8 +186,7 @@
         }
     };
 
-    const showMore = (e) => {
-        e?.preventDefault();
+    const showMore = () => {
         show += 5;
     };
 </script>
@@ -198,23 +197,20 @@
         role="search"
         aria-label={translate("search_label", automatic_translations, translations)}
         action="javascript:void(0);"
-        on:submit={(e) => e.preventDefault()}
+        on:submit|preventDefault ={() => {}}
     >
         <input
             class="pagefind-ui__search-input"
             on:focus={init}
-            on:keydown={(e) => {
+            on:keydown|preventDefault ={(e) => {
                 if (e.key === "Escape") {
                     val = "";
                     input_el.blur();
                 }
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                }
             }}
             bind:value={val}
             bind:this={input_el}
-            type="text"
+            type="search"
             placeholder={translate("placeholder", automatic_translations, translations)}
             autocapitalize="none"
             enterkeyhint="search"
@@ -301,7 +297,7 @@
                             <button
                                 type="button"
                                 class="pagefind-ui__button"
-                                on:click={showMore}
+                                on:click|preventDefault={showMore}
                                 >{translate("load_more", automatic_translations, translations)}</button
                             >
                         {/if}
