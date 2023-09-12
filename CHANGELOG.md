@@ -11,7 +11,7 @@
 
 Pagefind 1.0 is here! This release has been many months in the making, and we're thrilled to be bringing some great new features and improvements.
 
-This release also marks a point in time for Pagefind's stability and maturity. Thanks to everyone who has helped out with contributions and feedback in the last year, we're now more confident than ever that Pagefind is a perfect fit with nearly any static website, staying performant and lean even as you scale.
+This release also marks a point in time for Pagefind's stability and maturity. Thanks to everyone who has helped out with contributions and feedback in the last year, we're now more confident than ever that Pagefind is a perfect fit with nearly any static website, staying performant and lean even as your site scales.
 
 ### ‼️ Breaking Changes
 
@@ -34,24 +34,18 @@ A full writeup of these changes and their effects exists in the [📘 Migrating 
 
 ### 🎉 New Features!
 
-***
-
 #### ✨ Content weighting ✨
 
-Pagefind now supports weighting regions of content higher or lower, which will be used when ranking results and generating excerpts.  
+Pagefind now supports configurable weighting for regions of content, which will be used when ranking results and generating excerpts.  
 Headings are automatically weighted higher, and custom weights can be inserted anywhere in your page.
 
 See [📘 Weighting sections of the page higher or lower](https://pagefind.app/docs/weighting/) for documentation.
 
-***
-
 #### ✨ Sub results ✨
 
-Pagefind now tracks headings and IDs when indexing your site, and this can be used to show multiple results per page when searching your site, with direct links to the closest anchor.
+Pagefind now tracks headings and IDs when indexing your site. This can be used to show multiple results per page when searching your site, with direct links to the closest parent anchor.
 
 See [📘 Showing multiple results per page](https://pagefind.app/docs/sub-results/) for documentation.
-
-***
 
 #### ✨ NodeJS indexing API ✨
 
@@ -61,15 +55,9 @@ This feature is very open ended — be it integrating Pagefind into a static sit
 
 See [📘 Indexing content using the NodeJS API](https://pagefind.app/docs/node-api/) for documentation.
 
-***
-
 #### ✨ Indexing compound words and code ✨
 
 Pagefind now better supports indexing various forms of compound words and code, meaning `<MyComponent data-pagefind-body>` will now match searches for **my**, **component**, **data**, **pagefind**, and **body**.
-
-This integrates with the new weighting feature, allowing these partial hits to rank lower than non-compound words.
-
-***
 
 ### 🎉 More Features & Improvements
 
@@ -87,8 +75,6 @@ This integrates with the new weighting feature, allowing these partial hits to r
   * [📘 Default UI excerptLength](https://pagefind.app/docs/ui/#excerpt-length)
   * [📘 JS API excerptLength](https://pagefind.app/docs/search-config/#excerpt-length)
 
-***
-
 ### Fixes & Tweaks
 
 * **CLI**: Fixed an issue where multiple `data-pagefind-body` tags on a page would conflict if one was nested deeper than the other.
@@ -99,8 +85,6 @@ This integrates with the new weighting feature, allowing these partial hits to r
 * **Default UI**: Fixed an issue where titles containing HTML elements were not correctly escaped.
 * **Default UI**: Improved the search input on mobile devices (PR #368 — thanks @valtlai !).
 * **Default UI**: Fixed an issue where some UI strings would appear in English instead of the translated language.
-
-***
 
 ### UI Translations
 
