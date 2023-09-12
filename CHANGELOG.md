@@ -67,6 +67,8 @@ See [📘 Indexing content using the NodeJS API](https://pagefind.app/docs/node-
 
 Pagefind now better supports indexing various forms of compound words and code, meaning `<MyComponent data-pagefind-body>` will now match searches for **my**, **component**, **data**, **pagefind**, and **body**.
 
+This integrates with the new weighting feature, allowing these partial hits to rank lower than non-compound words.
+
 ***
 
 ### 🎉 More Features & Improvements
