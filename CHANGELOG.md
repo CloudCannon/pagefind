@@ -84,8 +84,8 @@ This integrates with the new weighting feature, allowing these partial hits to r
   * This improves the installation speed of Pagefind through npm/npx, and also removes the need for any postinstall script making the entire process more reliable.
 * The Default UI now supports being passed an HTMLElement directly, as an alternative to a selector (PR #331 — thanks @stefanprobst).
 * The length of excerpts that Pagefind generates can now be customized:
-  * [📘 Default UI excerptLength](https://pagefind.app/docs/ui/#excerpt-length)
-  * [📘 JS API excerptLength](https://pagefind.app/docs/search-config/#excerpt-length)
+  * [📘 Default UI excerptLength](https://pagefind.app/docs/ui/#excerpt-length).
+  * [📘 JS API excerptLength](https://pagefind.app/docs/search-config/#excerpt-length).
 
 ***
 
@@ -95,6 +95,7 @@ This integrates with the new weighting feature, allowing these partial hits to r
 * **CLI**: Fixed builds for some Windows systems that were missing vcruntime.
 * **JS API**: A new `pagefind.init()` function has been added, meaning `pagefind.options()` can be called _before_ loading assets, allowing you to change the path to load files from.
 * **JS API**: Performance searching very large sites for short terms should be improved.
+* **JS API**: Passing an empty array for a filter value now behaves as if the filter was not supplied, instead of return zero results.
 * **Default UI**: Don't reset the browser-provided outlines when resetting UI styles.
 * **Default UI**: Fixed an issue where titles containing HTML elements were not correctly escaped.
 * **Default UI**: Improved the search input on mobile devices (PR #368 — thanks @valtlai !).
