@@ -84,7 +84,7 @@ Within the data for a page result, the `anchors`, `locations`, and `content` key
   "excerpt": "A small snippet of the <mark>static</mark> content, with the search term(s) highlighted in &lt;mark&gt; elements.",
 ~  "content": "The processed text content of this page ...",
 ~  "locations": [ 4, 18, 70 ],
-  "weightedLocations": [
+  "weighted_locations": [
     {
         "weight": 1,
         "location": 4
@@ -121,4 +121,4 @@ The `locations` key can be cross referenced with the list of `anchors` to determ
 
 The `content` key can be split on whitespace, and the `locations` will index into this content at the correct positions. This allows you to slice the content for each region of the page if you choose, and to generate a highlighted excerpt using that sliced content.
 
-Also available is the `weightedLocations` list, which can be used to further prioritise sections of the page if they contain higher value words.
+Also available is the `weighted_locations` list, which can be used to further prioritise sections of the page if they contain higher value words.

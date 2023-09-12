@@ -245,7 +245,7 @@ class PagefindInstance {
         return JSON.parse(new TextDecoder().decode(fragment));
     }
 
-    async loadFragment(hash: string, weightedLocations: PagefindWordLocation[] = []) {
+    async loadFragment(hash: string, weighted_locations: PagefindWordLocation[] = []) {
         if (!this.loaded_fragments[hash]) {
             this.loaded_fragments[hash] = this._loadFragment(hash);
         }
@@ -253,8 +253,8 @@ class PagefindInstance {
             raw_content: string,
             raw_url: string,
         };
-        fragment.weightedLocations = weightedLocations;
-        fragment.locations = weightedLocations.map(l => l.location);
+        fragment.weighted_locations = weighted_locations;
+        fragment.locations = weighted_locations.map(l => l.location);
 
         if (!fragment.raw_content) {
             fragment.raw_content = fragment.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -265,7 +265,7 @@ class PagefindInstance {
             fragment.url = this.fullUrl(fragment.raw_url);
         }
 
-        const excerpt_start = calculate_excerpt_region(weightedLocations, this.excerptLength);
+        const excerpt_start = calculate_excerpt_region(weighted_locations, this.excerptLength);
         fragment.excerpt = build_excerpt(fragment.raw_content, excerpt_start, this.excerptLength, fragment.locations);
 
         fragment.sub_results = calculate_sub_results(fragment, this.excerptLength);
@@ -419,16 +419,16 @@ class PagefindInstance {
         let resultsInterface = results.map(result => {
             let [hash, score, all_locations] = result.split('@');
             log(`Processing result: \n  hash:${hash}\n  score:${score}\n  locations:${all_locations}`);
-            let weightedLocations = all_locations.length ? all_locations.split(',').map(l => {
+            let weighted_locations = all_locations.length ? all_locations.split(',').map(l => {
                 let [weight, location ] = l.split('>').map(v => parseInt(v));
                 return { weight, location };
             }) : [];
-            let locations = weightedLocations.map(l => l.location);
+            let locations = weighted_locations.map(l => l.location);
             return {
                 id: hash,
                 score: parseFloat(score) * this.indexWeight,
                 words: locations,
-                data: async () => await this.loadFragment(hash, weightedLocations)
+                data: async () => await this.loadFragment(hash, weighted_locations)
             }
         });
 
