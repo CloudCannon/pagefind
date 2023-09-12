@@ -1,11 +1,11 @@
 ---
-title: "Pagefind JavaScript API configuration options"
-nav_title: "Search config options"
+title: "Using the Pagefind JavaScript API"
+nav_title: "Using the search API"
 nav_section: Pagefind JS Reference
-weight: 71
+weight: 70
 ---
 
-Pagefind can be accessed as an API directly from JavaScript, for you to build custom search interfaces, or integrate with existing systems and components.
+Pagefind can be accessed as an API directly from JavaScript. This is useful for building custom search interfaces, or integrating with existing systems and components.
 
 ## Initializing Pagefind
 

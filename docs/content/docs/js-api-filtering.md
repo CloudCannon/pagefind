@@ -2,7 +2,7 @@
 title: "Filtering using the Pagefind JavaScript API"
 nav_title: "Filtering with the JS API"
 nav_section: Filtering
-weight: 4
+weight: 12
 ---
 
 Pagefind's JavaScript API supports filtering your content, either as part of a search or as a standalone action. This is often useful when using Pagefind for a knowledge base or large blog, where filtering by categories or tags might be the primary action.

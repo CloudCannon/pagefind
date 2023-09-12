@@ -2,7 +2,7 @@
 title: "Pagefind CLI configuration options"
 nav_title: "CLI config options"
 nav_section: Pagefind CLI Reference
-weight: 31
+weight: 51
 ---
 
 The Pagefind CLI has the following options.  

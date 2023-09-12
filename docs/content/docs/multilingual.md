@@ -1,8 +1,8 @@
 ---
 title: "Multilingual search"
 nav_title: "Multilingual search"
-nav_section: Indexing
-weight: 80
+nav_section: Multilingual
+weight: 30
 ---
 
 Pagefind supports multilingual sites out of the box, with zero configuration. 

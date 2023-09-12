@@ -22,3 +22,5 @@ github.com/bglw/alto-as-module v0.0.0-20230911231837-6481f206db56 h1:ac8LTOVUNtU
 github.com/bglw/alto-as-module v0.0.0-20230911231837-6481f206db56/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
 github.com/bglw/alto-as-module v0.0.0-20230911232430-d4b13723a50f h1:bqdcA+eRrUgCx+MBY4qTCYcy/IEkiwOzffrLN3uHNl4=
 github.com/bglw/alto-as-module v0.0.0-20230911232430-d4b13723a50f/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=
+github.com/bglw/alto-as-module v0.0.0-20230911232820-3d097354836a h1:Fzrsx5gBWDZ9rVknq00FzkLcWLoNYTUmq5TfkyQLajQ=
+github.com/bglw/alto-as-module v0.0.0-20230911232820-3d097354836a/go.mod h1:JkAw6OJ3FGU8uwYBkaEqUCJz4QsZgoybeeNLA4sMVXc=

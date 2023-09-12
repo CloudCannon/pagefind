@@ -39,7 +39,7 @@ Which produces: `author: ["CloudCannon", "Liam Bigelow"]`.
 
 ## Capturing a filter value from an attribute
 
-If the data you want to filter on exists as an attribute, you can use the syntax `filter_name[html_attribute]`"
+If the data you want to filter on exists as an attribute, you can use the syntax `filter_name[html_attribute]`
 
 {{< diffcode >}}
 ```html

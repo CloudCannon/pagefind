@@ -2,7 +2,7 @@
 title: "Installing and running Pagefind"
 nav_title: "Installing Pagefind"
 nav_section: Pagefind CLI Reference
-weight: 29
+weight: 49
 ---
 
 Pagefind is a static binary with no dynamic dependencies, so in most cases will be simple to install and run. Pagefind is currently supported on Windows, macOS, and x86-64 Linux distributions.
