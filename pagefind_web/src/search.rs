@@ -183,29 +183,31 @@ impl SearchIndex {
             });
             word_locations.sort_unstable_by_key(|(_, loc)| *loc);
 
-            let mut working_pair = word_locations.get(0).cloned().unwrap_or_default();
             let mut unique_word_locations = Vec::with_capacity(word_locations.len());
-            for (weight, loc) in word_locations.into_iter().skip(1) {
-                // If we're matching the same position again (this Vec is in location order)
-                if working_pair.1 == loc {
-                    if working_pair.0 > weight {
-                        // If the new word is weighted _lower_ than the working word,
-                        // we want to use the lower value. (Lowest weight wins)
-                        working_pair.0 = weight;
-                    } else if weight == working_pair.0 {
-                        // If the new word is weighted the same,
-                        // we want to combine them to boost matching both halves of a compound word
-                        working_pair.0 += weight;
+            if !word_locations.is_empty() {
+                let mut working_pair = word_locations.get(0).cloned().unwrap_or_default();
+                for (weight, loc) in word_locations.into_iter().skip(1) {
+                    // If we're matching the same position again (this Vec is in location order)
+                    if working_pair.1 == loc {
+                        if working_pair.0 > weight {
+                            // If the new word is weighted _lower_ than the working word,
+                            // we want to use the lower value. (Lowest weight wins)
+                            working_pair.0 = weight;
+                        } else if weight == working_pair.0 {
+                            // If the new word is weighted the same,
+                            // we want to combine them to boost matching both halves of a compound word
+                            working_pair.0 += weight;
+                        } else {
+                            // We don't want to do anything if the new word is weighted higher
+                            // (Lowest weight wins)
+                        }
                     } else {
-                        // We don't want to do anything if the new word is weighted higher
-                        // (Lowest weight wins)
+                        unique_word_locations.push(working_pair);
+                        working_pair = (weight, loc);
                     }
-                } else {
-                    unique_word_locations.push(working_pair);
-                    working_pair = (weight, loc);
                 }
+                unique_word_locations.push(working_pair);
             }
-            unique_word_locations.push(working_pair);
 
             let page = &self.pages[page_index];
             debug!({
