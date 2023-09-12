@@ -47,7 +47,7 @@ Pagefind now tracks headings and IDs when indexing your site, and this can be us
 
 See [📘 Showing multiple results per page](https://pagefind.app/docs/sub-results/) for documentation.
 
-#### NodeJS indexing API
+#### ✨ NodeJS indexing API ✨
 
 The `pagefind` package on npm can now be imported as a library into a NodeJS script, giving you programmatic control over indexing content from both disk and memory.
 
