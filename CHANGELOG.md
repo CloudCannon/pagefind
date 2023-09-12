@@ -9,19 +9,92 @@
 
 ## Unreleased
 
-* Fixed an issue where multiple `data-pagefind-body` tags on a page would conflict if one was nested deeper than the other
-* Added anchor data to the fragments loaded for search results
-* Added `data-pagefind-weight` tag to rank certain content higher
-* Automatically treat `h1` through `h6` tags as a higher weight than body content
-* Tweak partial word matching by returning the prefix of a search word if otherwise not found
-* NodeJS API Release
-* Added Italian translations (PR #323 — thanks @apjanco !)
-* Added Hindi translations (PR #324 — thanks @Amitind !)
-* Added Finnish translations (PR #366 — thanks @valtlai !)
-* Added Turkish translations (PR #395 — thanks @taylanbildik !)
-* Don't reset the browser-provided outlines when resetting UI styles
-* Compoung filtering (TODO: Pin to stable microjson release)
-* Indexing compound words
+Pagefind 1.0 is here! This release has been many months in the making, and we're thrilled to be bringing some great new features and improvements.
+
+This release also marks a point in time for Pagefind's stability and maturity. Thanks to everyone who has helped out with contributions and feedback in the last year, we're now more confident than ever that Pagefind is a perfect fit with nearly any static website, staying performant and lean even as you scale.
+
+### ‼️ Breaking Changes
+
+This 1.0 release includes one breaking change, and some notable non-breaking behavioral changes.
+A full writeup of these changes and their effects exists in the [📘 Migrating to Pagefind 1.0](https://pagefind.app/docs/v1-migration/) guide on Pagefind's website.
+
+* **BREAKING**:
+  * PREVIOUS: By default, Pagefind 0.x outputs files to a `_pagefind` in your site.
+  * NEW: By default, Pagefind 1.x outputs files to a `pagefind` in your site.
+  * More details on this change can be found in the [[📘 migration guide](https://pagefind.app/docs/v1-migration/#new-default-output-location)].
+
+### ⚠️ Behavioral Changes
+
+* Changes to CLI options [[📘 migration guide](https://pagefind.app/docs/v1-migration/#renamed-cli-options)]:
+  * The `source` option has been renamed to `site`.
+  * The `bundle-dir` option has been renamed to `output-subdir`.
+  * A new `output-path` option has been added.
+* Search indexing and ranking changes will cause result lists to differ from 0.x [[📘 migration guide]((https://pagefind.app/docs/v1-migration/#changes-to-search-relevancy-and-ranking))].
+* The JS API initializes Pagefind at a different stage of execution [[📘 migration guide](https://pagefind.app/docs/v1-migration/#changes-to-the-pagefind-js-api-initialization)].
+
+### 🎉 New Features!
+
+#### ✨ Content weighting ✨
+
+Pagefind now supports weighting regions of content higher or lower, which will be used when ranking results and generating excerpts.  
+Headings are automatically weighted higher, and custom weights can be inserted anywhere in your page.
+
+See [📘 Weighting sections of the page higher or lower](https://pagefind.app/docs/weighting/) for documentation.
+
+#### ✨ Sub results ✨
+
+Pagefind now tracks headings and IDs when indexing your site, and this can be used to show multiple results per page when searching your site, with direct links to the closest anchor.
+
+See [📘 Showing multiple results per page](https://pagefind.app/docs/sub-results/) for documentation.
+
+#### NodeJS indexing API
+
+The `pagefind` package on npm can now be imported as a library into a NodeJS script, giving you programmatic control over indexing content from both disk and memory.
+
+This feature is very open ended — be it integrating Pagefind into a static site generator, or indexing non-static and non-HTML content, we're excited to see what people come up with! Open a [discussion](https://github.com/CloudCannon/pagefind/discussions) on GitHub if you build anything unique that you would like to share!
+
+See [📘 Indexing content using the NodeJS API](https://pagefind.app/docs/node-api/) for documentation.
+
+#### ✨ Indexing compound words and code ✨
+
+Pagefind now better supports indexing various forms of compound words and code, meaning `<MyComponent data-pagefind-body>` will now match searches for **my**, **component**, **data**, **pagefind**, and **body**.
+
+### 🎉 More Features & Improvements
+
+* Pagefind now returns results for a prefix of the search word if there would otherwise be zero results:
+  * e.g. if searching for `bandwidth` would return zero results, you might get results for `band` or `ban`.
+* Pagefind can now search for emoji 🎉🚀✨.
+* Do you filter more than you search? For those using the JS API directly, Pagefind now supports complex compound filtering:
+  * [📘 Using compound filters](https://pagefind.app/docs/js-api-filtering/#using-compound-filters).
+* Pagefind is now smarter at generating excerpts, returning the most dense region of search hits on the page.
+  * Excerpt calculation also integrates with the new weighting feature, and will favor areas of the page with higher weighted words.
+* The `pagefind` npm package no longer downloads binaries from a GitHub release, and instead has platform-specific dependencies that download only the relevant binary from npm.
+  * This improves the installation speed of Pagefind through npm/npx, and also removes the need for any postinstall script making the entire process more reliable.
+* The Default UI now supports being passed an HTMLElement directly, as an alternative to a selector (PR #331 — thanks @stefanprobst).
+* The length of excerpts that Pagefind generates can now be customized:
+  * [📘 Default UI excerptLength](https://pagefind.app/docs/ui/#excerpt-length)
+  * [📘 JS API excerptLength](https://pagefind.app/docs/search-config/#excerpt-length)
+
+### Fixes & Tweaks
+
+* **CLI**: Fixed an issue where multiple `data-pagefind-body` tags on a page would conflict if one was nested deeper than the other.
+* **CLI**: Fixed builds for some Windows systems that were missing vcruntime.
+* **JS API**: A new `pagefind.init()` function has been added, meaning `pagefind.options()` can be called _before_ loading assets, allowing you to change the path to load files from.
+* **JS API**: Performance searching very large sites for short terms should be improved.
+* **Default UI**: Don't reset the browser-provided outlines when resetting UI styles.
+* **Default UI**: Fixed an issue where titles containing HTML elements were not correctly escaped.
+* **Default UI**: Improved the search input on mobile devices (PR #368 — thanks @valtlai !).
+* **Default UI**: Fixed an issue where some UI strings would appear in English instead of the translated language.
+
+### UI Translations
+
+* Added Indonesian translations (PR #273 — thanks @nixentric !).
+* Added Serbian translations (PR #285 — thanks @DigitLib !).
+* Added Italian translations (PR #323 — thanks @apjanco !).
+* Added Hindi translations (PR #324 — thanks @Amitind !).
+* Added Finnish translations (PR #366 — thanks @valtlai !).
+* Added Turkish translations (PR #395 — thanks @taylanbildik !).
+* Added Tamil translations (PR #402 — thanks @sanjaiyan-dev !).
 
 ## v0.12.0 (March 1, 2023)
 

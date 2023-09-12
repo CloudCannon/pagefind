@@ -42,6 +42,19 @@ new PagefindUI({
 
 Whether to show an image alongside each search result. Defaults to `true`.
 
+### Excerpt length
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    excerptLength: 15
+});
+```
+{{< /diffcode >}}
+
+Set the maximum length for generated excerpts. Defaults to `30`, or `12` if showing sub results.
+
 ### Process term
 
 {{< diffcode >}}

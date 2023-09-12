@@ -37,7 +37,6 @@ const pagefind = await import("/pagefind/pagefind.js");
 
 ## Available options
 
-
 ### Base URL
 
 ```json
@@ -57,6 +56,16 @@ Defaults to "/". If hosting a site on a subpath, `baseUrl` can be provided, and 
 ```
 
 Overrides the bundle directory. In most cases this should be automatically detected by the import URL. Set this if search isn't working and you are seeing a console warning that this path could not be detected.
+
+### Excerpt length
+
+```json
+{
+    "excerptLength": 15
+}
+```
+
+Set the maximum length for generated excerpts. Defaults to `30`.
 
 ### Index weight
 
