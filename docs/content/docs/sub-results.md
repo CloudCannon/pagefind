@@ -87,14 +87,17 @@ Within the data for a page result, the `anchors`, `locations`, and `content` key
   "weighted_locations": [
     {
         "weight": 1,
+        "balanced_score": 10.5,
         "location": 4
     },
     {
         "weight": 1,
+        "balanced_score": 25.6,
         "location": 18
     },
     {
         "weight": 2,
+        "balanced_score": 60.7,
         "location": 70
     }
   ],

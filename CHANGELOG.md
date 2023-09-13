@@ -55,6 +55,13 @@ This feature is very open ended — be it integrating Pagefind into a static sit
 
 See [📘 Indexing content using the NodeJS API](https://pagefind.app/docs/node-api/) for documentation.
 
+#### ✨ Greatly improved ranking and relevancy ✨
+
+Pagefind now takes inverse document frequency into account, meaning words that are unique across your site will rank higher than common words.  
+The ranking algorithm has also been improved across the board, which should result in better search relevance by default.
+
+We're always looking to improve search relevance further, so open an issue on GitHub if you have any examples of searches that don't hit the mark.
+
 #### ✨ Indexing compound words and code ✨
 
 Pagefind now better supports indexing various forms of compound words and code, meaning `<MyComponent data-pagefind-body>` will now match searches for **my**, **component**, **data**, **pagefind**, and **body**.

@@ -8,7 +8,7 @@ export const calculate_excerpt_region = (word_positions: PagefindWordLocation[],
     let words: number[] = [];
     for (const word of word_positions) {
         words[word.location] = words[word.location] || 0;
-        words[word.location] += word.weight;
+        words[word.location] += word.balanced_score;
     }
 
     if (words.length <= excerpt_length) {

@@ -420,8 +420,12 @@ class PagefindInstance {
             let [hash, score, all_locations] = result.split('@');
             log(`Processing result: \n  hash:${hash}\n  score:${score}\n  locations:${all_locations}`);
             let weighted_locations = all_locations.length ? all_locations.split(',').map(l => {
-                let [weight, location ] = l.split('>').map(v => parseInt(v));
-                return { weight: weight / 24.0, location };
+                let [weight, balanced_score, location ] = l.split('>');
+                return { 
+                    weight: parseInt(weight) / 24.0,
+                    balanced_score: parseFloat(balanced_score),
+                    location: parseInt(location)
+                };
             }) : [];
             let locations = weighted_locations.map(l => l.location);
             return {

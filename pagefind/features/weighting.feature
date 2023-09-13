@@ -151,7 +151,7 @@ Feature: Word Weighting
             }
             """
         Then There should be no logs
-        Then The selector "p" should contain "/r3/, /r1/, /r2/"
+        Then The selector "p" should contain "/r1/, /r3/, /r2/"
 
     Scenario: Compound words prefixes prioritise the lower weight
         Given I have a "public/r1/index.html" file with the body:
@@ -169,12 +169,13 @@ Feature: Word Weighting
 
                 let search = await pagefind.search(`three`);
                 let data = await search.results[0].data();
-                let weights = data.weighted_locations.map(l => `weight:${l.weight}/loc:${l.location}`).join(' • ');
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
                 document.querySelector('p').innerText = weights;
             }
             """
         Then There should be no logs
-        Then The selector "p" should contain "weight:0.5/loc:4"
+        # Treat the bal value here as a snapshot — update the expected value as needed
+        Then The selector "p" should contain "weight:0.5/bal:18/loc:4"
 
     Scenario: Compound words sum to a full weight
         Given I have a "public/r1/index.html" file with the body:
@@ -192,12 +193,13 @@ Feature: Word Weighting
 
                 let search = await pagefind.search(`three antelopes`);
                 let data = await search.results[0].data();
-                let weights = data.weighted_locations.map(l => `weight:${l.weight}/loc:${l.location}`).join(' • ');
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
                 document.querySelector('p').innerText = weights;
             }
             """
         Then There should be no logs
-        Then The selector "p" should contain "weight:1/loc:4"
+        # Treat the bal value here as a snapshot — update the expected value as needed
+        Then The selector "p" should contain "weight:1/bal:72/loc:4"
 
     Scenario: Compound words matched as full words use the full weight
         Given I have a "public/r1/index.html" file with the body:
@@ -215,9 +217,10 @@ Feature: Word Weighting
 
                 let search = await pagefind.search(`threea`);
                 let data = await search.results[0].data();
-                let weights = data.weighted_locations.map(l => `weight:${l.weight}/loc:${l.location}`).join(' • ');
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
                 document.querySelector('p').innerText = weights;
             }
             """
         Then There should be no logs
-        Then The selector "p" should contain "weight:1/loc:4"
+        # Treat the bal value here as a snapshot — update the expected value as needed
+        Then The selector "p" should contain "weight:1/bal:82.28572/loc:4"
