@@ -21,7 +21,7 @@ export function resolveBinaryPath(execnames = []) {
         const executable = platform === 'windows' ? `${execname}.exe` : execname;
 
         try {
-            return require.resolve(`@${execname}/${platform}-${cpu}/bin/${executable}`);
+            return require.resolve(`@pagefind/${platform}-${cpu}/bin/${executable}`);
         } catch (e) { }
     }
 

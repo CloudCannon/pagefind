@@ -10,6 +10,7 @@
 ## Unreleased
 
 * Fixed the new `pagefind` npm wrapper to use the `pagefind_extended` release, as documented.
+* Change `microjson` git dependency to a `pagefind_microjson` crate dependency (for now) — #421 .
 
 ## v1.0.0 (September 13, 2023)
 
