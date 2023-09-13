@@ -29,7 +29,7 @@ A full writeup of these changes and their effects exists in the [📘 Migrating 
   * The `source` option has been renamed to `site`.
   * The `bundle-dir` option has been renamed to `output-subdir`.
   * A new `output-path` option has been added.
-* Search indexing and ranking changes will cause result lists to differ from 0.x [[📘 migration guide]((https://pagefind.app/docs/v1-migration/#changes-to-search-relevancy-and-ranking))].
+* Search indexing and ranking changes will cause result lists to differ from 0.x [[📘 migration guide](https://pagefind.app/docs/v1-migration/#changes-to-search-relevancy-and-ranking)].
 * The JS API initializes Pagefind at a different stage of execution [[📘 migration guide](https://pagefind.app/docs/v1-migration/#changes-to-the-pagefind-js-api-initialization)].
 
 ### 🎉 New Features!
