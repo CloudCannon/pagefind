@@ -7,6 +7,12 @@ weight: 81
 
 Migrating from Pagefind 0.x to Pagefind 1.0 will work seamlessly in almost all cases, but there are some things to be aware of.
 
+## New features
+
+This page summarises the notable changes to existing behavior that Pagefind 1.0 introduces.
+
+For all ✨ new ✨ 1.0 features, see the full [release notes on GitHub](https://github.com/CloudCannon/pagefind/releases).
+
 ## New default output location
 
 The only breaking change in Pagefind 1.0 is that the default output location has changed from `/_pagefind/` to `/pagefind/`.
@@ -113,9 +119,3 @@ This change is not breaking, as calling any other function such as `pagefind.sea
 This **does** change timings for people using the JavaScript API. If your code is not updated, Pagefind will start downloading dependencies at the time of search, rather than the time of import. 
 
 It is now recommended to add a call to `pagefind.init()` when importing the package, or when your search interface gains focus, to help dependencies load before a user types a search query.
-
-## New features
-
-This page summarises the notable changes to existing behavior that Pagefind 1.0 introduces.
-
-For all ✨ new ✨ 1.0 features, see the full [release notes on GitHub](https://github.com/CloudCannon/pagefind/releases).
