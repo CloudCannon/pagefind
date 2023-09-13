@@ -1,7 +1,7 @@
 ---
 title: "Pagefind UI configuration options"
-nav_title: "UI config options"
-nav_section: Pagefind UI Reference
+nav_title: "Default UI config"
+nav_section: References
 weight: 61
 ---
 

@@ -2,7 +2,7 @@
 title: "Showing multiple results per page"
 nav_title: "Multiple results per page"
 nav_section: Searching
-weight: 2
+weight: 5
 ---
 
 Pagefind is able to provide context on which sections of a page match a search term, based on the HTML `id` attributes found on the page.
@@ -68,7 +68,10 @@ These results are split on headings (`h1` → `h6`) that have `id` attributes th
 
 If there are matches for the search term on the page _before_ the first heading with an ID, the first sub result in this list will be the URL and title of the page itself, and will not contain an `anchor` key. All other sub results will have a URL linking directly to that heading, and will have an `anchor` key with details about the element.
 
-This means that all page results are guaranteed to have at least one sub result for either the page itself, one or more headings, or the page itself **and** one or more headings.
+This means that all page results are guaranteed to have at least one sub result for either:
+- The page itself,
+- One or more headings,
+- Or, the page itself **and** one or more headings.
 
 ## Calculating custom sub results using the JavaScript API
 

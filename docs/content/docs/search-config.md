@@ -1,8 +1,8 @@
 ---
 title: "Configuring the Pagefind search in the browser"
-nav_title: "Pagefind search config"
-nav_section: Searching
-weight: 7
+nav_title: "Search API config"
+nav_section: References
+weight: 60
 ---
 
 The behaviour of the Pagefind search API can be configured in the browser.

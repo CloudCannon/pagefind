@@ -1,7 +1,7 @@
 ---
 title: "Pagefind CLI configuration sources"
 nav_title: "CLI config sources"
-nav_section: Pagefind CLI Reference
+nav_section: References
 weight: 50
 ---
 

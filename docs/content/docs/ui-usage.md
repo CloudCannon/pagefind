@@ -1,11 +1,11 @@
 ---
 title: "Using the Default UI"
 nav_title: "Using the Default UI"
-nav_section: Pagefind UI Reference
-weight: 60
+nav_section: Searching
+weight: 3
 ---
 
-Pagefind provides a UI component that supports searching, filtering, and metadata out of the box.
+Pagefind provides a Default UI component that supports searching, basic filtering, sub results, and metadata out of the box.
 
 ## Adding the Pagefind UI to a page
 
@@ -59,11 +59,13 @@ body.dark {
 
 Pagefind UI can be styled manually by omitting the `/pagefind/pagefind-ui.css` stylesheet. In this case it will function as a pure HTML component.
 
-The classnames within Pagefind UI that begin with `pagefind-ui` should be targeted. These may change, so if you are styling them yourself make sure to test new releases of Pagefind with your stylesheet.
+The classnames within Pagefind UI that begin with `pagefind-ui` should be targeted. These may change, so if you are styling them yourself make sure to test new releases of Pagefind with your stylesheet. Any significant changes to this markup will be noted in a changelog.
 
 ## Using custom Pagefind UI strings
 
 Pagefind UI will attempt to use translated text based on the language tag of the active page. If built in tanslations are not found, the UI will fall back to English text. Custom text can instead be supplied using the [translations](/docs/ui/#translations) option.
+
+Languages with built in translations are listed in the [language support table](/docs/multilingual/#language-support).
 
 ## Overriding the URL of a result
 

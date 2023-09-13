@@ -1,8 +1,8 @@
 ---
 title: "Indexing content using the NodeJS API"
-nav_title: "Pagefind NodeJS API"
-nav_section: Indexing
-weight: 91
+nav_title: "Using the NodeJS API"
+nav_section: References
+weight: 55
 ---
 
 Pagefind provides an interface to the indexing binary as a NodeJS package you can import.
