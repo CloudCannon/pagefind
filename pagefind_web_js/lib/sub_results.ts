@@ -23,7 +23,7 @@ export const calculate_sub_results = (
   const add_result = (end_range?: number) => {
     if (current_anchor.locations.length) {
       const relative_weighted_locations = current_anchor.weighted_locations.map(
-        (l) => { return {weight: l.weight, location: l.location - current_anchor_position}}
+        (l) => { return {weight: l.weight, balanced_score: l.balanced_score, location: l.location - current_anchor_position}}
       );
       const excerpt_start =
         calculate_excerpt_region(relative_weighted_locations, desired_excerpt_length) +

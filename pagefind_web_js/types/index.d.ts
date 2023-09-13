@@ -65,6 +65,7 @@ declare global {
 
     type PagefindWordLocation = {
         weight: number,
+        balanced_score: number,
         location: number,
     }
 

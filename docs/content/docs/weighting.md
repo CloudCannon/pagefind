@@ -45,3 +45,5 @@ You can specify your own ranking via the `data-pagefind-weight` attribute:
 ```
 
 Custom weights can be set to any number between `0.0` and `10.0`. 
+
+Weightings are ranked using a quadratic scale, so a ranking of `2.0` will have roughly 4 times the impact of standard text, and a weighting of `10.0` will have roughly 100 times the impact.

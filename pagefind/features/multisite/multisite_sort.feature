@@ -60,7 +60,7 @@ Feature: Multisite Result Scoring
             async function() {
                 let pagefind = await import("/website_a/pagefind/pagefind.js");
                 await pagefind.mergeIndex("/website_b/pagefind/", {
-                    indexWeight: 2
+                    indexWeight: 20
                 });
 
                 let search = await pagefind.search("web");

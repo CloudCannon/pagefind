@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use util::*;
 use wasm_bindgen::prelude::*;
 
+use crate::search::BalancedWordScore;
+
 mod filter;
 mod filter_index;
 mod index;
@@ -263,7 +265,15 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
                 result
                     .word_locations
                     .iter()
-                    .map(|(weight, loc)| format!("{weight}>{loc}"))
+                    .map(
+                        |BalancedWordScore {
+                             weight,
+                             balanced_score,
+                             word_location,
+                         }| format!(
+                            "{weight}>{balanced_score}>{word_location}"
+                        )
+                    )
                     .collect::<Vec<String>>()
                     .join(",")
             )

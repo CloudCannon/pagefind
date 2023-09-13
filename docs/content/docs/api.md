@@ -120,14 +120,17 @@ Which will return an object with the following structure:
   "weighted_locations": [
     {
         "weight": 1,
+        "balanced_score": 10.5,
         "location": 4
     },
     {
         "weight": 1,
+        "balanced_score": 15,
         "location": 9
     },
     {
         "weight": 2,
+        "balanced_score": 46.7,
         "location": 18
     }
   ],
