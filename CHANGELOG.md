@@ -88,7 +88,7 @@ Pagefind now better supports indexing various forms of compound words and code, 
 * **CLI**: Fixed builds for some Windows systems that were missing vcruntime.
 * **JS API**: A new `pagefind.init()` function has been added, meaning `pagefind.options()` can be called _before_ loading assets, allowing you to change the path to load files from.
 * **JS API**: Performance searching very large sites for short terms should be improved.
-* **JS API**: Passing an empty array for a filter value now behaves as if the filter was not supplied, instead of return zero results.
+* **JS API**: Passing an empty array for a filter value now behaves as if the filter was not supplied, instead of returning zero results.
 * **Default UI**: Don't reset the browser-provided outlines when resetting UI styles.
 * **Default UI**: Fixed an issue where titles containing HTML elements were not correctly escaped.
 * **Default UI**: Improved the search input on mobile devices (PR #368 — thanks @valtlai !).
