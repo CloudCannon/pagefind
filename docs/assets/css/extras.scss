@@ -194,3 +194,10 @@ details summary::-webkit-details-marker {
         }
     }
 }
+
+@media (max-width: 600px) {
+    .header > .row {
+        flex-direction: column;
+        gap: 18px;
+    }
+}
