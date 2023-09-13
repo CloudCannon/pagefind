@@ -1,0 +1,30 @@
+{
+  "name": "@pagefind/js",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "npm_dist/cjs/js-api.cjs",
+  "module": "npm_dist/mjs/js-api.mjs",
+  "scripts": {
+    "build-coupled": "node ./build.js",
+    "test": "ava"
+  },
+  "author": "Cloudcannon",
+  "license": "MIT",
+  "devDependencies": {
+    "ava": "^5.3.1",
+    "esbuild": "^0.19.0",
+    "tsx": "^3.12.8",
+    "typescript": "^5.2.2"
+  },
+  "files": [
+    "src/types/**"
+  ],
+  "ava": {
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
+      "--loader=tsx"
+    ]
+  }
+}

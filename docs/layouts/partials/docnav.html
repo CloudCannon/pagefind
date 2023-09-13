@@ -1,41 +1,29 @@
 {{ $page := . }}
 
-<details class="docnav" open>
-    <summary class="docnav-title">Docs</summary>
-    <nav>
-        <ol class="docnav-list">
+<nav class="docnav" 
+    aria-label="{{ site.Data.nav.side_nav_title }}"
+    x-data="{
+        expanded: false
+    }">
+    <span class="docnav-title">
+        {{ site.Data.nav.side_nav_title }}
 
-            <li class="{{ if eq .Site.Home.File.UniqueID $page.File.UniqueID }}active {{ end }}">
-                <a href="{{ .Site.Home.Permalink | relURL }}"> {{ .Site.Home.Params.nav_title }}</a>
-            </li>
-
-            {{ $docs := sort (where .Site.Pages "Section" "docs") ".Params.weight" }}
-            {{ range where $docs ".Params.nav_section" "Root" }}
-            <li class="{{ if eq .File.UniqueID $page.File.UniqueID }}active {{ end }}">
-                <a href="{{ .Permalink | relURL }}"> {{ .Params.nav_title }}</a>
-            </li>
-            {{ end }}
-
-            {{ $groups := slice }}
-            {{ range $docs }}
-            {{ if not (eq .Params.nav_section "Root") }}
-            {{ $groups = $groups | append .Params.nav_section }}
-            {{ end }}
-            {{ end }}
-            {{ $groups = uniq $groups }}
-
-            {{ range $groups }}
-            <li>
-                <p class="docnav-title">{{ . }}</p>
-                <ol class="docnav-list">
-                    {{ range where $docs ".Params.nav_section" . }}
-                    <li class="{{ if eq .File.UniqueID $page.File.UniqueID }}active {{ end }}">
-                        <a href="{{ .Permalink | relURL }}"> {{ .Params.nav_title }}</a>
-                    </li>
-                    {{ end }}
-                </ol>
-            </li>
-            {{ end }}
-        </ol>
-    </nav>
-</details>
+        <button class="docnav-expand" 
+            x-text="expanded ? 'Collapse all' : 'Expand all'"
+            @click="
+                expanded = !expanded;
+                document.querySelectorAll('.docnav-details').forEach(el => {
+                    if (expanded) {
+                        el.setAttribute('open', expanded);
+                    } else {
+                        el.removeAttribute('open');
+                    }
+                });
+            "
+        >Expand all</button>
+    </span>
+   </button>
+    <div id="docnav-inner" class="docnav-inner">
+        {{ partial "docnav-list.html" . }}
+    </div>
+</nav>

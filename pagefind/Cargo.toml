@@ -8,7 +8,7 @@ license = "MIT"
 
 [dependencies]
 anyhow = "1.0"
-clap = { version = "3.2.6", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 console = "0.15.1"
 wax = "0.5.0"
 futures = "0.3"
@@ -48,22 +48,26 @@ pagefind_stem = { version = "0.2.0", features = [
     "turkish",
     "yiddish",
 ] }
+convert_case = "0.6.0"
 charabia = { version = "0.7.0", optional = true }
+unicode-segmentation = "1.10.1"
+emojis = "0.6.1"
 hashbrown = { version = "0.13.1", features = ["serde"] }
 regex = "1.1"
-minicbor = { version = "0.18.0", features = ["alloc", "derive"] }
-lol_html = "0.3"
+minicbor = { version = "0.19.1", features = ["alloc", "derive"] }
+base64 = "0.21"
+lol_html = "0.4"
 html-escape = "0.2.11"
 bit-set = "0.5"
 flate2 = "1.0"
-async-compression = { version = "0.3", features = ["tokio", "gzip"] }
+async-compression = { version = "0.4", features = ["tokio", "gzip"] }
 minifier = "0.2.2"
 sha-1 = "0.10"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 lazy_static = "1.4.0"
 include_dir = "0.7.2"
-twelf = { version = "0.7", default-features = false, features = [
+twelf = { version = "0.11", default-features = false, features = [
     "env",
     "clap",
     "json",
@@ -75,6 +79,7 @@ actix-web = "4"
 actix-files = "0.6"
 lexical-core = "0.8.5"
 path-slash = "0.2"
+rust-patch = "0.1.3"
 
 [features]
 

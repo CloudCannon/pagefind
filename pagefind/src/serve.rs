@@ -16,7 +16,11 @@ pub async fn serve_dir(dir: PathBuf) {
         }
     };
 
-    println!("Serving {dir:?} at http://localhost:{port}");
+    let rel_dir = dir
+        .strip_prefix(std::env::current_dir().unwrap_or_else(|_| PathBuf::from("/")))
+        .unwrap_or(&dir);
+
+    println!("Serving {rel_dir:?} at http://localhost:{port}");
 
     match HttpServer::new(move || {
         App::new().service(fs::Files::new("/", &dir).index_file("index.html"))

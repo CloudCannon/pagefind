@@ -1,44 +1,71 @@
 ---
-date: 2022-06-01
-title: "Custom sort orders"
-nav_title: "Custom sort orders"
-nav_section: Indexing
-weight: 90
+title: "Setting up sorting"
+nav_title: "Setting up sorting"
+nav_section: Sorting
+weight: 20
 ---
 
-For users interacting with the Pagefind JS API directly, Pagefind supports sorting results by tagged attributes instead of page relevancy. For a sort to be available in the browser, pages must be tagged with the `data-pagefind-sort` attribute.
+Pagefind supports sorting results by tagged attributes instead of page relevancy. For a sort to be available in the browser, pages must be tagged with the `data-pagefind-sort` attribute.
 
-## Sorting pages by tagged elements
+> Sorting is currently only supported when interacting with the Pagefind JS API directly.
+
+## Capturing a sort value from an element
 
 ```html
 <p data-pagefind-sort="date">2022-10-20</p>
 ```
 
-An element tagged with `data-pagefind-sort` will capture the contents of that element and provide the given key as a sort option to the Pagefind JS API.
+An element tagged with `data-pagefind-sort` will capture the contents of that element and provide the given key as a sort option to the Pagefind JS API. In the above example, the page would be tagged as `date: "2022-10-20"`.
 
-## Sorting pages by tagged attributes
+## Capturing a filter value from an attribute
 
-If your sort value exists as an attribute, you can use the syntax `key[html_attribute]`
+If the data you want to sort by exists as an attribute, you can use the syntax `sort_key[html_attribute]`
 
 ```html
 <h1 data-pagefind-sort="weight[data-weight]" data-weight="10">Hello World</h1>
 ```
 
-## Sorting pages by tagged values
+This will capture the filter value from the attribute specified, in this case producing `weight: "10"`.
 
-If your sort value doesn't already exist on the page, you can simply use the syntax `key:value`
+> See the [Notes](#notes) section at the bottom of this page for details on how number-like values are sorted.
+
+## Specifying a sort inline
+
+If your value doesn't already exist on the page, you can use the syntax `sort_key:value`:
 
 ```html
 <h1 data-pagefind-sort="date:2022-06-01">Hello World</h1>
 ```
 
-## Advanced tagging
+This will tag this page as `date: 2022-06-01`. The element this is set on does not matter, meaning this attribute can be located anywhere that is convenient in your site templating.
 
-The sort syntax follows the same rules as the metadata syntax, see [Defining multiple metadata keys on a single element](/docs/metadata/#defining-multiple-metadata-keys-on-a-single-element) for more detail.
+## Specifying multiple sorts on a single element
 
-## Sorting results
+Sort captures may be comma seperated and all will apply. The exception is specifying a sort value inline, which may only be the last item in a list.
 
-See the [sorting API documentation](/docs/api/#sorting-results) for interacting with these tagged sorts when searching.
+For example:
+
+{{< diffcode >}}
+```html
+<h1
+    data-weight="10"
+    data-date="2022-06-01"
++    data-pagefind-sort="heading, weight[data-weight], date[data-weight], author:Freeform text, captured to the end">
+        Hello World
+</h1>
+```
+{{< /diffcode >}}
+
+This will produce the sort tags for the page:
+
+```json
+{
+    "heading": "Hello World",
+    "weight": "10",
+    "date": "2022-06-01",
+    "author": "Freeform text, captured to the end"
+}
+```
 
 ## Notes
 

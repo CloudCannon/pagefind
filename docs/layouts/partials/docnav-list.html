@@ -1,0 +1,47 @@
+{{ $page := . }}
+
+<ol class="docnav-list">
+
+    <li class="{{ if eq .Site.Home.File.UniqueID $page.File.UniqueID }}active {{ end }}">
+        <a href="{{ .Site.Home.Permalink | relURL }}"> {{ .Site.Home.Params.nav_title }}</a>
+    </li>
+
+    {{ $docs := sort (where .Site.Pages "Section" "docs") ".Params.weight" }}
+    {{ range where $docs ".Params.nav_section" "Root" }}
+    <li class="{{ if eq .File.UniqueID $page.File.UniqueID }}active {{ end }}">
+        <a href="{{ .Permalink | relURL }}"> {{ .Params.nav_title }}</a>
+    </li>
+    {{ end }}
+
+    {{ $groups := slice }}
+    {{ range $docs }}
+    {{ if not (eq .Params.nav_section "Root") }}
+    {{ $groups = $groups | append .Params.nav_section }}
+    {{ end }}
+    {{ end }}
+    {{ $groups = uniq $groups }}
+
+    {{ range $groups }}
+
+    {{ $active_within := false }}
+    {{ range where $docs ".Params.nav_section" . }}
+        {{ if eq .File.UniqueID $page.File.UniqueID }}
+            {{ $active_within = true }}
+        {{ end }}
+    {{ end }}
+
+    <li>
+        <details class="docnav-details" {{ if $active_within }}open {{ end }}>
+            <summary class="docnav-title">{{ . }}</summary>
+
+            <ol class="docnav-list">
+                {{ range where $docs ".Params.nav_section" . }}
+                <li class="{{ if eq .File.UniqueID $page.File.UniqueID }}active {{ end }}">
+                    <a href="{{ .Permalink | relURL }}"> {{ .Params.nav_title }}</a>
+                </li>
+                {{ end }}
+            </ol>
+        </details>
+    </li>
+    {{ end }}
+</ol>

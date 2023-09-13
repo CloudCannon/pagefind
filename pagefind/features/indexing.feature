@@ -2,7 +2,7 @@ Feature: Indexing
 
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
 
     Scenario: Indexing can be limited to a given element
         Given I have a "public/index.html" file with the body:
@@ -19,6 +19,13 @@ Feature: Indexing
             </div>
             <p>goodbye content</p>
             <p data-pagefind-body>Little extra body</p>
+            <div>
+                <p>More unindexed content</p>
+                <main data-pagefind-body="">
+                    <p>Body number 3</p>
+                </main>
+                <p>And yet more unindexed content</p>
+            </div>
             """
         # The above data-pagefind-body existing on a page should
         # exclude all pages that do not include it.
@@ -34,7 +41,7 @@ Feature: Indexing
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let searchone = await pagefind.search("hello");
                 let searchonedata = await searchone.results[0].data();
@@ -45,7 +52,7 @@ Feature: Indexing
             }
             """
         Then There should be no logs
-        Then The selector "[data-search-one]" should contain "Hello World, from Pagefind. Huzzah! Little extra body."
+        Then The selector "[data-search-one]" should contain "Hello World, from Pagefind. Huzzah! Little extra body. Body number 3."
         Then The selector "[data-search-two]" should contain "0 result(s)"
 
     Scenario: HTML attributes can be indexed
@@ -66,7 +73,7 @@ Feature: Indexing
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Alternate");
                 let searchdata = await search.results[0]?.data();

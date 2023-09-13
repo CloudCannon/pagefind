@@ -1,5 +1,4 @@
 ---
-date: 2022-06-01
 title: "Troubleshoot Hosting Pagefind"
 nav_title: "Troubleshoot Hosting"
 nav_section: Resources
@@ -11,10 +10,6 @@ Pagefind outputs a static bundle directory to your built site, and no hosting co
 ## Compression
 
 Pagefind handles compression of the files in the bundle directly, so no server gzip support is required.
-
-## Hosting on GitHub Pages
-
-GitHub Pages won't serve URLs that start with a leading underscore, so the default path of `_pagefind` will 404. To fix this, set a custom [bundle directory](https://pagefind.app/docs/config-options/#bundle-directory) (_e.g. `--bundle-dir mysearch`_), and update your JS and CSS references to match (_e.g. `<script src="/mysearch/pagefind-ui.js" ...`_).
 
 ## Content Security Policy (CSP)
 

@@ -1,7 +1,10 @@
 use hashbrown::HashMap;
 
 use crate::{
-    fossick::FossickedData, index::index_metadata::MetaFilter, utils::full_hash, SearchOptions,
+    fossick::{FossickedData, FossickedWord},
+    index::index_metadata::MetaFilter,
+    utils::full_hash,
+    SearchOptions,
 };
 use index_filter::{FilterIndex, PackedValue};
 use index_metadata::{MetaChunk, MetaIndex, MetaPage};
@@ -121,10 +124,31 @@ pub async fn build_indexes(
     }
 
     for page in pages.into_iter() {
-        for (word, positions) in page.word_data {
+        for (word, mut positions) in page.word_data {
+            // A page weight of 1 is encoded as 25. Since most words should be this weight,
+            // we want to sort them to be first in the locations array to reduce filesize
+            // when we inline weight changes
+            positions.sort_by_cached_key(|p| if p.weight == 25 { 0 } else { p.weight });
+
+            let mut current_weight = 25;
+            let mut weighted_positions = Vec::with_capacity(positions.len());
+            // Calculate our output list of positions with weights.
+            // This is a vec of page positions, with a change in weight for subsequent positions
+            // denoted by a negative integer.
+            positions
+                .into_iter()
+                .for_each(|FossickedWord { position, weight }| {
+                    if weight != current_weight {
+                        weighted_positions.extend([(weight as i32) * -1 - 1, position as i32]);
+                        current_weight = weight;
+                    } else {
+                        weighted_positions.push(position as i32)
+                    }
+                });
+
             let packed_page = PackedPage {
                 page_number: page.fragment.page_number,
-                locs: positions.clone(),
+                locs: weighted_positions,
             };
 
             match word_map.get_mut(&word) {
@@ -372,10 +396,10 @@ mod tests {
     use super::*;
 
     trait Mock {
-        fn word(&mut self, word: &str, page_number: usize, locs: Vec<u32>);
+        fn word(&mut self, word: &str, page_number: usize, locs: Vec<i32>);
     }
     impl Mock for HashMap<String, PackedWord> {
-        fn word(&mut self, word: &str, page_number: usize, locs: Vec<u32>) {
+        fn word(&mut self, word: &str, page_number: usize, locs: Vec<i32>) {
             let page = PackedPage { page_number, locs };
             match self.get_mut(word) {
                 Some(w) => w.pages.push(page),

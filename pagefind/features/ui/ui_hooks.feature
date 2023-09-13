@@ -1,14 +1,14 @@
 Feature: UI Hooks
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
 
     Scenario: Pagefind UI can provide a hook to process search terms
         Given I have a "public/index.html" file with the body:
             """
             <h1>Search</h1>
             <div id="search"></div>
-            <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+            <script src="/pagefind/pagefind-ui.js"></script>
 
             <script>
                 window.pui = new PagefindUI({
@@ -19,7 +19,7 @@ Feature: UI Hooks
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:
@@ -43,7 +43,7 @@ Feature: UI Hooks
             <h1>Search</h1>
             <img src="my.png" />
             <div id="search"></div>
-            <script src="/_pagefind/pagefind-ui.js" type="text/javascript"></script>
+            <script src="/pagefind/pagefind-ui.js"></script>
 
             <script>
                 window.pui = new PagefindUI({
@@ -57,7 +57,7 @@ Feature: UI Hooks
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
-        Then I should see the file "public/_pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/pagefind.js"
         When I serve the "public" directory
         When I load "/"
         When I evaluate:

@@ -1,5 +1,4 @@
 ---
-date: 2023-01-26
 title: "Community Resources"
 nav_title: "Community Resources"
 nav_section: Resources
@@ -51,6 +50,14 @@ These resources are created by helpful community members, and aren't guaranteed 
 ## Using Pagefind with a specific SSG
 
 - **Astro**
+  - {{< 
+        resource
+        site="github.com"
+        date="June 2023"
+        title="Pagefind Astro integration"
+        url="https://github.com/shishkin/astro-pagefind"
+        archive_url="https://web.archive.org/web/20230626193724/https://github.com/shishkin/astro-pagefind"
+    >}}
   - {{< 
         resource
         site="blog.otterlord.dev"

@@ -1,9 +1,8 @@
 ---
-date: 2022-06-01
 title: "Configuring the Pagefind search in the browser"
-nav_title: "Pagefind search config"
-nav_section: Searching
-weight: 7
+nav_title: "Search API config"
+nav_section: References
+weight: 60
 ---
 
 The behaviour of the Pagefind search API can be configured in the browser.
@@ -28,7 +27,7 @@ If interfacing with Pagefind directly, options can be passed via awaiting `pagef
 
 {{< diffcode >}}
 ```js
-const pagefind = await import("/_pagefind/pagefind.js");
+const pagefind = await import("/pagefind/pagefind.js");
 +await pagefind.options({
 +    baseUrl: "/",
 +    // ... more search options
@@ -37,7 +36,6 @@ const pagefind = await import("/_pagefind/pagefind.js");
 {{< /diffcode >}}
 
 ## Available options
-
 
 ### Base URL
 
@@ -53,11 +51,21 @@ Defaults to "/". If hosting a site on a subpath, `baseUrl` can be provided, and 
 
 ```json
 {
-    "bundlePath": "/subpath/_pagefind/"
+    "bundlePath": "/subpath/pagefind/"
 }
 ```
 
 Overrides the bundle directory. In most cases this should be automatically detected by the import URL. Set this if search isn't working and you are seeing a console warning that this path could not be detected.
+
+### Excerpt length
+
+```json
+{
+    "excerptLength": 15
+}
+```
+
+Set the maximum length for generated excerpts. Defaults to `30`.
 
 ### Index weight
 

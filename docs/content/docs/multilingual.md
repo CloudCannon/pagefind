@@ -1,9 +1,8 @@
 ---
-date: 2022-06-01
 title: "Multilingual search"
 nav_title: "Multilingual search"
-nav_section: Indexing
-weight: 80
+nav_section: Multilingual
+weight: 30
 ---
 
 Pagefind supports multilingual sites out of the box, with zero configuration. 
@@ -35,16 +34,16 @@ If word stemming is unsupported, search results won't match across root words. I
 | Danish — `da`     | ❌               | ✅             |
 | Dutch — `nl`      | ✅               | ✅             |
 | English — `en`    | ✅               | ✅             |
-| Finnish — `fi`    | ❌               | ✅             |
+| Finnish — `fi`    | ✅               | ✅             |
 | French — `fr`     | ✅               | ✅             |
 | Galician — `gl`   | ✅               | ❌             |
 | German — `de`     | ✅               | ✅             |
 | Greek — `el`      | ❌               | ✅             |
-| Hindi — `hi`      | ❌               | ✅             |
+| Hindi — `hi`      | ✅               | ✅             |
 | Hungarian — `hu`  | ❌               | ✅             |
-| Indonesian — `id` | ❌               | ✅             |
+| Indonesian — `id` | ✅               | ✅             |
 | Irish — `ga`      | ❌               | ✅             |
-| Italian — `it`    | ❌               | ✅             |
+| Italian — `it`    | ✅               | ✅             |
 | Japanese — `ja`   | ✅               | See below     |
 | Lithuanian — `lt` | ❌               | ✅             |
 | Nepali — `ne`     | ❌               | ✅             |
@@ -52,11 +51,11 @@ If word stemming is unsupported, search results won't match across root words. I
 | Portuguese — `pt` | ✅               | ✅             |
 | Romanian — `ro`   | ❌               | ✅             |
 | Russian — `ru`    | ✅               | ✅             |
-| Serbian — `sr`    | ❌               | ✅             |
+| Serbian — `sr`    | ✅               | ✅             |
 | Spanish — `es`    | ✅               | ✅             |
 | Swedish — `sv`    | ✅               | ✅             |
-| Tamil — `ta`      | ❌               | ✅             |
-| Turkish — `tr`    | ❌               | ✅             |
+| Tamil — `ta`      | ✅               | ✅             |
+| Turkish — `tr`    | ✅               | ✅             |
 | Yiddish — `yi`    | ❌               | ✅             |
 
 > Feel free to [open an issue](https://github.com/CloudCannon/pagefind/issues/new) if there's a language you would like better support for, or [contribute a translation](https://github.com/CloudCannon/pagefind/tree/main/pagefind_ui/translations) for Pagefind UI in your language.

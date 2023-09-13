@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Nixentric",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Cari",
+        "clear_search": "Bersihkan",
+        "load_more": "Muat lebih banyak hasil",
+        "search_label": "Telusuri situs ini",
+        "filters_label": "Filter",
+        "zero_results": "[SEARCH_TERM] tidak ditemukan",
+        "many_results": "Ditemukan [COUNT] hasil untuk [SEARCH_TERM]",
+        "one_result": "Ditemukan [COUNT] hasil untuk [SEARCH_TERM]",
+        "alt_search": "[SEARCH_TERM] tidak ditemukan. Menampilkan hasil [DIFFERENT_TERM] sebagai gantinya",
+        "search_suggestion": "[SEARCH_TERM] tidak ditemukan. Coba salah satu pencarian berikut ini:",
+        "searching": "Mencari [SEARCH_TERM]..."
+    }
+}

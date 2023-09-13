@@ -1,0 +1,29 @@
+<details 
+class="how-to"
+x-data="{
+    open: false,
+    detail_link: null
+}"
+x-init="
+    detail_link = $el?.querySelector?.(':scope .anchor')?.getAttribute('href');
+    if (detail_link && detail_link == location?.hash) {
+        open = true;
+    }
+    window.addEventListener('hashchange', (e) => {
+        if (detail_link && e.newURL.endsWith(detail_link)) {
+            open = true;
+        }
+    });
+"
+x-bind:open="open">
+<summary>
+
+## {{ .Get "label" }}
+
+</summary>
+<div class="how-to-inner">
+
+{{ .Inner }}
+
+</div>
+</details>

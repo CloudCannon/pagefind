@@ -69,6 +69,11 @@ export class Input {
         } else {
             container.innerHTML = "";
 
+            let id = 0;
+            while (document.querySelector(`#pfmod-input-${id}`)) {
+                id += 1;
+            }
+
             const wrapper = new El("form")
                 .class("pagefind-modular-input-wrapper")
                 .attrs({
@@ -77,7 +82,18 @@ export class Input {
                     action: "javascript:void(0);"
                 });
 
-            this.inputEl = new El("input").class("pagefind-modular-input").addTo(wrapper);
+            new El("label").attrs({
+                "for": `pfmod-input-${id}`,
+                "data-pfmod-sr-hidden": "true"
+            }).text("Search this site").addTo(wrapper)
+
+            this.inputEl = new El("input").id(`pfmod-input-${id}`)
+                .class("pagefind-modular-input")
+                .attrs({
+                    autocapitalize: "none",
+                    enterkeyhint: "search"
+                })
+                .addTo(wrapper);
 
             this.clearEl = new El("button")
                 .class("pagefind-modular-input-clear")

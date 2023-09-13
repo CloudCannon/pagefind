@@ -1,7 +1,7 @@
 Feature: Filtering
     Background:
         Given I have the environment variables:
-            | PAGEFIND_SOURCE | public |
+            | PAGEFIND_SITE | public |
         Given I have a "public/index.html" file with the body:
             """
             <p data-results>Nothing</p>
@@ -31,7 +31,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let filters = await pagefind.filters();
                 let strings = Object.entries(filters).map(([filter, values]) => {
@@ -51,7 +51,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Cat");
                 let data = await Promise.all(search.results.map(result => result.data()));
@@ -66,7 +66,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Cat", {
                     filters: {
@@ -85,7 +85,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Cat", {
                     filters: {
@@ -104,7 +104,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Cat", {
                     filters: {
@@ -123,7 +123,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search(null, {
                     filters: {
@@ -142,7 +142,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 // Run a search so that some index words are loaded
                 let unused = await pagefind.search("cat");
@@ -160,32 +160,11 @@ Feature: Filtering
         Then There should be no logs
         Then The selector "[data-results]" should contain "Black White Cat."
 
-    @skip
-    # Currently only an AND filtering is supported. Need to restructure to support boolean logic
-    Scenario: Filtering to multiple values
-        When I evaluate:
-            """
-            async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
-
-                let search = await pagefind.search("Cat", {
-                    filters: {
-                        color: ["Tabby", "Orange"]
-                    }
-                });
-                let data = await Promise.all(search.results.map(result => result.data()));
-
-                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
-            }
-            """
-        Then There should be no logs
-        Then The selector "[data-results]" should contain "/ali/, /theodore/"
-
     Scenario: Non-existent filters return no results
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Cat", {
                     filters: {
@@ -203,7 +182,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Cat", {
                     filters: {
@@ -221,7 +200,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 let search = await pagefind.search("Pontification", {
                     filters: {
@@ -239,7 +218,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 await pagefind.filters(); // Load filters
                 let search = await pagefind.search("Ali");
@@ -260,7 +239,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 await pagefind.filters(); // Load filters
                 let search = await pagefind.search("Cat", {
@@ -285,7 +264,7 @@ Feature: Filtering
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/_pagefind/pagefind.js");
+                let pagefind = await import("/pagefind/pagefind.js");
 
                 await pagefind.filters(); // Load filters
                 let search = await pagefind.search("Ali", {
@@ -298,3 +277,41 @@ Feature: Filtering
             """
         Then There should be no logs
         Then The selector "[data-results]" should contain "results:0 total:1"
+
+    Scenario: Filtering with an empty array returns all results
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search("Cat", {
+                    filters: {
+                        color: []
+                    }
+                });
+                let data = await Promise.all(search.results.map(result => result.data()));
+
+                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"
+
+    Scenario: Filtering with an _empty_ bogus filter does nothing
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search("Cat", {
+                    filters: {
+                        something_nonexistent: []
+                    }
+                });
+                let data = await Promise.all(search.results.map(result => result.data()));
+
+                document.querySelector('[data-results]').innerText = data.map(d => d.url).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-results]" should contain "/ali/, /cheeka/, /theodore/"

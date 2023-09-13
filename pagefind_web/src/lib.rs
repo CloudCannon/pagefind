@@ -2,11 +2,11 @@
 
 use std::collections::HashMap;
 
-use excerpt::calculate_excerpt;
 use util::*;
 use wasm_bindgen::prelude::*;
 
-mod excerpt;
+use crate::search::BalancedWordScore;
+
 mod filter;
 mod filter_index;
 mod index;
@@ -16,7 +16,7 @@ mod util;
 
 pub struct PageWord {
     page: u32,
-    locs: Vec<u32>,
+    locs: Vec<(u8, u32)>,
 }
 
 pub struct IndexChunk {
@@ -141,10 +141,13 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
     for term in terms {
         let term_index = search_index.chunks.iter().find(|chunk| {
             if load_all_possible {
-                // Trim chunk boundaries down to the length of the search term
-                // so that we load any chunk that may contain an extension of the search term
-                term >= &chunk.from.chars().take(term.len()).collect::<String>()
-                    && term <= &chunk.to.chars().take(term.len()).collect::<String>()
+                // Trim chunk boundaries and search terms to the shortest of either,
+                // so that we load any chunk that may contain an extension or prefix of the search term
+                let from_length = term.len().min(chunk.from.len());
+                let to_length = term.len().min(chunk.to.len());
+
+                term[0..from_length] >= chunk.from[0..from_length]
+                    && term[0..to_length] <= chunk.to[0..to_length]
             } else {
                 term >= &chunk.from && term <= &chunk.to
             }
@@ -169,29 +172,8 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
 
 #[wasm_bindgen]
 pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
-    debug!({
-        format! {"Finding the filter chunks needed for {:?}", filters}
-    });
-
     let search_index = unsafe { Box::from_raw(ptr) };
-    let mut indexes = Vec::new();
-    let filters = filters.split("__PF_FILTER_DELIM__");
-
-    for filter in filters {
-        if let Some((filter, _)) = filter.split_once(':') {
-            if let Some(hash) = search_index.filter_chunks.get(filter) {
-                debug!({
-                    format! {"Need {:?} for {:?}", hash, filter}
-                });
-                indexes.push(hash.clone());
-            } else {
-                debug!({
-                    format! {"No hash found for {:?}", filter}
-                })
-            }
-        }
-    }
-
+    let mut indexes = search_index.filter_chunks(filters).unwrap_or_default();
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
@@ -246,6 +228,8 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
         search_index.search_term(query, filter_set)
     };
     let unfiltered_total = unfiltered_results.len();
+    debug!({ format!("Raw total of {} results", unfiltered_total) });
+    debug!({ format!("Filtered total of {} results", query.len()) });
 
     let filter_string =
         search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
@@ -270,19 +254,26 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
         }
     }
 
+    debug!({ "Building the result string" });
     let result_string = results
         .into_iter()
         .map(|result| {
             format!(
-                "{}@{}@{},{}@{}",
+                "{}@{}@{}",
                 &result.page,
                 result.page_score,
-                calculate_excerpt(&result.word_locations, 30),
-                30,
                 result
                     .word_locations
                     .iter()
-                    .map(|l| l.to_string())
+                    .map(
+                        |BalancedWordScore {
+                             weight,
+                             balanced_score,
+                             word_location,
+                         }| format!(
+                            "{weight}>{balanced_score}>{word_location}"
+                        )
+                    )
                     .collect::<Vec<String>>()
                     .join(",")
             )
@@ -290,6 +281,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
         .collect::<Vec<String>>()
         .join(" ");
 
+    debug!({ "Boxing and returning the result" });
     let _ = Box::into_raw(search_index);
 
     #[cfg(debug_assertions)]

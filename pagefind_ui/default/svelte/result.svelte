@@ -40,7 +40,7 @@
                 <a
                     class="pagefind-ui__result-link"
                     href={data.meta?.url || data.url}
-                    >{@html data.meta?.title}</a
+                    >{data.meta?.title}</a
                 >
             </p>
             <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
@@ -48,9 +48,9 @@
                 <ul class="pagefind-ui__result-tags">
                     {#each meta as [metaTitle, metaValue]}
                         <li class="pagefind-ui__result-tag">
-                            {@html metaTitle.replace(/^(\w)/, (c) =>
+                            {metaTitle.replace(/^(\w)/, (c) =>
                                 c.toLocaleUpperCase()
-                            )}: {@html metaValue}
+                            )}: {metaValue}
                         </li>
                     {/each}
                 </ul>

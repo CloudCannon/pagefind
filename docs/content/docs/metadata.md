@@ -1,8 +1,7 @@
 ---
-date: 2022-06-01
-title: "Returning custom metadata"
-nav_title: "Custom metadata"
-nav_section: Indexing
+title: "Setting up metadata"
+nav_title: "Setting up metadata"
+nav_section: Metadata
 weight: 6
 ---
 
@@ -18,7 +17,7 @@ Pagefind will return some automatic metadata about each page:
 
 All of these can be overridden by tagging metadata with the same keys.
 
-## Tagging an element as metadata
+## Capturing metadata from an element
 
 ```html
 <h1 data-pagefind-meta="title">Hello World</h1>
@@ -28,7 +27,9 @@ An element tagged with `data-pagefind-meta` will store the contents of that elem
 
 Each metadata key can only have one value per page.
 
-## Tagging an attribute as metadata
+In the above example, the page would be given the metadata `title: "Hello World"`.
+
+## Capturing metadata from an attribute
 
 If your metadata exists as an attribute, you can use the syntax `key[html_attribute]`
 
@@ -42,17 +43,29 @@ You can comma separate multiple meta attributes:
 <img data-pagefind-meta="image[src], image_alt[alt]" src="/hero.png" alt="Hero Alt Text" />
 ```
 
-## Tagging metadata inline
+This will produce the metadata for the page:
 
-If your metadata doesn't already exist on the page, you can simply use the syntax `key:value`
+```json
+{
+    "image": "/hero.png",
+    "image_alt": "Hero Alt Text"
+}
+```
+
+## Specifying metadata inline
+
+If your metadata doesn't already exist on the page, you can use the syntax `key:value`
 
 ```html
 <h1 data-pagefind-meta="date:2022-06-01">Hello World</h1>
 ```
 
+This will give this page the metadata `date: "2022-06-01"`. The element this is set on does not matter, meaning this attribute can be located anywhere that is convenient in your site templating.
+
+
 ## Defining multiple metadata keys on a single element
 
-You can comma separate multiple metadata keys, with the exception of inline metadata, which may only be the last item in a list.
+Metadata captures may be comma seperated and all will apply. The exception is specifying metadata inline, which may only be the last item in a list.
 
 Usage:
 

@@ -9,10 +9,10 @@ use std::rc::Rc;
 
 use crate::SearchOptions;
 
+use super::normalize_content;
+
 lazy_static! {
-    static ref NEWLINES: Regex = Regex::new("(\n|\r\n)+").unwrap();
-    static ref TRIM_NEWLINES: Regex = Regex::new("^[\n\r\\s]+|[\n\r\\s]+$").unwrap();
-    static ref EXTRANEOUS_SPACES: Regex = Regex::new("\\s{2,}").unwrap();
+    static ref ALL_SPACES: Regex = Regex::new("\\s").unwrap();
     static ref SENTENCE_CHARS: Regex = Regex::new("[\\w'\"\\)\\$\\*]").unwrap();
 }
 lazy_static! {
@@ -22,6 +22,11 @@ lazy_static! {
 lazy_static! {
     static ref SENTENCE_SELECTORS: Vec<&'static str> = vec!(
         "h1", "h2", "h3", "h4", "h5", "h6", "p", "td", "div", "ul", "li", "article", "section"
+    );
+    static ref INLINE_SELECTORS: Vec<&'static str> = vec!(
+        "a", "abbr", "acronym", "b", "bdo", "big", "br", "button", "cite", "code", "dfn", "em",
+        "i", "img", "input", "kbd", "label", "map", "object", "output", "q", "samp", "script",
+        "select", "small", "span", "strong", "sub", "sup", "textarea", "time", "tt", "var",
     );
     static ref REMOVE_SELECTORS: Vec<&'static str> = vec!(
         "head", "style", "script", "noscript", "label", "form", "svg", "footer", "nav", "iframe",
@@ -53,8 +58,10 @@ struct DomParserData {
     sort: HashMap<String, String>,
     meta: HashMap<String, String>,
     default_meta: HashMap<String, String>,
+    anchor_content: HashMap<String, String>,
     language: Option<String>,
     has_html_element: bool,
+    has_old_bundle_reference: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -89,6 +96,8 @@ struct DomParsingNode {
     sort: Option<Vec<String>>,
     meta: Option<Vec<String>>,
     default_meta: Option<Vec<String>>,
+    weight: Option<String>,
+    anchor_ids: Option<Vec<String>>,
     status: NodeStatus,
 }
 
@@ -99,8 +108,11 @@ pub struct DomParserResult {
     pub filters: HashMap<String, Vec<String>>,
     pub sort: HashMap<String, String>,
     pub meta: HashMap<String, String>,
+    pub anchor_content: HashMap<String, String>,
     pub has_custom_body: bool,
+    pub force_inclusion: bool, // Include this page even if there is no body
     pub has_html_element: bool,
+    pub has_old_bundle_reference: bool,
     pub language: String,
 }
 
@@ -126,6 +138,7 @@ impl<'a> DomParser<'a> {
             .map(|e| format!("{} {}", options.root_selector, e))
             .collect::<Vec<_>>()
             .join(", ");
+        let mut anchor_counter = 0;
 
         let rewriter = HtmlRewriter::new(
             Settings {
@@ -150,7 +163,9 @@ impl<'a> DomParser<'a> {
                             }
                         });
                         let treat_as_body = el.has_attribute("data-pagefind-body");
+                        let weight = el.get_attribute("data-pagefind-weight").map(|attr| attr.to_string());
                         let filter = el.get_attribute("data-pagefind-filter").map(|attr| parse_attr_string(attr, el));
+                        let element_id = el.get_attribute("id").map(|e| ALL_SPACES.replace_all(&e, "").to_string());
                         let meta = el.get_attribute("data-pagefind-meta").map(|attr| parse_attr_string(attr, el));
                         let default_meta = el.get_attribute("data-pagefind-default-meta").map(|attr| parse_attr_string(attr, el));
                         let sort = el.get_attribute("data-pagefind-sort").map(|attr| parse_attr_string(attr, el));
@@ -164,6 +179,22 @@ impl<'a> DomParser<'a> {
                         } else {
                             NodeStatus::Indexing
                         };
+
+                        let mut anchor_id = None;
+                        if status != NodeStatus::Excluded && status != NodeStatus::Ignored {
+                            if let Some(element_id) = element_id {
+                                let parent = &data.borrow().current_node;
+                                let mut parent = parent.borrow_mut();
+                                // Don't insert anchors if this node is outside of a body-tree
+                                if !(parent.status == NodeStatus::ParentOfBody
+                                    && status != NodeStatus::Body
+                                    && status != NodeStatus::ParentOfBody) {
+                                    parent.current_value.push_str(&format!(" ___PAGEFIND_ANCHOR___{tag_name}:{anchor_counter}:{element_id} "));
+                                    anchor_id = Some(format!("{anchor_counter}:{element_id}"));
+                                    anchor_counter += 1;
+                                }
+                            }
+                        }
 
                         if status != NodeStatus::Excluded {
                             if let Some(attrs) = index_attrs {
@@ -192,7 +223,22 @@ impl<'a> DomParser<'a> {
 
                         let node = {
                             let mut data = data.borrow_mut();
-                            let parent_status = data.current_node.borrow().status;
+                            let parent_node = data.current_node.borrow();
+                            let parent_status = parent_node.status;
+
+                            let mut node_anchors = if parent_node.anchor_ids.is_some() && INLINE_SELECTORS.contains(&tag_name.as_str()) {
+                                parent_node.anchor_ids.clone()
+                            } else {
+                                None
+                            };
+
+                            if let Some(this_node_anchor_id) = anchor_id {
+                                if let Some(existing) = node_anchors.as_mut() {
+                                    existing.push(this_node_anchor_id);
+                                } else {
+                                    node_anchors = Some(vec![this_node_anchor_id]);
+                                }
+                            }
 
                             let node = Rc::new(RefCell::new(DomParsingNode{
                                 parent: Some(Rc::clone(&data.current_node)),
@@ -204,9 +250,12 @@ impl<'a> DomParser<'a> {
                                 meta,
                                 default_meta,
                                 sort,
-                                ..DomParsingNode::default()
+                                anchor_ids: node_anchors,
+                                current_value: String::default(),
+                                weight,
                             }));
 
+                            drop(parent_node);
                             data.current_node = Rc::clone(&node);
                             node
                         };
@@ -288,9 +337,7 @@ impl<'a> DomParser<'a> {
                                 // don't hug each other without whitespace.
                                 // We normalize repeated whitespace later, so we
                                 // can add this indiscriminately.
-                                let mut padded = " ".to_owned();
-                                padded.push_str(&node.current_value);
-                                node.current_value = padded;
+                                node.current_value.insert(0, ' ');
 
                                 // Similarly, we want to separate block elements
                                 // with punctuation, so that the excerpts read nicely.
@@ -304,6 +351,34 @@ impl<'a> DomParser<'a> {
                                 node.current_value.push(' ');
                             }
 
+                            if let Some(weight) = &node.weight {
+                                node.current_value = [
+                                    " ___PAGEFIND_WEIGHT___",
+                                    &weight,
+                                    " ",
+                                    &node.current_value,
+                                    " ___END_PAGEFIND_WEIGHT___ "
+                                ].concat();
+                            } else {
+                                if let Some(auto_weight) = match &tag_name[..] {
+                                    "h1" => Some("7".to_string()),
+                                    "h2" => Some("6".to_string()),
+                                    "h3" => Some("5".to_string()),
+                                    "h4" => Some("4".to_string()),
+                                    "h5" => Some("3".to_string()),
+                                    "h6" => Some("2".to_string()),
+                                    _ => None,
+                                } {
+                                    node.current_value = [
+                                        " ___PAGEFIND_AUTO_WEIGHT___",
+                                        &auto_weight,
+                                        " ",
+                                        &node.current_value,
+                                        " ___END_PAGEFIND_WEIGHT___ "
+                                    ].concat();
+                                }
+                            }
+
                             // Huck all of the content we have onto the end of the
                             // content that the parent node has (so far)
                             // This will include all of our children's content,
@@ -312,9 +387,11 @@ impl<'a> DomParser<'a> {
                             let mut parent = data.current_node.borrow_mut();
 
                             // If the parent is a parent of a body, we don't want to append
-                            // any more content to it. (Unless, of course, we are another body)
-                            if node.status != NodeStatus::Body && parent.status == NodeStatus::ParentOfBody {
-                                return Ok(());
+                            // any more content to it. (Unless, of course, we are representing another body)
+                            if parent.status == NodeStatus::ParentOfBody
+                                && node.status != NodeStatus::Body
+                                && node.status != NodeStatus::ParentOfBody {
+                                    return Ok(());
                             }
                             match node.status {
                                 NodeStatus::Ignored | NodeStatus::Excluded => {},
@@ -415,9 +492,43 @@ impl<'a> DomParser<'a> {
                     })},
                     // Slap any text we encounter inside the body into the current node's current value
                     enclose! { (data) text!(&options.root_selector, move |el| {
-                        let data = data.borrow_mut();
+                        let mut data = data.borrow_mut();
                         let mut node = data.current_node.borrow_mut();
-                        node.current_value.push_str(el.as_str());
+                        let element_text = el.as_str();
+                        node.current_value.push_str(element_text);
+
+                        let node_is_ignored = node.status == NodeStatus::Ignored || node.status == NodeStatus::Excluded;
+
+                        if !node_is_ignored && node.anchor_ids.is_some() {
+                            let anchor_ids = node.anchor_ids.clone().unwrap();
+                            drop(node);
+                            for anchor_id in anchor_ids {
+                                if let Some(anchor_text) = data.anchor_content.get_mut(&anchor_id) {
+                                    anchor_text.push_str(element_text);
+                                } else {
+                                    data.anchor_content.insert(anchor_id, element_text.to_string());
+                                }
+                            }
+                        }
+                        Ok(())
+                    })},
+                    // Dig into script and style references to see if they refer to pre-1.0 conventions
+                    enclose! { (data) element!("script, link", move |el| {
+                        if el.tag_name() == "script" {
+                            if let Some(src) = el.get_attribute("src") {
+                                if src.starts_with("_pagefind") || src.contains("/_pagefind") {
+                                    let mut data = data.borrow_mut();
+                                    data.has_old_bundle_reference = true;
+                                }
+                            }
+                        } else if el.tag_name() == "link" {
+                            if let Some(href) = el.get_attribute("href") {
+                                if href.starts_with("_pagefind") || href.contains("/_pagefind") {
+                                    let mut data = data.borrow_mut();
+                                    data.has_old_bundle_reference = true;
+                                }
+                            }
+                        }
                         Ok(())
                     })},
                 ],
@@ -496,23 +607,17 @@ impl<'a> DomParser<'a> {
             filters: data.filters,
             sort: data.sort,
             meta: data.default_meta,
+            anchor_content: data.anchor_content,
             has_custom_body: node.status == NodeStatus::ParentOfBody,
+            force_inclusion: false,
             has_html_element: data.has_html_element,
+            has_old_bundle_reference: data.has_old_bundle_reference,
             language: data
                 .language
                 .filter(|lang| !lang.is_empty())
                 .unwrap_or_else(|| "unknown".into()),
         }
     }
-}
-
-fn normalize_content(content: &str) -> String {
-    let content = html_escape::decode_html_entities(content);
-    let content = TRIM_NEWLINES.replace_all(&content, "");
-    let content = NEWLINES.replace_all(&content, " ");
-    let content = EXTRANEOUS_SPACES.replace_all(&content, " ");
-
-    content.to_string()
 }
 
 fn parse_attr_string(input: String, el: &Element) -> Vec<String> {
@@ -559,14 +664,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn normalizing_content() {
-        let input = "\nHello  Wor\n ld? \n \n";
-        let output = normalize_content(input);
-
-        assert_eq!(&output, "Hello Wor ld?");
-    }
-
-    #[test]
     fn get_filter_from_node() {
         let mut node = DomParsingNode::default();
 
@@ -590,8 +687,9 @@ mod tests {
     }
 
     fn test_raw_parse(input: Vec<&'static str>) -> DomParserResult {
+        use clap::CommandFactory;
         let config_args = vec![twelf::Layer::Clap(
-            <crate::PagefindInboundConfig as clap::IntoApp>::command().get_matches_from(vec![
+            crate::PagefindInboundConfig::command().get_matches_from(vec![
                 "pagefind",
                 "--source",
                 "not_important",
@@ -611,6 +709,33 @@ mod tests {
         input.insert(0, "<html><body>");
         input.push("</body></html>");
         test_raw_parse(input)
+    }
+
+    #[test]
+    fn words_weights() {
+        let data = test_parse(vec![
+            "<p>Weight one</p>",
+            "<p data-pagefind-weight='2'>Weight two</p>",
+        ]);
+
+        assert_eq!(
+            data.digest,
+            "Weight one. ___PAGEFIND_WEIGHT___2 Weight two. ___END_PAGEFIND_WEIGHT___"
+        )
+    }
+
+    #[test]
+    fn words_ids() {
+        let data = test_parse(vec![
+            "<p>Sentence one</p>",
+            "<br id='break' />",
+            "<p id='pid'>Sentence two</p>",
+        ]);
+
+        assert_eq!(
+            data.digest,
+            "Sentence one. ___PAGEFIND_ANCHOR___br:0:break ___PAGEFIND_ANCHOR___p:1:pid Sentence two."
+        )
     }
 
     #[test]

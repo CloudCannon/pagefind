@@ -15,6 +15,7 @@
                     *, symbol *))) {
         all: unset;
         display: revert;
+        outline: revert;
     }
 
     /* Preferred box-sizing value */

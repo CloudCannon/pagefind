@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.6.0"
+  HUMANE_VERSION: "0.9.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
@@ -81,6 +81,10 @@ jobs:
           uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.target}}.tar.gz"
           name: "humane"
           version: ${{env.HUMANE_VERSION}}
+
+      - name: Build Coupled JS
+        working-directory: ./pagefind_web_js
+        run: npm i && npm run build-coupled
 
       - name: Build WASM
         working-directory: ./pagefind_web

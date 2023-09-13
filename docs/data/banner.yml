@@ -1,4 +1,4 @@
-html: >-
-  None
-id: none
-show_until: 0
+enable_banner: true
+html: "✨ Pagefind is now 1.0! Read the <a href='https://github.com/CloudCannon/pagefind/releases/tag/v1.0.0'>release notes</a>, and view the <a href='/docs/v1-migration/'>migration guide</a>."
+id: release-v1.0.0
+show_until: 2024-06-06T00:00:00Z

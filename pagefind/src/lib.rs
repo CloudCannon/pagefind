@@ -1,9 +1,12 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, path::PathBuf};
 
-use fossick::Fossicker;
+pub use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
+use index::PagefindIndexes;
+use logging::Logger;
 pub use options::{PagefindInboundConfig, SearchOptions};
+use output::SyntheticFile;
 use wax::{Glob, WalkEntry};
 
 use crate::index::build_indexes;
@@ -16,55 +19,46 @@ mod logging;
 mod options;
 mod output;
 pub mod serve;
+pub mod service;
 mod utils;
 
 pub struct SearchState {
     pub options: SearchOptions,
+    pub fossicked_pages: Vec<FossickedData>,
+    pub built_indexes: Vec<PagefindIndexes>,
 }
 
 impl SearchState {
     pub fn new(options: SearchOptions) -> Self {
-        Self { options }
+        Self {
+            options,
+            fossicked_pages: vec![],
+            built_indexes: vec![],
+        }
     }
 
-    pub async fn walk_for_files(&mut self) -> Vec<Fossicker> {
+    pub async fn walk_for_files(&mut self, dir: PathBuf, glob: String) -> Vec<Fossicker> {
         let log = &self.options.logger;
 
         log.status("[Walking source directory]");
-        if let Ok(glob) = Glob::new(&self.options.glob) {
-            glob.walk(&self.options.source)
+        if let Ok(glob) = Glob::new(&glob) {
+            glob.walk(&dir)
                 .filter_map(Result::ok)
                 .map(WalkEntry::into_path)
-                .map(Fossicker::new)
+                .map(|file_path| Fossicker::new_relative_to(file_path, dir.clone()))
                 .collect()
         } else {
             log.error(format!(
                 "Error: Provided glob \"{}\" did not parse as a valid glob.",
                 self.options.glob
             ));
+            // TODO: Bubble this error back to the Node API if applicable
             std::process::exit(1);
         }
     }
 
-    pub async fn run(&mut self) {
-        let log = &self.options.logger;
-        #[cfg(not(feature = "extended"))]
-        log.status(&format!("Running Pagefind v{}", self.options.version));
-        #[cfg(feature = "extended")]
-        log.status(&format!(
-            "Running Pagefind v{} (Extended)",
-            self.options.version
-        ));
-        log.v_info("Running in verbose mode");
-
-        log.info(format!(
-            "Running from: {:?}",
-            self.options.working_directory
-        ));
-        log.info(format!("Source:       {:?}", self.options.source));
-        log.info(format!("Bundle Directory:  {:?}", self.options.bundle_dir));
-
-        let files = self.walk_for_files().await;
+    pub async fn fossick_many(&mut self, dir: PathBuf, glob: String) -> Result<usize, ()> {
+        let files = self.walk_for_files(dir.clone(), glob).await;
         let log = &self.options.logger;
 
         log.info(format!(
@@ -79,9 +73,40 @@ impl SearchState {
             .into_iter()
             .map(|f| f.fossick(&self.options))
             .collect();
-        let all_pages = join_all(results).await;
 
-        let used_custom_body = all_pages.iter().flatten().any(|page| page.has_custom_body);
+        let existing_page_count = self.fossicked_pages.len();
+        self.fossicked_pages
+            .extend(join_all(results).await.into_iter().flatten());
+
+        Ok(self.fossicked_pages.len() - existing_page_count)
+    }
+
+    pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData, ()> {
+        let result = file.fossick(&self.options).await;
+        self.options
+            .logger
+            .info(format!("Indexing file into: {:#?}", self.fossicked_pages));
+        if let Ok(result) = result.clone() {
+            let existing = self
+                .fossicked_pages
+                .iter()
+                .position(|page| page.url == result.url);
+            if let Some(existing) = existing {
+                *self.fossicked_pages.get_mut(existing).unwrap() = result;
+            } else {
+                self.fossicked_pages.push(result);
+            }
+        }
+        self.options
+            .logger
+            .info(format!("Now: {:#?}", self.fossicked_pages));
+        result
+    }
+
+    pub async fn build_indexes(&mut self) {
+        let log = &self.options.logger;
+
+        let used_custom_body = self.fossicked_pages.iter().any(|page| page.has_custom_body);
         if used_custom_body {
             log.info("Found a data-pagefind-body element on the site.\n↳ Ignoring pages without this tag.");
         } else {
@@ -91,9 +116,9 @@ impl SearchState {
         }
 
         if self.options.root_selector == "html" {
-            let pages_without_html = all_pages
+            let pages_without_html = self
+                .fossicked_pages
                 .iter()
-                .flatten()
                 .filter(|p| !p.has_html_element)
                 .map(|p| format!("  * {:?} has no <html> element", p.fragment.data.url))
                 .collect::<Vec<_>>();
@@ -111,8 +136,8 @@ impl SearchState {
 
         log.status("[Reading languages]");
 
-        let pages_with_data = all_pages.into_iter().flatten().filter(|d| {
-            if used_custom_body && !d.has_custom_body {
+        let pages_with_data = self.fossicked_pages.iter().filter(|d| {
+            if used_custom_body && !d.has_custom_body && !d.force_inclusion {
                 return false;
             }
             !d.word_data.is_empty()
@@ -122,9 +147,9 @@ impl SearchState {
         for page in pages_with_data {
             let language = page.language.clone();
             if let Some(lang_pages) = language_map.get_mut(&language) {
-                lang_pages.push(page);
+                lang_pages.push(page.clone());
             } else {
-                language_map.insert(language, vec![page]);
+                language_map.insert(language, vec![page.clone()]);
             }
         }
 
@@ -192,9 +217,9 @@ impl SearchState {
             .into_iter()
             .map(|(language, pages)| async { build_indexes(pages, language, &self.options).await })
             .collect();
-        let indexes = join_all(indexes).await;
+        self.built_indexes = join_all(indexes).await;
 
-        let stats = indexes.iter().fold((0, 0, 0, 0), |mut stats, index| {
+        let stats = self.built_indexes.iter().fold((0, 0, 0, 0), |mut stats, index| {
             log.v_info(format!(
                 "Language {}: \n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n  Indexed {} sort{}\n",
                 index.language,
@@ -230,8 +255,8 @@ impl SearchState {
 
         log.info(format!(
             "Total: \n  Indexed {} language{}\n  Indexed {} page{}\n  Indexed {} word{}\n  Indexed {} filter{}\n  Indexed {} sort{}",
-            indexes.len(),
-            plural!(indexes.len()),
+            self.built_indexes.len(),
+            plural!(self.built_indexes.len()),
             stats.0,
             plural!(stats.0),
             stats.1,
@@ -242,7 +267,7 @@ impl SearchState {
             plural!(stats.3)
         ));
 
-        if stats.1 == 0 {
+        if stats.1 == 0 && !self.options.running_as_service {
             log.error(
                 "Error: Pagefind wasn't able to build an index. \n\
                 Most likely, the directory passed to Pagefind was empty \
@@ -250,13 +275,94 @@ impl SearchState {
             );
             std::process::exit(1);
         }
+    }
 
-        let index_entries: Vec<_> = indexes
-            .into_iter()
-            .map(|indexes| async { indexes.write_files(&self.options).await })
+    pub async fn write_files(&self, custom_outdir: Option<PathBuf>) -> PathBuf {
+        let outdir = custom_outdir.unwrap_or(self.options.bundle_output.clone());
+
+        let index_entries: Vec<_> = self
+            .built_indexes
+            .iter()
+            .map(|indexes| indexes.get_lang_meta(&self.options))
             .collect();
-        let index_entries = join_all(index_entries).await;
 
-        output::write_common(&self.options, index_entries).await;
+        join_all(
+            self.built_indexes
+                .iter()
+                .map(|indexes| async { indexes.write_files_to_disk(&self.options, &outdir).await }),
+        )
+        .await;
+
+        output::write_common_to_disk(&self.options, index_entries, &outdir).await;
+
+        outdir
+    }
+
+    pub async fn get_files(&self) -> Vec<SyntheticFile> {
+        let outdir = &self.options.bundle_output;
+
+        let index_entries: Vec<_> = self
+            .built_indexes
+            .iter()
+            .map(|indexes| indexes.get_lang_meta(&self.options))
+            .collect();
+
+        let mut files: Vec<_> =
+            join_all(self.built_indexes.iter().map(|indexes| async {
+                indexes.write_files_to_memory(&self.options, outdir).await
+            }))
+            .await
+            .into_iter()
+            .flatten()
+            .collect();
+
+        files.extend(
+            output::write_common_to_memory(&self.options, index_entries, outdir)
+                .await
+                .into_iter(),
+        );
+
+        // SyntheticFiles should only return the relative path to the file
+        // _within_ the bundle directory — placing them in a final location
+        // is left to the API consumer.
+        for file in files.iter_mut() {
+            if let Ok(relative_path) = file.filename.strip_prefix(outdir) {
+                file.filename = relative_path.to_path_buf();
+            }
+        }
+
+        files
+    }
+
+    pub fn log_start(&self) {
+        let log = &self.options.logger;
+
+        #[cfg(not(feature = "extended"))]
+        log.status(&format!("Running Pagefind v{}", self.options.version));
+        #[cfg(feature = "extended")]
+        log.status(&format!(
+            "Running Pagefind v{} (Extended)",
+            self.options.version
+        ));
+        log.v_info("Running in verbose mode");
+
+        log.info(format!(
+            "Running from: {:?}",
+            self.options.working_directory
+        ));
+        log.info(format!(
+            "Source:       {:?}",
+            self.options
+                .site_source
+                .strip_prefix(&self.options.working_directory)
+                .unwrap_or(&self.options.site_source)
+        ));
+        log.info(format!(
+            "Output:       {:?}",
+            self.options
+                .bundle_output
+                .strip_prefix(&self.options.working_directory)
+                .unwrap_or(&self.options.bundle_output)
+        ));
     }
 }

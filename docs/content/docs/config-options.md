@@ -1,39 +1,48 @@
 ---
-date: 2022-06-01
-title: "Configuring the Pagefind CLI"
-nav_title: "Pagefind CLI config"
-nav_section: Installing
-weight: 3
+title: "Pagefind CLI configuration options"
+nav_title: "CLI config options"
+nav_section: References
+weight: 51
 ---
 
-The Pagefind CLI has the following options:
+The Pagefind CLI has the following options.  
+These can be set via any [configuration source](http://localhost:1313/docs/config-sources/).
 
-> For configuring the Pagefind search in the browser, see [Pagefind Search Config](/docs/search-config/). For configuring the Pagefind UI, see [Pagefind UI](/docs/ui/).
+> These configuration options only apply when running the Pagefind indexing tool on your site.
+> For configuring Pagefind search in the browser, see [Pagefind Search Config](/docs/search-config/).  
+> For configuring the Pagefind Default UI, see [Pagefind UI](/docs/ui/).
 
 ## Required arguments
 
-### Source
+### Site
 The location of your built static site.
 
-| CLI Flag            | ENV Variable      | Config Key |
-|---------------------|-------------------|------------|
-| `--source <SOURCE>` | `PAGEFIND_SOURCE` | `source`   |
+| CLI Flag        | ENV Variable    | Config Key |
+|-----------------|-----------------|------------|
+| `--site <PATH>` | `PAGEFIND_SITE` | `site`     |
 
 ## Optional arguments
 
 ### Serve
-Serve the source directory after creating the search index. Useful for testing search on a local build of your site without having to serve the source directory manually.
+Serve the site directory after creating the search index. Useful for testing search on a local build of your site without having to serve the site directory manually.
 
 | CLI Flag  | ENV Variable     | Config Key |
 |-----------|------------------|------------|
 | `--serve` | `PAGEFIND_SERVE` | `serve`    |
 
-### Bundle directory
-The folder to output search files into, relative to source. Defaults to `_pagefind`.
+### Output subdirectory
+The folder to output the search bundle into, relative to the processed site. Defaults to `pagefind`.
 
-| CLI Flag             | ENV Variable          | Config Key   |
-|----------------------|-----------------------|--------------|
-| `--bundle-dir <DIR>` | `PAGEFIND_BUNDLE_DIR` | `bundle_dir` |
+| CLI Flag                | ENV Variable             | Config Key      |
+|-------------------------|--------------------------|-----------------|
+| `--output-subdir <DIR>` | `PAGEFIND_OUTPUT_SUBDIR` | `output_subdir` |
+
+### Output path
+The folder to output the search bundle into, relative to the working directory. Overrides `output-subdir` if supplied.
+
+| CLI Flag               | ENV Variable           | Config Key    |
+|------------------------|------------------------|---------------|
+| `--output-path <PATH>` | `PAGEFIND_OUTPUT_PATH` | `output_path` |
 
 ### Root selector
 The element that Pagefind should treat as the root of the document. Defaults to `html`.
@@ -64,6 +73,7 @@ Note that currently Pagefind only supports lists of options via configuration fi
 
 ### Glob
 Configures the glob used by Pagefind to discover HTML files. Defaults to `**/*.{html}`.
+See [Wax patterns documentation](https://github.com/olson-sean-k/wax#patterns) for more details.
 
 | CLI Flag        | ENV Variable    | Config Key |
 |-----------------|-----------------|------------|
@@ -91,3 +101,10 @@ Prints extra logging while indexing the site. Only affects the CLI, does not imp
 | CLI Flag    | ENV Variable       | Config Key |
 |-------------|--------------------|------------|
 | `--verbose` | `PAGEFIND_VERBOSE` | `verbose`  |
+
+### Logfile
+Writes logs to the given logfile, in addition to the console. Replaces the file on each run.
+
+| CLI Flag           | ENV Variable       | Config Key |
+|--------------------|--------------------|------------|
+| `--logfile <PATH>` | `PAGEFIND_LOGFILE` | `logfile`  |
