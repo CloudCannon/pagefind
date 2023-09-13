@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Fixed the new `pagefind` npm wrapper to use the `pagefind_extended` release, as documented.
+
 ## v1.0.0 (September 13, 2023)
 
 Pagefind 1.0 is here! This release has been many months in the making, and we're thrilled to be bringing some great new features and improvements.
