@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.0.0 (September 13, 2023)
+
 Pagefind 1.0 is here! This release has been many months in the making, and we're thrilled to be bringing some great new features and improvements.
 
 This release also marks a point in time for Pagefind's stability and maturity. Thanks to everyone who has helped out with contributions and feedback in the last year, we're now more confident than ever that Pagefind is a perfect fit with nearly any static website, staying performant and lean even as your site scales.
