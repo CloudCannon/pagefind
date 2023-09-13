@@ -28,20 +28,20 @@ The goal of Pagefind is that websites with tens of thousands of pages should be 
 To test large instances of Pagefind, check out:
 
 {{< card
-    title="MDN, indexed by Pagefind" 
+    title="Sample: MDN, indexed by Pagefind" 
     url="mdn.pagefind.app"
     image="/mdn.svg"
     classname="dark-silhouette"
     >}}
 
 {{< card
-    title="Godot documentation, indexed by Pagefind" 
+    title="Sample: Godot documentation, indexed by Pagefind" 
     url="godot.pagefind.app"
     image="/godot.svg"
     >}}
 
 {{< card
-    title="XKCD, indexed by Pagefind" 
+    title="Sample: XKCD, indexed by Pagefind" 
     url="xkcd.pagefind.app"
     image="/xkcd.png"
     classname="dark-blend"
