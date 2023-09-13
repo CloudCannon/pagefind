@@ -142,3 +142,55 @@ details summary::-webkit-details-marker {
         }
     }
 }
+
+.link-card {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: solid 2px var(--text-bright);
+    border-radius: 8px;
+    margin: 1.5em 0;
+    color: var(--text-bright);
+    min-height: 90px;
+    padding: 15px;
+
+    img {
+        max-height: 40px;
+        max-width: 80px;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 0 auto;
+    }
+
+    &.dark-silhouette img {
+        body.dark & {
+            filter: brightness(0) invert(1);
+        }
+    }
+
+    &.dark-blend img {
+        body.dark & {
+            filter: invert(1) brightness(3);
+            mix-blend-mode: exclusion;
+        }
+    }
+
+    .info {
+        display: flex;
+        width: calc(100% - 120px);
+        flex-direction: column;
+        padding-right: 20px;
+
+        p {
+            margin: 0;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        small {
+            margin: 0;
+            font-size: 12px;
+        }
+    }
+}
