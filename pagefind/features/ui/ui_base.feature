@@ -49,7 +49,7 @@ Feature: Base UI Tests
     # if the link doesn't exist, the check will fail
     # see https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors#syntax:~:text=%5Battr%24%3Dvalue%5D,by%20value.
 
-    Scenario: Pagefind UI adds highlight query param
+    Scenario: Pagefind UI adds highlight query params
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>hello world</h1>
@@ -77,7 +77,7 @@ Feature: Base UI Tests
             }
             """
         Then There should be no logs
-        Then The selector ".pagefind-ui__result-link[href$='?pagefind-highlight=hello+world']" should contain "hello world"
+        Then The selector ".pagefind-ui__result-link[href$='?pagefind-highlight=hello&pagefind-highlight=world']" should contain "hello world"
         When I evaluate:
             """
             async function() {
@@ -86,5 +86,5 @@ Feature: Base UI Tests
             }
             """
         Then There should be no logs
-        Then The selector ".pagefind-ui__result-link[href$='?pagefind-highlight=hello+world%21']" should contain "hello world"
+        Then The selector ".pagefind-ui__result-link[href$='?pagefind-highlight=hello&pagefind-highlight=world%21']" should contain "hello world"
 
