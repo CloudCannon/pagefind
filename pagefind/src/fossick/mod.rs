@@ -778,6 +778,23 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn parse_nbsp() {
+        let mut f = test_fossick(
+            [
+                "<html lang='ja'><body>",
+                "<p>Hello&nbsp;👋</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors, word_count) = f.parse_digest();
+
+        assert_eq!(words.keys().collect::<Vec<_>>(), vec!["hello", "👋"]);
+    }
+
     #[cfg(not(target_os = "windows"))]
     #[test]
     fn building_url() {
