@@ -42,7 +42,9 @@
     trigger_search_term = "";
   }
 
-  $: highlight_query_param = `${highlight_query_param_name}=${val}`;
+  $: highlight_query_param = new URLSearchParams([
+    [highlight_query_param_name, val],
+  ]).toString();
   let pagefind;
   let input_el,
     clear_el,

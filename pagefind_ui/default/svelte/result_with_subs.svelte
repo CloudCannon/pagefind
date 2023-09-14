@@ -65,8 +65,8 @@
       <p class="pagefind-ui__result-title">
         <a
           class="pagefind-ui__result-link"
-          href={(data?.meta?.url || data.url) +
-            (highlight_query_param ? `?${highlight_query_param}` : "")}
+              href={(data?.meta?.url || data.url) +
+            (highlight_query_param ? `?${highlight_query_param.toString()}` : "")}
           >{@html data.meta?.title}</a
         >
       </p>
