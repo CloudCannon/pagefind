@@ -42,9 +42,16 @@
     trigger_search_term = "";
   }
 
-  $: highlight_query_param = new URLSearchParams([
-    [highlight_query_param_name, val],
-  ]).toString();
+  // this could be changed to not split if the value is quoted
+  // ex: val = `hello world "foo bar"` highlightWords = ["hello", "world", "foo bar"]
+
+  $: highlightWords = val.split(" ");
+
+  $: highlight_query_param = new URLSearchParams(
+    highlightWords.map((word) => {
+      return [highlight_query_param_name, word];
+    })
+  ).toString();
   let pagefind;
   let input_el,
     clear_el,
