@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.0.2 (September 14, 2023)
+
 * Fixes a bug when indexing some non-breaking spaces on ja/zh language pages in extended mode
 
 ## v1.0.1 (September 14, 2023)
