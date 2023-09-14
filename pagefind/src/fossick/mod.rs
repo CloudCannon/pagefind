@@ -359,14 +359,18 @@ impl Fossicker {
                 // Only proceed if the word was broken into multiple parts
                 if word_parts.contains(|c: char| c.is_whitespace()) {
                     let part_words: Vec<_> = word_parts.split_whitespace().collect();
-                    // Index constituents of a compound word as a proportion of the
-                    // weight of the full word.
-                    let per_weight =
-                        (word_weight / part_words.len().try_into().unwrap_or(std::u8::MAX)).max(1);
 
-                    // Only index two+ character words
-                    for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
-                        store_word(part_word, word_index, per_weight);
+                    if !part_words.is_empty() {
+                        // Index constituents of a compound word as a proportion of the
+                        // weight of the full word.
+                        let per_weight = (word_weight
+                            / part_words.len().try_into().unwrap_or(std::u8::MAX))
+                        .max(1);
+
+                        // Only index two+ character words
+                        for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
+                            store_word(part_word, word_index, per_weight);
+                        }
                     }
                 }
                 // Additionally store any special extra characters we are given
@@ -768,6 +772,41 @@ mod tests {
                     vec![FossickedWord {
                         position: 3,
                         weight: 240
+                    }]
+                )
+            ])
+        );
+    }
+
+    #[tokio::test]
+    async fn parse_significant_whitespace() {
+        let mut f = test_fossick(
+            [
+                "<html lang='ja'><body>",
+                "<p>Hello \u{a0} \u{a0}World ! .</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors, word_count) = f.parse_digest();
+
+        assert_eq!(
+            words,
+            HashMap::from_iter([
+                (
+                    "hello".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 1 * 24
+                    }]
+                ),
+                (
+                    "world".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 1 * 24
                     }]
                 )
             ])

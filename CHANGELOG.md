@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+* Fixes a bug when indexing some non-breaking spaces on ja/zh language pages in extended mode
+
 ## v1.0.1 (September 14, 2023)
 
 Hotfix for Pagefind v1.0.0, restoring default-on support for multilingual word segmentation, and helping resolve packaging issues with new dependencies.
