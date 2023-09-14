@@ -792,7 +792,9 @@ mod tests {
 
         let (digest, words, anchors, word_count) = f.parse_digest();
 
-        assert_eq!(words.keys().collect::<Vec<_>>(), vec!["hello", "👋"]);
+        let mut words = words.keys().collect::<Vec<_>>();
+        words.sort();
+        assert_eq!(words, vec!["hello", "👋"]);
     }
 
     #[cfg(not(target_os = "windows"))]
