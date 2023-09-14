@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.0.1 (September 14, 2023)
+
 Hotfix for Pagefind v1.0.0, restoring default-on support for multilingual word segmentation, and helping resolve packaging issues with new dependencies.
 
 * Fixed the `pagefind` npm wrapper to use the `pagefind_extended` release, as documented.
