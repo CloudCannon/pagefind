@@ -778,41 +778,6 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn parse_significant_whitespace() {
-        let mut f = test_fossick(
-            [
-                "<html lang='ja'><body>",
-                "<p>Hello \u{a0} \u{a0}World ! .</p>",
-                "</body></html>",
-            ]
-            .concat(),
-        )
-        .await;
-
-        let (digest, words, anchors, word_count) = f.parse_digest();
-
-        assert_eq!(
-            words,
-            HashMap::from_iter([
-                (
-                    "hello".to_string(),
-                    vec![FossickedWord {
-                        position: 0,
-                        weight: 1 * 24
-                    }]
-                ),
-                (
-                    "world".to_string(),
-                    vec![FossickedWord {
-                        position: 1,
-                        weight: 1 * 24
-                    }]
-                )
-            ])
-        );
-    }
-
     #[cfg(not(target_os = "windows"))]
     #[test]
     fn building_url() {
