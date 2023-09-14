@@ -193,7 +193,7 @@ jobs:
       - name: Extract Binary
         working-directory: build-artifacts
         run: |
-          tar xzf pagefind-v$GIT_VERSION-${{ matrix.target }}.tar.gz
+          tar xzf pagefind_extended-v$GIT_VERSION-${{ matrix.target }}.tar.gz
           rm *.tar.gz
           mv * ../${{ matrix.package }}/bin/
       - name: Prepare package
