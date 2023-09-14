@@ -77,6 +77,15 @@ Feature: Graceful Pagefind Errors
         Then The selector "[data-url]" should contain "/cat/"
 
     Scenario: Pagefind handles non-breaking spaces in segmented language pages
+        Given I have a "public/index.html" file with the content:
+            """
+            <!DOCTYPE html>
+            <html lang="ja">
+            <body>
+                <p data-url>Nothing</p>
+            </body>
+            </html>
+            """
         Given I have a "public/ja/index.html" file with the content:
             """
                 <!DOCTYPE html>
