@@ -359,14 +359,18 @@ impl Fossicker {
                 // Only proceed if the word was broken into multiple parts
                 if word_parts.contains(|c: char| c.is_whitespace()) {
                     let part_words: Vec<_> = word_parts.split_whitespace().collect();
-                    // Index constituents of a compound word as a proportion of the
-                    // weight of the full word.
-                    let per_weight =
-                        (word_weight / part_words.len().try_into().unwrap_or(std::u8::MAX)).max(1);
 
-                    // Only index two+ character words
-                    for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
-                        store_word(part_word, word_index, per_weight);
+                    if !part_words.is_empty() {
+                        // Index constituents of a compound word as a proportion of the
+                        // weight of the full word.
+                        let per_weight = (word_weight
+                            / part_words.len().try_into().unwrap_or(std::u8::MAX))
+                        .max(1);
+
+                        // Only index two+ character words
+                        for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
+                            store_word(part_word, word_index, per_weight);
+                        }
                     }
                 }
                 // Additionally store any special extra characters we are given
@@ -772,6 +776,25 @@ mod tests {
                 )
             ])
         );
+    }
+
+    #[tokio::test]
+    async fn parse_nbsp() {
+        let mut f = test_fossick(
+            [
+                "<html lang='ja'><body>",
+                "<p>Hello&nbsp;👋</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors, word_count) = f.parse_digest();
+
+        let mut words = words.keys().collect::<Vec<_>>();
+        words.sort();
+        assert_eq!(words, vec!["hello", "👋"]);
     }
 
     #[cfg(not(target_os = "windows"))]

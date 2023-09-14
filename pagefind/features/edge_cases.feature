@@ -75,3 +75,41 @@ Feature: Graceful Pagefind Errors
             """
         Then There should be no logs
         Then The selector "[data-url]" should contain "/cat/"
+
+    Scenario: Pagefind handles non-breaking spaces in segmented language pages
+        Given I have a "public/index.html" file with the content:
+            """
+            <!DOCTYPE html>
+            <html lang="ja">
+            <body>
+                <p data-url>Nothing</p>
+            </body>
+            </html>
+            """
+        Given I have a "public/ja/index.html" file with the content:
+            """
+                <!DOCTYPE html>
+                <html lang="ja">
+                <body>
+                    <p>Hello&nbsp;👋</p>
+                </body>
+                </html>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search("👋");
+                let results = await Promise.all(search.results.map(r => r.data()));
+
+                document.querySelector('[data-url]').innerText = results.map(r => r.url).sort().join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-url]" should contain "/ja/"

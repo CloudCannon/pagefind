@@ -9,8 +9,16 @@
 
 ## Unreleased
 
-* Fixed the new `pagefind` npm wrapper to use the `pagefind_extended` release, as documented.
-* Change `microjson` git dependency to a `pagefind_microjson` crate dependency (for now) — #421 .
+## v1.0.2 (September 14, 2023)
+
+* Fixes a bug when indexing some non-breaking spaces on ja/zh language pages in extended mode
+
+## v1.0.1 (September 14, 2023)
+
+Hotfix for Pagefind v1.0.0, restoring default-on support for multilingual word segmentation, and helping resolve packaging issues with new dependencies.
+
+* Fixed the `pagefind` npm wrapper to use the `pagefind_extended` release, as documented.
+* Changed `microjson` git dependency to a `pagefind_microjson` crate dependency (for now) — #421 .
 
 ## v1.0.0 (September 13, 2023)
 
