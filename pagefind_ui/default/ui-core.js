@@ -34,8 +34,11 @@ export class PagefindUI {
     let debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
     let mergeIndex = opts.mergeIndex ?? [];
     let translations = opts.translations ?? [];
-    let pagefindQueryParamName =
-      opts.pagefindQueryParamName ?? "pagefind-highlight";
+    // setting the param to null should disable highlighting, hence this more complicated check
+    let highlightQueryParamName = "pagefind-highlight";
+    if (opts.highlightQueryParamName !== undefined) {
+      highlightQueryParamName = opts.highlightQueryParamName;
+    }
 
     // Remove the UI-specific config before passing it along to the Pagefind backend
     delete opts["element"];
@@ -70,6 +73,7 @@ export class PagefindUI {
           debounce_timeout_ms: debounceTimeoutMs,
           merge_index: mergeIndex,
           translations,
+          highlight_query_param_name: highlightQueryParamName,
           pagefind_options: opts,
         },
       });

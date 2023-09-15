@@ -34,6 +34,7 @@
   export let trigger_search_term = "";
   export let translations = {};
   // this is the name of the query param which is used to highlight the search terms after the user has navigated to a result page
+  // consider exposing the prop in the constructor in camelCase if needed
   export let highlight_query_param_name = "pagefind-highlight";
 
   let val = "";
@@ -301,14 +302,18 @@
                     {show_images}
                     {process_result}
                     {result}
-                    {highlight_query_param}
+                    highlight_query_param={highlight_query_param_name
+                      ? highlight_query_param
+                      : null}
                   />
                 {:else}
                   <Result
                     {show_images}
                     {process_result}
                     {result}
-                    {highlight_query_param}
+                    highlight_query_param={highlight_query_param_name
+                      ? highlight_query_param
+                      : null}
                   />
                 {/if}
               {/each}
