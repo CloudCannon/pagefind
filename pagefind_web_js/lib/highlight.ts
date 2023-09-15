@@ -11,10 +11,10 @@ import Mark from "mark.js";
 // right now, since that isn't supported, to separateWordSearch should be false
 
 type pagefindHighlightOptions = {
-  markContext: string | HTMLElement | HTMLElement[] | NodeList | null;
-  pagefindQueryParamName: string;
-  markOptions: Omit<Mark.MarkOptions, "separateWordSearch">;
-  addStyles: boolean;
+  markContext?: string | HTMLElement | HTMLElement[] | NodeList | null;
+  pagefindQueryParamName?: string;
+  markOptions?: Omit<Mark.MarkOptions, "separateWordSearch">;
+  addStyles?: boolean;
 };
 
 export default class PagefindHighlight {
@@ -37,12 +37,19 @@ export default class PagefindHighlight {
     const { pagefindQueryParamName, markContext, markOptions, addStyles } =
       options;
 
-    this.pagefindQueryParamName = pagefindQueryParamName;
-    this.addStyles = addStyles;
-    this.markContext = markContext;
-    this.markOptions = markOptions;
+    this.pagefindQueryParamName =
+      pagefindQueryParamName ?? "pagefind-highlight";
+    this.addStyles = addStyles ?? true;
+    this.markContext = markContext !== undefined ? markContext : null;
+    this.markOptions =
+      markOptions !== undefined
+        ? markOptions
+        : {
+            className: "pagefind-highlight",
+            exclude: ["[data-pagefind-ignore]", "[data-pagefind-ignore] *"],
+          };
 
-    // make sure these are always set
+    // make sure these are always set (in case the user passes {} or {exclude: '.exclude'} to markOptions)
     // if the user doesn't want to exclude anything, they should pass an empty array
     // if the user doesn't want a className they should pass an empty string
     this.markOptions.className ??= "pagefind__highlight";
@@ -91,6 +98,12 @@ export default class PagefindHighlight {
       this.addHighlightStyles(this.markOptions.className as string);
     const markInstance = this.createMarkInstance();
     this.markText(markInstance, params);
+  }
+}
+
+declare global {
+  interface Window {
+    PagefindHighlight: typeof PagefindHighlight;
   }
 }
 
