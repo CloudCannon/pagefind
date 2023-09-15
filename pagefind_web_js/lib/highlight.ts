@@ -1,89 +1,58 @@
 // this script should be imported on the result pages to enable highlighting
+// after a user clicks on a result, the linked page should have this script to enable highlighting
 
 import Mark from "mark.js";
 
-// tbh not sure how to read this option
-
-// I think it's ok to let the user decide when to run this script
-// waiting for DOMContentLoaded doesn't work if it already is loaded
-// Ik I could work around, but this is simpler
-
-// TODO use browser api to read query param, make sure special chars get encoded/decoded
-
 // the separateWordSearch of mark options treats each space separated word as a separate search
 // I am not letting the user set it, because it should be handled on our side
-// if pagefind ever supports exact matches, including spaces ('hello world'), then this should be passed as an entry in the pagefind-highlight query param
+// if pagefind ever supports exact matches including spaces ('hello world'), then each sequence to be highlighted should be passed as an entry in the pagefind-highlight query param
+// so if the search is "'hello world' lorem" then the query param should be "pagefind-highlight=hello%20world&pagefind-highlight=lorem"
 // see the tests for more examples
-
 // right now, since that isn't supported, to separateWordSearch should be false
 
-
-  type pagefindHighlightOptions = {
-    markContext: string | HTMLElement | HTMLElement[] | NodeList | null;
-    pagefindQueryParamName: string;
-    // ? should this be an option?
-    highlightNodeElementName: string;
-    highlightNodeClassName: string;
-    markOptions: Omit<Mark.MarkOptions, "separateWordSearch"> | undefined;
-    addStyles: boolean;
-  };
+type pagefindHighlightOptions = {
+  markContext: string | HTMLElement | HTMLElement[] | NodeList | null;
+  pagefindQueryParamName: string;
+  markOptions: Omit<Mark.MarkOptions, "separateWordSearch">;
+  addStyles: boolean;
+};
 
 export default class PagefindHighlight {
   pagefindQueryParamName: string;
-  // ? should this be an option?
-  highlightNodeElementName: string;
-  highlightNodeClassName: string;
   markContext: string | HTMLElement | HTMLElement[] | NodeList | null;
   markOptions: Mark.MarkOptions;
   addStyles: boolean;
-
-  // TODO type constructor options better
 
   constructor(
     options: pagefindHighlightOptions = {
       markContext: null,
       pagefindQueryParamName: "pagefind-highlight",
-      // ? should this be an option?
-      highlightNodeElementName: "mark",
-      highlightNodeClassName: "pagefind__highlight",
-      markOptions: undefined,
+      markOptions: {
+        className: "pagefind__highlight",
+        exclude: ["[data-pagefind-ignore]", "[data-pagefind-ignore] *"],
+      },
       addStyles: true,
     }
   ) {
-    const {
-      pagefindQueryParamName,
-      highlightNodeElementName,
-      highlightNodeClassName,
-      markContext,
-      markOptions,
-      addStyles,
-    } = options;
+    const { pagefindQueryParamName, markContext, markOptions, addStyles } =
+      options;
 
     this.pagefindQueryParamName = pagefindQueryParamName;
-    this.highlightNodeElementName = highlightNodeElementName || "mark";
-    this.highlightNodeClassName = highlightNodeClassName;
     this.addStyles = addStyles;
     this.markContext = markContext;
+    this.markOptions = markOptions;
 
-    if (markOptions) {
-      this.markOptions = markOptions;
-    } else {
-      this.markOptions = {
-        className: this.highlightNodeClassName,
-        exclude: ["*[data-pagefind-ignore]", "[data-pagefind-ignore] *"],
-      };
-    }
+    // make sure these are always set
+    // if the user doesn't want to exclude anything, they should pass an empty array
+    // if the user doesn't want a className they should pass an empty string
+    this.markOptions.className ??= "pagefind__highlight";
+    this.markOptions.exclude ??= [
+      "[data-pagefind-ignore]",
+      "[data-pagefind-ignore] *",
+    ];
     this.markOptions.separateWordSearch = false;
-
     this.highlight();
   }
-
-  // wait for the DOM to be ready
-  // read the query param
-  // find all occurrences of the query param in the DOM, respecting the data-pagefind attributes
-  // wrap the text in a mark with a class of pagefind__highlight
-
-  // TODO return array and get all params (to highlight multiple entitles (ex: 'hello world' and 'potato')))
 
   getHighlightParams(paramName: string): string[] {
     const urlParams = new URLSearchParams(window.location.search);
@@ -91,7 +60,8 @@ export default class PagefindHighlight {
   }
 
   // Inline styles might be too hard to override
-  addHighlightStyles(className: string) {
+  addHighlightStyles(className: string | undefined | null) {
+    if (!className) return;
     const styleElement = document.createElement("style");
     styleElement.innerText = `:where(.${className}) { background-color: yellow; color: black; }`;
     document.head.appendChild(styleElement);
@@ -116,7 +86,8 @@ export default class PagefindHighlight {
   highlight() {
     const params = this.getHighlightParams(this.pagefindQueryParamName);
     if (!params || params.length === 0) return;
-    this.addStyles && this.addHighlightStyles(this.highlightNodeClassName);
+    this.addStyles &&
+      this.addHighlightStyles(this.markOptions.className as string);
     const markInstance = this.createMarkInstance();
     this.markText(markInstance, params);
   }
