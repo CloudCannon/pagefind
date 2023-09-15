@@ -151,4 +151,76 @@ Feature: Word Weighting
             }
             """
         Then There should be no logs
-        Then The selector "p" should contain "/r3/, /r1/, /r2/"
+        Then The selector "p" should contain "/r1/, /r3/, /r2/"
+
+    Scenario: Compound words prefixes prioritise the lower weight
+        Given I have a "public/r1/index.html" file with the body:
+            """
+            <p>A single reference to ThreeAntelopes</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search(`three`);
+                let data = await search.results[0].data();
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
+                document.querySelector('p').innerText = weights;
+            }
+            """
+        Then There should be no logs
+        # Treat the bal value here as a snapshot — update the expected value as needed
+        Then The selector "p" should contain "weight:0.5/bal:18/loc:4"
+
+    Scenario: Compound words sum to a full weight
+        Given I have a "public/r1/index.html" file with the body:
+            """
+            <p>A single reference to ThreeAntelopes</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search(`three antelopes`);
+                let data = await search.results[0].data();
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
+                document.querySelector('p').innerText = weights;
+            }
+            """
+        Then There should be no logs
+        # Treat the bal value here as a snapshot — update the expected value as needed
+        Then The selector "p" should contain "weight:1/bal:72/loc:4"
+
+    Scenario: Compound words matched as full words use the full weight
+        Given I have a "public/r1/index.html" file with the body:
+            """
+            <p>A single reference to ThreeAntelopes</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search(`threea`);
+                let data = await search.results[0].data();
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
+                document.querySelector('p').innerText = weights;
+            }
+            """
+        Then There should be no logs
+        # Treat the bal value here as a snapshot — update the expected value as needed
+        Then The selector "p" should contain "weight:1/bal:82.28572/loc:4"

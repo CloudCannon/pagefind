@@ -19,7 +19,7 @@ export class PagefindService {
         /**
          * @type {child_process.ChildProcessByStdio<import('stream').Writable, import('stream').Readable, null> | null}
          */
-        this.backend = child_process.spawn(resolveBinaryPath("pagefind"), [`--service`], {
+        this.backend = child_process.spawn(resolveBinaryPath(["pagefind_extended", "pagefind"]), [`--service`], {
             windowsHide: true,
             stdio: ['pipe', 'pipe', 'inherit'],
             cwd: process.cwd(),

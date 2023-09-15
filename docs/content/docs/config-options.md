@@ -1,13 +1,16 @@
 ---
-title: "Configuring the Pagefind CLI"
-nav_title: "Pagefind CLI config"
-nav_section: Installing
-weight: 3
+title: "Pagefind CLI configuration options"
+nav_title: "CLI config options"
+nav_section: References
+weight: 51
 ---
 
-The Pagefind CLI has the following options:
+The Pagefind CLI has the following options.  
+These can be set via any [configuration source](http://localhost:1313/docs/config-sources/).
 
-> For configuring the Pagefind search in the browser, see [Pagefind Search Config](/docs/search-config/). For configuring the Pagefind UI, see [Pagefind UI](/docs/ui/).
+> These configuration options only apply when running the Pagefind indexing tool on your site.
+> For configuring Pagefind search in the browser, see [Pagefind Search Config](/docs/search-config/).  
+> For configuring the Pagefind Default UI, see [Pagefind UI](/docs/ui/).
 
 ## Required arguments
 

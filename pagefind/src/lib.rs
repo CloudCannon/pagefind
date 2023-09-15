@@ -238,11 +238,11 @@ impl SearchState {
                 Some("zh") => log.warn("⚠ Indexing Chinese in non-extended mode. \n\
                                         In this mode, Pagefind will not segment words that are not whitespace separated. \n\
                                         Running the extended Pagefind binary will include this segmentation. \n\
-                                        Either download the pagefind_extended binary, or run npx pagefind-extended."),
+                                        Either download the pagefind_extended binary, or run via npx pagefind."),
                 Some("ja") => log.warn("⚠ Indexing Japanese in non-extended mode. \n\
                                         In this mode, Pagefind will not segment words that are not whitespace separated. \n\
                                         Running the extended Pagefind binary will include this segmentation. \n\
-                                        Either download the pagefind_extended binary, or run npx pagefind-extended."),
+                                        Either download the pagefind_extended binary, or run via npx pagefind."),
                 _ => {}
             };
 

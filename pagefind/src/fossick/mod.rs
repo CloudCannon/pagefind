@@ -260,7 +260,7 @@ impl Fossicker {
 
         let mut offset_word_index = 0;
         let mut max_word_index = 0;
-        let weight_multiplier = 25.0;
+        let weight_multiplier = 24.0;
         let weight_max = 10.0;
         debug_assert!(((weight_max * weight_multiplier) as u8) < std::u8::MAX);
 
@@ -359,14 +359,18 @@ impl Fossicker {
                 // Only proceed if the word was broken into multiple parts
                 if word_parts.contains(|c: char| c.is_whitespace()) {
                     let part_words: Vec<_> = word_parts.split_whitespace().collect();
-                    // Index constituents of a compound word as a proportion of the
-                    // weight of the full word.
-                    let per_weight =
-                        (word_weight / part_words.len().try_into().unwrap_or(std::u8::MAX)).max(1);
 
-                    // Only index two+ character words
-                    for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
-                        store_word(part_word, word_index, per_weight);
+                    if !part_words.is_empty() {
+                        // Index constituents of a compound word as a proportion of the
+                        // weight of the full word.
+                        let per_weight = (word_weight
+                            / part_words.len().try_into().unwrap_or(std::u8::MAX))
+                        .max(1);
+
+                        // Only index two+ character words
+                        for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
+                            store_word(part_word, word_index, per_weight);
+                        }
                     }
                 }
                 // Additionally store any special extra characters we are given
@@ -570,14 +574,14 @@ mod tests {
                     "hello".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 ),
                 (
                     "world".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 )
             ])
@@ -610,28 +614,28 @@ mod tests {
                     "the".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 ),
                 (
                     "quick".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 2 * 25
+                        weight: 2 * 24
                     }]
                 ),
                 (
                     "brown".to_string(),
                     vec![FossickedWord {
                         position: 2,
-                        weight: 2 * 25
+                        weight: 2 * 24
                     }]
                 ),
                 (
                     "fox".to_string(),
                     vec![FossickedWord {
                         position: 3,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     }]
                 ),
                 (
@@ -687,35 +691,35 @@ mod tests {
                 vec![
                     FossickedWord {
                         position: 0,
-                        weight: 7 * 25
+                        weight: 7 * 24
                     },
                     FossickedWord {
                         position: 1,
-                        weight: 6 * 25
+                        weight: 6 * 24
                     },
                     FossickedWord {
                         position: 2,
-                        weight: 5 * 25
+                        weight: 5 * 24
                     },
                     FossickedWord {
                         position: 3,
-                        weight: 4 * 25
+                        weight: 4 * 24
                     },
                     FossickedWord {
                         position: 4,
-                        weight: 3 * 25
+                        weight: 3 * 24
                     },
                     FossickedWord {
                         position: 5,
-                        weight: 2 * 25
+                        weight: 2 * 24
                     },
                     FossickedWord {
                         position: 6,
-                        weight: 1 * 25
+                        weight: 1 * 24
                     },
                     FossickedWord {
                         position: 7,
-                        weight: 0 * 25
+                        weight: 0 * 24
                     }
                 ]
             )])
@@ -746,14 +750,14 @@ mod tests {
                     "the".to_string(),
                     vec![FossickedWord {
                         position: 0,
-                        weight: 25
+                        weight: 24
                     }]
                 ),
                 (
                     "quick".to_string(),
                     vec![FossickedWord {
                         position: 1,
-                        weight: 250
+                        weight: 240
                     }]
                 ),
                 (
@@ -767,11 +771,30 @@ mod tests {
                     "fox".to_string(),
                     vec![FossickedWord {
                         position: 3,
-                        weight: 250
+                        weight: 240
                     }]
                 )
             ])
         );
+    }
+
+    #[tokio::test]
+    async fn parse_nbsp() {
+        let mut f = test_fossick(
+            [
+                "<html lang='ja'><body>",
+                "<p>Hello&nbsp;👋</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (digest, words, anchors, word_count) = f.parse_digest();
+
+        let mut words = words.keys().collect::<Vec<_>>();
+        words.sort();
+        assert_eq!(words, vec!["hello", "👋"]);
     }
 
     #[cfg(not(target_os = "windows"))]

@@ -35,8 +35,9 @@ colors:
     focus_colors:
       focus: '#0096bfab'
     shortcode_colors:
-      diffcode-added: '#003506'
-      diffcode-removed: '#350000'
+      diffcode-added: '#ddffddcf'
+      diffcode-removed: '#ffc8c8'
+      diffcode-highlighted: '#fffece'
     pagefind_colors:
       pagefind-ui-primary: '#000000'
       pagefind-ui-secondary: '#000000'
@@ -45,12 +46,12 @@ colors:
       pagefind-ui-tag: '#efefef'
   dark:
     typography:
-      text: '#dbdbdb'
-      flip-text: '#dbdbdb'
-      text-main: '#dbdbdb'
+      text: '#e6edf3'
+      flip-text: '#e6edf3'
+      text-main: '#e6edf3'
       text-bright: '#ffffff'
       text-muted: '#c8c8c8'
-      links: '#85b5ff'
+      links: '#58a4e0'
       highlight: '#de935f'
       selection: '#616161'
       form-placeholder: '#e0e0e0'
@@ -80,6 +81,7 @@ colors:
     shortcode_colors:
       diffcode-added: '#003506'
       diffcode-removed: '#350000'
+      diffcode-highlighted: '#ffd7002e'
     pagefind_colors:
       pagefind-ui-primary: '#D8D8D8'
       pagefind-ui-secondary: '#D8D8D8'

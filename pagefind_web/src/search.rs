@@ -10,7 +10,60 @@ pub struct PageSearchResult {
     pub page: String,
     pub page_index: usize,
     pub page_score: f32, // TODO: tf-idf implementation? Paired with the dictionary-in-meta approach
-    pub word_locations: Vec<(u8, u32)>,
+    pub word_locations: Vec<BalancedWordScore>,
+}
+
+struct ScoredPageWord<'a> {
+    word: &'a PageWord,
+    length_differential: u8,
+    word_frequency: f32,
+}
+
+#[derive(Debug, Clone)]
+struct VerboseWordLocation {
+    weight: u8,
+    length_differential: u8,
+    word_frequency: f32,
+    word_location: u32,
+}
+
+#[derive(Debug, Clone)]
+pub struct BalancedWordScore {
+    pub weight: u8,
+    pub balanced_score: f32,
+    pub word_location: u32,
+}
+
+impl From<VerboseWordLocation> for BalancedWordScore {
+    fn from(
+        VerboseWordLocation {
+            weight,
+            length_differential,
+            word_frequency,
+            word_location,
+        }: VerboseWordLocation,
+    ) -> Self {
+        let word_length_bonus = if length_differential > 0 {
+            (2.0 / length_differential as f32).max(0.2)
+        } else {
+            3.0
+        };
+
+        // Starting with the raw user-supplied (or derived) weight of the word,
+        // we take it to the power of two to make the weight scale non-linear.
+        // We then multiply it with word_length_bonus, which should be a roughly 0 -> 3 scale of how close
+        // this was was in length to the target word.
+        // That result is then multiplied by the word frequency, which is again a roughly 0 -> 2 scale
+        // of how unique this word is in the entire site. (tf-idf ish)
+        let balanced_score =
+            ((weight as f32).powi(2) * word_length_bonus) * word_frequency.max(0.5);
+
+        Self {
+            weight,
+            balanced_score,
+            word_location,
+        }
+    }
 }
 
 impl SearchIndex {
@@ -86,7 +139,12 @@ impl SearchIndex {
                         page: page.hash.clone(),
                         page_index,
                         page_score: 1.0,
-                        word_locations: ((*pos..=i).map(|w| (1, w))).collect(),
+                        word_locations: ((*pos..=i).map(|w| BalancedWordScore {
+                            weight: 1,
+                            balanced_score: 1.0,
+                            word_location: w,
+                        }))
+                        .collect(),
                     };
                     pages.push(search_result);
                     break 'indexes;
@@ -97,7 +155,14 @@ impl SearchIndex {
                     page: page.hash.clone(),
                     page_index,
                     page_score: 1.0,
-                    word_locations: word_locations[0].clone(),
+                    word_locations: word_locations[0]
+                        .iter()
+                        .map(|(weight, word_location)| BalancedWordScore {
+                            weight: *weight,
+                            balanced_score: *weight as f32,
+                            word_location: *word_location,
+                        })
+                        .collect(),
                 };
                 pages.push(search_result);
             }
@@ -115,23 +180,33 @@ impl SearchIndex {
             format! {"Searching {:?}", term}
         });
 
+        let total_pages = self.pages.len();
+
         let mut unfiltered_results: Vec<usize> = vec![];
         let mut maps = Vec::new();
-        let mut length_maps = Vec::new();
-        let mut words = Vec::new();
+        let mut words: Vec<ScoredPageWord> = Vec::new();
         let split_term = stems_from_term(term);
 
         for term in split_term.iter() {
             let mut word_maps = Vec::new();
             for (word, word_index) in self.find_word_extensions(&term) {
-                words.extend(word_index);
+                let length_differential: u8 = (word.len().abs_diff(term.len()) + 1)
+                    .try_into()
+                    .unwrap_or(std::u8::MAX);
+                let word_frequency: f32 = (total_pages
+                    .checked_div(word_index.len())
+                    .unwrap_or_default() as f32)
+                    .log10();
+
+                words.extend(word_index.iter().map(|pageword| ScoredPageWord {
+                    word: pageword,
+                    length_differential,
+                    word_frequency,
+                }));
                 let mut set = BitSet::new();
                 for page in word_index {
                     set.insert(page.page as usize);
                 }
-                // Track how far off the matched word our search word was,
-                // to help ranking results later.
-                length_maps.push((word.len().abs_diff(term.len()) + 1, set.clone()));
                 word_maps.push(set);
             }
             if let Some(result) = union_maps(word_maps) {
@@ -167,48 +242,89 @@ impl SearchIndex {
         let mut pages: Vec<PageSearchResult> = vec![];
 
         for page_index in results.iter() {
-            let mut word_locations: Vec<(u8, u32)> = words
+            //                      length diff, word weight, word position
+            let mut word_locations: Vec<VerboseWordLocation> = words
                 .iter()
-                .filter_map(|p| {
-                    if p.page as usize == page_index {
-                        Some(p.locs.clone())
-                    } else {
-                        None
-                    }
-                })
+                .filter_map(
+                    |ScoredPageWord {
+                         word,
+                         length_differential,
+                         word_frequency,
+                     }| {
+                        if word.page as usize == page_index {
+                            Some(
+                                word.locs
+                                    .iter()
+                                    .map(|loc| VerboseWordLocation {
+                                        weight: loc.0,
+                                        length_differential: *length_differential,
+                                        word_frequency: *word_frequency,
+                                        word_location: loc.1,
+                                    })
+                                    .collect::<Vec<_>>(),
+                            )
+                        } else {
+                            None
+                        }
+                    },
+                )
                 .flatten()
                 .collect();
             debug!({
                 format! {"Word locations {:?}", word_locations}
             });
-            word_locations.sort_unstable_by_key(|(_, loc)| *loc);
+            word_locations
+                .sort_unstable_by_key(|VerboseWordLocation { word_location, .. }| *word_location);
+
+            let mut unique_word_locations: Vec<BalancedWordScore> =
+                Vec::with_capacity(word_locations.len());
+            if !word_locations.is_empty() {
+                let mut working_word = word_locations[0].clone();
+                for next_word in word_locations.into_iter().skip(1) {
+                    // If we're matching the same position again (this Vec is in location order)
+                    if working_word.word_location == next_word.word_location {
+                        if next_word.weight < working_word.weight {
+                            // If the new word is weighted _lower_ than the working word,
+                            // we want to use the lower value. (Lowest weight wins)
+                            working_word.weight = next_word.weight;
+                        } else if next_word.weight == working_word.weight {
+                            // If the new word is weighted the same,
+                            // we want to combine them to boost matching both halves of a compound word
+                            working_word.weight += next_word.weight;
+                        }
+                        // We don't want to do anything if the new word is weighted higher
+                        // (Lowest weight wins)
+
+                        if next_word.length_differential > working_word.length_differential {
+                            // If the new word is further from target than the working word,
+                            // we want to use that value. (Longest diff wins)
+                            working_word.length_differential = next_word.length_differential;
+                        }
+                    } else {
+                        unique_word_locations.push(working_word.into());
+                        working_word = next_word;
+                    }
+                }
+                unique_word_locations.push(working_word.into());
+            }
+
             let page = &self.pages[page_index];
             debug!({
-                format! {"Sorted word locations {:?}, {:?} word(s)", word_locations, page.word_count}
+                format! {"Sorted word locations {:?}, {:?} word(s)", unique_word_locations, page.word_count}
             });
 
-            let mut page_score = (word_locations
+            let page_score = (unique_word_locations
                 .iter()
-                .map(|(weight, _)| *weight as f32)
+                .map(|BalancedWordScore { balanced_score, .. }| balanced_score)
                 .sum::<f32>()
-                / 25.0)
+                / 24.0)
                 / page.word_count as f32;
-            for (len, map) in length_maps.iter() {
-                // Boost pages that match shorter words, as they are closer
-                // to the term that was searched. Combine the weight with
-                // a word frequency to boost high quality results.
-                if map.contains(page_index) {
-                    page_score += 1.0 / *len as f32;
-                    debug!({
-                        format! {"{} contains a word {} longer than the search term, boosting by {} to {}", page.hash, len, 1.0 / *len as f32, page_score}
-                    });
-                }
-            }
+
             let search_result = PageSearchResult {
                 page: page.hash.clone(),
                 page_index,
                 page_score,
-                word_locations,
+                word_locations: unique_word_locations,
             };
 
             debug!({

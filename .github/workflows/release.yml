@@ -145,7 +145,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-binary-npm-packages:
-    name: Publish Binary NPM packages
+    name: Publish NPM binaries
     runs-on: ubuntu-20.04
     needs: publish-github-release
     strategy:
@@ -193,7 +193,7 @@ jobs:
       - name: Extract Binary
         working-directory: build-artifacts
         run: |
-          tar xzf pagefind-v$GIT_VERSION-${{ matrix.target }}.tar.gz
+          tar xzf pagefind_extended-v$GIT_VERSION-${{ matrix.target }}.tar.gz
           rm *.tar.gz
           mv * ../${{ matrix.package }}/bin/
       - name: Prepare package
@@ -207,7 +207,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-github-release:
-    name: Publish to GitHub
+    name: GitHub Release
     runs-on: ubuntu-20.04
     needs: test-and-build
     defaults:
@@ -307,7 +307,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
   test-and-build:
-    name: Publish to Github and Crates
+    name: Build
     runs-on: ${{matrix.os}}
     defaults:
       run:

@@ -1,0 +1,29 @@
+{{ $page := . }}
+
+<nav class="docnav" 
+    aria-label="{{ site.Data.nav.side_nav_title }}"
+    x-data="{
+        expanded: false
+    }">
+    <span class="docnav-title">
+        {{ site.Data.nav.side_nav_title }}
+
+        <button class="docnav-expand" 
+            x-text="expanded ? 'Collapse all' : 'Expand all'"
+            @click="
+                expanded = !expanded;
+                document.querySelectorAll('.docnav-details').forEach(el => {
+                    if (expanded) {
+                        el.setAttribute('open', expanded);
+                    } else {
+                        el.removeAttribute('open');
+                    }
+                });
+            "
+        >Expand all</button>
+    </span>
+   </button>
+    <div id="docnav-inner" class="docnav-inner">
+        {{ partial "docnav-list.html" . }}
+    </div>
+</nav>

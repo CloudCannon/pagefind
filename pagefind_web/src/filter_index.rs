@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use super::SearchIndex;
 use crate::util::*;
-use microjson::{JSONValue, JSONValueType};
 use minicbor::{decode, Decoder};
+use pagefind_microjson::{JSONValue, JSONValueType};
 
 /*
 {} = fixed length array

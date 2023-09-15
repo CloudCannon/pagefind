@@ -1,0 +1,203 @@
+details summary::-webkit-details-marker {
+    display:none;
+}
+  
+.resource-citation {
+    font-family: monospace;
+    font-size: 0.9em;
+    font-style: italic;
+    opacity: 0.6;
+
+    a {
+        text-decoration: underline;
+        color: inherit;
+        font-weight: bold;
+    }
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.how-to, .how-to[open] {
+    border: solid 2px var(--text-bright);
+    border-radius: 8px;
+    margin: 1em 0;
+    position: relative;
+
+    summary {
+        list-style-type: none;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1em;
+        margin: 0;
+
+        &::after {
+            content: "✚";
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 500;
+            transition: transform 0.1s ease-out;
+            transform-origin: 50% 60%;
+            opacity: 0.5;
+        }
+
+        &:hover::after {
+            opacity: 1;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+            font-size: 18px;
+            position: static;
+
+            .anchor {
+                margin-top: calc(1em + 2px);
+                line-height: 2em;
+            }
+        }
+
+        &:hover, &:active, &:focus {
+            text-decoration: none;
+        }
+    }
+
+    &[open] {
+        summary::after {
+            transform: rotateZ(45deg);
+        }
+    }
+
+    .how-to-inner {
+        padding: 0 1em;
+
+        :first-child {
+            margin-top: 0;
+        }
+    }
+}
+
+.docnav-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .docnav-expand {
+        appearance: none;
+        background-color: transparent;
+        padding: 0 4px;
+        margin: 0;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 10px;
+        border-radius: 4px;
+    }
+}
+
+.docnav-details, .docnav-details[open] {
+    margin-top: 10px;
+    summary {
+        list-style-type: none;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        &::before, &::after {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-bottom: solid 2px var(--text-bright);
+            border-right: solid 2px var(--text-bright);
+            transition: transform 0.05s ease-out, opacity 0.05s ease-out;
+            transform-origin: center center;
+            transform: translateY(-50%) rotateZ(45deg);
+            position: absolute;
+            top: 50%;
+            right: 5px;
+        }
+
+        &::after {
+            transform: translateY(-60%) rotateZ(225deg);
+            opacity: 0;
+        }
+
+        &:hover, &:active, &:focus {
+            text-decoration: none;
+        }
+    }
+
+    &[open] {
+        summary::before {
+            transform: translateY(0%) rotateZ(45deg);
+            opacity: 0;
+        }
+        summary::after {
+            transform: translateY(-10%) rotateZ(225deg);
+            opacity: 1;
+        }
+    }
+}
+
+.link-card {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: solid 2px var(--text-bright);
+    border-radius: 8px;
+    margin: 1.5em 0;
+    color: var(--text-bright);
+    min-height: 90px;
+    padding: 15px;
+
+    img {
+        max-height: 40px;
+        max-width: 80px;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 0 auto;
+    }
+
+    &.dark-silhouette img {
+        body.dark & {
+            filter: brightness(0) invert(1);
+        }
+    }
+
+    &.dark-blend img {
+        body.dark & {
+            filter: invert(1) brightness(3);
+            mix-blend-mode: exclusion;
+        }
+    }
+
+    .info {
+        display: flex;
+        width: calc(100% - 120px);
+        flex-direction: column;
+        padding-right: 20px;
+
+        p {
+            margin: 0;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        small {
+            margin: 0;
+            font-size: 12px;
+        }
+    }
+}
+
+@media (max-width: 600px) {
+    .header > .row {
+        flex-direction: column;
+        gap: 18px;
+    }
+}
