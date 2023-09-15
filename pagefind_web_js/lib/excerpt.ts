@@ -8,7 +8,7 @@ export const calculate_excerpt_region = (word_positions: PagefindWordLocation[],
     let words: number[] = [];
     for (const word of word_positions) {
         words[word.location] = words[word.location] || 0;
-        words[word.location] += word.weight;
+        words[word.location] += word.balanced_score;
     }
 
     if (words.length <= excerpt_length) {
@@ -44,6 +44,10 @@ export const build_excerpt = (content: string, start: number, length: number, lo
         fragment_words = content.split(/[\r\n\s]+/g);
     }
     for (let word of locations) {
+        if (fragment_words[word]?.startsWith(`<mark>`)) {
+            // It's possible to have a word come up as multiple search hits
+            continue;
+        }
         fragment_words[word] = `<mark>${fragment_words[word]}</mark>`;
     }
 

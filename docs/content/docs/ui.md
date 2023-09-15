@@ -1,7 +1,7 @@
 ---
 title: "Pagefind UI configuration options"
-nav_title: "UI config options"
-nav_section: Pagefind UI Reference
+nav_title: "Default UI config"
+nav_section: References
 weight: 61
 ---
 
@@ -41,6 +41,19 @@ new PagefindUI({
 {{< /diffcode >}}
 
 Whether to show an image alongside each search result. Defaults to `true`.
+
+### Excerpt length
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    excerptLength: 15
+});
+```
+{{< /diffcode >}}
+
+Set the maximum length for generated excerpts. Defaults to `30`, or `12` if showing sub results.
 
 ### Process term
 

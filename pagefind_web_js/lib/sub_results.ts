@@ -15,15 +15,15 @@ export const calculate_sub_results = (
   let current_anchor: PagefindSubResult = {
     title: fragment.meta["title"],
     url: fragment.url,
-    weightedLocations: [],
+    weighted_locations: [],
     locations: [],
     excerpt: "",
   };
 
   const add_result = (end_range?: number) => {
     if (current_anchor.locations.length) {
-      const relative_weighted_locations = current_anchor.weightedLocations.map(
-        (l) => { return {weight: l.weight, location: l.location - current_anchor_position}}
+      const relative_weighted_locations = current_anchor.weighted_locations.map(
+        (l) => { return {weight: l.weight, balanced_score: l.balanced_score, location: l.location - current_anchor_position}}
       );
       const excerpt_start =
         calculate_excerpt_region(relative_weighted_locations, desired_excerpt_length) +
@@ -44,9 +44,9 @@ export const calculate_sub_results = (
     }
   };
 
-  for (let word of fragment.weightedLocations) {
+  for (let word of fragment.weighted_locations) {
     if (!anchors.length || word.location < anchors[0].location) {
-      current_anchor.weightedLocations.push(word);
+      current_anchor.weighted_locations.push(word);
       current_anchor.locations.push(word.location);
     } else {
       let next_anchor = anchors.shift()!;
@@ -86,7 +86,7 @@ export const calculate_sub_results = (
         title: next_anchor.text!,
         url: anchored_url,
         anchor: next_anchor,
-        weightedLocations: [word],
+        weighted_locations: [word],
         locations: [word.location],
         excerpt: "",
       };

@@ -12,8 +12,8 @@ test('empty excerpt regions', t => {
 
 test('short excerpt regions', t => {
     const weighted_words: PagefindWordLocation[] = [
-        { weight: 1, location: 0},
-        { weight: 1, location: 5},
+        { weight: 1, balanced_score: 1.0, location: 0},
+        { weight: 1, balanced_score: 1.0, location: 5},
     ]
     const excerpt_start = calculate_excerpt_region(weighted_words, 10);
 
@@ -22,7 +22,7 @@ test('short excerpt regions', t => {
 
 test('single word excerpt', t => {
     const weighted_words: PagefindWordLocation[] = [
-        { weight: 1, location: 30},
+        { weight: 1, balanced_score: 1.0, location: 30},
     ]
     const excerpt_start = calculate_excerpt_region(weighted_words, 30);
 
@@ -31,8 +31,8 @@ test('single word excerpt', t => {
 
 test('double word excerpt', t => {
     const weighted_words: PagefindWordLocation[] = [
-        { weight: 1, location: 30},
-        { weight: 1, location: 40},
+        { weight: 1, balanced_score: 1.0, location: 30},
+        { weight: 1, balanced_score: 1.0, location: 40},
     ]
     const excerpt_start = calculate_excerpt_region(weighted_words, 20);
 
@@ -41,9 +41,9 @@ test('double word excerpt', t => {
 
 test('better word excerpt', t => {
     const weighted_words: PagefindWordLocation[] = [
-        { weight: 1, location: 30},
-        { weight: 1, location: 40},
-        { weight: 3, location: 90},
+        { weight: 1, balanced_score: 1.0, location: 30},
+        { weight: 1, balanced_score: 1.0, location: 40},
+        { weight: 3, balanced_score: 3.0, location: 90},
     ]
     const excerpt_start = calculate_excerpt_region(weighted_words, 20);
 

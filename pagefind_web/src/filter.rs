@@ -1,6 +1,6 @@
 use bit_set::BitSet;
-use microjson::JSONValue;
-use microjson::JSONValueType;
+use pagefind_microjson::JSONValue;
+use pagefind_microjson::JSONValueType;
 
 use crate::util::*;
 use crate::SearchIndex;

@@ -1,5 +1,5 @@
 project_name: Pagefind — Static low-bandwidth search at scale
-default_og_image: /pagefind.svg
+default_og_image: /og.png
 favicon:
   small_icon: /meta/favicon-16x16.png
   large_icon: /meta/favicon-32x32.png

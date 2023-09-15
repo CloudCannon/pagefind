@@ -1,7 +1,7 @@
 ---
 title: "Installing and running Pagefind"
-nav_title: "Installing Pagefind"
-nav_section: Pagefind CLI Reference
+nav_title: "Installing the CLI"
+nav_section: References
 weight: 49
 ---
 

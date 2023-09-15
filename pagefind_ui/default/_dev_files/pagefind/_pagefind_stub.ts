@@ -43,7 +43,7 @@ const get_subs = (term, title, url, words) => {
     subs.push({
       title,
       url,
-      weightedLocations: [{ weight: 1, location: 1}, { weight: 2, location: 2}, { weight: 1, location: 3}],
+      weighted_locations: [{ weight: 1, location: 1}, { weight: 2, location: 2}, { weight: 1, location: 3}],
       locations: [1, 2, 3],
       excerpt: words.slice(0, 4).join(" "),
     });
@@ -63,7 +63,7 @@ const get_subs = (term, title, url, words) => {
         title: `${i}/${sub_count}: ${get_a_word()} ${get_a_word()} ${get_a_word()}`,
         url: `${url}#${get_a_word()}-${i}`,
         locations: locs,
-        weightedLocations: locs.map(location => { return { weight: 1, location}}),
+        weighted_locations: locs.map(location => { return { weight: 1, location}}),
         excerpt:
           words
             .slice(
@@ -104,7 +104,7 @@ const stub_results = (term): PagefindSearchResult[] => {
           excerpt,
           word_count: 30,
           locations: [7],
-          weightedLocations: [{ weight: 1, location: 7}],
+          weighted_locations: [{ weight: 1, location: 7}],
           filters: {
             color: [get_a_word()],
           },
