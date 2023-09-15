@@ -14,6 +14,7 @@ Feature: UI Hooks
                 window.pui = new PagefindUI({
                     element: "#search",
                     processTerm: (t) => t.replace("word", "search"),
+                    highlightQueryParamName: null
                 });
             </script>
             """
@@ -31,7 +32,7 @@ Feature: UI Hooks
                 // TODO: Add more web test steps to humane instead of throwing js
                 let el = document.querySelector(".pagefind-ui__result-link");
                 if (el.getAttribute("href") !== "/") {
-                    throw new Error("Search term should have been normalized by processTerm");
+                    throw new Error(`Search term should have been normalized by processTerm. href: ${el.getAttribute("href")}`);
                 }
             }
             """
