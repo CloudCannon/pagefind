@@ -28,7 +28,7 @@ export default class PagefindHighlight {
       markContext: null,
       pagefindQueryParamName: "pagefind-highlight",
       markOptions: {
-        className: "pagefind__highlight",
+        className: "pagefind-highlight",
         exclude: ["[data-pagefind-ignore]", "[data-pagefind-ignore] *"],
       },
       addStyles: true,
@@ -60,7 +60,8 @@ export default class PagefindHighlight {
   }
 
   // Inline styles might be too hard to override
-  addHighlightStyles(className: string | undefined | null) {
+  addHighlightStyles(className: string) {
+    // class name could be ""
     if (!className) return;
     const styleElement = document.createElement("style");
     styleElement.innerText = `:where(.${className}) { background-color: yellow; color: black; }`;
