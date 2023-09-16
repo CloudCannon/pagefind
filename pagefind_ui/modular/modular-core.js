@@ -13,16 +13,6 @@ try {
   )[1];
 } catch (e) {
   scriptBundlePath = "/pagefind/";
-  console.warn(
-    `Pagefind couldn't determine the base of the bundle from the javascript import path. Falling back to the default of ${scriptBundlePath}.`
-  );
-  // TODO(modular): Ensure bundlePath is available on Instance
-  console.warn(
-    "You can configure this by passing a bundlePath option to PagefindComposable Instance"
-  );
-  console.warn(
-    `[DEBUG: Loaded from ${document?.currentScript?.src ?? "unknown"}]`
-  );
 }
 
 export class Instance {
@@ -166,9 +156,24 @@ export class Instance {
     }
     this.__initializing__ = true;
     if (!this.__pagefind__) {
-      let imported_pagefind = await import(
-        `${this.options.bundlePath}pagefind.js`
-      );
+      let imported_pagefind;
+      try {
+        imported_pagefind = await import(
+          `${this.options.bundlePath}pagefind.js`
+        );
+      } catch (e) {
+        console.error(e);
+        console.error(
+          [
+            `Pagefind couldn't be loaded from ${this.options.bundlePath}pagefind.js`,
+            `You can configure this by passing a bundlePath option to PagefindComposable Instance`,
+            `[DEBUG: Loaded from ${
+              document?.currentScript?.src ?? "no known script location"
+            }]`,
+          ].join("\n")
+        );
+      }
+
       await imported_pagefind.options(this.pagefindOptions || {});
       for (const index of this.options.mergeIndex) {
         if (!index.bundlePath) {
