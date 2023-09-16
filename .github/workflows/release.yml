@@ -19,9 +19,9 @@ jobs:
     needs: publish-github-release
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -39,7 +39,7 @@ jobs:
             components: rustfmt, clippy
 
       - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
+        uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
@@ -93,7 +93,7 @@ jobs:
     needs: publish-binary-npm-packages
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
         with:
           name: release-checksums
@@ -173,7 +173,7 @@ jobs:
             cpu: arm64
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
         with:
           name: release
@@ -222,12 +222,12 @@ jobs:
           application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
 
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
 
       - name: Swap to main
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: main
           fetch-depth: 0 # Full fetch
@@ -352,12 +352,12 @@ jobs:
             run_tests: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -411,13 +411,13 @@ jobs:
             components: rustfmt, clippy
 
       - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
+        uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
       - name: Install humane
         if: matrix.run_tests == true
-        uses: supplypike/setup-bin@v1
+        uses: supplypike/setup-bin@v3
         with:
           uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.humane_target}}.tar.gz"
           name: "humane"

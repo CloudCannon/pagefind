@@ -38,12 +38,12 @@ jobs:
             cross: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -71,12 +71,12 @@ jobs:
           rustc --version
 
       - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
+        uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
       - name: Install humane
-        uses: supplypike/setup-bin@v1
+        uses: supplypike/setup-bin@v3
         with:
           uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.target}}.tar.gz"
           name: "humane"
