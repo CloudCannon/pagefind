@@ -1,6 +1,7 @@
 use async_compression::tokio::bufread::GzipDecoder;
 #[cfg(feature = "extended")]
 use charabia::Segment;
+use either::Either;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use pagefind_stem::{Algorithm, Stemmer};
@@ -240,44 +241,41 @@ impl Fossicker {
 
         // TODO: Configure this or use segmenting across all languages
 
-        let coarse_segments = data.digest.split_whitespace();
+        let segment_chunks = data.digest.split_whitespace();
 
         #[cfg(feature = "extended")]
         let should_segment = matches!(data.language.split('-').next().unwrap(), "zh" | "ja");
 
         #[cfg(feature = "extended")]
-        let segments = if should_segment {
-            // Run a segmenter only for any languages which require it.
-            coarse_segments
-                .flat_map(|seg| {
-                    if seg.starts_with("___") {
-                        vec![seg]
-                    } else {
-                        seg.segment_str().collect::<Vec<_>>()
-                    }
-                })
-                .collect::<Vec<_>>()
-        } else {
-            // Currently hesistant to run segmentation during indexing
-            // that we can't also run during search, since we don't
-            // ship a segmenter to the browser. This logic is easier
-            // to replicate in the JavaScript that parses a search query.
-            coarse_segments.collect::<Vec<_>>()
-        };
+        let coarse_segments = segment_chunks.map(|seg| {
+            if seg.starts_with("___") {
+                Either::Left(seg)
+            } else {
+                if should_segment {
+                    // Run a segmenter only for any languages which require it.
+                    Either::Right(seg.segment_str())
+                } else {
+                    // Currently hesistant to run segmentation during indexing
+                    // that we can't also run during search, since we don't
+                    // ship a segmenter to the browser. This logic is easier
+                    // to replicate in the JavaScript that parses a search query.
+                    Either::Left(seg)
+                }
+            }
+        });
 
         #[cfg(not(feature = "extended"))]
-        let segments = coarse_segments;
+        let coarse_segments = segment_chunks.map(|s| Either::Left(s));
 
-        let mut offset_word_index = 0;
+        let mut total_word_index = 0;
         let mut max_word_index = 0;
         let weight_multiplier = 24.0;
         let weight_max = 10.0;
         debug_assert!(((weight_max * weight_multiplier) as u8) < std::u8::MAX);
 
         let mut weight_stack: Vec<u8> = vec![(1.0 * weight_multiplier) as u8];
-        for (word_index, word) in segments.into_iter().enumerate() {
-            let word_index = word_index - offset_word_index;
 
+        let mut track_word = |word: &str, append_whitespace: bool| {
             if word.chars().next() == Some('_') {
                 if word.starts_with("___PAGEFIND_ANCHOR___") {
                     if let Some((element_name, anchor_id)) =
@@ -294,12 +292,11 @@ impl Fossicker {
                                 element_name.to_string(),
                                 element_id.to_string(),
                                 normalize_content(&element_text),
-                                word_index as u32,
+                                total_word_index as u32,
                             ));
                         }
                     }
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
 
                 if word.starts_with("___PAGEFIND_WEIGHT___") {
@@ -315,8 +312,7 @@ impl Fossicker {
                             (weight.clamp(0.0, weight_max).mul(weight_multiplier) as u8).max(1),
                         );
                     }
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
 
                 // Auto weights are provided by the parser, and should only
@@ -334,33 +330,32 @@ impl Fossicker {
                     } else {
                         weight_stack.push(weight_stack.last().cloned().unwrap_or_default());
                     }
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
 
                 if word.starts_with("___END_PAGEFIND_WEIGHT___") {
                     weight_stack.pop();
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
             }
 
             let word_weight = weight_stack.last().unwrap_or(&1);
 
             content.push_str(&word.replace('\u{200B}', ""));
-            content.push(' ');
+            if append_whitespace {
+                content.push(' ');
+            }
             #[cfg(feature = "extended")]
             if should_segment {
                 content.push('\u{200B}');
             }
-
             let normalized_word = SPECIAL_CHARS
                 .replace_all(word, "")
                 .into_owned()
                 .to_lowercase();
 
             if !normalized_word.is_empty() {
-                store_word(&normalized_word, word_index, *word_weight);
+                store_word(&normalized_word, total_word_index, *word_weight);
             }
 
             // For words that may be CompoundWords, also index them as their constituent parts
@@ -379,19 +374,37 @@ impl Fossicker {
 
                         // Only index two+ character words
                         for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
-                            store_word(part_word, word_index, per_weight);
+                            store_word(part_word, total_word_index, per_weight);
                         }
                     }
                 }
                 // Additionally store any special extra characters we are given
                 if let Some(extras) = extras {
                     for extra in extras {
-                        store_word(&extra, word_index, *word_weight);
+                        store_word(&extra, total_word_index, *word_weight);
                     }
                 }
             }
 
-            max_word_index = word_index;
+            max_word_index = total_word_index;
+            total_word_index += 1;
+        };
+
+        for segment in coarse_segments {
+            match segment {
+                Either::Left(word) => {
+                    track_word(word, true);
+                }
+                Either::Right(words) => {
+                    let mut words = words.peekable();
+                    while let Some(word) = words.next() {
+                        track_word(word, words.peek().is_none());
+                    }
+                }
+            };
+        }
+        if content.ends_with('\u{200B}') {
+            content.pop();
         }
         if content.ends_with(' ') {
             content.pop();
@@ -827,7 +840,7 @@ mod tests {
 
         assert_eq!(
             content,
-            "哎呀 \u{200b}！ \u{200b}我 \u{200b}的 \u{200b}错 \u{200b}。 \u{200b}"
+            "哎呀\u{200b}！ \u{200b}我\u{200b}的\u{200b}错\u{200b}。"
         );
     }
 

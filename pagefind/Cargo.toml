@@ -53,6 +53,7 @@ charabia = { version = "0.7.0", optional = true }
 unicode-segmentation = "1.10.1"
 emojis = "0.6.1"
 hashbrown = { version = "0.13.1", features = ["serde"] }
+either = "1.9.0"
 regex = "1.1"
 minicbor = { version = "0.19.1", features = ["alloc", "derive"] }
 base64 = "0.21"
