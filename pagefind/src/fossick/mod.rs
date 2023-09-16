@@ -265,7 +265,8 @@ impl Fossicker {
         });
 
         #[cfg(not(feature = "extended"))]
-        let coarse_segments = segment_chunks.map(|s| Either::Left(s));
+        let coarse_segments =
+            segment_chunks.map(|s| Either::<&str, core::slice::Iter<&str>>::Left(s));
 
         let mut total_word_index = 0;
         let mut max_word_index = 0;
@@ -820,6 +821,7 @@ mod tests {
         assert_eq!(words, vec!["hello", "👋"]);
     }
 
+    #[cfg(feature = "extended")]
     #[tokio::test]
     async fn parse_weights_through_segmentation() {
         let mut f = test_fossick(
@@ -844,6 +846,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "extended")]
     #[tokio::test]
     async fn segmentation_parity_when_presplitting() {
         fn get_comparison_segmentations(full_input: &'static str) -> (Vec<String>, Vec<String>) {
