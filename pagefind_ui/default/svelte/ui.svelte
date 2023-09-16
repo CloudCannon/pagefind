@@ -197,15 +197,18 @@
         role="search"
         aria-label={translate("search_label", automatic_translations, translations)}
         action="javascript:void(0);"
-        on:submit|preventDefault ={() => {}}
+        on:submit|preventDefault={() => {}}
     >
         <input
             class="pagefind-ui__search-input"
             on:focus={init}
-            on:keydown|preventDefault ={(e) => {
+            on:keydown={(e) => {
                 if (e.key === "Escape") {
                     val = "";
                     input_el.blur();
+                }
+                if (e.key === "Enter") {
+                     e.preventDefault();
                 }
             }}
             bind:value={val}
