@@ -47,13 +47,24 @@ export class PagefindService {
     }
 
     /**
-     * @param {Error} err 
+     * @param {Error?} err 
      */
     close(err) {
         if (err) {
             console.error("Service stopped", err);
         }
+        this.backend?.unref?.();
+        this.backend?.stdout?.destroy?.()
+        this.backend?.stdin?.destroy?.()
+        this.backend?.kill?.();
         this.backend = null;
+        for (const [, cb] of Object.entries(this.callbacks)) {
+            cb({
+                exception: new Error("Pagefind backend closed"),
+                err: null,
+                result: null
+            })
+        }
     }
 
     ref() {

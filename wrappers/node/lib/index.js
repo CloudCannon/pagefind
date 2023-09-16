@@ -76,6 +76,15 @@ export const createIndex = (config) => new Promise((resolve, reject) => {
 });
 
 /**
+ * @type {import('pagefindService').close} 
+ */
+export const close = () => new Promise((resolve, reject) => {
+    persistentService?.close(null);
+    persistentService = null;
+    resolve(null);
+});
+
+/**
  * @param {number} indexId 
  * @returns {import ('pagefindService').PagefindIndex}
  */
