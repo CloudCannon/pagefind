@@ -9,6 +9,14 @@
 
 ## Unreleased
 
+## v1.0.3 (September 16, 2023)
+
+Hopefully the last hotfix for now — bugfixes only important for sites indexing Japanese or Chinese pages.
+
+* Fixes a bug indexing ja/zh language pages containing weighting or element IDs
+* Removes eager warnings being logged to the browser console if bunding the UI JavaScript files
+* Adds a `.close()` function to the Pagefind NodeJS API, to help clean up the process when it is no longer required
+
 ## v1.0.2 (September 14, 2023)
 
 * Fixes a bug when indexing some non-breaking spaces on ja/zh language pages in extended mode
