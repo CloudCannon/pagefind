@@ -19,21 +19,20 @@ lazy_static! {
     static ref ATTRIBUTE_MATCH: Regex =
         Regex::new("^\\s*(?P<name>[^:\\[\\]]+)\\[(?P<attribute>.+)\\]\\s*$").unwrap();
 }
-lazy_static! {
-    static ref SENTENCE_SELECTORS: Vec<&'static str> = vec!(
-        "h1", "h2", "h3", "h4", "h5", "h6", "p", "td", "div", "ul", "li", "article", "section"
-    );
-    static ref INLINE_SELECTORS: Vec<&'static str> = vec!(
-        "a", "abbr", "acronym", "b", "bdo", "big", "br", "button", "cite", "code", "dfn", "em",
-        "i", "img", "input", "kbd", "label", "map", "object", "output", "q", "samp", "script",
-        "select", "small", "span", "strong", "sub", "sup", "textarea", "time", "tt", "var",
-    );
-    static ref REMOVE_SELECTORS: Vec<&'static str> = vec!(
-        "head", "style", "script", "noscript", "label", "form", "svg", "footer", "nav", "iframe",
-        "template"
-    );
-    static ref SPACE_SELECTORS: Vec<&'static str> = vec!("br");
-}
+
+const SENTENCE_SELECTORS: &[&'static str] = &[
+    "h1", "h2", "h3", "h4", "h5", "h6", "p", "td", "div", "ul", "li", "article", "section",
+];
+const INLINE_SELECTORS: &[&'static str] = &[
+    "a", "abbr", "acronym", "b", "bdo", "big", "br", "button", "cite", "code", "dfn", "em", "i",
+    "img", "input", "kbd", "label", "map", "object", "output", "q", "samp", "script", "select",
+    "small", "span", "strong", "sub", "sup", "textarea", "time", "tt", "var",
+];
+const REMOVE_SELECTORS: &[&'static str] = &[
+    "head", "style", "script", "noscript", "label", "form", "svg", "footer", "nav", "iframe",
+    "template",
+];
+const SPACE_SELECTORS: &[&'static str] = &["br"];
 
 // We aren't transforming HTML, just parsing, so we dump the output.
 #[derive(Default)]
