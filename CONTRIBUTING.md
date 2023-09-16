@@ -43,7 +43,7 @@ Ultimately, most contributions will require the ability to build the main Pagefi
 That binary compiles in some of our supporting facets, so you'll need to build those first.
 
 First, build the web JS bindings with:
-- `cd pagefind_web_js && npm i && npm run build`
+- `cd pagefind_web_js && npm i && npm run build-coupled`
 
 Next, build the UI packages with:
 - `cd pagefind_ui/default && npm i && npm run build`

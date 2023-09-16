@@ -392,3 +392,23 @@ Feature: Node API Base Tests
         Then I should see "pagefind-modular-ui.js" in stdout
         Then I should see "pagefind-modular-ui.css" in stdout
         Then I should see "wasm.unknown.pagefind" in stdout
+
+    @platform-unix
+    Scenario: Close the Pagefind backend
+        Given I have a "public/index.js" file with the content:
+            """
+             import * as pagefind from "pagefind";
+
+             const run = async () => {
+                 const { index } = await pagefind.createIndex();
+                 const { errors, files } = await index.getFiles();
+                 console.log(files.map(f => f.path).join(', '));
+                 await pagefind.close();
+                 const { errors: es } = await index.getFiles();
+                 console.log(`After close: ${es.join(',')}`);
+             }
+             run();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
+        Then I should see "pagefind.js" in stdout
+        Then I should see "After close: Invalid index, does not yet exist in the Pagefind service" in stdout

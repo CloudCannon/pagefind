@@ -129,7 +129,7 @@ If successful, the `file` object is returned containing metadata about the compl
 Adds a direct record to the Pagefind index. Useful for adding non-HTML content to the search results.
 
 ```js
-const { errors, file } = await index.addHTMLFile({
+const { errors, file } = await index.addCustomRecord({
     url: "/contact/",
     content: "My raw content to be indexed for search. Will be lightly processed by Pagefind.",
     language: "en",
@@ -205,3 +205,19 @@ Calling `index.getFiles()` or `index.writeFiles()` doesn't consume the index, an
 Reusing an `index` object after calling `index.deleteIndex()` will cause errors to be returned.
 
 Not calling this method is fine — these indexes will be cleaned up when your Node process exits.
+
+## pagefind.close
+
+Closes the Pagefind service and errors out any pending tasks, stopping the linked binary altogether.  
+Called on the top-level `pagefind` object.
+
+```js
+import * as pagefind from "pagefind";
+
+const { index } = await pagefind.createIndex();
+
+// ... do things with `index`
+
+// clean up once complete
+await pagefind.close();
+```

@@ -6,7 +6,7 @@ weight: 51
 ---
 
 The Pagefind CLI has the following options.  
-These can be set via any [configuration source](http://localhost:1313/docs/config-sources/).
+These can be set via any [configuration source](/docs/config-sources/).
 
 > These configuration options only apply when running the Pagefind indexing tool on your site.
 > For configuring Pagefind search in the browser, see [Pagefind Search Config](/docs/search-config/).  
