@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.0.3 (September 16, 2023)
+
 Hopefully the last hotfix for now — bugfixes only important for sites indexing Japanese or Chinese pages.
 
 * Fixes a bug indexing ja/zh language pages containing weighting or element IDs
