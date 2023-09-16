@@ -22,7 +22,7 @@ Feature: Multisite Search Languages
             <html lang="pt-br">
                 <head></head>
                 <body>
-                    <h1>Website site B Portugese</h1>
+                    <h1>Website site B Portuguese</h1>
                 </body>
             </html>
             """
@@ -32,7 +32,7 @@ Feature: Multisite Search Languages
             <html lang="pt-br">
                 <head></head>
                 <body>
-                    <h1>Website site B Portugese</h1>
+                    <h1>Website site B Portuguese</h1>
                 </body>
             </html>
             """

@@ -5,7 +5,7 @@ nav_section: Filtering
 weight: 10
 ---
 
-To configure filters in Pagefind, pages are assocated to filter keys and values using data attributes.
+To configure filters in Pagefind, pages are associated to filter keys and values using data attributes.
 
 ## Capturing a filter value from an element
 
@@ -68,7 +68,7 @@ This will tag this page as `author: ["CloudCannon"]`. The element this is set on
 
 ## Specifying multiple filters on a single element
 
-Filter captures may be comma seperated and all will apply. The exception is specifying a filter inline, which may only be the last item in a list.
+Filter captures may be comma separated and all will apply. The exception is specifying a filter inline, which may only be the last item in a list.
 
 For example:
 
