@@ -222,7 +222,7 @@
                     input_el.blur();
                 }
                 if (e.key === "Enter") {
-                     e.preventDefault();
+                    e.preventDefault();
                 }
             }}
             bind:value={val}
