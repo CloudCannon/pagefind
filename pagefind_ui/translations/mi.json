@@ -1,0 +1,18 @@
+{
+    "thanks_to": "",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Rapu",
+        "clear_search": "Whakakore",
+        "load_more": "Whakauta ētahi otinga kē",
+        "search_label": "Rapu",
+        "filters_label": "Tātari",
+        "zero_results": "Otinga kore ki [SEARCH_TERM]",
+        "many_results": "[COUNT] otinga ki [SEARCH_TERM]",
+        "one_result": "[COUNT] otinga ki [SEARCH_TERM]",
+        "alt_search": "Otinga kore ki [SEARCH_TERM]. Otinga kē ki [DIFFERENT_TERM]",
+        "search_suggestion": "Otinga kore ki [SEARCH_TERM]. whakamātau ki ngā mea atu:",
+        "searching": "Rapu ki [SEARCH_TERM]..."
+    }
+}
