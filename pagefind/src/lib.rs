@@ -293,7 +293,7 @@ impl SearchState {
         )
         .await;
 
-        output::write_common_to_disk(&self.options, index_entries, &outdir).await;
+        output::write_common_to_disk(index_entries, &outdir).await;
 
         outdir
     }
@@ -317,7 +317,7 @@ impl SearchState {
             .collect();
 
         files.extend(
-            output::write_common_to_memory(&self.options, index_entries, outdir)
+            output::write_common_to_memory(index_entries, outdir)
                 .await
                 .into_iter(),
         );
