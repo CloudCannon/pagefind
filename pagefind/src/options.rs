@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use rust_patch::Patch;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, env, path::PathBuf};
+use std::{env, path::PathBuf};
 use twelf::config;
 
 use crate::logging::{LogLevel, Logger};

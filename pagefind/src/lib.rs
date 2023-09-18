@@ -4,7 +4,6 @@ pub use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
 use index::PagefindIndexes;
-use logging::Logger;
 pub use options::{PagefindInboundConfig, SearchOptions};
 use output::SyntheticFile;
 use wax::{Glob, WalkEntry};
