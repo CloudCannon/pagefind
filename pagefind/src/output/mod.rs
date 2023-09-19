@@ -71,25 +71,22 @@ pub struct LanguageMeta {
 }
 
 pub async fn write_common_to_disk(
-    options: &SearchOptions,
     language_indexes: Vec<LanguageMeta>,
     outdir: &PathBuf,
 ) {
-    write_common(options, language_indexes, outdir, false).await;
+    write_common(language_indexes, outdir, false).await;
 }
 
 pub async fn write_common_to_memory(
-    options: &SearchOptions,
     language_indexes: Vec<LanguageMeta>,
     outdir: &PathBuf,
 ) -> Vec<SyntheticFile> {
-    write_common(options, language_indexes, outdir, true)
+    write_common(language_indexes, outdir, true)
         .await
         .unwrap()
 }
 
 async fn write_common(
-    options: &SearchOptions,
     language_indexes: Vec<LanguageMeta>,
     outdir: &PathBuf,
     synthetic: bool,
