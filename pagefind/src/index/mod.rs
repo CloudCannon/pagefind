@@ -66,7 +66,7 @@ pub async fn build_indexes(
     let mut fragment_hashes: HashMap<String, IntermediaryPageData> = HashMap::new();
     let mut fragments: Vec<(usize, (String, IntermediaryPageData))> = Vec::new();
 
-    for (page_number, mut page) in pages.iter_mut().enumerate() {
+    for (page_number, page) in pages.iter_mut().enumerate() {
         page.fragment.page_number = page_number;
     }
 
