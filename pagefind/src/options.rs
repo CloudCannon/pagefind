@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use rust_patch::Patch;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, env, path::PathBuf};
+use std::{env, path::PathBuf};
 use twelf::config;
 
 use crate::logging::{LogLevel, Logger};
@@ -216,12 +216,15 @@ impl SearchOptions {
                 using_deprecated_bundle_dir: config.bundle_dir.is_some(),
             };
 
-            let bundle_output = config
-                .output_path
-                .map(|o| working_directory.join(o))
-                .or(config.output_subdir.map(|o| site_source.join(o)))
-                .or(config.bundle_dir.map(|o| site_source.join(o)))
-                .unwrap_or_else(|| site_source.join(PathBuf::from("pagefind")));
+            let bundle_output = if let Some(subdir) = config.output_path {
+                working_directory.join(subdir)
+            } else {
+                let subdir = config
+                    .output_subdir
+                    .or(config.bundle_dir)
+                    .unwrap_or_else(|| defaults::default_bundle_dir());
+                site_source.join(subdir)
+            };
 
             Ok(Self {
                 working_directory,
