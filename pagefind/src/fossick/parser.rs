@@ -428,7 +428,7 @@ impl<'a> DomParser<'a> {
                             }
 
                             // Process filters & meta before we continue
-                            // TODO: Abstract repitition into function
+                            // TODO: Abstract repetition into function
                             if let Some(filters) = &node.filter {
                                 for filter in filters {
                                     if let Some((filter, value)) = node.get_attribute_pair(filter) {

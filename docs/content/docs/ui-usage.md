@@ -63,7 +63,7 @@ The classnames within Pagefind UI that begin with `pagefind-ui` should be target
 
 ## Using custom Pagefind UI strings
 
-Pagefind UI will attempt to use translated text based on the language tag of the active page. If built in tanslations are not found, the UI will fall back to English text. Custom text can instead be supplied using the [translations](/docs/ui/#translations) option.
+Pagefind UI will attempt to use translated text based on the language tag of the active page. If built in translations are not found, the UI will fall back to English text. Custom text can instead be supplied using the [translations](/docs/ui/#translations) option.
 
 Languages with built in translations are listed in the [language support table](/docs/multilingual/#language-support).
 
@@ -97,6 +97,6 @@ The Pagefind UI will look for values under the metadata keys `title`, `image`, a
 ```
 {{< /diffcode >}}
 
-## Futher customization
+## Further customization
 
 See the [Pagefind UI Configuration Reference](/docs/ui/) for all available options.

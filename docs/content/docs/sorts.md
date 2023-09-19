@@ -41,7 +41,7 @@ This will tag this page as `date: 2022-06-01`. The element this is set on does n
 
 ## Specifying multiple sorts on a single element
 
-Sort captures may be comma seperated and all will apply. The exception is specifying a sort value inline, which may only be the last item in a list.
+Sort captures may be comma separated and all will apply. The exception is specifying a sort value inline, which may only be the last item in a list.
 
 For example:
 

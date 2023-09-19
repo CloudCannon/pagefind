@@ -41,7 +41,7 @@ await index.writeFiles({
 });
 ```
 
-All interations with Pagefind are asynchronous, as they communicate with the native Pagefind binary in the background.
+All interactions with Pagefind are asynchronous, as they communicate with the native Pagefind binary in the background.
 
 ## pagefind.createIndex
 

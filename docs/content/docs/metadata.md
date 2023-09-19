@@ -65,7 +65,7 @@ This will give this page the metadata `date: "2022-06-01"`. The element this is 
 
 ## Defining multiple metadata keys on a single element
 
-Metadata captures may be comma seperated and all will apply. The exception is specifying metadata inline, which may only be the last item in a list.
+Metadata captures may be comma separated and all will apply. The exception is specifying metadata inline, which may only be the last item in a list.
 
 Usage:
 

@@ -255,7 +255,7 @@ impl Fossicker {
                     // Run a segmenter only for any languages which require it.
                     Either::Right(seg.segment_str())
                 } else {
-                    // Currently hesistant to run segmentation during indexing
+                    // Currently hesitant to run segmentation during indexing
                     // that we can't also run during search, since we don't
                     // ship a segmenter to the browser. This logic is easier
                     // to replicate in the JavaScript that parses a search query.
