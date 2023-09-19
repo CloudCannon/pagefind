@@ -346,8 +346,10 @@ class PagefindInstance {
     }
 
     async preload(term: string, options: PagefindSearchOptions = {}) {
-        options.preload = true;
-        await this.search(term, options);
+        await this.search(term, {
+            ...options,
+            preload: true
+        });
     }
 
     async search(term: string, options: PagefindSearchOptions = {}): Promise<PagefindSearchResults | null> {
