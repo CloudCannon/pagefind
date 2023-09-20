@@ -92,7 +92,7 @@ async fn main() {
                     let duration = start.elapsed();
 
                     logger.status(&format!(
-                        "Finished in {}.{} seconds",
+                        "Finished in {}.{:03} seconds",
                         duration.as_secs(),
                         duration.subsec_millis()
                     ));
