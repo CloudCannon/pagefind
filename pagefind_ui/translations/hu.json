@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Adam Laki <info@adamlaki.com>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Keresés",
+        "clear_search": "Törlés",
+        "load_more": "További találatok betöltése",
+        "search_label": "Keresés az oldalon",
+        "filters_label": "Szűrés",
+        "zero_results": "Nincs találat a(z) [SEARCH_TERM] kifejezésre",
+        "many_results": "[COUNT] db találat a(z) [SEARCH_TERM] kifejezésre",
+        "one_result": "[COUNT] db találat a(z) [SEARCH_TERM] kifejezésre",
+        "alt_search": "Nincs találat a(z) [SEARCH_TERM] kifejezésre. Találatok mutatása inkább a(z) [DIFFERENT_TERM] kifejezésre",
+        "search_suggestion": "Nincs találat a(z) [SEARCH_TERM] kifejezésre. Próbáld meg a következő keresések egyikét:",
+        "searching": "Keresés a(z) [SEARCH_TERM] kifejezésre..."
+    }
+}
