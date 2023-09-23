@@ -9,10 +9,10 @@
         "search_label": "এই ওয়েবসাইটে অনুসন্ধান করুন",
         "filters_label": "ফিল্টার",
         "zero_results": "[SEARCH_TERM] এর জন্য কিছু খুঁজে পাওয়া যায়নি",
-        "many_results": "[COUNT] গুলো ফলাফল পাওয়া গিয়েছে [SEARCH_TERM] জন্য",
-        "one_result": "[COUNT]-টি ফলাফল পাওয়া গিয়েছে [SEARCH_TERM] জন্য",
+        "many_results": "[COUNT]-টি ফলাফল পাওয়া গিয়েছে [SEARCH_TERM] এর জন্য",
+        "one_result": "[COUNT]-টি ফলাফল পাওয়া গিয়েছে [SEARCH_TERM] এর জন্য",
         "alt_search": "কোন কিছু খুঁজে পাওয়া যায়নি [SEARCH_TERM] এর জন্য. পরিবর্তে [DIFFERENT_TERM] এর জন্য দেখানো হচ্ছে",
-        "search_suggestion": "কোন কিছু খুঁজে পাওয়া যায়নি [SEARCH_TERM] বিষয়ে. নিন্মের বিষয়বস্তু খুঁজে দেখতে পারেন:",
+        "search_suggestion": "কোন কিছু খুঁজে পাওয়া যায়নি [SEARCH_TERM] এর বিষয়ে. নিন্মের বিষয়বস্তু খুঁজে দেখুন:",
         "searching": "অনুসন্ধান চলছে [SEARCH_TERM]..."
     }
 }
