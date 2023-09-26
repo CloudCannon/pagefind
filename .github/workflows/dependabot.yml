@@ -8,14 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Token
         id: get_workflow_token
         uses: peter-murray/workflow-application-token-action@v2
         with:
           application_id: ${{ secrets.CC_OSS_BOT_ID }}
           application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
-      - uses: fastify/github-action-merge-dependabot@v3.0.0
+      - uses: fastify/github-action-merge-dependabot@v3
         with:
           github-token: ${{ steps.get_workflow_token.outputs.token }}
           target: minor
