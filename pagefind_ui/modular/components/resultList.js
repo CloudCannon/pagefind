@@ -35,7 +35,8 @@ const resultTemplate = (result) => {
     if (result?.meta?.image) {
         new El("img").class("pagefind-modular-list-image").attrs({
             src: result.meta.image,
-            alt: result.meta.image_alt || result.meta.title
+            alt: result.meta.image_alt || result.meta.title,
+            decoding: "async"
         }).addTo(thumb);
     }
 

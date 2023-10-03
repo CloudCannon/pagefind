@@ -91,7 +91,8 @@ export class Input {
                 .class("pagefind-modular-input")
                 .attrs({
                     autocapitalize: "none",
-                    enterkeyhint: "search"
+                    enterkeyhint: "search",
+                    type: "search"
                 })
                 .addTo(wrapper);
 
