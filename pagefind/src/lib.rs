@@ -82,9 +82,6 @@ impl SearchState {
 
     pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData, ()> {
         let result = file.fossick(&self.options).await;
-        self.options
-            .logger
-            .info(format!("Indexing file into: {:#?}", self.fossicked_pages));
         if let Ok(result) = result.clone() {
             let existing = self
                 .fossicked_pages
@@ -96,9 +93,6 @@ impl SearchState {
                 self.fossicked_pages.push(result);
             }
         }
-        self.options
-            .logger
-            .info(format!("Now: {:#?}", self.fossicked_pages));
         result
     }
 
