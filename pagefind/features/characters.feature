@@ -32,7 +32,7 @@ Feature: Character Tests
         Then The selector "[data-result]" should contain "/apiary/"
 
     Scenario: Pagefind matches emoji
-        Given I have a "public/fam-seperate/index.html" file with the body:
+        Given I have a "public/fam-separate/index.html" file with the body:
             """
             <h1>Fam 👨‍👩‍👧‍👦</h1>
             """
@@ -57,7 +57,7 @@ Feature: Character Tests
             }
             """
         Then There should be no logs
-        Then The selector "[data-result]" should contain "/fam-middled/, /fam-seperate/"
+        Then The selector "[data-result]" should contain "/fam-middled/, /fam-separate/"
 
     Scenario: Pagefind doesn't match HTML entities as their text
         Given I have a "public/apiary/index.html" file with the body:

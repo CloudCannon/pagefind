@@ -1,6 +1,7 @@
 use async_compression::tokio::bufread::GzipDecoder;
 #[cfg(feature = "extended")]
 use charabia::Segment;
+use either::Either;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use pagefind_stem::{Algorithm, Stemmer};
@@ -240,34 +241,42 @@ impl Fossicker {
 
         // TODO: Configure this or use segmenting across all languages
 
+        let segment_chunks = data.digest.split_whitespace();
+
         #[cfg(feature = "extended")]
         let should_segment = matches!(data.language.split('-').next().unwrap(), "zh" | "ja");
 
         #[cfg(feature = "extended")]
-        let segments = if should_segment {
-            // Run a segmenter only for any languages which require it.
-            data.digest.as_str().segment_str().collect::<Vec<_>>()
-        } else {
-            // Currently hesistant to run segmentation during indexing
-            // that we can't also run during search, since we don't
-            // ship a segmenter to the browser. This logic is easier
-            // to replicate in the JavaScript that parses a search query.
-            data.digest.split_whitespace().collect::<Vec<_>>()
-        };
+        let coarse_segments = segment_chunks.map(|seg| {
+            if seg.starts_with("___") {
+                Either::Left(seg)
+            } else {
+                if should_segment {
+                    // Run a segmenter only for any languages which require it.
+                    Either::Right(seg.segment_str())
+                } else {
+                    // Currently hesitant to run segmentation during indexing
+                    // that we can't also run during search, since we don't
+                    // ship a segmenter to the browser. This logic is easier
+                    // to replicate in the JavaScript that parses a search query.
+                    Either::Left(seg)
+                }
+            }
+        });
 
         #[cfg(not(feature = "extended"))]
-        let segments = data.digest.split_whitespace();
+        let coarse_segments =
+            segment_chunks.map(|s| Either::<&str, core::slice::Iter<&str>>::Left(s));
 
-        let mut offset_word_index = 0;
+        let mut total_word_index = 0;
         let mut max_word_index = 0;
         let weight_multiplier = 24.0;
         let weight_max = 10.0;
         debug_assert!(((weight_max * weight_multiplier) as u8) < std::u8::MAX);
 
         let mut weight_stack: Vec<u8> = vec![(1.0 * weight_multiplier) as u8];
-        for (word_index, word) in segments.into_iter().enumerate() {
-            let word_index = word_index - offset_word_index;
 
+        let mut track_word = |word: &str, append_whitespace: bool| {
             if word.chars().next() == Some('_') {
                 if word.starts_with("___PAGEFIND_ANCHOR___") {
                     if let Some((element_name, anchor_id)) =
@@ -284,12 +293,11 @@ impl Fossicker {
                                 element_name.to_string(),
                                 element_id.to_string(),
                                 normalize_content(&element_text),
-                                word_index as u32,
+                                total_word_index as u32,
                             ));
                         }
                     }
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
 
                 if word.starts_with("___PAGEFIND_WEIGHT___") {
@@ -305,8 +313,7 @@ impl Fossicker {
                             (weight.clamp(0.0, weight_max).mul(weight_multiplier) as u8).max(1),
                         );
                     }
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
 
                 // Auto weights are provided by the parser, and should only
@@ -324,33 +331,32 @@ impl Fossicker {
                     } else {
                         weight_stack.push(weight_stack.last().cloned().unwrap_or_default());
                     }
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
 
                 if word.starts_with("___END_PAGEFIND_WEIGHT___") {
                     weight_stack.pop();
-                    offset_word_index += 1;
-                    continue;
+                    return;
                 }
             }
 
             let word_weight = weight_stack.last().unwrap_or(&1);
 
             content.push_str(&word.replace('\u{200B}', ""));
-            content.push(' ');
+            if append_whitespace {
+                content.push(' ');
+            }
             #[cfg(feature = "extended")]
             if should_segment {
                 content.push('\u{200B}');
             }
-
             let normalized_word = SPECIAL_CHARS
                 .replace_all(word, "")
                 .into_owned()
                 .to_lowercase();
 
             if !normalized_word.is_empty() {
-                store_word(&normalized_word, word_index, *word_weight);
+                store_word(&normalized_word, total_word_index, *word_weight);
             }
 
             // For words that may be CompoundWords, also index them as their constituent parts
@@ -369,19 +375,37 @@ impl Fossicker {
 
                         // Only index two+ character words
                         for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
-                            store_word(part_word, word_index, per_weight);
+                            store_word(part_word, total_word_index, per_weight);
                         }
                     }
                 }
                 // Additionally store any special extra characters we are given
                 if let Some(extras) = extras {
                     for extra in extras {
-                        store_word(&extra, word_index, *word_weight);
+                        store_word(&extra, total_word_index, *word_weight);
                     }
                 }
             }
 
-            max_word_index = word_index;
+            max_word_index = total_word_index;
+            total_word_index += 1;
+        };
+
+        for segment in coarse_segments {
+            match segment {
+                Either::Left(word) => {
+                    track_word(word, true);
+                }
+                Either::Right(words) => {
+                    let mut words = words.peekable();
+                    while let Some(word) = words.next() {
+                        track_word(word, words.peek().is_none());
+                    }
+                }
+            };
+        }
+        if content.ends_with('\u{200B}') {
+            content.pop();
         }
         if content.ends_with(' ') {
             content.pop();
@@ -564,7 +588,7 @@ mod tests {
         let mut f =
             test_fossick(["<html><body>", "<p>Hello World!</p>", "</body></html>"].concat()).await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (digest, words, _, _) = f.parse_digest();
 
         assert_eq!(digest, "Hello World!".to_string());
         assert_eq!(
@@ -604,7 +628,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (digest, words, _, _) = f.parse_digest();
 
         assert_eq!(digest, "The Quick Brown. Fox Jumps Over. Ryan.".to_string());
         assert_eq!(
@@ -682,7 +706,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest();
 
         assert_eq!(
             words,
@@ -741,7 +765,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest();
 
         assert_eq!(
             words,
@@ -790,11 +814,124 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest();
 
         let mut words = words.keys().collect::<Vec<_>>();
         words.sort();
         assert_eq!(words, vec!["hello", "👋"]);
+    }
+
+    #[cfg(feature = "extended")]
+    #[tokio::test]
+    async fn parse_weights_through_segmentation() {
+        let mut f = test_fossick(
+            [
+                "<html lang='zh'><body>",
+                "<h1 id='my-title'>哎呀！ 我的错。</h1>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (content, words, _, _) = f.parse_digest();
+
+        let mut words = words.keys().collect::<Vec<_>>();
+        words.sort();
+        assert_eq!(words, vec!["哎呀", "我", "的", "错"]);
+
+        assert_eq!(
+            content,
+            "哎呀\u{200b}！ \u{200b}我\u{200b}的\u{200b}错\u{200b}。"
+        );
+    }
+
+    #[cfg(feature = "extended")]
+    #[tokio::test]
+    async fn segmentation_parity_when_presplitting() {
+        fn get_comparison_segmentations(full_input: &'static str) -> (Vec<String>, Vec<String>) {
+            let chunked_input = full_input
+                .split_whitespace()
+                .filter(|w| !w.starts_with("___"))
+                .collect::<Vec<_>>();
+            let clean_input = chunked_input.join(" ");
+
+            let mut legitimate_output = clean_input
+                .as_str()
+                .segment_str()
+                .filter(|w| w.chars().any(|c| !c.is_whitespace()))
+                .map(Into::into)
+                .collect::<Vec<_>>();
+            let mut chunked_output = chunked_input
+                .into_iter()
+                .flat_map(|inp| {
+                    inp.segment_str()
+                        .filter(|w| w.chars().any(|c| !c.is_whitespace()))
+                        .collect::<Vec<_>>()
+                })
+                .map(Into::into)
+                .collect::<Vec<_>>();
+
+            legitimate_output.sort();
+            chunked_output.sort();
+            (legitimate_output, chunked_output)
+        }
+        {
+            let full_zh_input = "___PAGEFIND_AUTO_WEIGHT___7 擁有遠端帳號權限 ___END_PAGEFIND_WEIGHT___
+
+        我們建議大多數具有遠端帳號權限的使用者，採用 ___PAGEFIND_ANCHOR___a:0:my-link Certbot 這個 ACME 客戶端。它可以自動執行憑證的頒發、安裝，甚至不需要停止你的伺服器；Certbot 也提供專家模式，給不想要自動設定的使用者。Certbot 操作簡單，適用於許多系統；並且具有完善的文檔。參考 Certbot 官網，以獲取對於不同系統和網頁伺服器的操作說明。
+        
+        如果 Certbot 不能滿足你的需求，或是你想嘗試別的客戶端，還有很多 ACME 用戶端可供選擇。在你選定 ACME 客戶端軟體後，請參閱該客戶端的文檔。
+        ___PAGEFIND_WEIGHT___44
+        如果你正在嘗試使用不同的 ACME 用戶端，請使用我們的測試環境以免超過憑證頒發與更新的速率限制。
+        沒有遠端帳號權限
+        
+        在沒有遠端帳號權限的情況下，最好的辦法是使用服務業者所提供的現有支援。如果你的業者支援 ___PAGEFIND_ANCHOR___a:1:my-second-link Let’s Encrypt，那麼他們就能幫助你申請免費憑證；安裝並設定自動更新。某些業者會需要你在控制介面或聯繫客服以開啟 Let’s Encrypt 服務。也有些業者會為所有客戶自動設定並安裝憑證。
+        
+        查看支援 Let’s Encrypt 的業者列表，確認你提供商的是否有出現在列表上。如果有的話，請按照他們的文檔設定 Let’s Encrypt 憑證。 ___END_PAGEFIND_WEIGHT___";
+
+            let (legitimate_zh_output, chunked_zh_output) =
+                get_comparison_segmentations(full_zh_input);
+            assert_eq!(legitimate_zh_output, chunked_zh_output);
+        }
+
+        {
+            let full_zh_cn_input = "没有命令行访问权限
+
+        在没有命令行访问权限的情况下，___PAGEFIND_AUTO_WEIGHT___7 最好的办法是使用您托管服务提供商提供的内置功能。 支持 Let’s Encrypt 的服务商能替您自动完成免费证书的申请、安装、续期步骤。 某些服务商可能需要您在控制面板中开启相关选项， 也有一些服务商会自动为所有客户申请并安装证书。
+        
+        如果您的服务商存在于我们的服务商列表中， 参照其文档设置 Let’s Encrypt ___END_PAGEFIND_WEIGHT___ 证书即可。
+        
+        如果您的托管服务提供商不支持 ___PAGEFIND_ANCHOR___a:0:my-link Let’s Encrypt，您可以与他们联系请求支持。 我们尽力使添加 Let’s Encrypt 支持变得非常容易，提供商（注：非中国国内提供商）通常很乐意听取客户的建议！
+        
+        如果您的托管服务提供商不想集成 Let’s Encrypt，但支持上传自定义证书，您可以在自己的计算机上安装 Certbot 并使用手动模式（Manual Mode）。 在手动模式下，您需要将指定文件上传到您的网站以证明您的控制权。 然后，Certbot 将获取您可以上传到提供商的证书。 我们不建议使用此选项，因为它非常耗时，并且您需要在证书过期时重复此步骤。 对于大多数人来说，最好从提供商处请求 Let’s Encrypt 支持。若您的提供商不打算兼容，建议您更换提供商。
+        获取帮助
+        
+        如果您对选择 ACME 客户端，使用特定客户端或与 Let’s Encrypt 相关的任何其他内容有疑问，请前往我们的社区论坛获取帮助。";
+
+            let (legitimate_zh_cn_output, chunked_zh_cn_output) =
+                get_comparison_segmentations(full_zh_cn_input);
+            assert_eq!(legitimate_zh_cn_output, chunked_zh_cn_output);
+        }
+
+        {
+            let full_ja_input = "___PAGEFIND_AUTO_WEIGHT___7 シェルへのアクセス権を持っている場合
+
+            シェルアクセスができるほとんどの人には、Certbot という ACME クライアントを使うのがおすすめです。 ___END_PAGEFIND_WEIGHT___ 証明書の発行とインストールを、ダウンタイムゼロで自動化できます。 自動設定を使いたくない人のために、エキスパートモードも用意されています。 とても簡単に使え、多数のオペレーティングシステムで動作し、たくさんのドキュメントもあります。 Certbot のウェブサイトでは、各オペレーティングシステムやウェブサーバーごとの個別の設定方法について解説されています。
+            
+            Certbot があなたの要件を満たさない場合や、他のクライアントを試してみたい場合には、Certbot の他にもたくさんの ACME クライアントが利用できます。 ACME クライアントを自分で選んだ場合は、そのクライアントのドキュメントを参照してください。
+            
+            別の ACME クライアントを使って実験を行う場合は、 ___PAGEFIND_ANCHOR___a:0:my-link 私たちが用意したステージング環境を利用して、レート・リミットの制限を受けないように気をつけてください。
+            シェルへのアクセス権を持っていない場合
+            
+            シェルアクセスができない場合に Let’s Encrypt を利用する一番良い方法は、ホスティング・プロバイダが用意したサポートを利用することです。 もし、あなたが利用するホスティング・プロバイダが Let’s Encrypt をサポートしている場合、あなたの代わりに無料の証明書をリクエスト、インストールし、自動的に最新の状態に更新してくれます。 一部のホスティング・プロバイダでは、この機能は自分で設定から有効にする必要がある場合があります。 それ以外のプロバイダでは、すべてのユーザーのために、自動で証明書が発行・インストールされるようになっています。
+            
+            あなたが利用しているホスティング・プロバイダが Let’s Encrypt をサポートしているかどうかは、 ホスティング・プロバイダのリストで確認してください。 もしサポートされている場合は、ホスティング・プロバイダのドキュメンに書かれている Let’s Encrypt の設定方法に従ってください。";
+
+            let (legitimate_ja_output, chunked_ja_output) =
+                get_comparison_segmentations(full_ja_input);
+            assert_eq!(legitimate_ja_output, chunked_ja_output);
+        }
     }
 
     #[cfg(not(target_os = "windows"))]

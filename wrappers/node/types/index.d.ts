@@ -3,6 +3,16 @@
  */
 export function createIndex(config: PagefindServiceConfig): Promise<NewIndexResponse>;
 
+/**
+ * Close the Pagefind service and clean up, stopping the binary altogether.
+ * 
+ * Service _will_ be restarted if any new calls are made to any other function.
+ * 
+ * Calling functions on an existing index after calling close() is undefined behavior,
+ * as that index may map to a new index after the service has restarted.
+ */
+export function close(): Promise<null>;
+
 export interface PagefindServiceConfig {
     /** 
      * The element Pagefind should treat as the root of the document, defaults to `html`.

@@ -71,7 +71,7 @@ Feature: Multilingual
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /en/"
 
-    Scenario: LEGACY Pagefind searches for Portugese with Portugese stemming
+    Scenario: LEGACY Pagefind searches for Portuguese with Portuguese stemming
         Given I have a "public/index.html" file with the content:
             """
             <!DOCTYPE html>
@@ -116,7 +116,7 @@ Feature: Multilingual
                     <title>Document</title>
                 </head>
                 <body>
-                    <p>I am a different Portugese document (trust me — quilométricas — see?)</p>
+                    <p>I am a different Portuguese document (trust me — quilométricas — see?)</p>
                 </body>
             </html>
             """

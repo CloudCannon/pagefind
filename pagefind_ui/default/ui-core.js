@@ -7,15 +7,6 @@ try {
   )[1];
 } catch (e) {
   scriptBundlePath = "/pagefind/";
-  console.warn(
-    `Pagefind couldn't determine the base of the bundle from the javascript import path. Falling back to the default of ${scriptBundlePath}.`
-  );
-  console.warn(
-    "You can configure this by passing a bundlePath option to PagefindUI"
-  );
-  console.warn(
-    `[DEBUG: Loaded from ${document?.currentScript?.src ?? "unknown"}]`
-  );
 }
 
 export class PagefindUI {

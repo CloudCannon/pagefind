@@ -94,7 +94,21 @@
     if (initializing) return;
     initializing = true;
     if (!pagefind) {
-      let imported_pagefind = await import(`${base_path}pagefind.js`);
+      let imported_pagefind;
+      try {
+        imported_pagefind = await import(`${base_path}pagefind.js`);
+      } catch (e) {
+        console.error(e);
+        console.error(
+          [
+            `Pagefind couldn't be loaded from ${this.options.bundlePath}pagefind.js`,
+            `You can configure this by passing a bundlePath option to PagefindUI`,
+            `[DEBUG: Loaded from ${
+              document?.currentScript?.src ?? "no known script location"
+            }]`,
+          ].join("\n")
+        );
+      }
 
       if (!excerpt_length) {
         excerpt_length = show_sub_results ? 12 : 30;

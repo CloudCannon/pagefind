@@ -6,7 +6,7 @@ export const calculate_sub_results = (
 ): PagefindSubResult[] => {
   const anchors = fragment.anchors
     .filter(
-      (a) => /h\d/i.test(a.element) && a.text?.length && /\w/.test(a.text)
+      (a) => /h\d/i.test(a.element) && a.text?.length && /\S/.test(a.text)
     )
     .sort((a, b) => a.location - b.location);
   const results: PagefindSubResult[] = [];
