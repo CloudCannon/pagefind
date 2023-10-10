@@ -28,6 +28,7 @@ updates:
     ignore:
       - dependency-name: "esbuild"
         update-types: ["version-update:semver-patch"]
+      - dependency-name: "@types/node"
   - package-ecosystem: "npm"
     directory: "/pagefind_ui/default"
     open-pull-requests-limit: 1
@@ -36,6 +37,9 @@ updates:
     ignore:
       - dependency-name: "esbuild"
         update-types: ["version-update:semver-patch"]
+      - dependency-name: "svelte"
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: "@types/node"
   - package-ecosystem: "npm"
     directory: "/pagefind_ui/modular"
     open-pull-requests-limit: 1
@@ -44,6 +48,9 @@ updates:
     ignore:
       - dependency-name: "esbuild"
         update-types: ["version-update:semver-patch"]
+      - dependency-name: "svelte"
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: "@types/node"
   - package-ecosystem: "npm"
     directory: "/wrappers/node"
     open-pull-requests-limit: 1
@@ -51,3 +58,4 @@ updates:
       interval: "daily"
     ignore:
       - dependency-name: "@pagefind/*"
+      - dependency-name: "@types/node"
