@@ -56,11 +56,11 @@ Feature: Highlighting Tests
             <script type="module">
                 await import('/pagefind/pagefind-highlight.js');
                 new PagefindHighlight({
-                pagefindQueryParamName: 'custom-name', 
-                markOptions: { 
-                        className: 'custom-class', 
+                pagefindQueryParamName: 'custom-name',
+                markOptions: {
+                        className: 'custom-class',
                         exclude: [
-                            "[data-pagefind-ignore]", 
+                            "[data-pagefind-ignore]",
                             "[data-pagefind-ignore] *",
                             ".ignore"
                             ]
@@ -74,11 +74,19 @@ Feature: Highlighting Tests
 
     Scenario: Highlight script is loaded
         When I load "/words/"
+        When I evaluate:
+            """
+            async function() { await new Promise(r => setTimeout(r, 200)); }
+            """
         Then I should see the file "public/pagefind/pagefind-highlight.js"
         Then There should be no logs
 
     Scenario: Highlight script marks correctly
         When I load "/words/?pagefind-highlight=this"
+        When I evaluate:
+            """
+            async function() { await new Promise(r => setTimeout(r, 200)); }
+            """
         Then There should be no logs
         Then The selector "#has-highlight mark" should contain "this"
         Then The selector "#has-highlight mark.pagefind-highlight" should contain "this"
@@ -101,6 +109,10 @@ Feature: Highlighting Tests
 
     Scenario: Highlight script stays within pagefind-body
         When I load "/single-body/?pagefind-highlight=this"
+        When I evaluate:
+            """
+            async function() { await new Promise(r => setTimeout(r, 200)); }
+            """
         Then There should be no logs
         Then The selector "#has-highlight mark" should contain "This"
         Then The selector "p[data-pagefind-ignore]" should contain "This should not be highlighted"
@@ -113,10 +125,14 @@ Feature: Highlighting Tests
 
     Scenario: Highlight script options work
         When I load "/options/?custom-name=this"
+        When I evaluate:
+            """
+            async function() { await new Promise(r => setTimeout(r, 200)); }
+            """
         Then There should be no logs
         Then The selector "#has-highlight mark" should contain "This"
         Then The selector "#has-highlight mark.custom-class" should contain "This"
         Then The selector "p[data-pagefind-ignore]" should contain "This should not be highlighted"
         Then The selector "p.ignore" should contain "This should not be highlighted"
         Then The selector "#no-highlight" should contain "This should not be highlighted"
-        
+
