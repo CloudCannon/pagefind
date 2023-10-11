@@ -10,6 +10,7 @@
 ## Unreleased
 
 * Fixes a bug where `debouncedSearch` returns `null` if any options object is passed to it.
+* Fixes a bug where a fully-qualified URL set via the NodeJS indexing API would be broken when returned as a search result.
 
 ## v1.0.3 (September 16, 2023)
 
