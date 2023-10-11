@@ -274,6 +274,10 @@ class PagefindInstance {
     }
 
     fullUrl(raw: string) {
+        // Avoid processing absolute URLs
+        if (/^(https?:)?\/\//.test(raw)) {
+            return raw;
+        }
         return `${this.baseUrl}/${raw}`.replace(/\/+/g, "/").replace(/^(https?:\/)/, "$1/");
     }
 
