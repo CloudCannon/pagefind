@@ -77,7 +77,7 @@ For example:
 <h1
     data-section="Documentation"
     data-category="Article"
-+    data-pagefind-meta="heading, tag[data-section], tag[data-category], author:Freeform text, captured to the end">
++    data-pagefind-filter="heading, tag[data-section], tag[data-category], author:Freeform text, captured to the end">
         Hello World
 </h1>
 ```
