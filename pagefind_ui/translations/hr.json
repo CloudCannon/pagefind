@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Diomed <https://github.com/diomed>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Traži",
+        "clear_search": "Očisti",
+        "load_more": "Učitaj više rezultata",
+        "search_label": "Pretraži ovu stranicu",
+        "filters_label": "Filteri",
+        "zero_results": "Nema rezultata za [SEARCH_TERM]",
+        "many_results": "[COUNT] rezultata za [SEARCH_TERM]",
+        "one_result": "[COUNT] rezultat za [SEARCH_TERM]",
+        "alt_search": "Nema rezultata za [SEARCH_TERM]. Prikazujem rezultate za [DIFFERENT_TERM]",
+        "search_suggestion": "Nema rezultata za [SEARCH_TERM]. Pokušaj s jednom od ovih pretraga:",
+        "searching": "Pretražujem [SEARCH_TERM]..."
+    }
+}
