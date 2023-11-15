@@ -83,6 +83,30 @@ Feature: Character Tests
         Then There should be no logs
         Then The selector "[data-result]" should contain 'The "bees"'
 
+    Scenario: Pagefind handles HTML entities in meta
+        Given I have a "public/apiary/index.html" file with the body:
+            """
+            <h1 data-pagefind-meta="title">The &quot;bees&quot;</h1>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search("bees");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerText = pages.map(p => p.meta.title).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain 'The "bees"'
+
     Scenario: Pagefind can search for a hyphenated phrase
         Given I have a "public/ds/index.html" file with the body:
             """

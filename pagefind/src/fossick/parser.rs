@@ -651,7 +651,7 @@ impl DomParsingNode {
                 if self.current_value.is_empty() {
                     None
                 } else {
-                    Some((input.to_owned(), self.current_value.to_owned()))
+                    Some((input.to_owned(), normalize_content(&self.current_value)))
                 }
             }
         }
