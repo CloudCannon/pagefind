@@ -1,0 +1,18 @@
+{
+    "thanks_to": "",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Szukaj",
+        "clear_search": "Wyczyść",
+        "load_more": "Załaduj więcej",
+        "search_label": "Przeszukaj tę stronę",
+        "filters_label": "Filtry",
+        "zero_results": "Brak wyników dla [SEARCH_TERM]",
+        "many_results": "[COUNT] wyników dla [SEARCH_TERM]",
+        "one_result": "[COUNT] wynik dla [SEARCH_TERM]",
+        "alt_search": "Brak wyników dla [SEARCH_TERM]. Wyświetlam wyniki dla [DIFFERENT_TERM]",
+        "search_suggestion": "Brak wyników dla [SEARCH_TERM]. Pokrewne wyniki wyszukiwania:",
+        "searching": "Szukam [SEARCH_TERM]..."
+    }
+}
