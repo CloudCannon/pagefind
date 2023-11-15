@@ -97,6 +97,22 @@ The Pagefind UI will look for values under the metadata keys `title`, `image`, a
 ```
 {{< /diffcode >}}
 
+## Re-initializing the Pagefind UI
+
+In some cases you might need to re-initialize Pagefind. For example, if you dynamically change the language of the page without reloading, Pagefind will need to be re-initialized to reflect this langauge change.
+
+Pagefind UI can be destroyed by running `.destroy()` on the returned object. Doing so will also tear down the initialized Pagefind instance:
+
+{{< diffcode >}}
+```js
+let search = new PagefindUI({ element: "#search", showSubResults: true });
++search.destroy();
++search = new PagefindUI({ element: "#search", /* new options */ });
+```
+{{< /diffcode >}}
+
+After being destroyed, initializing the Pagefind UI will look again at the active language, and use any new options you might pass in.
+
 ## Further customization
 
 See the [Pagefind UI Configuration Reference](/docs/ui/) for all available options.

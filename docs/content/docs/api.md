@@ -238,3 +238,31 @@ const search = await pagefind.search("static", {
 {{< /diffcode >}}
 
 See [Sorting using the Pagefind JavaScript API](/docs/js-api-sorting/) for more details and functionality.
+
+## Re-initializing the search API
+
+In some cases you might need to re-initialize Pagefind. For example, if you dynamically change the language of the page without reloading, Pagefind will need to be re-initialized to reflect this langauge change.
+
+The currently loaded Pagefind can be destroyed by running `pagefind.destroy()`:
+
+{{< diffcode >}}
+```js
+const pagefind = await import("/pagefind/pagefind.js");
+
+await pagefind.init();
+await pagefind.search( /* ... */ );
+
+/**
+ * Some action that changes the language of the page, for example
+ **/
+
++await pagefind.destroy();
++await pagefind.init();
+
+await pagefind.search( /* ... */ );
+```
+{{< /diffcode >}}
+
+Calling `pagefind.destroy()` will unload the active Pagefind, and also forget anything that was passed through `pagefind.options()`, resetting to the blank state after the script was first imported.
+
+After being destroyed, initializing Pagefind will look again at the active language, and use any new options you might pass in.

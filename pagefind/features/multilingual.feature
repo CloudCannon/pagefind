@@ -275,3 +275,53 @@ Feature: Multilingual
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "1 — /mystery/ — 0"
+
+    Scenario: Pagefind can be destroyed and re-initialized
+        Given I have a "public/index.html" file with the content:
+            """
+            <!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <title>Generic Page</title>
+                </head>
+                <body>
+                    <p data-result-a>Nothing</p>
+                    <p data-result-b>Nothing</p>
+                </body>
+            </html>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/wasm.unknown.pagefind"
+        Then I should see the file "public/pagefind/wasm.en.pagefind"
+        Then I should see the file "public/pagefind/wasm.pt-br.pagefind"
+        Then I should see "en" in "public/pagefind/pagefind-entry.json"
+        Then I should see "pt-br" in "public/pagefind/pagefind-entry.json"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                await pagefind.init();
+                let en_search = await pagefind.search("documenting");
+
+                let en_data = en_search.results[0] ? await en_search.results[0].data() : "None";
+                document.querySelector('[data-result-a]').innerText = `${en_search.results.length} — ${en_data.url}`;
+
+                await pagefind.destroy();
+
+                document.querySelector('html').setAttribute("lang", "pt-br");
+
+                await pagefind.init();
+                let pt_search = await pagefind.search("quilométricos");
+
+                let pt_data = pt_search.results[0] ? await pt_search.results[0].data() : "None";
+                document.querySelector('[data-result-b]').innerText = `${pt_search.results.length} — ${pt_data.url}`;
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result-a]" should contain "1 — /en/"
+        Then The selector "[data-result-b]" should contain "1 — /pt-br/"
