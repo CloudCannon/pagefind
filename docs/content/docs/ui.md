@@ -15,6 +15,19 @@ new PagefindUI({ element: "#search" });
 
 A selector for the HTML element to attach Pagefind UI to. This is the only required argument.
 
+### Page size
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    pageSize: 5
+});
+```
+{{< /diffcode >}}
+
+The number of search results to load at once, before a "Load more" button is shown. Defaults to `5`.
+
 ### Show sub results
 
 {{< diffcode >}}

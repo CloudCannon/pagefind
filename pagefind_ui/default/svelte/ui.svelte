@@ -21,6 +21,7 @@
   }
 
   export let base_path = "/pagefind/";
+  export let page_size = 5;
   export let reset_styles = true;
   export let show_images = true;
   export let show_sub_results = false;
@@ -64,7 +65,7 @@
   let searched = false;
   let search_id = 0;
   let search_term = "";
-  let show = 5;
+  let show = page_size;
   let initial_filters = null;
   let available_filters = null;
   let selected_filters = {};
@@ -199,7 +200,7 @@
       }
       searchResult = results;
       loading = false;
-      show = 5;
+      show = page_size;
     }
   };
 
@@ -212,7 +213,7 @@
 
   const showMore = (e) => {
     e?.preventDefault();
-    show += 5;
+    show += page_size;
   };
 </script>
 
