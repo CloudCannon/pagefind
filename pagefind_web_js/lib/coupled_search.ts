@@ -596,6 +596,10 @@ export const options = async (new_options: PagefindIndexOptions) => {
 export const init = async () => {
     init_pagefind();
 }
+export const destroy = async () => {
+    pagefind = undefined;
+    initial_options = undefined;
+}
 
 export const mergeIndex = async (indexPath: string, options: PagefindIndexOptions) => {
     init_pagefind();

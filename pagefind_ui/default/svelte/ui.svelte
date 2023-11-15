@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { parse as parseBCP47 } from "bcp-47";
 
   import Result from "./result.svelte";
@@ -86,6 +86,11 @@
       availableTranslations[`${parsedLang.language}-${parsedLang.region}`] ||
       availableTranslations[`${parsedLang.language}`] ||
       availableTranslations["en"];
+  });
+
+  onDestroy(() => {
+    pagefind?.destroy?.();
+    pagefind = null;
   });
 
   $: debouncedSearch(val, selected_filters);

@@ -76,4 +76,8 @@ export class PagefindUI {
   triggerSearch(term) {
     this._pfs.$$set({ trigger_search_term: term });
   }
+
+  destroy() {
+    this._pfs.$destroy();
+  }
 }
