@@ -15,6 +15,7 @@ export class PagefindUI {
 
     let selector = opts.element ?? "[data-pagefind-ui]";
     let bundlePath = opts.bundlePath ?? scriptBundlePath;
+    let pageSize = opts.pageSize ?? 5;
     let resetStyles = opts.resetStyles ?? true;
     let showImages = opts.showImages ?? true;
     let showSubResults = opts.showSubResults ?? false;
@@ -34,6 +35,7 @@ export class PagefindUI {
     // Remove the UI-specific config before passing it along to the Pagefind backend
     delete opts["element"];
     delete opts["bundlePath"];
+    delete opts["pageSize"];
     delete opts["resetStyles"];
     delete opts["showImages"];
     delete opts["showSubResults"];
@@ -54,6 +56,7 @@ export class PagefindUI {
         target: dom,
         props: {
           base_path: bundlePath,
+          page_size: pageSize,
           reset_styles: resetStyles,
           show_images: showImages,
           show_sub_results: showSubResults,
