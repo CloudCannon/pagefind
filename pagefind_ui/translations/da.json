@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Jonas Smedegaard <dr@jones.dk>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Søg",
+        "clear_search": "Nulstil",
+        "load_more": "Indlæs flere resultater",
+        "search_label": "Søg på dette website",
+        "filters_label": "Filtre",
+        "zero_results": "Ingen resultater for [SEARCH_TERM]",
+        "many_results": "[COUNT] resultater for [SEARCH_TERM]",
+        "one_result": "[COUNT] resultat for [SEARCH_TERM]",
+        "alt_search": "Ingen resultater for [SEARCH_TERM]. Viser resultater for [DIFFERENT_TERM] i stedet",
+        "search_suggestion": "Ingen resultater for [SEARCH_TERM]. Prøv et af disse søgeord i stedet:",
+        "searching": "Søger efter [SEARCH_TERM]..."
+    }
+}
