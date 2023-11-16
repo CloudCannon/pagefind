@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.0.4 (November 16, 2023)
+
 ### Features & Improvements
 * Added highlighting support to Pagefind. Massive thanks to @Jothsa for pushing this across the line in #425! 🎉
   * See [📘 Highlighting search terms](https://pagefind.app/docs/highlighting/) for documentation on how to enable this new feature.
