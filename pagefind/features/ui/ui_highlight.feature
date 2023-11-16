@@ -9,14 +9,14 @@ Feature: Base UI Tests
 
     Scenario: Pagefind UI adds highlight query params
         Given I have a "public/index.html" file with the body:
-                """
+            """
                 <div id="search"></div>
                 <script src="/pagefind/pagefind-ui.js"></script>
 
                 <script>
-                    window.pui = new PagefindUI({ element: "#search" });
+                    window.pui = new PagefindUI({ element: "#search", highlightParam: "pagefind-highlight" });
                 </script>
-                """
+            """
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>hello world</h1>
@@ -53,18 +53,18 @@ Feature: Base UI Tests
             }
             """
         Then There should be no logs
-        Then The selector ".pagefind-ui__result-link[href$='?pagefind-highlight=hello&pagefind-highlight=world%21']" should contain "hello world"
+        Then The selector ".pagefind-ui__result-link[href$='?pagefind-highlight=hello&pagefind-highlight=world']" should contain "hello world"
 
-    Scenario: Pagefind UI does not add highlight query params
+    Scenario: Pagefind UI does not add highlight query params by default
         Given I have a "public/index.html" file with the body:
-                """
+            """
                 <div id="search"></div>
                 <script src="/pagefind/pagefind-ui.js"></script>
 
                 <script>
-                    window.pui = new PagefindUI({ element: "#search", highlightQueryParamName: null });
+                    window.pui = new PagefindUI({ element: "#search" });
                 </script>
-                """
+            """
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>hello world</h1>
@@ -96,14 +96,14 @@ Feature: Base UI Tests
 
     Scenario: Pagefind UI uses custom highlight query param name
         Given I have a "public/index.html" file with the body:
-                """
+            """
                 <div id="search"></div>
                 <script src="/pagefind/pagefind-ui.js"></script>
 
                 <script>
-                    window.pui = new PagefindUI({ element: "#search", highlightQueryParamName: 'custom-param' });
+                    window.pui = new PagefindUI({ element: "#search", highlightParam: 'custom-param' });
                 </script>
-                """
+            """
         Given I have a "public/cat/index.html" file with the body:
             """
             <h1>hello world</h1>
@@ -132,12 +132,3 @@ Feature: Base UI Tests
             """
         Then There should be no logs
         Then The selector ".pagefind-ui__result-link[href$='?custom-param=hello&custom-param=world']" should contain "hello world"
-        When I evaluate:
-            """
-            async function() {
-                window.pui.triggerSearch("hello world!");
-                await new Promise(r => setTimeout(r, 1500)); // TODO: await el in humane
-            }
-            """
-        Then There should be no logs
-        Then The selector ".pagefind-ui__result-link[href$='?custom-param=hello&custom-param=world%21']" should contain "hello world"

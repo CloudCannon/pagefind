@@ -2,8 +2,6 @@
   export let show_images = true;
   export let process_result = null;
   export let result = { data: async () => {} };
-  // string or null
-  export let highlight_query_param = null;
 
   const skipMeta = ["title", "image", "image_alt", "url"];
 
@@ -28,12 +26,10 @@
   const load = async (r) => {
     data = await r.data();
     data = process_result?.(data) ?? data;
-    meta = Object.entries(data?.meta).filter(
-      ([key]) => !skipMeta.includes(key)
-    );
+    meta = Object.entries(data.meta).filter(([key]) => !skipMeta.includes(key));
     if (Array.isArray(data.sub_results)) {
       has_root_sub_result =
-        data.sub_results?.[0]?.url === (data?.meta?.url || data?.url);
+        data.sub_results?.[0]?.url === (data.meta?.url || data.url);
       if (has_root_sub_result) {
         non_root_sub_results = thin_sub_results(data.sub_results.slice(1), 3);
       } else {
@@ -63,11 +59,8 @@
     {/if}
     <div class="pagefind-ui__result-inner">
       <p class="pagefind-ui__result-title">
-        <a
-          class="pagefind-ui__result-link"
-              href={(data?.meta?.url || data.url) +
-            (highlight_query_param ? `?${highlight_query_param.toString()}` : "")}
-          >{@html data.meta?.title}</a
+        <a class="pagefind-ui__result-link" href={data.meta?.url || data.url}
+          >{data.meta?.title}</a
         >
       </p>
       {#if has_root_sub_result}
@@ -77,11 +70,8 @@
       {#each non_root_sub_results as subres}
         <div class="pagefind-ui__result-nested">
           <p class="pagefind-ui__result-title">
-            <a
-              class="pagefind-ui__result-link"
-              href={subres.url +
-                (highlight_query_param ? `?${highlight_query_param}` : "")}
-              >{@html subres.title}</a
+            <a class="pagefind-ui__result-link" href={subres.url}
+              >{subres.title}</a
             >
           </p>
           <p class="pagefind-ui__result-excerpt">{@html subres.excerpt}</p>
@@ -92,7 +82,7 @@
         <ul class="pagefind-ui__result-tags">
           {#each meta as [metaTitle, metaValue]}
             <li class="pagefind-ui__result-tag">
-              {@html metaTitle.replace(/^(\w)/, (c) => c.toLocaleUpperCase())}: {@html metaValue}
+              {metaTitle.replace(/^(\w)/, (c) => c.toLocaleUpperCase())}: {metaValue}
             </li>
           {/each}
         </ul>

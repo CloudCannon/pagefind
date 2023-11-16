@@ -21,6 +21,10 @@ declare global {
          * Only applies in multisite setups.
          */
         mergeFilter?: Object,
+        /** 
+         * If set, will ass the search term as a query parameter under this key, for use with Pagefind's highlighting script.
+         */
+        highlightParam?: string,
         language?: string,
         /**
          * Whether an instance of Pagefind is the primary index or not (for multisite).

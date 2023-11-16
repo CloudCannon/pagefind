@@ -1,4 +1,4 @@
-Feature: Highlighting Tests
+Feature: Highlighting Result Tests
 
     Background:
         Given I have the environment variables:
@@ -56,7 +56,7 @@ Feature: Highlighting Tests
             <script type="module">
                 await import('/pagefind/pagefind-highlight.js');
                 new PagefindHighlight({
-                pagefindQueryParamName: 'custom-name',
+                highlightParam: 'custom-name',
                 markOptions: {
                         className: 'custom-class',
                         exclude: [

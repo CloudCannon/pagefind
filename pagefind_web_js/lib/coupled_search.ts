@@ -22,6 +22,7 @@ class PagefindInstance {
     indexWeight: number;
     excerptLength: number;
     mergeFilter: Object;
+    highlightParam: string | null;
 
     loaded_chunks: Record<string, Promise<void>>;
     loaded_filters: Record<string, Promise<void>>;
@@ -60,6 +61,7 @@ class PagefindInstance {
         this.indexWeight = opts.indexWeight ?? 1;
         this.excerptLength = opts.excerptLength ?? 30;
         this.mergeFilter = opts.mergeFilter ?? {};
+        this.highlightParam = opts.highlightParam ?? null;
 
         this.loaded_chunks = {};
         this.loaded_filters = {};
@@ -88,7 +90,7 @@ class PagefindInstance {
     }
 
     async options(options: PagefindIndexOptions) {
-        const opts = ["basePath", "baseUrl", "indexWeight", "excerptLength", "mergeFilter"];
+        const opts = ["basePath", "baseUrl", "indexWeight", "excerptLength", "mergeFilter", "highlightParam"];
         for (const [k, v] of Object.entries(options)) {
             if (k === "mergeFilter") {
                 let filters = this.stringifyFilters(v);
@@ -100,6 +102,7 @@ class PagefindInstance {
                 if (k === "indexWeight" && typeof v === "number") this.indexWeight = v;
                 if (k === "excerptLength" && typeof v === "number") this.excerptLength = v;
                 if (k === "mergeFilter" && typeof v === "object") this.mergeFilter = v;
+                if (k === "highlightParam" && typeof v === "string") this.highlightParam = v;
             } else {
                 console.warn(`Unknown Pagefind option ${k}. Allowed options: [${opts.join(', ')}]`);
             }
@@ -245,7 +248,7 @@ class PagefindInstance {
         return JSON.parse(new TextDecoder().decode(fragment));
     }
 
-    async loadFragment(hash: string, weighted_locations: PagefindWordLocation[] = []) {
+    async loadFragment(hash: string, weighted_locations: PagefindWordLocation[] = [], search_term: string) {
         if (!this.loaded_fragments[hash]) {
             this.loaded_fragments[hash] = this._loadFragment(hash);
         }
@@ -262,8 +265,8 @@ class PagefindInstance {
         }
         if (!fragment.raw_url) {
             fragment.raw_url = fragment.url;
-            fragment.url = this.fullUrl(fragment.raw_url);
         }
+        fragment.url = this.processedUrl(fragment.raw_url, search_term);
 
         const excerpt_start = calculate_excerpt_region(weighted_locations, this.excerptLength);
         fragment.excerpt = build_excerpt(fragment.raw_content, excerpt_start, this.excerptLength, fragment.locations);
@@ -279,6 +282,32 @@ class PagefindInstance {
             return raw;
         }
         return `${this.baseUrl}/${raw}`.replace(/\/+/g, "/").replace(/^(https?:\/)/, "$1/");
+    }
+
+    processedUrl(url: string, search_term: string) {
+        const normalized = this.fullUrl(url);
+        if (this.highlightParam === null) {
+            return normalized;
+        }
+        let individual_terms = search_term.split(/\s+/);
+        try {
+            // This will error is it is not a FQDN
+            let processed = new URL(normalized);
+            for (const term of individual_terms) {
+                processed.searchParams.append(this.highlightParam, term);
+            }
+            return processed.toString();
+        } catch(e) {
+            try {
+                let processed = new URL(`https://example.com${normalized}`);
+                for (const term of individual_terms) {
+                    processed.searchParams.append(this.highlightParam, term);
+                }
+                return processed.toString().replace(/^https:\/\/example\.com/, "");
+            } catch (e) {
+                return normalized;
+            }
+        }
     }
 
     async getPtr() {
@@ -438,7 +467,7 @@ class PagefindInstance {
                 id: hash,
                 score: parseFloat(score) * this.indexWeight,
                 words: locations,
-                data: async () => await this.loadFragment(hash, weighted_locations)
+                data: async () => await this.loadFragment(hash, weighted_locations, term)
             }
         });
 
