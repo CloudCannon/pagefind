@@ -12,13 +12,13 @@ import Mark from "mark.js";
 
 type pagefindHighlightOptions = {
   markContext?: string | HTMLElement | HTMLElement[] | NodeList | null;
-  pagefindQueryParamName?: string;
+  highlightParam?: string;
   markOptions?: Omit<Mark.MarkOptions, "separateWordSearch">;
   addStyles?: boolean;
 };
 
 export default class PagefindHighlight {
-  pagefindQueryParamName: string;
+  highlightParam: string;
   markContext: string | HTMLElement | HTMLElement[] | NodeList | null;
   markOptions: Mark.MarkOptions;
   addStyles: boolean;
@@ -26,7 +26,7 @@ export default class PagefindHighlight {
   constructor(
     options: pagefindHighlightOptions = {
       markContext: null,
-      pagefindQueryParamName: "pagefind-highlight",
+      highlightParam: "pagefind-highlight",
       markOptions: {
         className: "pagefind-highlight",
         exclude: ["[data-pagefind-ignore]", "[data-pagefind-ignore] *"],
@@ -34,11 +34,11 @@ export default class PagefindHighlight {
       addStyles: true,
     }
   ) {
-    const { pagefindQueryParamName, markContext, markOptions, addStyles } =
+    const { highlightParam, markContext, markOptions, addStyles } =
       options;
 
-    this.pagefindQueryParamName =
-      pagefindQueryParamName ?? "pagefind-highlight";
+    this.highlightParam =
+      highlightParam ?? "pagefind-highlight";
     this.addStyles = addStyles ?? true;
     this.markContext = markContext !== undefined ? markContext : null;
     this.markOptions =
@@ -92,7 +92,7 @@ export default class PagefindHighlight {
   }
 
   highlight() {
-    const params = this.getHighlightParams(this.pagefindQueryParamName);
+    const params = this.getHighlightParams(this.highlightParam);
     if (!params || params.length === 0) return;
     this.addStyles &&
       this.addHighlightStyles(this.markOptions.className as string);

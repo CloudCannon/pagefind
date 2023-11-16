@@ -152,19 +152,6 @@ new PagefindUI({
 
 The number of milliseconds to wait after a user stops typing before performing a search. Defaults to `300`. If you wish to disable this, set to `0`.
 
-### Highlight query param name
-
-{{< diffcode >}}
-```javascript
-new PagefindUI({
-    element: "#search",
-+    highlightQueryParamName: 'highlight'
-});
-```
-{{< /diffcode >}}
-
-If the parameter is changed here, it *must* be changed in the [`PagefindHighlight` object](/docs/highlight-config/#pagefindQueryParamName) as well.
-
 ### Translations
 
 {{< diffcode >}}

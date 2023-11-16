@@ -13,8 +13,7 @@ Feature: UI Hooks
             <script>
                 window.pui = new PagefindUI({
                     element: "#search",
-                    processTerm: (t) => t.replace("word", "search"),
-                    highlightQueryParamName: null
+                    processTerm: (t) => t.replace("word", "search")
                 });
             </script>
             """

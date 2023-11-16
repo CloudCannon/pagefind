@@ -53,19 +53,6 @@ We can see that a bunch of content was indexed, and Pagefind will be running a p
 
 Loading this in your browser, you should see a search input on your page. Try searching for some content and you will see results appear from your site.
 
-## Highlighting
-
-To highlight the search terms on results page, add the following snippet on every page that has been indexed
-
-```html
-<script src="/pagefind/pagefind-highlight.js"></script>
-<script>
-    new PagefindHighlight();
-<script>
-```
-
-See [Highlighting search terms](/docs/highlighting/) for more information.
-
 The last required step is to run Pagefind after building your site on your CMS or hosting platform. If you're a CloudCannon user, add a [`.cloudcannon/postbuild`](https://cloudcannon.com/documentation/articles/extending-your-build-process-with-hooks/) file containing the npx command above (minus the `--serve` flag). For other platforms, set up an equivalent command to run after your site build — the end goal is that Pagefind will run after every build of your site before it is deployed.
 
 For many use cases, you can stop here and mark it as complete. Or, you can dive deeper into Pagefind and configure it to your liking — check out [Configuring the index](/docs/indexing/) for some next steps.

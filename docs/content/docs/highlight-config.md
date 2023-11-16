@@ -16,13 +16,13 @@ new PagefindHighlight({ markContext: "[data-pagefind-body]" })
 
 The area in which to highlight text. Defaults to `[data-pagefind-body]` if any `[data-pagefind-body]` elements can be found, otherwise `document.body`. This can be a CSS selector string, a DOM element, an array of DOM elements, or a NodeList.
 
-### pagefindQueryParamName
+### highlightParam
 
 ```js
-new PagefindHighlight({ pagefindQueryParamName: "pagefind-highlight" })
+new PagefindHighlight({ highlightParam: "highlight" })
 ```
 
-The name of the query parameter that Pagefind uses to determine which terms to highlight. Defaults to `pagefind-highlight`. If the name is changed here, it *must* be changed in the [`PagefindUI` object](/docs/ui/#highlight-query-param-name) as well.
+The name of the query parameter that Pagefind uses to determine which terms to highlight. This must match the [Pagefind highlightParam config](/docs/search-config/#highlight-query-parameter).
 
 ### markOptions
 

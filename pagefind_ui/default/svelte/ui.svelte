@@ -34,9 +34,6 @@
   export let merge_index = [];
   export let trigger_search_term = "";
   export let translations = {};
-  // this is the name of the query param which is used to highlight the search terms after the user has navigated to a result page
-  // consider exposing the prop in the constructor in camelCase if needed
-  export let highlight_query_param_name = "pagefind-highlight";
 
   let val = "";
   $: if (trigger_search_term) {
@@ -44,16 +41,6 @@
     trigger_search_term = "";
   }
 
-  // this could be changed to not split if the value is quoted
-  // ex: val = `hello world "foo bar"` highlightWords = ["hello", "world", "foo bar"]
-
-  $: highlightWords = val.split(" ");
-
-  $: highlight_query_param = new URLSearchParams(
-    highlightWords.map((word) => {
-      return [highlight_query_param_name, word];
-    })
-  ).toString();
   let pagefind;
   let input_el,
     clear_el,
@@ -318,23 +305,9 @@
             <ol class="pagefind-ui__results">
               {#each searchResult.results.slice(0, show) as result (result.id)}
                 {#if show_sub_results}
-                  <ResultWithSubs
-                    {show_images}
-                    {process_result}
-                    {result}
-                    highlight_query_param={highlight_query_param_name
-                      ? highlight_query_param
-                      : null}
-                  />
+                  <ResultWithSubs {show_images} {process_result} {result} />
                 {:else}
-                  <Result
-                    {show_images}
-                    {process_result}
-                    {result}
-                    highlight_query_param={highlight_query_param_name
-                      ? highlight_query_param
-                      : null}
-                  />
+                  <Result {show_images} {process_result} {result} />
                 {/if}
               {/each}
             </ol>
