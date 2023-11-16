@@ -29,9 +29,11 @@ If word stemming is unsupported, search results won't match across root words. I
 | Arabic — `ar`     | ❌               | ✅             |
 | Armenian — `hy`   | ❌               | ✅             |
 | Basque — `eu`     | ❌               | ✅             |
+| Bengali — `bn`    | ✅               | ❌             |
 | Catalan — `ca`    | ✅               | ✅             |
 | Chinese — `zh`    | ✅               | See below     |
-| Danish — `da`     | ❌               | ✅             |
+| Croatian — `hr`   | ✅               | ❌             |
+| Danish — `da`     | ✅               | ✅             |
 | Dutch — `nl`      | ✅               | ✅             |
 | English — `en`    | ✅               | ✅             |
 | Finnish — `fi`    | ✅               | ✅             |
@@ -40,14 +42,16 @@ If word stemming is unsupported, search results won't match across root words. I
 | German — `de`     | ✅               | ✅             |
 | Greek — `el`      | ❌               | ✅             |
 | Hindi — `hi`      | ✅               | ✅             |
-| Hungarian — `hu`  | ❌               | ✅             |
+| Hungarian — `hu`  | ✅               | ✅             |
 | Indonesian — `id` | ✅               | ✅             |
 | Irish — `ga`      | ❌               | ✅             |
 | Italian — `it`    | ✅               | ✅             |
 | Japanese — `ja`   | ✅               | See below     |
 | Lithuanian — `lt` | ❌               | ✅             |
+| Māori — `mi`      | ✅               | ❌             |
 | Nepali — `ne`     | ❌               | ✅             |
 | Norwegian — `no`  | ✅               | ✅             |
+| Polish — `pl`     | ✅               | ❌             |
 | Portuguese — `pt` | ✅               | ✅             |
 | Romanian — `ro`   | ❌               | ✅             |
 | Russian — `ru`    | ✅               | ✅             |
@@ -56,6 +60,7 @@ If word stemming is unsupported, search results won't match across root words. I
 | Swedish — `sv`    | ✅               | ✅             |
 | Tamil — `ta`      | ✅               | ✅             |
 | Turkish — `tr`    | ✅               | ✅             |
+| Vietnamese — `vi` | ✅               | ❌             |
 | Yiddish — `yi`    | ❌               | ✅             |
 
 > Feel free to [open an issue](https://github.com/CloudCannon/pagefind/issues/new) if there's a language you would like better support for, or [contribute a translation](https://github.com/CloudCannon/pagefind/tree/main/pagefind_ui/translations) for Pagefind UI in your language.
