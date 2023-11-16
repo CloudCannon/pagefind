@@ -1,0 +1,18 @@
+{
+  "thanks_to": "Long Nhat Nguyen",
+  "comments": "",
+  "direction": "ltr",
+  "strings": {
+    "placeholder": "Tìm kiếm",
+    "clear_search": "Xóa",
+    "load_more": "Nhiều kết quả hơn",
+    "search_label": "Tìm kiếm trong trang này",
+    "filters_label": "Bộ lọc",
+    "zero_results": "Không tìm thấy kết quả cho [SEARCH_TERM]",
+    "many_results": "[COUNT] kết quả cho [SEARCH_TERM]",
+    "one_result": "[COUNT] kết quả cho [SEARCH_TERM]",
+    "alt_search": "Không tìm thấy kết quả cho [SEARCH_TERM]. Kiểm thị kết quả thay thế với [DIFFERENT_TERM]",
+    "search_suggestion": "Không tìm thấy kết quả cho [SEARCH_TERM]. Thử một trong các tìm kiếm:",
+    "searching": "Đang tìm kiếm cho [SEARCH_TERM]..."
+  }
+}

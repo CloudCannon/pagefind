@@ -67,6 +67,18 @@ Overrides the bundle directory. In most cases this should be automatically detec
 
 Set the maximum length for generated excerpts. Defaults to `30`.
 
+### Highlight query parameter
+
+```json
+{
+    "highlightParam": "highlight"
+}
+```
+
+If set, Pagefind will add the search term as a query parameter under the same name. 
+
+If using the [Pagefind highlight script](/docs/highlighting/), make sure this is configured to match.
+
 ### Index weight
 
 See [multisite search > weighting](/docs/multisite/#changing-the-weighting-of-individual-indexes)

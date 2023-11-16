@@ -2,7 +2,7 @@ baseURL = 'https://pagefind.app/'
 languageCode = 'en-us'
 title = 'Pagefind'
 summaryLength = 30
-disableKinds = ["taxonomyTerm"]
+disableKinds = ["taxonomy"]
 
 [markup]
 highlight.noClasses = false

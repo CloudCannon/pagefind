@@ -255,7 +255,7 @@ impl Fossicker {
                     // Run a segmenter only for any languages which require it.
                     Either::Right(seg.segment_str())
                 } else {
-                    // Currently hesistant to run segmentation during indexing
+                    // Currently hesitant to run segmentation during indexing
                     // that we can't also run during search, since we don't
                     // ship a segmenter to the browser. This logic is easier
                     // to replicate in the JavaScript that parses a search query.
@@ -588,7 +588,7 @@ mod tests {
         let mut f =
             test_fossick(["<html><body>", "<p>Hello World!</p>", "</body></html>"].concat()).await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (digest, words, _, _) = f.parse_digest();
 
         assert_eq!(digest, "Hello World!".to_string());
         assert_eq!(
@@ -628,7 +628,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (digest, words, _, _) = f.parse_digest();
 
         assert_eq!(digest, "The Quick Brown. Fox Jumps Over. Ryan.".to_string());
         assert_eq!(
@@ -706,7 +706,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest();
 
         assert_eq!(
             words,
@@ -765,7 +765,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, anchors, word_count) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest();
 
         assert_eq!(
             words,

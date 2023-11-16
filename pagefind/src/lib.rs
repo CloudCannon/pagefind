@@ -4,7 +4,6 @@ pub use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
 use index::PagefindIndexes;
-use logging::Logger;
 pub use options::{PagefindInboundConfig, SearchOptions};
 use output::SyntheticFile;
 use wax::{Glob, WalkEntry};
@@ -83,9 +82,6 @@ impl SearchState {
 
     pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData, ()> {
         let result = file.fossick(&self.options).await;
-        self.options
-            .logger
-            .info(format!("Indexing file into: {:#?}", self.fossicked_pages));
         if let Ok(result) = result.clone() {
             let existing = self
                 .fossicked_pages
@@ -97,9 +93,6 @@ impl SearchState {
                 self.fossicked_pages.push(result);
             }
         }
-        self.options
-            .logger
-            .info(format!("Now: {:#?}", self.fossicked_pages));
         result
     }
 
@@ -293,7 +286,7 @@ impl SearchState {
         )
         .await;
 
-        output::write_common_to_disk(&self.options, index_entries, &outdir).await;
+        output::write_common_to_disk(index_entries, &outdir).await;
 
         outdir
     }
@@ -317,7 +310,7 @@ impl SearchState {
             .collect();
 
         files.extend(
-            output::write_common_to_memory(&self.options, index_entries, outdir)
+            output::write_common_to_memory(index_entries, outdir)
                 .await
                 .into_iter(),
         );

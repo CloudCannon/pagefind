@@ -26,5 +26,9 @@
     "nodeArguments": [
       "--loader=tsx"
     ]
+  },
+  "dependencies": {
+    "@types/mark.js": "^8.11.8",
+    "mark.js": "^8.11.1"
   }
 }

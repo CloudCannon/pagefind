@@ -9,6 +9,31 @@
 
 ## Unreleased
 
+### Features & Improvements
+* Added highlighting support to Pagefind. Massive thanks to @Jothsa for pushing this across the line in #425! 🎉
+  * See [📘 Highlighting search terms](https://pagefind.app/docs/highlighting/) for documentation on how to enable this new feature.
+* Added a page size option to the Default UI. See [📘 UI Configuration > Page size](https://pagefind.app/docs/ui/#page-size).
+* Added a `destroy()` function to the Pagefind JS API, allowing for a total re-initialization. See [📘 Re-initializing the search API](https://pagefind.app/docs/api/#re-initializing-the-search-api).
+* Added a `destroy()` function to the Pagefind Default UI, allowing for a total re-initialization. See [📘 Re-initializing the Pagefind UI](https://pagefind.app/docs/ui-usage/#re-initializing-the-pagefind-ui).
+
+### Fixes & Tweaks
+* Fixed a bug, resulting in a (very) large improvement to the NodeJS Indexing API performance (~100x).
+* Fixed HTML entities being rendered escaped in metadata, filters, and custom page titles.
+* Fixed a bug where `debouncedSearch` returns `null` if any options object is passed to it.
+* Fixed a bug where a fully-qualified URL set via the NodeJS indexing API would be broken when returned as a search result.
+* Fixed Pagefind's reporting of really fast indexing times (previously logged as slower than reality) — thanks to @danpls in #448.
+* Fixed extracting sub-results when headings contain non-ascii text (especially RTL languages).
+
+### UI Translations
+
+* Added Māori translations (PR #436 — thanks @Yoda-Soda !).
+* Added Croatian translations (PR #440 — thanks @diomed !).
+* Added Hungarian translations (PR #451 — thanks @adamlaki !).
+* Added Bengali translations (PR #454 — thanks @marufmax !).
+* Added Vietnamese translations (PR #467 — thanks @AREA44 !).
+* Added Polish translations (PR #495 — thanks @KredensKuchenny !).
+* Added Danish translations (PR #501 — thanks @jonassmedegaard !).
+
 ## v1.0.3 (September 16, 2023)
 
 Hopefully the last hotfix for now — bugfixes only important for sites indexing Japanese or Chinese pages.

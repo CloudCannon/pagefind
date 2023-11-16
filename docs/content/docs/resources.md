@@ -42,9 +42,21 @@ These resources are created by helpful community members, and aren't guaranteed 
         resource
         site="ncartron.org"
         date="January 2023"
-        title=" Installing Pagefind, a static search engine, on FreeBSD"
+        title="Installing Pagefind, a static search engine, on FreeBSD"
         url="https://www.ncartron.org/installing-pagefind-a-static-search-engine-on-freebsd.html"
         archive_url="https://web.archive.org/web/20230123071301/https://www.ncartron.org/installing-pagefind-a-static-search-engine-on-freebsd.html"
+    >}}
+
+## Using Pagefind with a platform
+
+- **Azure Static Web Apps**
+  - {{< 
+        resource
+        site="unravelled.dev"
+        date="September 2023"
+        title="Integrating PageFind with Hugo when hosting on Azure Static Web Apps"
+        url="https://www.unravelled.dev/integrating-pagefind-hugo-and-azure-static-web-apps/"
+        archive_url="https://web.archive.org/web/20231116020947/https://www.unravelled.dev/integrating-pagefind-hugo-and-azure-static-web-apps/"
     >}}
 
 ## Using Pagefind with a specific SSG
@@ -85,6 +97,21 @@ These resources are created by helpful community members, and aren't guaranteed 
 - **Eleventy**
   - {{< 
         resource
+        site="youtube.com — Coding in Public"
+        date="November 2023"
+        title="Pagefind: the New Rust-Based Search Tool (with Astro)"
+        url="https://www.youtube.com/watch?v=v79VRrfVau8"
+    >}}
+  - {{< 
+        resource
+        site="chrispennington.blog"
+        date="October 2023"
+        title="Pagefind: Static Search for Astro Sites"
+        url="https://chrispennington.blog/blog/pagefind-static-search-for-astro-sites/"
+        archive_url="https://web.archive.org/web/20231116020501/https://chrispennington.blog/blog/pagefind-static-search-for-astro-sites/"
+    >}}
+  - {{< 
+        resource
         site="rknight.me"
         date="January 2023"
         title="Using PageFind with Eleventy for Search"
@@ -116,15 +143,13 @@ These resources are created by helpful community members, and aren't guaranteed 
         title="Official Pagefind plugin for Lume"
         url="https://lume.land/plugins/pagefind/"
     >}}
-- **Zola**
+- **Next.js**
   - {{< 
         resource
-        site="pinchlime.com"
-        date="January 2023"
-        title="如何透過 Pagefind 在 Zola 產生的靜態網站裡加入搜尋功能"
-        url="https://pinchlime.com/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/"
-        archive_url="https://web.archive.org/web/20230117105349/https://pinchlime.com/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/"
-        translated_url="https://pinchlime-com.translate.goog/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en-GB"
+        site="petemillspaugh.com"
+        title="Add search to your Next.js static site with Pagefind"
+        url="https://www.petemillspaugh.com/nextjs-search-with-pagefind"
+        archive_url="https://web.archive.org/web/20231116021148/https://www.petemillspaugh.com/nextjs-search-with-pagefind"
     >}}
 - **VitePress**
   - {{< 
@@ -135,4 +160,14 @@ These resources are created by helpful community members, and aren't guaranteed 
         url="https://juejin.cn/post/7217381222025068600"
         archive_url="https://web.archive.org/web/20230404011714/https://juejin.cn/post/7217381222025068600"
         translated_url="https://juejin-cn.translate.goog/post/7217381222025068600?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en-GB&_x_tr_hist=true"
+    >}}
+- **Zola**
+  - {{< 
+        resource
+        site="pinchlime.com"
+        date="January 2023"
+        title="如何透過 Pagefind 在 Zola 產生的靜態網站裡加入搜尋功能"
+        url="https://pinchlime.com/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/"
+        archive_url="https://web.archive.org/web/20230117105349/https://pinchlime.com/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/"
+        translated_url="https://pinchlime-com.translate.goog/blog/how-to-add-a-search-function-to-zola-generated-static-websites-via-pagefind/?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en-GB"
     >}}

@@ -428,7 +428,7 @@ impl<'a> DomParser<'a> {
                             }
 
                             // Process filters & meta before we continue
-                            // TODO: Abstract repitition into function
+                            // TODO: Abstract repetition into function
                             if let Some(filters) = &node.filter {
                                 for filter in filters {
                                     if let Some((filter, value)) = node.get_attribute_pair(filter) {
@@ -651,7 +651,7 @@ impl DomParsingNode {
                 if self.current_value.is_empty() {
                     None
                 } else {
-                    Some((input.to_owned(), self.current_value.to_owned()))
+                    Some((input.to_owned(), normalize_content(&self.current_value)))
                 }
             }
         }
