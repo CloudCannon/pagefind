@@ -26,6 +26,7 @@ export class PagefindUI {
     let debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
     let mergeIndex = opts.mergeIndex ?? [];
     let translations = opts.translations ?? [];
+    let autofocus = opts.autofocus ?? false;
 
     // Remove the UI-specific config before passing it along to the Pagefind backend
     delete opts["element"];
@@ -41,6 +42,7 @@ export class PagefindUI {
     delete opts["debounceTimeoutMs"];
     delete opts["mergeIndex"];
     delete opts["translations"];
+    delete opts["autofocus"];
 
     const dom =
       selector instanceof HTMLElement
@@ -62,6 +64,7 @@ export class PagefindUI {
           debounce_timeout_ms: debounceTimeoutMs,
           merge_index: mergeIndex,
           translations,
+          autofocus,
           pagefind_options: opts,
         },
       });
