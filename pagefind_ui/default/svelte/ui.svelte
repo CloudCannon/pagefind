@@ -34,6 +34,7 @@
   export let merge_index = [];
   export let trigger_search_term = "";
   export let translations = {};
+  export let autofocus = false;
 
   let val = "";
   $: if (trigger_search_term) {
@@ -239,6 +240,7 @@
       )}
       autocapitalize="none"
       enterkeyhint="search"
+      {autofocus}
     />
 
     <button
