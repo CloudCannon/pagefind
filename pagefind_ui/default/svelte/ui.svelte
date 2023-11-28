@@ -35,6 +35,7 @@
   export let trigger_search_term = "";
   export let translations = {};
   export let autofocus = false;
+  export let sort = null;
 
   let val = "";
   $: if (trigger_search_term) {
@@ -186,7 +187,12 @@
     await waitForApiInit();
 
     const local_search_id = ++search_id;
-    const results = await pagefind.search(term, { filters });
+
+    const search_options = { filters };
+    if (sort && typeof sort === "object") {
+      search_options[sort] = sort;
+    }
+    const results = await pagefind.search(term, search_options);
     if (search_id === local_search_id) {
       if (results.filters && Object.keys(results.filters)?.length) {
         available_filters = results.filters;
