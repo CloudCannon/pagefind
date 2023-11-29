@@ -190,7 +190,7 @@
 
     const search_options = { filters };
     if (sort && typeof sort === "object") {
-      search_options[sort] = sort;
+      search_options.sort = sort;
     }
     const results = await pagefind.search(term, search_options);
     if (search_id === local_search_id) {
