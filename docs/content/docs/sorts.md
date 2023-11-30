@@ -7,8 +7,6 @@ weight: 20
 
 Pagefind supports sorting results by tagged attributes instead of page relevancy. For a sort to be available in the browser, pages must be tagged with the `data-pagefind-sort` attribute.
 
-> Sorting is currently only supported when interacting with the Pagefind JS API directly.
-
 ## Capturing a sort value from an element
 
 ```html
