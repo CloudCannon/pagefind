@@ -15,7 +15,7 @@ Pagefind supports sorting results by tagged attributes instead of page relevancy
 
 An element tagged with `data-pagefind-sort` will capture the contents of that element and provide the given key as a sort option to the Pagefind JS API. In the above example, the page would be tagged as `date: "2022-10-20"`.
 
-## Capturing a filter value from an attribute
+## Capturing a sort value from an attribute
 
 If the data you want to sort by exists as an attribute, you can use the syntax `sort_key[html_attribute]`
 
