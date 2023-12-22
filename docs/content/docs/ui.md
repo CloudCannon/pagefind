@@ -169,3 +169,31 @@ new PagefindUI({
 A set of custom ui strings to use instead of the automatically detected language strings. See the [translations/en.json](https://github.com/CloudCannon/pagefind/blob/main/pagefind_ui/translations/en.json) file for all available keys and their initial values.
 
 The items in square brackets such as `SEARCH_TERM` will be substituted dynamically when the text is used.
+
+### Autofocus
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    autofocus: true 
+});
+```
+{{< /diffcode >}}
+
+Enabling autofocus automatically directs attention to the search input field for enhanced user convenience, particularly beneficial when the UI is loaded within a modal dialog. However, exercise caution, as using autofocus indiscriminately may pose potential accessibility challenges.
+
+### Sort
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    sort: { date: "desc" }
+});
+```
+{{< /diffcode >}}
+
+Passes sort options to Pagefind for ranking. Note that using a sort will override all ranking by relevance.
+
+The object passed to this option must match the [sort config for the JS API](/docs/js-api-sorting/).
