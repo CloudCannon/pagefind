@@ -1,0 +1,18 @@
+{
+  "thanks_to": "Mohammad RAHMANI",
+  "comments": "",
+  "direction": "rtl",
+  "strings": {
+    "placeholder": "جستجو",
+    "clear_search": "پاک کردن",
+    "load_more": "نتایج بیشتر بارگذاری کن",
+    "search_label": "این سایت را جستجو کن",
+    "filters_label": "فیلترها",
+    "zero_results": "نتیجه‌ای برای [SEARCH_TERM] پیدا نشد",
+    "many_results": "[COUNT] نتیجه برای [SEARCH_TERM]",
+    "one_result": "[COUNT] نتیجه برای [SEARCH_TERM]",
+    "alt_search": "نتیجه‌ای برای [SEARCH_TERM] پیدا نشد. در عوض، نتایج برای [DIFFERENT_TERM] نشان داده شده‌اند",
+    "search_suggestion": "نتیجه‌ای برای [SEARCH_TERM] پیدا نشد. یکی از جستجوهای زیر را امتحان کنید:",
+    "searching": "در حال جستجوی [SEARCH_TERM]..."
+  }
+}
