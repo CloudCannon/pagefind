@@ -44,6 +44,10 @@ declare global {
         filters?: Object,
         /** The set of sorts to use for this search, instead of relevancy */
         sort?: Object,
+        /** Fine-grained ranking weights (range: 0.0 - 1.0) */
+        ranking?: {
+            pageFrequency?: Number,
+        },
     }
 
     /** Filter counts returned from pagefind.filters(), and alongside results from pagefind.search() */

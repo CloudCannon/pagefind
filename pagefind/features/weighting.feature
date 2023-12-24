@@ -224,3 +224,31 @@ Feature: Word Weighting
         Then There should be no logs
         # Treat the bal value here as a snapshot — update the expected value as needed
         Then The selector "p" should contain "weight:1/bal:82.28572/loc:4"
+
+    Scenario: Density weighting can be turned off
+        Given I have a "public/single-word.html" file with the body:
+            """
+            <p>word</p>
+            """
+        Given I have a "public/three-words.html" file with the body:
+            """
+            <p>I have a word and a word and another word</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search(`word`);
+                let search2 = await pagefind.search(`word`, { ranking: { pageFrequency: 0.0 } });
+                let counts = [search, search2].map(s => s.results.map(r => r.words.length));
+                document.querySelector('p').innerText = JSON.stringify(counts);
+            }
+            """
+        Then There should be no logs
+        # With density weighting, single-word should be the first hit, otherwise three-words
+        Then The selector "p" should contain "[[1,3],[3,1]]"

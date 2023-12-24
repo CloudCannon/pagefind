@@ -440,10 +440,13 @@ class PagefindInstance {
             return null;
         }
 
+        let ranking = new this.backend.RankingWeights(
+            options.ranking?.pageFrequency ?? 1.0,
+        )
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search) as string;
+        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search, ranking) as string;
         log(`Got the raw search result: ${result}`);
         let [unfilteredResultCount, all_results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
         let filterObj = this.parseFilters(filters);

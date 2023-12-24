@@ -3,6 +3,7 @@ use std::{borrow::Cow, cmp::Ordering};
 use crate::{util::*, PageWord};
 use bit_set::BitSet;
 use pagefind_stem::Stemmer;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::SearchIndex;
 
@@ -32,6 +33,24 @@ pub struct BalancedWordScore {
     pub weight: u8,
     pub balanced_score: f32,
     pub word_location: u32,
+}
+
+#[derive(Debug, Clone)]
+#[wasm_bindgen]
+pub struct RankingWeights {
+    pub page_frequency: f32,
+}
+
+#[wasm_bindgen]
+impl RankingWeights {
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        page_frequency: f32,
+    ) -> RankingWeights {
+        RankingWeights {
+            page_frequency,
+        }
+    }
 }
 
 impl From<VerboseWordLocation> for BalancedWordScore {
@@ -175,6 +194,7 @@ impl SearchIndex {
         &self,
         term: &str,
         filter_results: Option<BitSet>,
+        ranking: &RankingWeights,
     ) -> (Vec<usize>, Vec<PageSearchResult>) {
         debug!({
             format! {"Searching {:?}", term}
@@ -318,7 +338,7 @@ impl SearchIndex {
                 .map(|BalancedWordScore { balanced_score, .. }| balanced_score)
                 .sum::<f32>()
                 / 24.0)
-                / page.word_count as f32;
+                / ((page.word_count as f32).ln() * (*ranking).page_frequency).exp();
 
             let search_result = PageSearchResult {
                 page: page.hash.clone(),

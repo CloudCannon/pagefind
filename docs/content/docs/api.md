@@ -239,6 +239,18 @@ const search = await pagefind.search("static", {
 
 See [Sorting using the Pagefind JavaScript API](/docs/js-api-sorting/) for more details and functionality.
 
+## Controlling how search results are ranked
+
+By default, the results' are sorted using a "balanced score" which is calculated using a sophisticated formula. This formula takes the ratio into account between matching vs total number of words on any given page. To support scenarios where this is not desirable (e.g. on sites where longer articles are better matches than short ones), this can be turned off:
+
+{{< diffcode >}}
+```js
+const search = await pagefind.search("term", {
++    ranking: { pageFrequency: 0.0 }
+});
+```
+{{< /diffcode >}}
+
 ## Re-initializing the search API
 
 In some cases you might need to re-initialize Pagefind. For example, if you dynamically change the language of the page without reloading, Pagefind will need to be re-initialized to reflect this langauge change.

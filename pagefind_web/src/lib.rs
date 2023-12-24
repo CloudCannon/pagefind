@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use util::*;
 use wasm_bindgen::prelude::*;
 
-use crate::search::BalancedWordScore;
+use crate::search::{BalancedWordScore, RankingWeights};
 
 mod filter;
 mod filter_index;
@@ -210,7 +210,7 @@ pub fn filters(ptr: *mut SearchIndex) -> String {
 }
 
 #[wasm_bindgen]
-pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exact: bool) -> String {
+pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exact: bool, ranking: &RankingWeights) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
 
     if let Some(generator_version) = search_index.generator_version.as_ref() {
@@ -225,7 +225,7 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
     let (unfiltered_results, mut results) = if exact {
         search_index.exact_term(query, filter_set)
     } else {
-        search_index.search_term(query, filter_set)
+        search_index.search_term(query, filter_set, ranking)
     };
     let unfiltered_total = unfiltered_results.len();
     debug!({ format!("Raw total of {} results", unfiltered_total) });
