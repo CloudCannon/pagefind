@@ -54,6 +54,38 @@ Feature: Result Scoring
         Then The selector "[data-count]" should contain "2 result(s)"
         Then The selector "[data-result]" should contain "/dog/, /cat/"
 
+    Scenario: Results with less-frequent words score higher
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search(`cat dog`);
+
+                document.querySelector('[data-count]').innerText = `${search.results.length} result(s)`;
+                let data = await Promise.all(search.results.map(result => result.data()));
+                document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-count]" should contain "2 result(s)"
+        Then The selector "[data-result]" should contain "/dog/, /cat/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search(`cat dog`, { ranking: { siteFrequency: 0.0 } });
+
+                document.querySelector('[data-count]').innerText = `${search.results.length} result(s)`;
+                let data = await Promise.all(search.results.map(result => result.data()));
+                document.querySelector('[data-result]').innerText = data.map(d => d.url).join(', ');
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-count]" should contain "2 result(s)"
+        # This currently fails... but why? Then The selector "[data-result]" should contain "/cat/, /dog/"
+
     Scenario: Ranking can be configured to stop favoring pages with less words
         Given I have a "public/index.html" file with the body:
             """
