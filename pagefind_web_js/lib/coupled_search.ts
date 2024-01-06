@@ -441,6 +441,8 @@ class PagefindInstance {
         }
 
         let ranking = new this.backend.RankingWeights(
+            options.ranking?.wordDistance ?? 1.0,
+            options.ranking?.siteFrequency ?? 1.0,
             options.ranking?.pageFrequency ?? 1.0,
         )
         // pointer may have updated from the loadChunk calls

@@ -46,6 +46,8 @@ declare global {
         sort?: Object,
         /** Fine-grained ranking weights (range: 0.0 - 1.0) */
         ranking?: {
+            wordDistance?: Number,
+            siteFrequency?: Number,
             pageFrequency?: Number,
         },
     }

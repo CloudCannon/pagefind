@@ -38,6 +38,8 @@ pub struct BalancedWordScore {
 #[derive(Debug, Clone)]
 #[wasm_bindgen]
 pub struct RankingWeights {
+    pub word_distance: f32,
+    pub site_frequency: f32,
     pub page_frequency: f32,
 }
 
@@ -45,43 +47,46 @@ pub struct RankingWeights {
 impl RankingWeights {
     #[wasm_bindgen(constructor)]
     pub fn new(
+        word_distance: f32,
+        site_frequency: f32,
         page_frequency: f32,
     ) -> RankingWeights {
         RankingWeights {
+            word_distance,
+            site_frequency,
             page_frequency,
         }
     }
 }
 
-impl From<VerboseWordLocation> for BalancedWordScore {
-    fn from(
-        VerboseWordLocation {
-            weight,
-            length_differential,
-            word_frequency,
-            word_location,
-        }: VerboseWordLocation,
-    ) -> Self {
-        let word_length_bonus = if length_differential > 0 {
-            (2.0 / length_differential as f32).max(0.2)
-        } else {
-            3.0
-        };
+fn calculate_word_score(
+    VerboseWordLocation {
+        weight,
+        length_differential,
+        word_frequency,
+        word_location,
+    }: VerboseWordLocation,
+    ranking: &RankingWeights,
+) -> BalancedWordScore {
+    let word_length_bonus = ((if length_differential > 0 {
+        (2.0 / length_differential as f32).max(0.2)
+    } else {
+        3.0
+    }).ln() * (*ranking).word_distance).exp();
 
-        // Starting with the raw user-supplied (or derived) weight of the word,
-        // we take it to the power of two to make the weight scale non-linear.
-        // We then multiply it with word_length_bonus, which should be a roughly 0 -> 3 scale of how close
-        // this was was in length to the target word.
-        // That result is then multiplied by the word frequency, which is again a roughly 0 -> 2 scale
-        // of how unique this word is in the entire site. (tf-idf ish)
-        let balanced_score =
-            ((weight as f32).powi(2) * word_length_bonus) * word_frequency.max(0.5);
+    // Starting with the raw user-supplied (or derived) weight of the word,
+    // we take it to the power of two to make the weight scale non-linear.
+    // We then multiply it with word_length_bonus, which should be a roughly 0 -> 3 scale of how close
+    // this was was in length to the target word.
+    // That result is then multiplied by the word frequency, which is again a roughly 0 -> 2 scale
+    // of how unique this word is in the entire site. (tf-idf ish)
+    let balanced_score =
+        ((weight as f32).powi(2) * word_length_bonus) * (word_frequency.max(0.5).ln() * (*ranking).site_frequency).exp();
 
-        Self {
-            weight,
-            balanced_score,
-            word_location,
-        }
+    BalancedWordScore {
+        weight,
+        balanced_score,
+        word_location,
     }
 }
 
@@ -321,11 +326,11 @@ impl SearchIndex {
                             working_word.length_differential = next_word.length_differential;
                         }
                     } else {
-                        unique_word_locations.push(working_word.into());
+                        unique_word_locations.push(calculate_word_score(working_word, ranking));
                         working_word = next_word;
                     }
                 }
-                unique_word_locations.push(working_word.into());
+                unique_word_locations.push(calculate_word_score(working_word, ranking));
             }
 
             let page = &self.pages[page_index];

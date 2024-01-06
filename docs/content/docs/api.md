@@ -251,6 +251,26 @@ const search = await pagefind.search("term", {
 ```
 {{< /diffcode >}}
 
+It is also possible to control how much the site-wide frequency of a given term is taken into account (by default, terms that appear less often have a higher weight):
+
+{{< diffcode >}}
+```js
+const search = await pagefind.search("term", {
++    ranking: { siteFrequency: 0.0 }
+});
+```
+{{< /diffcode >}}
+
+Another knob to control the ranking is `wordDistance`, which tells Pagefind how much it should weigh the length difference of the matched word vs the length of the matching search term:
+
+{{< diffcode >}}
+```js
+const search = await pagefind.search("term", {
++    ranking: { wordDistance: 0.3 }
+});
+```
+{{< /diffcode >}}
+
 ## Re-initializing the search API
 
 In some cases you might need to re-initialize Pagefind. For example, if you dynamically change the language of the page without reloading, Pagefind will need to be re-initialized to reflect this langauge change.
