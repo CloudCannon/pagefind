@@ -11,7 +11,7 @@
         "zero_results": "لا توجد نتائج ل [SEARCH_TERM]",
         "many_results": "[COUNT] نتائج ل [SEARCH_TERM]",
         "one_result": "[COUNT] نتيجة ل [SEARCH_TERM]",
-        "alt_search": "لا توجد نتائج ل [SEARCH_TERM]. يُظهر النتائج ل [DIFFERENT_TERM] بدلاً من ذلك",
+        "alt_search": "لا توجد نتائج ل [SEARCH_TERM]. يعرض النتائج ل [DIFFERENT_TERM] بدلاً من ذلك",
         "search_suggestion": "لا توجد نتائج ل [SEARCH_TERM]. جرب أحد عمليات البحث التالية:",
         "searching": "يبحث عن [SEARCH_TERM]..."
     }
