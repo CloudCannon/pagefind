@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Bogdan Mateescu <bogdan@surfverse.com>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Căutare",
+        "clear_search": "Ştergeţi",
+        "load_more": "Încărcați mai multe rezultate",
+        "search_label": "Căutați în acest site",
+        "filters_label": "Filtre",
+        "zero_results": "Niciun rezultat pentru [SEARCH_TERM]",
+        "many_results": "[COUNT] rezultate pentru [SEARCH_TERM]",
+        "one_result": "[COUNT] rezultat pentru [SEARCH_TERM]",
+        "alt_search": "Niciun rezultat pentru [SEARCH_TERM]. Se afișează în schimb rezultatele pentru [DIFFERENT_TERM]",
+        "search_suggestion": "Niciun rezultat pentru [SEARCH_TERM]. Încercați una dintre următoarele căutări:",
+        "searching": "Se caută după: [SEARCH_TERM]..."
+    }
+}
