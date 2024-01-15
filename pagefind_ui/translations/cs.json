@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Tomas Duchon <duchon@micronano.net>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Hledat",
+        "clear_search": "Vymazat",
+        "load_more": "Načíst další výsledky",
+        "search_label": "Hledat na této stránce",
+        "filters_label": "Filtry",
+        "zero_results": "Žádné výsledky pro dotaz [SEARCH_TERM]",
+        "many_results": "[COUNT] výsledků pro dotaz [SEARCH_TERM]",
+        "one_result": "[COUNT] výsledek pro dotaz [SEARCH_TERM]",
+        "alt_search": "Žádné výsledky pro dotaz [SEARCH_TERM]. Zobrazeny výsledky pro dotaz [DIFFERENT_TERM] namísto toho",
+        "search_suggestion": "Žádné výsledky pro dotaz [SEARCH_TERM]. Vyzkoušejte jeden z následujících dotazů:",
+        "searching": "Vyhledávám [SEARCH_TERM]..."
+    }
+}
