@@ -204,7 +204,7 @@ pub async fn run_service() {
                         force_inclusion: true,
                         has_html_element: true,
                         has_old_bundle_reference: false,
-                        language,
+                        language: index.options.force_language.clone().unwrap_or(language),
                     };
                     let file = Fossicker::new_with_data(url, data);
                     let data = index.fossick_one(file).await;

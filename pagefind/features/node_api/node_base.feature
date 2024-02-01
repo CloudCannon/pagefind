@@ -412,3 +412,37 @@ Feature: Node API Base Tests
         When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
         Then I should see "pagefind.js" in stdout
         Then I should see "After close: Invalid index, does not yet exist in the Pagefind service" in stdout
+
+    # https://github.com/CloudCannon/pagefind/issues/551
+    @platform-unix
+    Scenario: Force language takes precedence over records
+        Given I have a "public/index.js" file with the content:
+            """
+            import * as pagefind from "pagefind";
+            import fs from "fs";
+            import path from "path";
+
+            const run = async () => {
+                const { index } = await pagefind.createIndex({
+                    forceLanguage: "fr"
+                });
+                await index.addCustomRecord({
+                    url: "/one/",
+                    content: "Testing file #1",
+                    language: "pt"
+                });
+                await index.addHTMLFile({sourcePath: "two/index.html", content: "<html lang='en'><body><h1>Testing file #2</h1></body></html>"});
+                await index.writeFiles();
+
+                console.log("✨!");
+            }
+
+            run();
+            """
+        When I run "cd public && npm i && PAGEFIND_BINARY_PATH={{humane_cwd}}/$TEST_BINARY node index.js"
+        Then I should see "✨!" in stdout
+        Then I should see the file "public/pagefind/pagefind.js"
+        Then I should see the file "public/pagefind/wasm.unknown.pagefind"
+        Then I should see the file "public/pagefind/wasm.fr.pagefind"
+        Then I should not see the file "public/pagefind/wasm.pt.pagefind"
+        Then I should not see the file "public/pagefind/wasm.en.pagefind"
