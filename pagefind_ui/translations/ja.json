@@ -4,15 +4,15 @@
     "direction": "ltr",
     "strings": {
         "placeholder": "検索",
-        "clear_search": "消す",
-        "load_more": "もっと読み込む",
+        "clear_search": "クリア",
+        "load_more": "次を読み込む",
         "search_label": "このサイトを検索",
         "filters_label": "フィルタ",
-        "zero_results": "[SEARCH_TERM]の検索に一致する件はありませんでした",
+        "zero_results": "[SEARCH_TERM]の検索に一致する情報はありませんでした",
         "many_results": "[SEARCH_TERM]の[COUNT]件の検索結果",
         "one_result": "[SEARCH_TERM]の[COUNT]件の検索結果",
-        "alt_search": "[SEARCH_TERM]の検索に一致する件はありませんでした。[DIFFERENT_TERM]の検索結果を表示しています",
-        "search_suggestion": "[SEARCH_TERM]の検索に一致する件はありませんでした。次のいずれかの検索を試してください",
+        "alt_search": "[SEARCH_TERM]の検索に一致する情報はありませんでした。[DIFFERENT_TERM]の検索結果を表示しています",
+        "search_suggestion": "[SEARCH_TERM]の検索に一致する情報はありませんでした。次のいずれかの検索を試してください",
         "searching": "[SEARCH_TERM]を検索しています"
     }
 }
