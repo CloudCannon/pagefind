@@ -340,7 +340,12 @@ impl Fossicker {
                 }
             }
 
-            let word_weight = weight_stack.last().unwrap_or(&1);
+            // We use zero-width spaces as boundary values for some languages,
+            // so we make sure that all are removed from the source content before going into the index.
+            let normalized_word = word.replace('\u{200B}', "");
+            if normalized_word.is_empty() {
+                return;
+            }
 
             content.push_str(&word.replace('\u{200B}', ""));
             if append_whitespace {
@@ -355,6 +360,7 @@ impl Fossicker {
                 .into_owned()
                 .to_lowercase();
 
+            let word_weight = weight_stack.last().unwrap_or(&1);
             if !normalized_word.is_empty() {
                 store_word(&normalized_word, total_word_index, *word_weight);
             }
