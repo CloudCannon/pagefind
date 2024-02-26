@@ -256,17 +256,17 @@ It is also possible to control how much the site-wide frequency of a given term 
 {{< diffcode >}}
 ```js
 const search = await pagefind.search("term", {
-+    ranking: { siteFrequency: 0.0 }
++    ranking: { siteRarity: 0.0 }
 });
 ```
 {{< /diffcode >}}
 
-Another knob to control the ranking is `wordDistance`, which tells Pagefind how much it should weigh the length difference of the matched word vs the length of the matching search term:
+Another knob to control the ranking is `termSimilarity`, which tells Pagefind how much it should weigh the length difference of the matched word vs the length of the matching search term:
 
 {{< diffcode >}}
 ```js
 const search = await pagefind.search("term", {
-+    ranking: { wordDistance: 0.3 }
++    ranking: { termSimilarity: 0.3 }
 });
 ```
 {{< /diffcode >}}

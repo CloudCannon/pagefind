@@ -46,8 +46,11 @@ declare global {
         sort?: Object,
         /** Fine-grained ranking weights (range: 0.0 - 1.0) */
         ranking?: {
-            wordDistance?: Number,
-            siteFrequency?: Number,
+            /* How much to boost words that closely match the search term, over fuzzier matches */
+            termSimilarity?: Number,
+            /* How much to boost unique words in the search term, based on their occurance within the site as a whole */
+            siteRarity?: Number,
+            /* How much to boost results based on density of the search term on the page */
             pageFrequency?: Number,
         },
     }

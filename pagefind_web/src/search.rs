@@ -38,22 +38,18 @@ pub struct BalancedWordScore {
 #[derive(Debug, Clone)]
 #[wasm_bindgen]
 pub struct RankingWeights {
-    pub word_distance: f32,
-    pub site_frequency: f32,
+    pub term_similarity: f32,
+    pub site_rarity: f32,
     pub page_frequency: f32,
 }
 
 #[wasm_bindgen]
 impl RankingWeights {
     #[wasm_bindgen(constructor)]
-    pub fn new(
-        word_distance: f32,
-        site_frequency: f32,
-        page_frequency: f32,
-    ) -> RankingWeights {
+    pub fn new(term_similarity: f32, site_rarity: f32, page_frequency: f32) -> RankingWeights {
         RankingWeights {
-            word_distance,
-            site_frequency,
+            term_similarity,
+            site_rarity,
             page_frequency,
         }
     }
@@ -72,7 +68,10 @@ fn calculate_word_score(
         (2.0 / length_differential as f32).max(0.2)
     } else {
         3.0
-    }).ln() * (*ranking).word_distance).exp();
+    })
+    .ln()
+        * (*ranking).term_similarity)
+        .exp();
 
     // Starting with the raw user-supplied (or derived) weight of the word,
     // we take it to the power of two to make the weight scale non-linear.
@@ -80,8 +79,8 @@ fn calculate_word_score(
     // this was was in length to the target word.
     // That result is then multiplied by the word frequency, which is again a roughly 0 -> 2 scale
     // of how unique this word is in the entire site. (tf-idf ish)
-    let balanced_score =
-        ((weight as f32).powi(2) * word_length_bonus) * (word_frequency.max(0.5).ln() * (*ranking).site_frequency).exp();
+    let balanced_score = ((weight as f32).powi(2) * word_length_bonus)
+        * (word_frequency.max(0.5).ln() * (*ranking).site_rarity).exp();
 
     BalancedWordScore {
         weight,
