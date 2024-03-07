@@ -94,7 +94,6 @@ These resources are created by helpful community members, and aren't guaranteed 
         url="https://friendlyuser.github.io/astro-tech-blog/posts/adding_search_to_static_sites/"
         archive_url="https://web.archive.org/web/20230126194357/https://friendlyuser.github.io/astro-tech-blog/posts/adding_search_to_static_sites/"
     >}}
-- **Eleventy**
   - {{< 
         resource
         site="youtube.com — Coding in Public"
@@ -110,6 +109,7 @@ These resources are created by helpful community members, and aren't guaranteed 
         url="https://chrispennington.blog/blog/pagefind-static-search-for-astro-sites/"
         archive_url="https://web.archive.org/web/20231116020501/https://chrispennington.blog/blog/pagefind-static-search-for-astro-sites/"
     >}}
+- **Eleventy**
   - {{< 
         resource
         site="rknight.me"
