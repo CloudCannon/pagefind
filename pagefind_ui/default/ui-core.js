@@ -23,6 +23,7 @@ export class PagefindUI {
     let processResult = opts.processResult ?? null;
     let processTerm = opts.processTerm ?? null;
     let showEmptyFilters = opts.showEmptyFilters ?? true;
+    let openFilters = opts.openFilters ?? [];
     let debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
     let mergeIndex = opts.mergeIndex ?? [];
     let translations = opts.translations ?? [];
@@ -40,6 +41,7 @@ export class PagefindUI {
     delete opts["processResult"];
     delete opts["processTerm"];
     delete opts["showEmptyFilters"];
+    delete opts["openFilters"];
     delete opts["debounceTimeoutMs"];
     delete opts["mergeIndex"];
     delete opts["translations"];
@@ -63,6 +65,7 @@ export class PagefindUI {
           process_result: processResult,
           process_term: processTerm,
           show_empty_filters: showEmptyFilters,
+          open_filters: openFilters,
           debounce_timeout_ms: debounceTimeoutMs,
           merge_index: mergeIndex,
           translations,

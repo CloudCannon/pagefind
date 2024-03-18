@@ -1,6 +1,7 @@
 <script>
     export let available_filters = null;
     export let show_empty_filters = true;
+    export let open_filters = [];
     export let translate = () => "";
     export let automatic_translations = {};
     export let translations = {};
@@ -28,7 +29,7 @@
             >{translate("filters_label", automatic_translations, translations)}</legend
         >
         {#each Object.entries(available_filters) as [filter, values]}
-            <details class="pagefind-ui__filter-block" open={default_open}>
+            <details class="pagefind-ui__filter-block" open={default_open || open_filters.map(f => f.toLowerCase()).includes(filter.toLowerCase())}>
                 <summary class="pagefind-ui__filter-name"
                     >{@html filter.replace(/^(\w)/, (c) =>
                         c.toLocaleUpperCase()
