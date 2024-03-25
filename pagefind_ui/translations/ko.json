@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Seokho Son <https://github.com/seokho-son>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "검색어",
+        "clear_search": "비우기",
+        "load_more": "검색 결과 더 보기",
+        "search_label": "사이트 검색",
+        "filters_label": "필터",
+        "zero_results": "[SEARCH_TERM]에 대한 결과 없음",
+        "many_results": "[SEARCH_TERM]에 대한 결과 [COUNT]건",
+        "one_result": "[SEARCH_TERM]에 대한 결과 [COUNT]건",
+        "alt_search": "[SEARCH_TERM]에 대한 결과 없음. [DIFFERENT_TERM]에 대한 결과",
+        "search_suggestion": "[SEARCH_TERM]에 대한 결과 없음. 추천 검색어: ",
+        "searching": "[SEARCH_TERM] 검색 중..."
+    }
+}
