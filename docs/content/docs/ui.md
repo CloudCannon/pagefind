@@ -113,6 +113,19 @@ new PagefindUI({
 
 By default, Pagefind UI shows filters with no results alongside the count (0). Pass `false` to hide filters that have no remaining results.
 
+### Open filters
+
+{{< diffcode >}}
+```javascript
+new PagefindUI({
+    element: "#search",
++    openFilters: ['Tags','Type']
+});
+```
+{{< /diffcode >}}
+
+The default behavior of the filter display is to show values only when there is one filter with six or fewer values. When you include a filter name in `openFilters` it will open by default, regardless of the number of filters or values present.
+
 ### Reset styles
 
 {{< diffcode >}}

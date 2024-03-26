@@ -29,6 +29,7 @@
   export let process_result = null;
   export let process_term = null;
   export let show_empty_filters = true;
+  export let open_filters = [];
   export let debounce_timeout_ms = 300;
   export let pagefind_options = {};
   export let merge_index = [];
@@ -264,6 +265,7 @@
       {#if initializing}
         <Filters
           {show_empty_filters}
+          {open_filters}
           {available_filters}
           {translate}
           {automatic_translations}
