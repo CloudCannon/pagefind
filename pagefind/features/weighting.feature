@@ -133,7 +133,7 @@ Feature: Word Weighting
             """
         Given I have a "public/r3/index.html" file with the body:
             """
-            <p>A single reference to TwoAntelope</p>
+            <p>A single reference to the TwoAntelope</p>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -143,6 +143,11 @@ Feature: Word Weighting
             """
             async function() {
                 let pagefind = await import("/pagefind/pagefind.js");
+                await pagefind.options({
+                    ranking: {
+                        termFrequency: 0.0
+                    }
+                });
 
                 let search = await pagefind.search(`antelope`);
 
