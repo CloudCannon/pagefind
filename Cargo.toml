@@ -1,3 +1,4 @@
 [workspace]
 
-members = ["pagefind", "pagefind_web", "pagefind_stem"]
+members = ["pagefind", "pagefind_stem"]
+exclude = ["pagefind_web"]

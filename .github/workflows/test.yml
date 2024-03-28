@@ -106,6 +106,12 @@ jobs:
         working-directory: ./pagefind
         run: cargo build --release --features extended
 
+      - name: Upload Testing Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagefind-${{ matrix.target }}
+          path: target/release/pagefind${{ matrix.build == 'windows' && '.exe' || '' }}
+
       - name: Test Lib
         working-directory: ./pagefind
         run: cargo test --release --lib --features extended

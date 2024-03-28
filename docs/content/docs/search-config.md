@@ -79,6 +79,10 @@ If set, Pagefind will add the search term as a query parameter under the same na
 
 If using the [Pagefind highlight script](/docs/highlighting/), make sure this is configured to match.
 
+### Ranking
+
+See [customize ranking](/docs/ranking/)
+
 ### Index weight
 
 See [multisite search > weighting](/docs/multisite/#changing-the-weighting-of-individual-indexes)

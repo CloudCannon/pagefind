@@ -59,6 +59,11 @@ impl SearchIndex {
             });
         }
 
+        if !self.pages.is_empty() {
+            self.average_page_length = self.pages.iter().map(|p| p.word_count as f32).sum::<f32>()
+                / self.pages.len() as f32;
+        }
+
         debug!({ "Reading index chunks array" });
         let index_chunks = consume_arr_len!(decoder);
         debug!({ format!("Reading {:#?} index chunks", index_chunks) });
