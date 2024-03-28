@@ -47,7 +47,7 @@ pub struct SearchIndex {
 #[derive(Debug, Clone)]
 pub struct RankingWeights {
     /// Controls page ranking based on similarity of terms to the search query (in length).
-    /// Increasing this number means pages rank higher when they contain works very close to the query,
+    /// Increasing this number means pages rank higher when they contain words very close to the query,
     /// e.g. if searching for `part` then `party` will boost a page higher than one containing `partition`.
     /// As this number trends to zero, then `party` and `partition` would be viewed equally.
     /// Must be >= 0
@@ -78,7 +78,7 @@ impl Default for RankingWeights {
         Self {
             term_similarity: 1.0,
             page_length: 0.75,
-            term_saturation: 1.5,
+            term_saturation: 1.4,
             term_frequency: 1.0,
         }
     }

@@ -41,7 +41,7 @@ declare global {
     type PagefindRankingWeights = {
         /**
             Controls page ranking based on similarity of terms to the search query (in length).
-            Increasing this number means pages rank higher when they contain works very close to the query,
+            Increasing this number means pages rank higher when they contain words very close to the query,
             e.g. if searching for `part` then `party` will boost a page higher than one containing `partition`.
             Minimum value is 0.0, where `party` and `partition` would be viewed equally.
         */

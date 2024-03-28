@@ -66,8 +66,8 @@ Feature: Multisite Result Scoring
         When I evaluate:
             """
             async function() {
-                let pagefind = await import("/website_a/pagefind/pagefind.js");
-                await pagefind.mergeIndex("/website_b/pagefind/", {
+                let pagefind = await import("/website_b/pagefind/pagefind.js");
+                await pagefind.mergeIndex("/website_a/pagefind/", {
                     indexWeight: 20
                 });
 
@@ -78,4 +78,4 @@ Feature: Multisite Result Scoring
             }
             """
         Then There should be no logs
-        Then The selector "[data-result]" should contain "/website_b/threewebs/, /website_b/oneweb/, /website_a/twowebs/"
+        Then The selector "[data-result]" should contain "/website_a/twowebs/, /website_a/oneweb/, /website_b/threewebs/"
