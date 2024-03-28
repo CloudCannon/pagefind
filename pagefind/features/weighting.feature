@@ -129,7 +129,7 @@ Feature: Word Weighting
             """
         Given I have a "public/r2/index.html" file with the body:
             """
-            <p>Two references to AFourWordAntelope AFourWordAntelope</p>
+            <p>Two references to SomeLongFiveWordAntelope SomeLongFiveWordAntelope</p>
             """
         Given I have a "public/r3/index.html" file with the body:
             """
