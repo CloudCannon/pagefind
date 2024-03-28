@@ -17,24 +17,24 @@ Feature: Word Weighting
         Given I have a "public/r2/index.html" file with the body:
             """
             <p>Antelope</p>
-            <p>Antelope Antelope Antelope</p>
+            <p>Antelope Antelope Antelope Notantelope</p>
             <p>Other text again</p>
             """
         Given I have a "public/r3/index.html" file with the body:
             """
-            <h6>Antelope</h6>
-            <p>Antelope Antelope Antelope</p>
+            <h5>Antelope</h5>
+            <p>Antelope Antelope Antelope Notantelope</p>
             <p>Other text again</p>
             """
         Given I have a "public/r4/index.html" file with the body:
             """
             <h1>Antelope</h1>
-            <p>Other text</p>
+            <p>Other text, totalling eight words of content</p>
             """
         Given I have a "public/r5/index.html" file with the body:
             """
             <h2>Antelope</h2>
-            <p>Other text again</p>
+            <p>Other antelope text, of a similar length</p>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -129,11 +129,11 @@ Feature: Word Weighting
             """
         Given I have a "public/r2/index.html" file with the body:
             """
-            <p>Two references to ThreeWordAntelope ThreeWordAntelope</p>
+            <p>Two references to AFourWordAntelope AFourWordAntelope</p>
             """
         Given I have a "public/r3/index.html" file with the body:
             """
-            <p>Three of TwoAntelope TwoAntelope TwoAntelope</p>
+            <p>A single reference to TwoAntelope</p>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
@@ -169,13 +169,13 @@ Feature: Word Weighting
 
                 let search = await pagefind.search(`three`);
                 let data = await search.results[0].data();
-                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score.toFixed(2)}/loc:${l.location}`).join(' • ');
                 document.querySelector('p').innerText = weights;
             }
             """
         Then There should be no logs
         # Treat the bal value here as a snapshot — update the expected value as needed
-        Then The selector "p" should contain "weight:0.5/bal:18/loc:4"
+        Then The selector "p" should contain "weight:0.5/bal:128.04/loc:4"
 
     Scenario: Compound words sum to a full weight
         Given I have a "public/r1/index.html" file with the body:
@@ -193,13 +193,13 @@ Feature: Word Weighting
 
                 let search = await pagefind.search(`three antelopes`);
                 let data = await search.results[0].data();
-                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score.toFixed(2)}/loc:${l.location}`).join(' • ');
                 document.querySelector('p').innerText = weights;
             }
             """
         Then There should be no logs
         # Treat the bal value here as a snapshot — update the expected value as needed
-        Then The selector "p" should contain "weight:1/bal:72/loc:4"
+        Then The selector "p" should contain "weight:1/bal:512.14/loc:4"
 
     Scenario: Compound words matched as full words use the full weight
         Given I have a "public/r1/index.html" file with the body:
@@ -217,10 +217,10 @@ Feature: Word Weighting
 
                 let search = await pagefind.search(`threea`);
                 let data = await search.results[0].data();
-                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score}/loc:${l.location}`).join(' • ');
+                let weights = data.weighted_locations.map(l => `weight:${l.weight}/bal:${l.balanced_score.toFixed(2)}/loc:${l.location}`).join(' • ');
                 document.querySelector('p').innerText = weights;
             }
             """
         Then There should be no logs
         # Treat the bal value here as a snapshot — update the expected value as needed
-        Then The selector "p" should contain "weight:1/bal:82.28572/loc:4"
+        Then The selector "p" should contain "weight:1/bal:212.36/loc:4"

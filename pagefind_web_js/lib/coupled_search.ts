@@ -22,6 +22,7 @@ class PagefindInstance {
     indexWeight: number;
     excerptLength: number;
     mergeFilter: Object;
+    ranking?: PagefindRankingWeights;
     highlightParam: string | null;
 
     loaded_chunks: Record<string, Promise<void>>;
@@ -61,6 +62,7 @@ class PagefindInstance {
         this.indexWeight = opts.indexWeight ?? 1;
         this.excerptLength = opts.excerptLength ?? 30;
         this.mergeFilter = opts.mergeFilter ?? {};
+        this.ranking = opts.ranking;
         this.highlightParam = opts.highlightParam ?? null;
 
         this.loaded_chunks = {};
@@ -90,12 +92,14 @@ class PagefindInstance {
     }
 
     async options(options: PagefindIndexOptions) {
-        const opts = ["basePath", "baseUrl", "indexWeight", "excerptLength", "mergeFilter", "highlightParam"];
+        const opts = ["basePath", "baseUrl", "indexWeight", "excerptLength", "mergeFilter", "highlightParam", "ranking"];
         for (const [k, v] of Object.entries(options)) {
             if (k === "mergeFilter") {
                 let filters = this.stringifyFilters(v);
                 let ptr = await this.getPtr();
                 this.raw_ptr = this.backend.add_synthetic_filter(ptr, filters);
+            } else if (k === "ranking") {
+                await this.set_ranking(options.ranking);
             } else if (opts.includes(k)) {
                 if (k === "basePath" && typeof v === "string") this.basePath = v;
                 if (k === "baseUrl" && typeof v === "string") this.baseUrl = v;
@@ -123,6 +127,19 @@ class PagefindInstance {
         return data.slice(12);
     }
 
+    async set_ranking(ranking?: PagefindRankingWeights) {
+        if (!ranking) return;
+
+        let rankingWeights = {
+            term_similarity: ranking.termSimilarity ?? null,
+            page_length: ranking.pageLength ?? null,
+            term_saturation: ranking.termSaturation ?? null,
+            term_frequency: ranking.termFrequency ?? null,
+        };
+        let ptr = await this.getPtr();
+        this.raw_ptr = this.backend.set_ranking_weights(ptr, JSON.stringify(rankingWeights));
+    }
+
     async init(language: string, opts: { load_wasm: boolean }) {
         await this.loadEntry();
         let index = this.findIndex(language);
@@ -139,6 +156,9 @@ class PagefindInstance {
             let filters = this.stringifyFilters(this.mergeFilter);
             let ptr = await this.getPtr();
             this.raw_ptr = this.backend.add_synthetic_filter(ptr, filters);
+        }
+        if (this.ranking) {
+            await this.set_ranking(this.ranking);
         }
     }
 
@@ -440,15 +460,10 @@ class PagefindInstance {
             return null;
         }
 
-        let ranking = new this.backend.RankingWeights(
-            options.ranking?.termSimilarity ?? 1.0,
-            options.ranking?.siteRarity ?? 1.0,
-            options.ranking?.pageFrequency ?? 1.0,
-        )
         // pointer may have updated from the loadChunk calls
         ptr = await this.getPtr();
         let searchStart = Date.now();
-        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search, ranking) as string;
+        let result = this.backend.search(ptr, term, filter_list, sort_list, exact_search) as string;
         log(`Got the raw search result: ${result}`);
         let [unfilteredResultCount, all_results, filters, totalFilters] = result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
         let filterObj = this.parseFilters(filters);

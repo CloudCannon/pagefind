@@ -9,13 +9,21 @@ Feature: Multisite Result Scoring
             """
             <h1>my page on the web web</h1>
             """
-        Given I have a "root/website_b/oneweb/index.html" file with the body:
+        Given I have a "root/website_a/oneweb/index.html" file with the body:
             """
-            <h1>my page on the web</h1>
+            <h1>my page on the world web</h1>
+            """
+        Given I have a "root/website_a/longdoc/index.html" file with the body:
+            """
+            <h1>Aenean lacinia bibendum nulla sed consectetur. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</h1>
             """
         Given I have a "root/website_b/threewebs/index.html" file with the body:
             """
-            <h1>my page on the web web web</h1>
+            <h1>my web web web page</h1>
+            """
+        Given I have a "root/website_b/longdoc/index.html" file with the body:
+            """
+            <h1>Aenean lacinia bibendum nulla sed consectetur. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</h1>
             """
 
     Scenario: Pages are scored correctly across indexes
@@ -42,7 +50,7 @@ Feature: Multisite Result Scoring
             }
             """
         Then There should be no logs
-        Then The selector "[data-result]" should contain "/website_b/threewebs/, /website_a/twowebs/, /website_b/oneweb/"
+        Then The selector "[data-result]" should contain "/website_b/threewebs/, /website_a/twowebs/, /website_a/oneweb/"
 
     Scenario: Multiple indexes can be weighted separately
         When I run my program with the flags:
