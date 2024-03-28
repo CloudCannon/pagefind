@@ -33,8 +33,8 @@ Feature: Word Weighting
             """
         Given I have a "public/r5/index.html" file with the body:
             """
-            <h2>Antelope</h2>
-            <p>Other antelope text, of a similar length</p>
+            <h3>Antelope</h3>
+            <p>Other antelope antelope text, of a similar length</p>
             """
         When I run my program
         Then I should see "Running Pagefind" in stdout
