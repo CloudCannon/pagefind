@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use pagefind_microjson::JSONValue;
 use util::*;
 use wasm_bindgen::prelude::*;
 
@@ -34,11 +35,53 @@ pub struct SearchIndex {
     web_version: &'static str,
     generator_version: Option<String>,
     pages: Vec<Page>,
+    average_page_length: f32,
     chunks: Vec<IndexChunk>,
     filter_chunks: HashMap<String, String>,
     words: HashMap<String, Vec<PageWord>>,
     filters: HashMap<String, HashMap<String, Vec<u32>>>,
     sorts: HashMap<String, Vec<u32>>,
+    ranking_weights: RankingWeights,
+}
+
+#[derive(Debug, Clone)]
+pub struct RankingWeights {
+    /// Controls page ranking based on similarity of terms to the search query (in length).
+    /// Increasing this number means pages rank higher when they contain words very close to the query,
+    /// e.g. if searching for `part` then `party` will boost a page higher than one containing `partition`.
+    /// As this number trends to zero, then `party` and `partition` would be viewed equally.
+    /// Must be >= 0
+    pub term_similarity: f32,
+    /// Controls how much effect the average page length has on ranking.
+    /// At 1.0, ranking will strongly favour pages that are shorter than the average page on the site.
+    /// At 0.0, ranking will exclusively look at term frequency, regardless of how long a document is.
+    /// Must be clamped to 0..=1
+    pub page_length: f32,
+    /// Controls how quickly a term saturates on the page and reduces impact on the ranking.
+    /// At 2.0, pages will take a long time to saturate, and pages with very high term frequencies will take over.
+    /// As this number trends to 0, it does not take many terms to saturate and allow other paramaters to influence the ranking.
+    /// At 0.0, terms will saturate immediately and results will not distinguish between one term and many.
+    /// Must be clamped to 0..=2
+    pub term_saturation: f32,
+    /// Controls how much ranking uses term frequency versus raw term count.
+    /// At 1.0, term frequency fully applies and is the main ranking factor.
+    /// At 0.0, term frequency does not apply, and pages are ranked based on the raw sum of words and weights.
+    /// Reducing this number is a good way to boost longer documents in your search results,
+    /// as they no longer get penalized for having a low term frequency.
+    /// Numbers between 0.0 and 1.0 will interpolate between the two ranking methods.
+    /// Must be clamped to 0..=1
+    pub term_frequency: f32,
+}
+
+impl Default for RankingWeights {
+    fn default() -> Self {
+        Self {
+            term_similarity: 1.0,
+            page_length: 0.75,
+            term_saturation: 1.4,
+            term_frequency: 1.0,
+        }
+    }
 }
 
 #[cfg(debug_assertions)]
@@ -61,11 +104,13 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
         web_version: env!("CARGO_PKG_VERSION"),
         generator_version: None,
         pages: Vec::new(),
+        average_page_length: 0.0,
         chunks: Vec::new(),
         filter_chunks: HashMap::new(),
         words: HashMap::new(),
         filters: HashMap::new(),
         sorts: HashMap::new(),
+        ranking_weights: RankingWeights::default(),
     };
 
     match search_index.decode_metadata(metadata_bytes) {
@@ -76,6 +121,47 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
             std::ptr::null_mut::<SearchIndex>()
         }
     }
+}
+
+#[wasm_bindgen]
+pub fn set_ranking_weights(ptr: *mut SearchIndex, weights: &str) -> *mut SearchIndex {
+    debug!({ "Loading Ranking Weights" });
+
+    let Ok(weights) = JSONValue::parse(weights) else {
+        return ptr;
+    };
+
+    let mut search_index = unsafe { Box::from_raw(ptr) };
+
+    if let Ok(term_similarity) = weights
+        .get_key_value("term_similarity")
+        .and_then(|v| v.read_float())
+    {
+        search_index.ranking_weights.term_similarity = term_similarity.max(0.0);
+    }
+
+    if let Ok(page_length) = weights
+        .get_key_value("page_length")
+        .and_then(|v| v.read_float())
+    {
+        search_index.ranking_weights.page_length = page_length.clamp(0.0, 1.0);
+    }
+
+    if let Ok(term_saturation) = weights
+        .get_key_value("term_saturation")
+        .and_then(|v| v.read_float())
+    {
+        search_index.ranking_weights.term_saturation = term_saturation.clamp(0.0, 2.0);
+    }
+
+    if let Ok(term_frequency) = weights
+        .get_key_value("term_frequency")
+        .and_then(|v| v.read_float())
+    {
+        search_index.ranking_weights.term_frequency = term_frequency.clamp(0.0, 1.0);
+    }
+
+    Box::into_raw(search_index)
 }
 
 #[wasm_bindgen]
