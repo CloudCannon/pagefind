@@ -11,27 +11,31 @@ A good example is sites with a mix of long and short pages, where the long pages
 
 Ranking parameters are configured within the `ranking` option passed to Pagefind, which can optionally contain any or all of the available parameters.
 
-## Configuring ranking parameters via the JavaScript API
+## Configuring ranking parameters
+
+Ranking parameters can be passed to the JavaScript API via `pagefind.options()`:
 
 {{< diffcode >}}
 ```javascript
 const pagefind = await import("/pagefind/pagefind.js");
 await pagefind.options({
 +    ranking: {
-+        termFrequency: 1.0
++        // optional parameters, e.g:
++        termFrequency: 1.0,
 +    }
 });
 ```
 {{< /diffcode >}}
 
-## Configuring ranking parameters via the Default UI
+Ranking parameters can be passed to the Default UI during initialization:
 
 {{< diffcode >}}
 ```javascript
 new PagefindUI({
     element: "#search",
 +    ranking: {
-+        termFrequency: 1.0
++        // optional parameters, e.g:
++        pageLength: 0.75
 +    }
 });
 ```
