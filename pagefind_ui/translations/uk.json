@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Vladyslav Lyshenko <vladdnepr1989@gmail.com>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Пошук",
+        "clear_search": "Очистити поле",
+        "load_more": "Завантажити ще",
+        "search_label": "Пошук по сайту",
+        "filters_label": "Фільтри",
+        "zero_results": "Нічого не знайдено за запитом: [SEARCH_TERM]",
+        "many_results": "[COUNT] результатів на запит: [SEARCH_TERM]",
+        "one_result": "[COUNT] результат за запитом: [SEARCH_TERM]",
+        "alt_search": "Нічого не знайдено на запит: [SEARCH_TERM]. Показано результати на запит: [DIFFERENT_TERM]",
+        "search_suggestion": "Нічого не знайдено на запит: [SEARCH_TERM]. Спробуйте один із таких варіантів",
+        "searching": "Пошук за запитом: [SEARCH_TERM]"
+    }
+}

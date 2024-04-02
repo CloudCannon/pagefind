@@ -78,3 +78,27 @@ Feature: Sentence Building Tests
             """
         Then There should be no logs
         Then The selector "[data-result]" should contain "Hello World."
+
+    Scenario: Pagefind ignores redundant zero-width spaces
+        Given I have a "public/apiary/index.html" file with the body:
+            """
+            <p>Hello &#x200B; World</p>
+            """
+        When I run my program
+        Then I should see "Running Pagefind" in stdout
+        Then I should see the file "public/pagefind/pagefind.js"
+        When I serve the "public" directory
+        When I load "/"
+        When I evaluate:
+            """
+            async function() {
+                let pagefind = await import("/pagefind/pagefind.js");
+
+                let search = await pagefind.search("w");
+
+                let pages = await Promise.all(search.results.map(r => r.data()));
+                document.querySelector('[data-result]').innerHTML = pages.map(p => p.excerpt).join(", ");
+            }
+            """
+        Then There should be no logs
+        Then The selector "[data-result]" should contain "Hello <mark>World.</mark>"

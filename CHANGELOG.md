@@ -9,6 +9,32 @@
 
 ## Unreleased
 
+## v1.1.0 (April 2, 2024)
+
+### Core Features & Improvements
+* Improved Pagefind's core result ranking algorithm to align with [BM25](https://en.wikipedia.org/wiki/Okapi_BM25). For existing sites, this will change the ordering of search results, and should provide better relevance for search results by default.
+* Added the abitity to configure Pagefind's ranking algorithm.
+  * Certain categories of site (i.e. reference documentation) can benefit from tweaks to the way pages are ranked. To support this, a set of ranking parameters are now configurable. Enormous thanks to @dscho for kicking off this work in #534 ❤️
+  * See [📘 Customize ranking](https://pagefind.app/docs/ranking/) to read up on the new ranking parameters.
+
+### Default UI Features & Improvements
+* Added an `autofocus` setting to the Default UI. The default remains off. See [📘 UI > Autofocus](https://pagefind.app/docs/ui/#autofocus). Thanks to @vanbroup for #514 ❤️
+* Added an `openFilters` setting to the Default UI. See [📘 UI > Open filters](https://pagefind.app/docs/ui/#open-filters). Thanks to @vanbroup for #579 ❤️
+* Added a `sort` setting to the Default UI. See [📘 UI > Sort](https://pagefind.app/docs/ui/#sort).
+* Added a `triggerFilters` function to the Default UI.
+  * The existing `triggerSearch` function has also been documented. See [📘 UI > Programmatically controlling the Pagefind UI](https://pagefind.app/docs/ui-usage/#programmatically-controlling-the-pagefind-ui).
+
+### Fixes & Tweaks
+* Fixed a bug where the `forceLanguage` setting would not take priority when using the NodeJS Indexing API.
+* Fixed a bug where zero-width spaces in the source content could cause errors in search excerpts.
+
+### UI Translations
+* Added Ukranian translations (PR #523 — thanks @vladdnepr !).
+* Added Romanian translations (PR #541 — thanks @mateesville93 !).
+* Added Czech translations (PR #543 — thanks @dallyh !).
+* Added Korean translations (PR #583 — thanks @seokho-son !).
+* Improved Japanese translations (PR #560 — thanks @hamano !).
+
 ## v1.0.4 (November 16, 2023)
 
 ### Features & Improvements

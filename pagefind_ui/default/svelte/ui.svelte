@@ -29,6 +29,7 @@
   export let process_result = null;
   export let process_term = null;
   export let show_empty_filters = true;
+  export let open_filters = [];
   export let debounce_timeout_ms = 300;
   export let pagefind_options = {};
   export let merge_index = [];
@@ -36,6 +37,7 @@
   export let translations = {};
   export let autofocus = false;
   export let sort = null;
+  export let selected_filters = {};
 
   let val = "";
   $: if (trigger_search_term) {
@@ -57,7 +59,6 @@
   let show = page_size;
   let initial_filters = null;
   let available_filters = null;
-  let selected_filters = {};
   let automatic_translations = availableTranslations["en"];
 
   const translate = (key, auto, overrides) => {
@@ -264,6 +265,7 @@
       {#if initializing}
         <Filters
           {show_empty_filters}
+          {open_filters}
           {available_filters}
           {translate}
           {automatic_translations}

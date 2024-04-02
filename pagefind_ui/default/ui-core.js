@@ -23,6 +23,7 @@ export class PagefindUI {
     let processResult = opts.processResult ?? null;
     let processTerm = opts.processTerm ?? null;
     let showEmptyFilters = opts.showEmptyFilters ?? true;
+    let openFilters = opts.openFilters ?? [];
     let debounceTimeoutMs = opts.debounceTimeoutMs ?? 300;
     let mergeIndex = opts.mergeIndex ?? [];
     let translations = opts.translations ?? [];
@@ -40,6 +41,7 @@ export class PagefindUI {
     delete opts["processResult"];
     delete opts["processTerm"];
     delete opts["showEmptyFilters"];
+    delete opts["openFilters"];
     delete opts["debounceTimeoutMs"];
     delete opts["mergeIndex"];
     delete opts["translations"];
@@ -63,6 +65,7 @@ export class PagefindUI {
           process_result: processResult,
           process_term: processTerm,
           show_empty_filters: showEmptyFilters,
+          open_filters: openFilters,
           debounce_timeout_ms: debounceTimeoutMs,
           merge_index: mergeIndex,
           translations,
@@ -78,6 +81,20 @@ export class PagefindUI {
 
   triggerSearch(term) {
     this._pfs.$$set({ trigger_search_term: term });
+  }
+
+  triggerFilters(filters) {
+    let selected_filters = {};
+    for (let [filter, key] of Object.entries(filters)) {
+      if (Array.isArray(key)) {
+        for (let val of key) {
+          selected_filters[`${filter}:${val}`] = true;
+        }
+      } else {
+        selected_filters[`${filter}:${key}`] = true;
+      }
+    }
+    this._pfs.$$set({ selected_filters });
   }
 
   destroy() {

@@ -1,6 +1,11 @@
-use std::{borrow::Cow, cmp::Ordering};
+use std::{
+    borrow::Cow,
+    cmp::Ordering,
+    collections::HashMap,
+    ops::{Add, AddAssign, Div},
+};
 
-use crate::{util::*, PageWord};
+use crate::{util::*, PageWord, RankingWeights};
 use bit_set::BitSet;
 use pagefind_stem::Stemmer;
 
@@ -13,18 +18,19 @@ pub struct PageSearchResult {
     pub word_locations: Vec<BalancedWordScore>,
 }
 
-struct ScoredPageWord<'a> {
+struct MatchingPageWord<'a> {
     word: &'a PageWord,
-    length_differential: u8,
-    word_frequency: f32,
+    word_str: &'a str,
+    length_bonus: f32,
+    num_pages_matching: usize,
 }
 
 #[derive(Debug, Clone)]
-struct VerboseWordLocation {
+struct VerboseWordLocation<'a> {
+    word_str: &'a str,
     weight: u8,
-    length_differential: u8,
-    word_frequency: f32,
     word_location: u32,
+    length_bonus: f32,
 }
 
 #[derive(Debug, Clone)]
@@ -34,35 +40,80 @@ pub struct BalancedWordScore {
     pub word_location: u32,
 }
 
-impl From<VerboseWordLocation> for BalancedWordScore {
-    fn from(
-        VerboseWordLocation {
-            weight,
-            length_differential,
-            word_frequency,
-            word_location,
-        }: VerboseWordLocation,
-    ) -> Self {
-        let word_length_bonus = if length_differential > 0 {
-            (2.0 / length_differential as f32).max(0.2)
-        } else {
-            3.0
-        };
+#[derive(Debug)]
+struct BM25Params {
+    weighted_term_frequency: f32,
+    document_length: f32,
+    average_page_length: f32,
+    total_pages: usize,
+    pages_containing_term: usize,
+    length_bonus: f32,
+}
 
-        // Starting with the raw user-supplied (or derived) weight of the word,
-        // we take it to the power of two to make the weight scale non-linear.
-        // We then multiply it with word_length_bonus, which should be a roughly 0 -> 3 scale of how close
-        // this was was in length to the target word.
-        // That result is then multiplied by the word frequency, which is again a roughly 0 -> 2 scale
-        // of how unique this word is in the entire site. (tf-idf ish)
-        let balanced_score =
-            ((weight as f32).powi(2) * word_length_bonus) * word_frequency.max(0.5);
+/// Returns a score between 0.0 and 1.0 for the given word.
+/// 1.0 implies the word is the exact length we need,
+/// and that decays as the word becomes longer or shorter than the query word.
+/// As `term_similarity_ranking` trends to zero, all output trends to 1.0.
+/// As `term_similarity_ranking` increases, the score decays faster as differential grows.
+fn word_length_bonus(differential: u8, term_similarity_ranking: f32) -> f32 {
+    let std_dev = 2.0_f32;
+    let base = (-0.5 * (differential as f32).powi(2) / std_dev.powi(2)).exp();
+    let max_value = term_similarity_ranking.exp();
+    (base * term_similarity_ranking).exp() / max_value
+}
 
-        Self {
-            weight,
-            balanced_score,
-            word_location,
-        }
+fn calculate_bm25_word_score(
+    BM25Params {
+        weighted_term_frequency,
+        document_length,
+        average_page_length,
+        total_pages,
+        pages_containing_term,
+        length_bonus,
+    }: BM25Params,
+    ranking: &RankingWeights,
+) -> f32 {
+    let weighted_with_length = weighted_term_frequency * length_bonus;
+
+    let k1 = ranking.term_saturation;
+    let b = ranking.page_length;
+
+    let idf = (total_pages as f32 - pages_containing_term as f32 + 0.5)
+        .div(pages_containing_term as f32 + 0.5)
+        .add(1.0) // Prevent IDF from ever being negative
+        .ln();
+
+    let bm25_tf = (k1 + 1.0) * weighted_with_length
+        / (k1 * (1.0 - b + b * (document_length / average_page_length)) + weighted_with_length);
+
+    // Use ranking.term_frequency to interpolate between only caring about BM25's term frequency,
+    // and only caring about the original weighted word count on the page.
+    // Attempting to scale the original weighted word count to roughly the same bounds as the BM25 output (k1 + 1)
+    let raw_count_scalar = average_page_length / 5.0;
+    let scaled_raw_count = (weighted_with_length / raw_count_scalar).min(k1 + 1.0);
+    let tf = (1.0 - ranking.term_frequency) * scaled_raw_count + ranking.term_frequency * bm25_tf;
+
+    debug!({
+        format! {"TF is {tf:?}, IDF is {idf:?}"}
+    });
+
+    idf * tf
+}
+
+fn calculate_individual_word_score(
+    VerboseWordLocation {
+        word_str: _,
+        weight,
+        length_bonus,
+        word_location,
+    }: VerboseWordLocation,
+) -> BalancedWordScore {
+    let balanced_score = (weight as f32).powi(2) * length_bonus;
+
+    BalancedWordScore {
+        weight,
+        balanced_score,
+        word_location,
     }
 }
 
@@ -184,7 +235,7 @@ impl SearchIndex {
 
         let mut unfiltered_results: Vec<usize> = vec![];
         let mut maps = Vec::new();
-        let mut words: Vec<ScoredPageWord> = Vec::new();
+        let mut words: Vec<MatchingPageWord> = Vec::new();
         let split_term = stems_from_term(term);
 
         for term in split_term.iter() {
@@ -193,15 +244,15 @@ impl SearchIndex {
                 let length_differential: u8 = (word.len().abs_diff(term.len()) + 1)
                     .try_into()
                     .unwrap_or(std::u8::MAX);
-                let word_frequency: f32 = (total_pages
-                    .checked_div(word_index.len())
-                    .unwrap_or_default() as f32)
-                    .log10();
 
-                words.extend(word_index.iter().map(|pageword| ScoredPageWord {
+                words.extend(word_index.iter().map(|pageword| MatchingPageWord {
                     word: pageword,
-                    length_differential,
-                    word_frequency,
+                    word_str: &word,
+                    length_bonus: word_length_bonus(
+                        length_differential,
+                        self.ranking_weights.term_similarity,
+                    ),
+                    num_pages_matching: word_index.len(),
                 }));
                 let mut set = BitSet::new();
                 for page in word_index {
@@ -242,42 +293,40 @@ impl SearchIndex {
         let mut pages: Vec<PageSearchResult> = vec![];
 
         for page_index in results.iter() {
-            //                      length diff, word weight, word position
-            let mut word_locations: Vec<VerboseWordLocation> = words
+            let page = &self.pages[page_index];
+
+            let mut word_locations: Vec<_> = words
                 .iter()
-                .filter_map(
-                    |ScoredPageWord {
-                         word,
-                         length_differential,
-                         word_frequency,
-                     }| {
-                        if word.page as usize == page_index {
-                            Some(
-                                word.locs
-                                    .iter()
-                                    .map(|loc| VerboseWordLocation {
-                                        weight: loc.0,
-                                        length_differential: *length_differential,
-                                        word_frequency: *word_frequency,
-                                        word_location: loc.1,
-                                    })
-                                    .collect::<Vec<_>>(),
-                            )
-                        } else {
-                            None
-                        }
-                    },
-                )
+                .filter_map(|w| {
+                    if w.word.page as usize == page_index {
+                        Some(
+                            w.word
+                                .locs
+                                .iter()
+                                .map(|(weight, location)| VerboseWordLocation {
+                                    word_str: w.word_str,
+                                    weight: *weight,
+                                    word_location: *location,
+                                    length_bonus: w.length_bonus,
+                                }),
+                        )
+                    } else {
+                        None
+                    }
+                })
                 .flatten()
                 .collect();
-            debug!({
-                format! {"Word locations {:?}", word_locations}
-            });
             word_locations
                 .sort_unstable_by_key(|VerboseWordLocation { word_location, .. }| *word_location);
 
+            debug!({
+                format! {"Found the raw word locations {:?}", word_locations}
+            });
+
             let mut unique_word_locations: Vec<BalancedWordScore> =
                 Vec::with_capacity(word_locations.len());
+            let mut weighted_words: HashMap<&str, usize> = HashMap::with_capacity(words.len());
+
             if !word_locations.is_empty() {
                 let mut working_word = word_locations[0].clone();
                 for next_word in word_locations.into_iter().skip(1) {
@@ -294,31 +343,66 @@ impl SearchIndex {
                         }
                         // We don't want to do anything if the new word is weighted higher
                         // (Lowest weight wins)
-
-                        if next_word.length_differential > working_word.length_differential {
-                            // If the new word is further from target than the working word,
-                            // we want to use that value. (Longest diff wins)
-                            working_word.length_differential = next_word.length_differential;
-                        }
                     } else {
-                        unique_word_locations.push(working_word.into());
+                        weighted_words
+                            .entry(working_word.word_str)
+                            .or_default()
+                            .add_assign(working_word.weight as usize);
+
+                        unique_word_locations.push(calculate_individual_word_score(working_word));
                         working_word = next_word;
                     }
                 }
-                unique_word_locations.push(working_word.into());
+                weighted_words
+                    .entry(working_word.word_str)
+                    .or_default()
+                    .add_assign(working_word.weight as usize);
+
+                unique_word_locations.push(calculate_individual_word_score(working_word));
             }
 
-            let page = &self.pages[page_index];
             debug!({
-                format! {"Sorted word locations {:?}, {:?} word(s)", unique_word_locations, page.word_count}
+                format! {"Coerced to unique locations {:?}", unique_word_locations}
+            });
+            debug!({
+                format! {"Words have the final weights {:?}", weighted_words}
             });
 
-            let page_score = (unique_word_locations
-                .iter()
-                .map(|BalancedWordScore { balanced_score, .. }| balanced_score)
-                .sum::<f32>()
-                / 24.0)
-                / page.word_count as f32;
+            let word_scores =
+                weighted_words
+                    .into_iter()
+                    .map(|(word_str, weighted_term_frequency)| {
+                        let matched_word = words
+                            .iter()
+                            .find(|w| w.word_str == word_str)
+                            .expect("word should be in the initial set");
+
+                        let params = BM25Params {
+                            weighted_term_frequency: (weighted_term_frequency as f32) / 24.0,
+                            document_length: page.word_count as f32,
+                            average_page_length: self.average_page_length,
+                            total_pages,
+                            pages_containing_term: matched_word.num_pages_matching,
+                            length_bonus: matched_word.length_bonus,
+                        };
+
+                        debug!({
+                            format! {"Calculating BM25 with the params {:?}", params}
+                        });
+                        debug!({
+                            format! {"And the weights {:?}", self.ranking_weights}
+                        });
+
+                        let score = calculate_bm25_word_score(params, &self.ranking_weights);
+
+                        debug!({
+                            format! {"BM25 gives us the score {:?}", score}
+                        });
+
+                        score
+                    });
+
+            let page_score = word_scores.sum();
 
             let search_result = PageSearchResult {
                 page: page.hash.clone(),
@@ -334,7 +418,7 @@ impl SearchIndex {
             pages.push(search_result);
         }
 
-        debug!({ "Sorting by word frequency" });
+        debug!({ "Sorting by score" });
         pages.sort_unstable_by(|a, b| {
             b.page_score
                 .partial_cmp(&a.page_score)

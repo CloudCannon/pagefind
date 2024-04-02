@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Dalibor Hon <https://github.com/dallyh>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Hledat",
+        "clear_search": "Smazat",
+        "load_more": "Načíst další výsledky",
+        "search_label": "Prohledat tuto stránku",
+        "filters_label": "Filtry",
+        "zero_results": "Žádné výsledky pro [SEARCH_TERM]",
+        "many_results": "[COUNT] výsledků pro [SEARCH_TERM]",
+        "one_result": "[COUNT] výsledek pro [SEARCH_TERM]",
+        "alt_search": "Žádné výsledky pro [SEARCH_TERM]. Zobrazují se výsledky pro [DIFFERENT_TERM]",
+        "search_suggestion": "Žádné výsledky pro [SEARCH_TERM]. Související výsledky hledání:",
+        "searching": "Hledám [SEARCH_TERM]..."
+    }
+}
