@@ -37,6 +37,7 @@
   export let translations = {};
   export let autofocus = false;
   export let sort = null;
+  export let selected_filters = {};
 
   let val = "";
   $: if (trigger_search_term) {
@@ -58,7 +59,6 @@
   let show = page_size;
   let initial_filters = null;
   let available_filters = null;
-  let selected_filters = {};
   let automatic_translations = availableTranslations["en"];
 
   const translate = (key, auto, overrides) => {

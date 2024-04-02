@@ -5,7 +5,7 @@
     export let translate = () => "";
     export let automatic_translations = {};
     export let translations = {};
-    export const selected_filters = {};
+    export let selected_filters = {};
 
     let initialized = false;
     let default_open = false;
