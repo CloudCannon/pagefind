@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.1.0 (April 2, 2024)
+
 ### Core Features & Improvements
 * Improved Pagefind's core result ranking algorithm to align with [BM25](https://en.wikipedia.org/wiki/Okapi_BM25). For existing sites, this will change the ordering of search results, and should provide better relevance for search results by default.
 * Added the abitity to configure Pagefind's ranking algorithm.
