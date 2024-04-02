@@ -83,6 +83,20 @@ export class PagefindUI {
     this._pfs.$$set({ trigger_search_term: term });
   }
 
+  triggerFilters(filters) {
+    let selected_filters = {};
+    for (let [filter, key] of Object.entries(filters)) {
+      if (Array.isArray(key)) {
+        for (let val of key) {
+          selected_filters[`${filter}:${val}`] = true;
+        }
+      } else {
+        selected_filters[`${filter}:${key}`] = true;
+      }
+    }
+    this._pfs.$$set({ selected_filters });
+  }
+
   destroy() {
     this._pfs.$destroy();
   }

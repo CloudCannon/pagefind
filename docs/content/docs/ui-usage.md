@@ -113,6 +113,22 @@ let search = new PagefindUI({ element: "#search", showSubResults: true });
 
 After being destroyed, initializing the Pagefind UI will look again at the active language, and use any new options you might pass in.
 
+## Programmatically controlling the Pagefind UI
+
+Both searching and filtering can be triggered from JavaScript. A common use case is initializing the Pagefind UI based on query parameters.
+
+{{< diffcode >}}
+```js
+let search = new PagefindUI({ element: "#search", showSubResults: true });
+
++search.triggerFilters({ "Category": [ "Documentation", "Marketing" ] });
+
++search.triggerSearch("preloaded search term");
+```
+{{< /diffcode >}}
+
+Filter names and values supplied to `triggerFilters` are case-sensitive.
+
 ## Further customization
 
 See the [Pagefind UI Configuration Reference](/docs/ui/) for all available options.
