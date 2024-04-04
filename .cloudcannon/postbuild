@@ -1,1 +1,1 @@
-npx -y pagefind@beta --site docs/public
+npx -y pagefind@latest --site docs/public
