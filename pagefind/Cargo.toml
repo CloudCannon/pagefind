@@ -49,7 +49,7 @@ pagefind_stem = { version = "0.2.0", features = [
     "yiddish",
 ] }
 convert_case = "0.6.0"
-charabia = { version = "0.7.0", optional = true }
+charabia = { version = "0.8.8", optional = true, default-features = false, features = ["chinese", "japanese"] }
 unicode-segmentation = "1.10.1"
 emojis = "0.6.1"
 hashbrown = { version = "0.13.1", features = ["serde"] }
