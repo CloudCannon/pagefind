@@ -33,6 +33,7 @@ If word stemming is unsupported, search results won't match across root words. I
 | Catalan — `ca`    | ✅               | ✅             |
 | Chinese — `zh`    | ✅               | See below     |
 | Croatian — `hr`   | ✅               | ❌             |
+| Czech — `cs`      | ✅               | ❌             |
 | Danish — `da`     | ✅               | ✅             |
 | Dutch — `nl`      | ✅               | ✅             |
 | English — `en`    | ✅               | ✅             |
