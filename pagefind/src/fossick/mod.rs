@@ -486,6 +486,16 @@ impl Fossicker {
     }
 }
 
+fn strip_index_html(url: &str) -> &str {
+    if url.ends_with("/index.html") {
+        &url[..url.len() - 10]
+    } else if url == "index.html" {
+        ""
+    } else {
+        url
+    }
+}
+
 fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOptions) -> String {
     let prefix = relative_to.unwrap_or(&options.site_source);
 
@@ -503,7 +513,7 @@ fn build_url(page_url: &Path, relative_to: Option<&Path>, options: &SearchOption
     };
 
     let final_url: String = if !options.keep_index_url {
-        url.to_slash_lossy().to_owned().replace("index.html", "")
+        strip_index_html(&url.to_slash_lossy()).to_string()
     } else {
         url.to_slash_lossy().to_owned().to_string()
     };
