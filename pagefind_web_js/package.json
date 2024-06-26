@@ -12,7 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "ava": "^5.3.1",
-    "esbuild": "^0.19.0",
+    "esbuild": "^0.21.5",
     "tsx": "^3.12.8",
     "typescript": "^5.2.2"
   },
