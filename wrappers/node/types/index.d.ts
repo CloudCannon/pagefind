@@ -1,7 +1,7 @@
 /**
  * Create a new Pagefind index that files can be added to
  */
-export function createIndex(config: PagefindServiceConfig): Promise<NewIndexResponse>;
+export function createIndex(config?: PagefindServiceConfig): Promise<NewIndexResponse>;
 
 /**
  * Close the Pagefind service and clean up, stopping the binary altogether.
