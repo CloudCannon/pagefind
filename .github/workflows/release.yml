@@ -19,7 +19,7 @@ jobs:
     needs: publish-github-release
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache
         uses: actions/cache@v3
         with:
@@ -93,7 +93,7 @@ jobs:
     needs: publish-binary-npm-packages
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: actions/download-artifact@v3
         with:
           name: release-checksums
@@ -173,7 +173,7 @@ jobs:
             cpu: arm64
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: actions/download-artifact@v3
         with:
           name: release
@@ -222,12 +222,12 @@ jobs:
           application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
 
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
 
       - name: Swap to main
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0 # Full fetch
@@ -352,7 +352,7 @@ jobs:
             run_tests: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
