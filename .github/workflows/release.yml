@@ -94,9 +94,25 @@ jobs:
     steps:
       - name: Clone
         uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: release-checksums
+          name: release-checksums-x86_64-pc-windows-msvc
+          path: wrappers/node/checksums
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-x86_64-unknown-linux-musl
+          path: wrappers/node/checksums
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-aarch64-unknown-linux-musl
+          path: wrappers/node/checksums
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-x86_64-apple-darwin
+          path: wrappers/node/checksums
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-aarch64-apple-darwin
           path: wrappers/node/checksums
 
       - name: Get Version
@@ -174,9 +190,9 @@ jobs:
     steps:
       - name: Clone
         uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: release
+          name: release-${{ matrix.target }}
           path: build-artifacts
 
       - name: Get Version
@@ -238,9 +254,25 @@ jobs:
       - name: Get Tag
         run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: release
+          name: release-checksums-x86_64-pc-windows-msvc
+          path: build-artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-x86_64-unknown-linux-musl
+          path: build-artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-aarch64-unknown-linux-musl
+          path: build-artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-x86_64-apple-darwin
+          path: build-artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-checksums-aarch64-apple-darwin
           path: build-artifacts
 
       - name: Build CHANGELOG
@@ -554,18 +586,18 @@ jobs:
           echo "EXTENDED_CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release
+          name: release-${{ matrix.target }}
           path: |
             ${{ env.ASSET_PATH }}
             ${{ env.CHECKSUM_PATH }}
             ${{ env.EXTENDED_ASSET_PATH }}
             ${{ env.EXTENDED_CHECKSUM_PATH }}
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release-checksums
+          name: release-checksums-${{ matrix.target }}
           path: |
             ${{ env.CHECKSUM_PATH }}
             ${{ env.EXTENDED_CHECKSUM_PATH }}
