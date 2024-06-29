@@ -52,9 +52,9 @@ jobs:
             target
           key: ${{ runner.os }}-${{ matrix.rust }}-min165
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1

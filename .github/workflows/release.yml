@@ -366,9 +366,9 @@ jobs:
             target
           key: ${{ runner.os }}-${{ matrix.rust }}
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
       - name: Get Version
