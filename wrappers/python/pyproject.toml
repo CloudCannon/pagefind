@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "pagefind_python"
+version = "0.1.0"
+description = "Python API for Pagefind"
+authors = ["Your Name <you@example.com>"] # TODO: add name and email
+license = "MIT"
+readme = "README.md"
+include = [] # TODO: figure out path for local binaries **IN CI**
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.5.0"
+mypy = "^1.10.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
