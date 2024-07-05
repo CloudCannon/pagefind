@@ -12,7 +12,8 @@ class InternalRequestType(StrEnum):
     DELETE_INDEX = "DeleteIndex"
 
 
-class InternalPagefindServiceConfig(TypedDict):
+class InternalPagefindServiceConfig(TypedDict, total=False):
+    # FIXME: document
     root_selector: Optional[str]
     exclude_selectors: Optional[Sequence[str]]
     force_language: Optional[str]

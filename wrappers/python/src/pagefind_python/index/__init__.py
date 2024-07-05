@@ -1,134 +1,198 @@
-from typing import Dict, List, Optional, NamedTuple, cast
-
+from typing import Any, Dict, List, Optional, Sequence, TypedDict, cast
+import logging
 from ..service.types import (
     InternalAddFileRequest,
     InternalAddRecordRequest,
     InternalDeleteIndexRequest,
     InternalGetFilesRequest,
+    InternalGetFilesResponse,
     InternalIndexedFileResponse,
     InternalAddDirRequest,
     InternalIndexedDirResponse,
+    InternalSyntheticFile,
+    InternalWriteFilesRequest,
 )
-from ..service import Service
+
+from ..service import PagefindService
+
+log = logging.getLogger(__name__)
 
 
-class HtmlFile(NamedTuple):
-    content: str
-    """The source HTML content of the file to be parsed."""
-
-    source_path: Optional[str] = None
-    """
-    The source path of the HTML file if it were to exist on disk.
-    Must be a relative path, or an absolute path within the current working directory.
-    Pagefind will compute the result URL from this path.
-
-    If not supplied, url must be supplied.
-
-    @example "about/index.html"
-    @example "/Users/user/Documents/site/about/index.html"
-    """
-
-    url: Optional[str] = None
-    """
-    An explicit URL to use, instead of having Pagefind
-    compute the URL based on the sourcePath.
-
-    If not supplied, source_path must be supplied.
-
-    @example "/about/"
-    """
-
-
-class CustomRecord(NamedTuple):
-    """
-    The data required for Pagefind to index a custom record that isn't backed by an HTML file
-    """
-
-    url: str
-    """The output URL of this record. Pagefind will not alter this."""
-
-    content: str
-    """The raw content of this record"""
-
-    language: str
-    """What language is this record written in. Multiple languages will be split into separate indexes. Expects an ISO 639-1 code."""
-
-    meta: Optional[Dict[str, str]] = None
-    """The metadata to attach to this record. Supplying a `title` is highly recommended."""
-
-    filters: Optional[Dict[str, List[str]]] = None
-    """The filters to attach to this record. Filters are used to group records together."""
-
-    sort: Optional[Dict[str, str]] = None
-    """The sort keys to attach to this record."""
-
-
-class SiteDirectory(NamedTuple):
-    path: str
-    """The path to the directory to index. If relative, it's relative to the current working directory."""
-    glob: Optional[str] = None
-    """Optionally, a custom glob to evaluate for finding files. Default to all HTML files."""
+class IndexConfig(TypedDict, total=False):
+    root_selector: Optional[str]
+    exclude_selectors: Optional[Sequence[str]]
+    force_language: Optional[str]
+    verbose: Optional[bool]
+    logfile: Optional[str]
+    keep_index_url: Optional[bool]
+    output_path: Optional[str]
 
 
 class PagefindIndex:
-    def __init__(self, service: Service, index_id: int):
-        self._service = service
-        self.index_id = index_id
+    _service: Optional["PagefindService"] = None
+    _index_id: Optional[int] = None
+    config: Optional[IndexConfig] = None
+    """Note that config is immutable after initialization."""
 
-    async def add_html_file(self, html_file: HtmlFile) -> InternalIndexedFileResponse:
+    def __init__(
+        self,
+        config: Optional[IndexConfig] = None,
+        *,
+        _service: Optional["PagefindService"] = None,
+        _index_id: Optional[int] = None,
+        # TODO: cache config
+    ):
+        self._service = _service
+        self._index_id = _index_id
+        self.config = config
+
+    async def _start(self) -> "PagefindIndex":
+        assert self._index_id is None
+        assert self._service is None
+        self._service = await PagefindService().launch()
+        _index = await self._service.create_index(self.config)
+        self._index_id = _index._index_id
+        return self
+
+    async def add_html_file(
+        self,
+        *,
+        content: str,
+        source_path: Optional[str] = None,
+        url: Optional[str] = None,
+    ) -> InternalIndexedFileResponse:
+        """
+        ARGS:
+        content: The source HTML content of the file to be parsed.
+        source_path: The source path of the HTML file if it were to exist on disk. \
+            Must be a relative path, or an absolute path within the current working directory. \
+            Pagefind will compute the result URL from this path.
+        url: an explicit URL to use, instead of having Pagefind compute the URL \
+            based on the source_path. If not supplied, source_path must be supplied.
+        """
+        assert self._service is not None
+        assert self._index_id is not None
         result = await self._service.send(
             InternalAddFileRequest(
                 type="AddFile",
-                index_id=self.index_id,
-                url=html_file.url,
-                file_contents=html_file.content,
-                file_path=html_file.source_path,
+                index_id=self._index_id,
+                url=url,
+                file_contents=content,
+                file_path=source_path,
             )
         )
         assert result["type"] == "IndexedFile"
         return cast(InternalIndexedFileResponse, result)
 
     async def add_directory(
-        self, directory: SiteDirectory
+        self, path: str, *, glob: Optional[str] = None
     ) -> InternalIndexedDirResponse:
+        assert self._service is not None
+        assert self._index_id is not None
         result = await self._service.send(
             InternalAddDirRequest(
                 type="AddDir",
-                index_id=self.index_id,
-                path=directory.path,
-                glob=directory.glob,
+                index_id=self._index_id,
+                path=path,
+                glob=glob,
             )
         )
         assert result["type"] == "IndexedDir"
         return cast(InternalIndexedDirResponse, result)
 
-    async def get_files(self):
-        result = await self._service.send(
-            InternalGetFilesRequest(type="GetFiles", index_id=self.index_id)
+    async def get_files(self) -> List[InternalSyntheticFile]:
+        """
+        WATCH OUT: this method emits all files. This can be a lot of data, and
+        this amount of data can cause reading from the subprocess pipes to deadlock.
+
+        STRICTLY PREFER calling `self.write_files()`.
+        """
+        assert self._service is not None
+        assert self._index_id is not None
+
+        response = await self._service.send(
+            InternalGetFilesRequest(type="GetFiles", index_id=self._index_id)
         )
-        assert result["type"] == "GetFiles"
-        return cast(List[InternalIndexedFileResponse], result)
+        assert response["type"] == "GetFiles"
+        result = cast(InternalGetFilesResponse, response)["files"]
+        return result
 
     async def delete_index(self):
+        assert self._service is not None
+        assert self._index_id is not None
         result = await self._service.send(
-            InternalDeleteIndexRequest(type="DeleteIndex", index_id=self.index_id)
+            InternalDeleteIndexRequest(type="DeleteIndex", index_id=self._index_id)
         )
         assert result["type"] == "DeletedIndex"
+        self._index_id = None
+        self._service = None
 
     async def add_custom_record(
-        self, record: CustomRecord
+        self,
+        *,
+        url: str,
+        content: str,
+        language: str,
+        meta: Optional[Dict[str, str]] = None,
+        filters: Optional[Dict[str, List[str]]] = None,
+        sort: Optional[Dict[str, str]] = None,
     ) -> InternalIndexedFileResponse:
+        """
+        ARGS:
+        content: the raw content of this record.
+        url: the output URL of this record. Pagefind will not alter this.
+        language: ISO 639-1 code of the language this record is written in.
+        meta: the metadata to attach to this record. Supplying a `title` is highly recommended.
+        filters: the filters to attach to this record. Filters are used to group records together.
+        sort: the sort keys to attach to this record.
+        """
+        assert self._service is not None
+        assert self._index_id is not None
         result = await self._service.send(
             InternalAddRecordRequest(
                 type="AddRecord",
-                index_id=self.index_id,
-                url=record.url,
-                content=record.content,
-                language=record.language,
-                meta=record.meta,
-                filters=record.filters,
-                sort=record.sort,
+                index_id=self._index_id,
+                url=url,
+                content=content,
+                language=language,
+                meta=meta,
+                filters=filters,
+                sort=sort,
             )
         )
         assert result["type"] == "IndexedFile"
         return cast(InternalIndexedFileResponse, result)
+
+    async def write_files(self):
+        assert self._service is not None
+        assert self._index_id is not None
+        if not self.config:
+            output_path = None
+        else:
+            output_path = self.config.get("output_path")
+
+        result = await self._service.send(
+            InternalWriteFilesRequest(
+                type="WriteFiles",
+                index_id=self._index_id,
+                output_path=output_path,
+            )
+        )
+        assert result["type"] == "WriteFiles"
+
+    async def __aenter__(self) -> "PagefindIndex":
+        assert self._service is None
+        assert self._index_id is None
+        return await self._start()
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Any],
+        exc_value: Optional[Any],
+        traceback: Optional[Any],
+    ) -> None:
+        assert self._service is not None
+        assert self._index_id is not None
+        if exc_type is None:
+            await self.write_files()
+        await self._service.close()
