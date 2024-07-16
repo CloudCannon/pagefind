@@ -19,9 +19,9 @@ jobs:
     needs: publish-github-release
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -93,11 +93,12 @@ jobs:
     needs: publish-binary-npm-packages
     steps:
       - name: Clone
-        uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+        uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          name: release-checksums
           path: wrappers/node/checksums
+          pattern: release-checksums-*
+          merge-multiple: true
 
       - name: Get Version
         run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
@@ -173,10 +174,10 @@ jobs:
             cpu: arm64
     steps:
       - name: Clone
-        uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+        uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          name: release
+          name: release-${{ matrix.target }}
           path: build-artifacts
 
       - name: Get Version
@@ -222,12 +223,12 @@ jobs:
           application_private_key: ${{ secrets.CC_OSS_BOT_PEM }}
 
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
 
       - name: Swap to main
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0 # Full fetch
@@ -238,10 +239,11 @@ jobs:
       - name: Get Tag
         run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: release
           path: build-artifacts
+          pattern: release-*
+          merge-multiple: true
 
       - name: Build CHANGELOG
         if: env.GIT_TAG == 'latest'
@@ -352,12 +354,12 @@ jobs:
             run_tests: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -366,9 +368,9 @@ jobs:
             target
           key: ${{ runner.os }}-${{ matrix.rust }}
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       # From https://github.com/Emoun/duplicate/blob/master/.github/workflows/rust.yml
       - name: Get Version
@@ -554,18 +556,18 @@ jobs:
           echo "EXTENDED_CHECKSUM_PATH=$CHECKSUM_PATH" >> $GITHUB_ENV
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release
+          name: release-${{ matrix.target }}
           path: |
             ${{ env.ASSET_PATH }}
             ${{ env.CHECKSUM_PATH }}
             ${{ env.EXTENDED_ASSET_PATH }}
             ${{ env.EXTENDED_CHECKSUM_PATH }}
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release-checksums
+          name: release-checksums-${{ matrix.target }}
           path: |
             ${{ env.CHECKSUM_PATH }}
             ${{ env.EXTENDED_CHECKSUM_PATH }}
