@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Get Token
         id: get_workflow_token
         uses: peter-murray/workflow-application-token-action@v2
