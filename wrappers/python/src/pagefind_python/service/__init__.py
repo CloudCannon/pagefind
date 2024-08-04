@@ -1,14 +1,13 @@
 import os
-import platform
 
 from pathlib import Path
 import json
 from contextlib import AbstractAsyncContextManager
-from typing import Any, Dict, List, Optional, cast, TYPE_CHECKING
+from typing import Any, Dict, Optional, cast, TYPE_CHECKING
 import asyncio
 import base64
 import logging
-
+import shutil
 
 from .types import (
     InternalNewIndexRequest,
@@ -27,27 +26,30 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def _binary_candidates() -> List[Path]:
-    this_dir = Path(__file__).parent
-    package_root = this_dir.parent
-    names = ["pagefind_extended", "pagefind"]
-    extensions = [""]
-    if platform.system().lower() == "Windows":
-        extensions.append(".exe")
-
-    return [package_root / (n + ext) for n in names for ext in extensions]
-
-
 def _must_find_binary() -> Path:
-    # TODO: verify this is the correct path
-    candidates = _binary_candidates()
-    for candidate in candidates:
-        if candidate.exists():
-            if not candidate.is_file():
-                raise FileNotFoundError(f"{candidate} is not a file")
-            else:
-                return candidate
-    raise FileNotFoundError(f"Could not find any of {candidates}")
+    try:
+        from experimental_pagefind_python_bin_extended import get_executable  # type: ignore
+
+        executable: Path = get_executable()
+        log.debug(f"using {executable}")
+        return executable
+    except ImportError:
+        log.debug("unable to import experimental_pagefind_python_bin_extended")
+
+    try:
+        from experimental_pagefind_python_bin import get_executable  # type: ignore
+
+        executable: Path = get_executable()
+        log.debug(f"using {executable}")
+        return executable
+    except ImportError:
+        log.debug("unable to import experimental_pagefind_python_bin")
+
+    exe: Optional[str] = shutil.which("pagefind_extended") or shutil.which("pagefind")
+    if exe is None:
+        raise FileNotFoundError("Could not find pagefind binary")
+    else:
+        return Path(exe)
 
 
 def _encode(req: InternalServiceRequest) -> bytes:
@@ -113,7 +115,6 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
         # backend waits for a comma before responding
         await self._backend.stdin.drain()
         log.debug(f"request sent: {req}")
-
         result = await future
         log.debug(f"received response: {result}")
         return result
@@ -127,13 +128,22 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
             assert self._backend.stdout is not None
             log.debug("checking for data")
             output = await self._backend.stdout.readuntil(b",")
-            log.debug(f"received data: {output}")
+            if len(output) <= 100:
+                log.debug(f"received data: {output}")
+            else:
+                log.debug(
+                    f"received data: {output[:30]}...{len(output) - 40}B...{output[-10:]}"
+                )
             if (resp := json.loads(base64.b64decode(output[:-1]))) is None:
                 continue
             resp = cast(InternalServiceResponse, resp)
             if (message_id := resp.get("message_id")) is not None:
-                assert self._message_id <= message_id, "message_id out of order"
+                log.debug(f"received response for message {message_id}")
+                assert (
+                    self._message_id >= message_id
+                ), f"message_id out of order: incoming {message_id} > current: {self._message_id}"
                 if (future := self._responses.get(message_id)) is not None:
+                    log.debug(f"resolving future for message {message_id}")
                     payload = resp["payload"]
                     if payload["type"] == InternalResponseType.ERROR.value:
                         exc = cast(InternalResponseError, payload)
@@ -143,6 +153,7 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
                     else:
                         future.set_result(cast(InternalResponsePayload, payload))
                 else:
+                    log.debug(f"no receiving future for message {message_id}")
                     # FIXME: figure out how to surface the error
                     payload = cast(InternalResponseError, resp["payload"])
                     # assert (

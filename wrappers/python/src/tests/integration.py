@@ -1,4 +1,25 @@
+import asyncio
+import json
+import logging
+import os
 from pagefind_python.index import PagefindIndex, IndexConfig
+
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
+log = logging.getLogger(__name__)
+html_content = (
+    "<html>"
+    "  <body>"
+    "    <main>"
+    "      <h1>Example HTML</h1>"
+    "      <p>This is an example HTML page.</p>"
+    "    </main>"
+    "  </body>"
+    "</html>"
+)
+
+
+def prefix(pre: str, s: str) -> str:
+    return pre + s.replace("\n", f"\n{pre}")
 
 
 async def main():
@@ -6,39 +27,29 @@ async def main():
         root_selector="main", logfile="index.log", output_path="./output", verbose=True
     )
     async with PagefindIndex(config=config) as index:
-        await index.add_directory("./public")
-        new_file = await index.add_html_file(
-            content=(
-                "<html>"
-                "  <body>"
-                "    <main>"
-                "      <h1>Example HTML</h1>"
-                "      <p>This is an example HTML page.</p>"
-                "    </main>"
-                "  </body>"
-                "</html>"
+        log.debug("opened index")
+        new_file, new_record, new_dir = await asyncio.gather(
+            index.add_html_file(
+                content=html_content,
+                url="https://example.com",
+                source_path="other/example.html",
             ),
-            url="https://example.com",
-            source_path="other/example.html",
+            index.add_custom_record(
+                url="/elephants/",
+                content="Some testing content regarding elephants",
+                language="en",
+                meta={"title": "Elephants"},
+            ),
+            index.add_directory("./public"),
         )
-        print(f"new_file={new_file}")
-        new_record = await index.add_custom_record(
-            url="/elephants/",
-            content="Some testing content regarding elephants",
-            language="en",
-            meta={"title": "Elephants"},
-        )
-        print(f"new_record={new_record}")
-
-        new_dir = await index.add_directory("./public")
-        print(f"new_dir={new_dir}")
+        print(prefix("new_file    ", json.dumps(new_file, indent=2)))
+        print(prefix("new_record  ", json.dumps(new_record, indent=2)))
+        print(prefix("new_dir     ", json.dumps(new_dir, indent=2)))
 
         files = await index.get_files()
-        for f in files:
-            print(f"files= {len(f['content']):10}B {f['path']}")
+        for file in files:
+            print(prefix("files", f"{len(file['content']):10}B {file['path']}"))
 
 
 if __name__ == "__main__":
-    import asyncio
-
     asyncio.run(main())

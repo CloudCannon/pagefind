@@ -2,18 +2,43 @@
 name = "pagefind_python"
 version = "0.1.0"
 description = "Python API for Pagefind"
-authors = ["Your Name <you@example.com>"] # TODO: add name and email
+authors = ["CloudCannon"]
 license = "MIT"
 readme = "README.md"
-include = [] # TODO: figure out path for local binaries **IN CI**
+include = []
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Text Processing :: Indexing",
+    "Topic :: Text Processing :: Markup :: HTML",
+]
+
+# Note: we *aren't* including an `entry-points` section here to avoid clobbering
+# the user's natively-installed `pagefind` binary. Using `python3 -m pagefind_python`
+# is an informatively-namespaced alternative that doesn't add too many keystrokes.
+# See https://packaging.python.org/en/latest/specifications/entry-points/
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.9"
+# FIXME: update bin-package names once those stabilize
+# experimental_pagefind_python_bin = { version = "*", optional = true }
+# experimental_pagefind_python_bin_extended = { version = "*", optional = true }
+
+[tool.poetry.extras]
+bin = ["experimental_pagefind_python_bin"]
+extended = ["experimental_pagefind_python_bin_extended"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.0"
 mypy = "^1.10.1"
+wheel = "^0.43.0"
+cogapp = "^3.4.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+# note that poetry can currently only build `purelib`s, or pure-python wheels.
+# (see https://python-poetry.org/docs/cli#build)
+# This means poetry can't handle building wheels that contain pagefind's binaries,
+#  which are necessarily platform-dependent.
+# For more information on purelibs/pure-python wheels, see
+# https://peps.python.org/pep-0427/#what-s-the-deal-with-purelib-vs-platlib
