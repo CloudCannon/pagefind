@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pagefind_python"
+name = "pagefind"
 version = "0.1.0"
 description = "Python API for Pagefind"
 authors = ["CloudCannon"]
@@ -19,13 +19,14 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.9"
+# TODO: uncomment
 # FIXME: update bin-package names once those stabilize
 # experimental_pagefind_python_bin = { version = "*", optional = true }
 # experimental_pagefind_python_bin_extended = { version = "*", optional = true }
 
 [tool.poetry.extras]
-bin = ["experimental_pagefind_python_bin"]
-extended = ["experimental_pagefind_python_bin_extended"]
+bin = ["pagefind_bin"]
+extended = ["pagefind_bin_extended"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.0"

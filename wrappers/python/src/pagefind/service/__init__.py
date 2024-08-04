@@ -28,22 +28,22 @@ log = logging.getLogger(__name__)
 
 def _must_find_binary() -> Path:
     try:
-        from experimental_pagefind_python_bin_extended import get_executable  # type: ignore
+        from pagefind_bin_extended import get_executable  # type: ignore
 
         executable: Path = get_executable()
         log.debug(f"using {executable}")
         return executable
     except ImportError:
-        log.debug("unable to import experimental_pagefind_python_bin_extended")
+        log.debug("unable to import pagefind_bin_extended")
 
     try:
-        from experimental_pagefind_python_bin import get_executable  # type: ignore
+        from pagefind_bin import get_executable  # type: ignore
 
         executable: Path = get_executable()
         log.debug(f"using {executable}")
         return executable
     except ImportError:
-        log.debug("unable to import experimental_pagefind_python_bin")
+        log.debug("unable to import pagefind_bin")
 
     exe: Optional[str] = shutil.which("pagefind_extended") or shutil.which("pagefind")
     if exe is None:

@@ -42,7 +42,8 @@ LLVM_TRIPLES_TO_PYTHON_WHEEL_PLATFORMS = {
     "x86_64-unknown-linux-musl": "manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64",
 }
 
-def as_zip_info(file: Path, *, alias: str)-> Tuple[ZipInfo, bytes]:
+
+def as_zip_info(file: Path, *, alias: str) -> Tuple[ZipInfo, bytes]:
     zip_info = ZipInfo(alias or file.name, (1980, 1, 1, 0, 0, 0))
     zip_info.external_attr = file.stat().st_mode << 16
     with file.open("rb") as f:
@@ -50,8 +51,8 @@ def as_zip_info(file: Path, *, alias: str)-> Tuple[ZipInfo, bytes]:
     zip_info.file_size = len(data)
     return zip_info, data
 
-class ReproducibleWheelFile(wheel.wheelfile.WheelFile):
 
+class ReproducibleWheelFile(wheel.wheelfile.WheelFile):
     def writestr(
         self, zip_info_or_arc_name: Union[ZipInfo, str], data: Any, *args, **kwargs
     ):
@@ -88,8 +89,7 @@ def make_message(
 
 
 def write_wheel_file(
-    filename: Path,
-    contents: Dict[str, Union[str, bytes, EmailMessage, ZipInfo]]
+    filename: Path, contents: Dict[str, Union[str, bytes, EmailMessage, ZipInfo]]
 ) -> Path:
     with ReproducibleWheelFile(filename, "w") as wheel:
         for member_info, member_source in contents.items():
@@ -155,11 +155,10 @@ def write_pagefind_bin_only_wheel(
     platform: str,
 ) -> Path:
     # FIXME: update when package support is stabilized
+    name = "pagefind_bin"
     if "extended" in executable.name:
-        name = "experimental_pagefind_python_bin_extended"
-    else:
-        name = "experimental_pagefind_python_bin"
-    src_dir = this_dir / "src" / "pagefind_python_bin"
+        name += "_extended"
+    src_dir = this_dir / "src" / "pagefind_bin"
     contents = {
         f"{name}/__init__.py": (src_dir / "__init__.py"),
         f"{name}/{executable.name}": executable,
@@ -167,7 +166,7 @@ def write_pagefind_bin_only_wheel(
 
     # Load in static files
     with (src_dir / "README.md").open() as f:
-        description = f.read().replace("pagefind_python_bin", name)
+        description = f.read().replace("pagefind_bin", name)
 
     return write_wheel(
         output_dir,

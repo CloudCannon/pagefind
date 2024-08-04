@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import os
-from pagefind_python.index import PagefindIndex, IndexConfig
+from pagefind.index import PagefindIndex, IndexConfig
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 log = logging.getLogger(__name__)

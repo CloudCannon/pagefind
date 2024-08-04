@@ -2,12 +2,12 @@
 An async python API for the [pagefind](https://pagefind.app) binary.
 
 ## Installation
-<!-- eventual?
+
 ```sh
 python3 -m pip install 'pagefind[bin]'
 python3 -m pagefind --help
 ```
--->
+
 ## Usage
 <!--[[[cog
   print("```py")
@@ -16,10 +16,12 @@ python3 -m pagefind --help
 ]]] -->
 ```py
 import asyncio
+import json
 import logging
-from pagefind_python.index import PagefindIndex, IndexConfig
+import os
+from pagefind.index import PagefindIndex, IndexConfig
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 log = logging.getLogger(__name__)
 html_content = (
     "<html>"
@@ -31,6 +33,10 @@ html_content = (
     "  </body>"
     "</html>"
 )
+
+
+def prefix(pre: str, s: str) -> str:
+    return pre + s.replace("\n", f"\n{pre}")
 
 
 async def main():
@@ -53,13 +59,13 @@ async def main():
             ),
             index.add_directory("./public"),
         )
-        print(f"new_file={new_file}")
-        print(f"new_record={new_record}")
-        print(f"new_dir={new_dir}")
+        print(prefix("new_file    ", json.dumps(new_file, indent=2)))
+        print(prefix("new_record  ", json.dumps(new_record, indent=2)))
+        print(prefix("new_dir     ", json.dumps(new_dir, indent=2)))
 
         files = await index.get_files()
-        for f in files:
-            print(f"files= {len(f['content']):10}B {f['path']}")
+        for file in files:
+            print(prefix("files", f"{len(file['content']):10}B {file['path']}"))
 
 
 if __name__ == "__main__":
