@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.9.1"
+  HUMANE_VERSION: "0.9.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
@@ -59,11 +59,11 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: ${{ matrix.rust }}
-            target: ${{ matrix.target }}
-            override: true
-            default: true
-            components: rustfmt, clippy
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
+          override: true
+          default: true
+          components: rustfmt, clippy
 
       - name: Check versions
         run: |
