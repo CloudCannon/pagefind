@@ -1,0 +1,19 @@
+name: Filtering > Filtering to any of a single filter
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      await test(pagefind.search("Cat", {
+          filters: {
+              color: {
+                  any: ["Black", "Orange"]
+              }
+          }
+      }));
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-results]");
+
+      toolproof.assert_eq(val.innerHTML, `/cheeka/, /smudge/, /theodore/,
+      /treacle/`);

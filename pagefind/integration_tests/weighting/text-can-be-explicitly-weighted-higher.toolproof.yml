@@ -1,0 +1,38 @@
+name: Word Weighting > Text can be explicitly weighted higher
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/r1/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Antelope</p>
+      <p>Antelope Antelope Not</p></body></html>
+  - step: I have a "public/r2/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Antelope</p>
+      <p>Antelope Not</p></body></html>
+  - step: I have a "public/r3/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-pagefind-weight="3">Antelope</p>
+
+      <p>Antelope Not</p></body></html>
+  - step: I have a "public/r4/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Antelope</p>
+      <p>Antelope Antelope Antelope Antelope</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search(`antelope`);
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+      document.querySelector('p').innerText = data.map(d => d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("p");
+      toolproof.assert_eq(val.innerHTML, `/r3/, /r4/, /r1/, /r2/`);

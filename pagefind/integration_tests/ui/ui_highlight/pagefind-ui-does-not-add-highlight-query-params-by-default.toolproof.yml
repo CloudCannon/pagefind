@@ -1,0 +1,39 @@
+name: Base UI Tests > Pagefind UI does not add highlight query params by default
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body>    <div
+      id="search"></div>
+          <script src="/pagefind/pagefind-ui.js"></script>
+
+          <script>
+              window.pui = new PagefindUI({ element: "#search" });
+          </script></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>hello world</h1>
+      <p>Hello world! How are you</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: window.pui.triggerSearch("world");
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector(".pagefind-ui__result-link[href$='/']");
+
+      toolproof.assert_eq(val.innerHTML, `hello world`);
+  - step: In my browser, I evaluate {js}
+    js: window.pui.triggerSearch("hello world");
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector(".pagefind-ui__result-link[href$='/']");
+
+      toolproof.assert_eq(val.innerHTML, `hello world`);

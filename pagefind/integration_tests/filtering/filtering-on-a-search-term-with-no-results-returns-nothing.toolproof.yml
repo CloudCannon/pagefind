@@ -1,0 +1,22 @@
+name: Filtering > Filtering on a search term with no results returns nothing
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("Pontification", {
+          filters: {
+              color: "Orange"
+          }
+      });
+
+
+      document.querySelector('[data-results]').innerText =
+      search.results.length;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `0`);

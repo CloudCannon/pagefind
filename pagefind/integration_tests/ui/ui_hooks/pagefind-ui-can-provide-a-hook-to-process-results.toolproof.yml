@@ -1,0 +1,33 @@
+name: UI Hooks > Pagefind UI can provide a hook to process results
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Search</h1>
+      <img src="my.png" />
+      <div id="search"></div>
+      <script src="/pagefind/pagefind-ui.js"></script>
+
+      <script>
+          window.pui = new PagefindUI({
+              element: "#search",
+              processResult: function (result) {
+                  result.meta.image = `/example/absolute/${result.meta.image}`;
+                  return result;
+              }
+          });
+      </script></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      window.pui.triggerSearch("search");
+
+      let el = await toolproof.querySelector(".pagefind-ui__result-image");
+      if (el.getAttribute("src") !== "/example/absolute/my.png") {
+          throw new Error("Path should have been updated by processResult");
+      }
+  - step: In my browser, the console should be empty

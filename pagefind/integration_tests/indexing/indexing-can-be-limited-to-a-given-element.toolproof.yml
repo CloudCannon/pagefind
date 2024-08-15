@@ -1,0 +1,61 @@
+name: Indexing > Indexing can be limited to a given element
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-search-one>Nothing</p>
+
+      <p data-search-two>Nothing</p></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Outer Content</h1>
+      <div data-pagefind-body>
+          <p>Hello World, from Pagefind</p>
+          <p>Huzzah!</p>
+      </div>
+      <p>goodbye content</p>
+      <p data-pagefind-body>Little extra body</p>
+      <div>
+          <p>More unindexed content</p>
+          <main data-pagefind-body="">
+              <p>Body number 3</p>
+          </main>
+          <p>And yet more unindexed content</p>
+      </div></body></html>
+  - step: I have a "public/dog/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>No selector</h1>
+      <p>goodbye content</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let searchone = await pagefind.search("hello");
+
+      let searchonedata = await searchone.results[0].data();
+
+      document.querySelector('[data-search-one]').innerText =
+      searchonedata.content;
+
+
+      let searchtwo = await pagefind.search("goodbye");
+
+      document.querySelector('[data-search-two]').innerText =
+      `${searchtwo.results.length} result(s)`;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-search-one]");
+
+      toolproof.assert_eq(val.innerHTML, `Hello World, from Pagefind. Huzzah!
+      Little extra body. Body number 3.`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-search-two]");
+      toolproof.assert_eq(val.innerHTML, `0 result(s)`);

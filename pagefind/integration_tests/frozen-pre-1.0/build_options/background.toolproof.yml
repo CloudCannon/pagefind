@@ -1,0 +1,4 @@
+name: frozen-pre-1.0/build_options > Build Options > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SOURCE" set to "public"

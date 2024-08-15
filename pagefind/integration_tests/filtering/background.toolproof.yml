@@ -1,0 +1,32 @@
+name: filtering > Filtering > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-results>Nothing</p></body></html>
+  - step: I have a "public/cheeka/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><span
+      data-pagefind-filter="color">Black</span>
+
+      <span data-pagefind-filter="color">White</span>
+
+      <h1>Cat</h1></body></html>
+  - step: I have a "public/theodore/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><span
+      data-pagefind-filter="color">Orange</span>
+
+      <h1 data-pagefind-filter="color:White">Cat</h1></body></html>
+  - step: I have a "public/ali/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><span
+      data-pagefind-filter="mood">Angry</span>
+
+      <h1 data-pagefind-filter="color:Tabby">Ali Cat</h1></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"

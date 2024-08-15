@@ -1,0 +1,55 @@
+name: >-
+  Multilingual > LEGACY Pagefind merges omitted languages into the primary
+  language
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html>
+          <head>
+              <title>Document</title>
+          </head>
+          <body>
+              <p data-result>Nothing</p>
+          </body>
+      </html>
+  - step: I have a "public/mystery/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html>
+          <head>
+              <title>Document</title>
+          </head>
+          <body>
+              <p>I am a mystery document</p>
+          </body>
+      </html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: stderr should contain "pre-1.0 compatibility mode"
+  - step: The file "public/_pagefind/pagefind.js" should not be empty
+  - step: I run "ls -lh public/_pagefind/wasm.unknown.pagefind"
+    notes: 'TODO: Build a file existence check into toolproof'
+  - step: >-
+      The file "public/_pagefind/pagefind-entry.json" should not contain
+      "unknown"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/_pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("documenting");
+
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText = `${data.map(d =>
+      d.url).sort().join(', ')}`;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/en/, /mystery/`);

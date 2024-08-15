@@ -1,0 +1,43 @@
+name: Multisite Search > LEGACY Pagefind UI can search across multiple sites
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "root/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><div id="search"></div>
+      <script src="/website_a/_pagefind/pagefind-ui.js"></script></body></html>
+  - step: I run "%pagefind_exec_path% --source root/website_a"
+  - step: stdout should contain "Running Pagefind"
+  - step: stderr should contain "pre-1.0 compatibility mode"
+  - step: The file "root/website_a/_pagefind/pagefind.js" should not be empty
+  - step: I run "%pagefind_exec_path% --source root/website_b"
+  - step: stdout should contain "Running Pagefind"
+  - step: stderr should contain "pre-1.0 compatibility mode"
+  - step: The file "root/website_b/_pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "root"
+  - step: In my browser, I load "/"
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pui = new PagefindUI({
+          element: "#search",
+          mergeIndex: [{
+              bundlePath: "/website_b/_pagefind/"
+          }]
+      });
+      pui.triggerSearch("web");
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector(".pagefind-ui__result:nth-of-type(1)
+      .pagefind-ui__result-link");
+
+      toolproof.assert_eq(val.innerHTML, `web web world
+      PAGEFIND_ROOT_SELECTOR`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector(".pagefind-ui__result:nth-of-type(2)
+      .pagefind-ui__result-link");
+
+      toolproof.assert_eq(val.innerHTML, `web ipsum`);

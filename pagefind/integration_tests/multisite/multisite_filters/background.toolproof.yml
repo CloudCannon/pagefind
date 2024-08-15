@@ -1,0 +1,25 @@
+name: multisite/multisite_filters > Multisite Filters > Background
+type: reference
+steps:
+  - step: I have a "root/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-result>Nothing</p></body></html>
+  - step: I have a "root/website_a/hello/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>web world</h1>
+      <span data-pagefind-filter="fruit">apple</span>
+      <span data-pagefind-filter="color">red</span></body></html>
+  - step: I have a "root/website_b/lorem/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>web ipsum</h1>
+      <span data-pagefind-filter="fruit">banana</span>
+      <span data-pagefind-filter="emote">happy</span></body></html>
+  - step: I run "%pagefind_exec_path% --site root/website_a"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "root/website_a/pagefind/pagefind.js" should not be empty
+  - step: I run "%pagefind_exec_path% --site root/website_b"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "root/website_b/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "root"
+  - step: In my browser, I load "/"

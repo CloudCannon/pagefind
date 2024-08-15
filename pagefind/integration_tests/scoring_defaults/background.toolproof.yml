@@ -1,0 +1,22 @@
+name: scoring_defaults > Result Scoring > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><ul>
+          <li data-count>
+          <li data-result>
+      </ul></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Happy cat post, that
+      later mentions dogs in the context of cats</h1></body></html>
+  - step: I have a "public/dog/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>A post about dogs vs
+      cats (but mainly dogs)</h1></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"

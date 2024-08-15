@@ -1,0 +1,70 @@
+name: Highlighting Result Tests > Highlight script marks correctly
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I load "/words/?pagefind-highlight=this"
+  - step: In my browser, I evaluate {js}
+    js: await new Promise(r => setTimeout(r, 200));
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("#has-highlight mark");
+      toolproof.assert_eq(val.innerHTML, `this`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("#has-highlight
+      mark.pagefind-highlight");
+
+      toolproof.assert_eq(val.innerHTML, `this`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("p[data-pagefind-ignore]:not(:has(span))");
+
+      toolproof.assert_eq(val.innerHTML, `This should not be highlighted`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("p[data-pagefind-ignore]:has(span)");
+
+      toolproof.assert_eq(val.innerHTML, `<span>This</span> should not be
+      highlighted`);
+  - step: >-
+      In my browser, I load
+      "/words/?pagefind-highlight=this&pagefind-highlight=should"
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("#has-highlight
+      mark:first-of-type");
+
+      toolproof.assert_eq(val.innerHTML, `this`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("#has-highlight
+      mark:nth-of-type(2)");
+
+      toolproof.assert_eq(val.innerHTML, `should`);
+  - step: In my browser, I load "/words/?pagefind-highlight=is+this"
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("#has-highlight mark");
+      toolproof.assert_eq(val.innerHTML, `Is this`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("p[data-pagefind-ignore]");
+      toolproof.assert_eq(val.innerHTML, `This should not be highlighted`);
+  - step: In my browser, I load "/words/?pagefind-highlight=highlighted%3F"
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("#has-highlight mark");
+      toolproof.assert_eq(val.innerHTML, `highlighted?`);
+  - step: In my browser, I load "/words/?pagefind-highlight=this+highlighted%3F"
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("#has-highlight
+      mark:first-of-type");
+
+      toolproof.assert_eq(val.innerHTML, `this highlighted?`);

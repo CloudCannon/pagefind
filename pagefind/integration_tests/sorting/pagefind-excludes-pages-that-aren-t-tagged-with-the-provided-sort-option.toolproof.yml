@@ -1,0 +1,37 @@
+name: >-
+  Result Sorting > Pagefind excludes pages that aren't tagged with the provided
+  sort option
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let asc_search = await pagefind.search("Robe", { sort: { color: "asc" }
+      });
+
+      let asc_data = await Promise.all(asc_search.results.map(result =>
+      result.data()));
+
+      document.querySelector('[data-asc]').innerText = asc_data.map(d =>
+      d.url).join(', ');
+
+
+      let desc_search = await pagefind.search("Robe", { sort: { color: "desc" }
+      });
+
+      let desc_data = await Promise.all(desc_search.results.map(result =>
+      result.data()));
+
+      document.querySelector('[data-desc]').innerText = desc_data.map(d =>
+      d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-asc]");
+      toolproof.assert_eq(val.innerHTML, `/robe/painte/, /robe/megapointe/`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-desc]");
+      toolproof.assert_eq(val.innerHTML, `/robe/megapointe/, /robe/painte/`);

@@ -1,0 +1,31 @@
+name: multisite/multisite_sort > Multisite Result Scoring > Background
+type: reference
+steps:
+  - step: I have a "root/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-result>Nothing</p></body></html>
+  - step: I have a "root/website_a/twowebs/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>my page on the web
+      web</h1></body></html>
+  - step: I have a "root/website_a/oneweb/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>my page on the world
+      web</h1></body></html>
+  - step: I have a "root/website_a/longdoc/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Aenean lacinia
+      bibendum nulla sed consectetur. Duis mollis, est non commodo luctus, nisi
+      erat porttitor ligula, eget lacinia odio sem nec elit.</h1></body></html>
+  - step: >-
+      I have a "root/website_b/threewebs/index.html" file with the content
+      {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>my web web web
+      page</h1></body></html>
+  - step: I have a "root/website_b/longdoc/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Aenean lacinia
+      bibendum nulla sed consectetur. Duis mollis, est non commodo luctus, nisi
+      erat porttitor ligula, eget lacinia odio sem nec elit.</h1></body></html>

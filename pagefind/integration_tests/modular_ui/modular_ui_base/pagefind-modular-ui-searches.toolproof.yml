@@ -1,0 +1,22 @@
+name: Base Modular UI Tests > Pagefind Modular UI searches
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>world</h1></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let e = new Event('input', {bubbles:true, cancelable:true});
+      document.querySelector("#search input").value = "world";
+      document.querySelector("#search input").dispatchEvent(e);
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector(".pagefind-modular-list-link");
+      toolproof.assert_eq(val.innerHTML, `world`);

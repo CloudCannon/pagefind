@@ -1,0 +1,83 @@
+name: highlighting/highlighting_results > Highlighting Result Tests > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/words/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p id="has-highlight">Is
+      this highlighted? It should be!</p>
+
+      <p data-pagefind-ignore>This should not be highlighted</p>
+
+      <p data-pagefind-ignore><span>This</span> should not be highlighted</p>
+
+      <script type="module">
+          await import('/pagefind/pagefind-highlight.js');
+          new PagefindHighlight();
+      </script></body></html>
+  - step: I have a "public/single-body/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><main
+      data-pagefind-body>
+          <p id="has-highlight">This should be highlighted</p>
+          <p data-pagefind-ignore>This should not be highlighted</p>
+      </main>
+
+      <p id="no-highlight">This should not be highlighted</p>
+
+      <script type="module">
+          await import('/pagefind/pagefind-highlight.js');
+          new PagefindHighlight();
+      </script></body></html>
+  - step: I have a "public/multiple-bodies/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><main
+      data-pagefind-body>
+          <p id="has-highlight">This should be highlighted</p>
+          <p data-pagefind-ignore>This should not be highlighted</p>
+      </main>
+
+      <p id="no-highlight">This should not be highlighted</p>
+
+      <div data-pagefind-body>
+          <p id="has-highlight">This should be highlighted</p>
+          <p data-pagefind-ignore>This should not be highlighted</p>
+      </div>
+
+      <script type="module">
+          await import('/pagefind/pagefind-highlight.js');
+          new PagefindHighlight();
+      </script></body></html>
+  - step: I have a "public/options/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><main
+      data-pagefind-body>
+          <p id="has-highlight">This should be highlighted</p>
+          <p data-pagefind-ignore>This should not be highlighted</p>
+      </main>
+
+      <p id="no-highlight">This should not be highlighted</p>
+
+      <div data-pagefind-body>
+          <p id="has-highlight">This should be highlighted</p>
+          <p class="ignore">This should not be highlighted</p>
+          <p data-pagefind-ignore>This should not be highlighted</p>
+      </div>
+
+      <script type="module">
+          await import('/pagefind/pagefind-highlight.js');
+          new PagefindHighlight({
+          highlightParam: 'custom-name',
+          markOptions: {
+                  className: 'custom-class',
+                  exclude: [
+                      "[data-pagefind-ignore]",
+                      "[data-pagefind-ignore] *",
+                      ".ignore"
+                      ]
+                  }
+          });
+      </script></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"

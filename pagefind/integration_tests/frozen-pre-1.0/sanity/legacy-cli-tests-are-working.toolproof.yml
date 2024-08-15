@@ -1,0 +1,11 @@
+name: Sanity Tests > LEGACY CLI tests are working
+steps:
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body>  <link
+      rel="pre-1.0-signal" href="_pagefind" >
+        <p data-url>Nothing</p></body></html>
+  - step: I run "%pagefind_exec_path% --source public"
+  - step: stdout should contain "Running Pagefind"
+  - step: stderr should contain "pre-1.0 compatibility mode"
+  - step: stderr should contain "The `source` option is deprecated"

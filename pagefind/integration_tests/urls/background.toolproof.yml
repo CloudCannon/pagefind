@@ -1,0 +1,19 @@
+name: urls > URL tests > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-url>Nothing</p></body></html>
+  - step: I have a "public/package.json" file with the content {json}
+    json: |-
+      {
+          "name": "test",
+          "type": "module",
+          "version": "1.0.0",
+          "main": "index.js",
+          "dependencies": {
+              "pagefind": "file:%repo_wd%/wrappers/node"
+          }
+      }

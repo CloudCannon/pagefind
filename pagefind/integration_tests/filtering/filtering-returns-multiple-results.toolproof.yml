@@ -1,0 +1,24 @@
+name: Filtering > Filtering returns multiple results
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("Cat", {
+          filters: {
+              color: "White"
+          }
+      });
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+
+      document.querySelector('[data-results]').innerText = data.map(d =>
+      d.url).sort().join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `/cheeka/, /theodore/`);

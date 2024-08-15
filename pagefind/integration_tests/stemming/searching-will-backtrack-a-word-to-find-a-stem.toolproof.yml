@@ -1,0 +1,31 @@
+name: Word Stemming > Searching will backtrack a word to find a stem
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/doc/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>a doc about
+      installation</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("installat");
+
+
+      let results = await Promise.all(search.results.map(r => r.data()));
+
+      document.querySelector('[data-result]').innerText = results.map(r =>
+      `${r.url} • ${r.excerpt}`).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-result]");
+
+      toolproof.assert_eq(val.innerHTML, `/doc/ • a doc about
+      &lt;mark&gt;installation.&lt;/mark&gt;`);

@@ -1,0 +1,39 @@
+name: Build Options > LEGACY Root selector can be configured
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><link
+      rel="pre-1.0-signal" href="_pagefind" >
+
+      <p data-url>Nothing</p></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Ignored</h1>
+      <div class="content">
+          <h1>Hello</h1>
+      </div>
+      <p data-pagefind-meta="ignored">Also ignored</p></body></html>
+  - step: I run "%pagefind_exec_path% --root-selector 'body > .content'"
+  - step: stdout should contain "Running Pagefind"
+  - step: stderr should contain "pre-1.0 compatibility mode"
+  - step: The file "public/_pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/_pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("hello");
+
+
+      let data = await search.results[0].data();
+
+      document.querySelector('[data-url]').innerText = `${data.meta.title},
+      ${data.content} Ignored is ${data.meta.ignored}.`;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-url]");
+      toolproof.assert_eq(val.innerHTML, `Hello, Hello. Ignored is undefined.`);

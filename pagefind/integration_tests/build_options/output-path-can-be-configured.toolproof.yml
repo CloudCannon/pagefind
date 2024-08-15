@@ -1,0 +1,29 @@
+name: Build Options > Output path can be configured
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-url>Nothing</p></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>world</h1></body></html>
+  - step: I run "%pagefind_exec_path% --output-subdir _search"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/_search/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/_search/pagefind.js");
+
+      let search = await pagefind.search("world");
+
+      let data = await search.results[0].data();
+      document.querySelector('[data-url]').innerText = data.url;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-url]");
+      toolproof.assert_eq(val.innerHTML, `/cat/`);
