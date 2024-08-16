@@ -1,4 +1,8 @@
 name: Node API Base Tests > Build a true index to disk via the api
+platforms:
+  - linux
+  - mac
+
 steps:
   - ref: ./background.toolproof.yml
   - step: >-

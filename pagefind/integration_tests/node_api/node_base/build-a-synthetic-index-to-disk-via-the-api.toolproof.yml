@@ -1,4 +1,8 @@
 name: Node API Base Tests > Build a synthetic index to disk via the api
+platforms:
+  - linux
+  - mac
+
 steps:
   - ref: ./background.toolproof.yml
   - step: I have a "public/index.js" file with the content {js}

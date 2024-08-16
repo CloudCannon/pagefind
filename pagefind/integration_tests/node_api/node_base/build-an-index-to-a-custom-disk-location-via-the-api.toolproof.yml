@@ -1,4 +1,8 @@
 name: Node API Base Tests > Build an index to a custom disk location via the api
+platforms:
+  - linux
+  - mac
+
 steps:
   - ref: ./background.toolproof.yml
   - step: I have a "output/index.html" file with the content {html}

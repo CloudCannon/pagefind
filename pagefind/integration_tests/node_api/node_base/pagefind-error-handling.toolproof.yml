@@ -1,4 +1,8 @@
 name: Node API Base Tests > Pagefind error handling
+platforms:
+  - linux
+  - mac
+
 steps:
   - ref: ./background.toolproof.yml
   - step: I have a "public/index.js" file with the content {js}

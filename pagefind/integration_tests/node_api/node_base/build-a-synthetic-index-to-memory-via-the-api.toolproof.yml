@@ -1,4 +1,8 @@
 name: Node API Base Tests > Build a synthetic index to memory via the api
+platforms:
+  - linux
+  - mac
+
 steps:
   - ref: ./background.toolproof.yml
   - step: I have a "public/index.js" file with the content {js}
@@ -27,4 +31,4 @@ steps:
   - step: stdout should contain "JS is at pagefind.js"
   - step: stdout should contain "1 fragment(s)"
   - step: I run "ls -lh public/pagefind/pagefind.js" and expect it to fail
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"

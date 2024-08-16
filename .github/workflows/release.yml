@@ -475,8 +475,7 @@ jobs:
 
       - name: Test CLI
         if: matrix.run_tests == true
-        working-directory: ./pagefind
-        run: TEST_BINARY=../target/${{ matrix.target }}/release/pagefind humane
+        run: ./test_ci.sh
 
       - name: Move extended binary aside
         run: |

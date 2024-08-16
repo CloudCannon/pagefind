@@ -1,4 +1,8 @@
 name: Node API Base Tests > Build a blended index to memory via the api
+platforms:
+  - linux
+  - mac
+
 steps:
   - ref: ./background.toolproof.yml
   - step: >-

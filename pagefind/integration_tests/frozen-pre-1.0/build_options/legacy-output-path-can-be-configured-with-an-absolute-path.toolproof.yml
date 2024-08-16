@@ -1,7 +1,5 @@
-#TODO: This is a broken test that needs to be fixed.
-
-type: reference
 name: Build Options > LEGACY Output path can be configured with an absolute path
+
 steps:
   - ref: ./background.toolproof.yml
   - step: I have a "public/index.html" file with the content {html}
@@ -16,7 +14,7 @@ steps:
       lang="en"><head></head><body><h1>world</h1></body></html>
   - step: >-
       I run "%pagefind_exec_path% --bundle-dir
-      %todo_toolproof_dir_abs_path%/other/_search"
+      %toolproof_test_directory%/other/_search"
   - step: stdout should contain "Running Pagefind"
   - step: The file "other/_search/pagefind.js" should not be empty
   - step: I serve the directory "."

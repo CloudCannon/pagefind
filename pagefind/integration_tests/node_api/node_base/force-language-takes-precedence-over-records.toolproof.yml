@@ -1,4 +1,8 @@
 name: Node API Base Tests > Force language takes precedence over records
+platforms:
+  - linux
+  - mac
+
 steps:
   - ref: ./background.toolproof.yml
   - step: I have a "public/index.js" file with the content {js}
@@ -29,10 +33,10 @@ steps:
   - step: stdout should contain "✨!"
   - step: The file "public/pagefind/pagefind.js" should not be empty
   - step: I run "ls -lh public/pagefind/wasm.unknown.pagefind"
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"
   - step: I run "ls -lh public/pagefind/wasm.fr.pagefind"
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"
   - step: I run "ls -lh public/pagefind/wasm.pt.pagefind" and expect it to fail
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"
   - step: I run "ls -lh public/pagefind/wasm.en.pagefind" and expect it to fail
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"
