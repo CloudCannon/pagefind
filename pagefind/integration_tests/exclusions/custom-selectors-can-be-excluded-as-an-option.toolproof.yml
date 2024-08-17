@@ -1,0 +1,57 @@
+name: Exclusions > Custom selectors can be excluded as an option
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><p data-search-one></p>
+      <p data-search-two></p></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Hello World, from
+      Pagefind</p>
+
+      <div id="gb">
+          <p>Goodbye <span>World</span>!</p>
+      </div>
+
+      <div id="not-gb">
+          <div>Hoorah!</div>
+          <p>Hooray! <div>🙂</div></p>
+      </div></body></html>
+  - step: I have a "pagefind.yml" file with the content {yml}
+    yml: |-
+      exclude_selectors:
+        - '[id^="g"]'
+        - 'div > div'
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let searchone = await pagefind.search("hello");
+
+      let searchonedata = await searchone.results[0].data();
+
+      document.querySelector('[data-search-one]').innerText =
+      searchonedata.content;
+
+
+      let searchtwo = await pagefind.search("goodbye");
+
+      document.querySelector('[data-search-two]').innerText =
+      `${searchtwo.results.length} result(s)`;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-search-one]");
+
+      toolproof.assert_eq(val.innerHTML, `Hello World, from Pagefind. Hooray!
+      🙂`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-search-two]");
+      toolproof.assert_eq(val.innerHTML, `0 result(s)`);

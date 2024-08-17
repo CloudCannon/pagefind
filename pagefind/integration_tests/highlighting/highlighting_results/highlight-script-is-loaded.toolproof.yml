@@ -1,0 +1,8 @@
+name: Highlighting Result Tests > Highlight script is loaded
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I load "/words/"
+  - step: In my browser, I evaluate {js}
+    js: await new Promise(r => setTimeout(r, 200));
+  - step: The file "public/pagefind/pagefind-highlight.js" should not be empty
+  - step: In my browser, the console should be empty

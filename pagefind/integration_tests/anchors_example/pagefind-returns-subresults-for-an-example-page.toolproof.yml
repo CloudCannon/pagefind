@@ -1,0 +1,38 @@
+name: Anchors Example > Pagefind returns subresults for an example page
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      await pagefind.options({ excerptLength: 5 });
+      let search = await pagefind.search("pagefind");
+      let searchdata = await search.results[0].data();
+      document.querySelector('[data-search]').innerHTML = `
+          <ul>
+              ${searchdata.sub_results.map(r => `<li>${r.url}: ${r.title} / '${r.excerpt}'</li>`).join('')}
+          </ul>
+      `;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(1)");
+
+      toolproof.assert_eq(val.innerHTML, `/installation/: Installing and running
+      Pagefind / 'and running <mark>Pagefind.</mark> <mark>Pagefind</mark>
+      is'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(2)");
+
+      toolproof.assert_eq(val.innerHTML, `/installation/#running-via-npx:
+      Running via npx / 'via npx. <mark>Pagefind</mark> publishes a'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(3)");
+
+      toolproof.assert_eq(val.innerHTML, `/installation/#building-from-source:
+      Building from source / 'run cargo install <mark>pagefind</mark> to'`);

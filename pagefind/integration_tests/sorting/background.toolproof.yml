@@ -1,0 +1,46 @@
+name: sorting > Result Sorting > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><p data-asc></p>
+      <p data-desc></p></body></html>
+  - step: I have a "public/robe/painte/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><span
+      data-lumens="14900" data-pagefind-sort="lumens[data-lumens]"></span>
+
+      <h1>Robe <i data-pagefind-sort="model">Painte</i> ™️</h1>
+
+      <i data-pagefind-sort="weight:-0.4"></i>
+
+      <b data-pagefind-sort="mixed">1</b>
+
+      <u data-pagefind-sort="color">black</u></body></html>
+  - step: I have a "public/robe/megapointe/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><span
+      data-pagefind-sort="lumens:9870"></span>
+
+      <h1>Robe <i data-pagefind-sort="model">MegaPointe</i> ™️</h1>
+
+      <i data-pagefind-sort="weight:9.9"></i>
+
+      <b data-pagefind-sort="mixed">9.5</b>
+
+      <u data-pagefind-sort="color">white</u></body></html>
+  - step: I have a "public/robe/superspikie/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><span
+      data-pagefind-sort="lumens">5105</span>
+
+      <h1>Robe <i data-pagefind-sort="model">SuperSpikie</i> ™️</h1>
+
+      <i data-pagefind-sort="weight:1234.5678"></i>
+
+      <b data-pagefind-sort="mixed">10</b></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"

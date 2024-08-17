@@ -1,0 +1,19 @@
+name: Anchors > Pagefind returns all word locations in the fragment
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("pageone");
+
+      let searchdata = await search.results[0].data();
+
+      document.querySelector('[data-search]').innerText =
+      searchdata.locations.join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-search]");
+      toolproof.assert_eq(val.innerHTML, `0, 9`);

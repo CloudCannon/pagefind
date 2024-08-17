@@ -1,0 +1,24 @@
+name: Filtering > Filtering with top-level exclusion
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      await test(pagefind.search("Cat", {
+          filters: {
+              none: [
+                  {
+                      color: {
+                          any: ["Orange", "White"]
+                      }
+                  },
+                  {
+                      mood: "Angry"
+                  }
+              ]
+          }
+      }));
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `/grey/`);

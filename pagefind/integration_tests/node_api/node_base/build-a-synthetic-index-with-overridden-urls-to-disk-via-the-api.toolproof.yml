@@ -1,0 +1,42 @@
+name: >-
+  Node API Base Tests > Build a synthetic index with overridden urls to disk via
+  the api
+
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.js" file with the content {js}
+    js: |2-
+       import * as pagefind from "pagefind";
+
+       const run = async () => {
+           const { index } = await pagefind.createIndex();
+           await index.addHTMLFile({url: "/my-custom-url/", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+           await index.writeFiles();
+           console.log(`Successfully wrote files`);
+       }
+
+       run();
+  - step: >-
+      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
+      node index.js"
+  - step: stdout should contain "Successfully wrote files"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+       let search = await pagefind.search("testing");
+
+       let data = await search.results[0].data();
+       document.querySelector('[data-url]').innerText = data.url;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-url]");
+      toolproof.assert_eq(val.innerHTML, `/my-custom-url/`);

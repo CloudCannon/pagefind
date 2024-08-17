@@ -1,0 +1,33 @@
+name: Node API Base Tests > Pagefind error handling
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.js" file with the content {js}
+    js: |2-
+       import * as pagefind from "pagefind";
+
+       const bad = async () => {
+           const { index } = await pagefind.createIndex();
+           await index.deleteIndex();
+           const { errors, files } = await index.getFiles();
+           console.log(JSON.stringify(errors));
+
+           try {
+               const response = await pagefind.createIndex({
+                   rootSelector: 5
+               });
+           } catch(e) {
+               console.log(e.toString());
+           }
+       }
+       bad();
+  - step: >-
+      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
+      node index.js"
+  - step: 'stdout should contain "invalid type: integer `5`"'
+  - step: >-
+      stdout should contain "Index has been deleted from the Pagefind service
+      and no longer exists"

@@ -1,0 +1,49 @@
+name: Build Options > Complex exclusionary file glob can be configured
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-result>Nothing</p></body></html>
+  - step: I have a "public/cat/index.htm" file with the content {htm}
+    htm: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>cat
+      index</h1></body></html>
+  - step: I have a "public/cat/cat.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>cat
+      cat</h1></body></html>
+  - step: I have a "public/kitty/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>kitty cat
+      index</h1></body></html>
+  - step: I have a "public/cat.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>cat</h1></body></html>
+  - step: I have a "pagefind.yml" file with the content {yml}
+    yml: 'glob: "{cat/index.htm,kitty/**/*.html,cat.html}"'
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("cat");
+
+
+      let pages = await Promise.all(search.results.map(r => r.data()));
+
+      document.querySelector('[data-result]').innerText = pages.map(p =>
+      p.url).sort().join(", ");
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-result]");
+
+      toolproof.assert_eq(val.innerHTML, `/cat.html, /cat/index.htm,
+      /kitty/cat/`);

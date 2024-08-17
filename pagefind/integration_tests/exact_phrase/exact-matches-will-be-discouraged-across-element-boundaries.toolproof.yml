@@ -1,0 +1,43 @@
+#TODO: This is an intentionally skipped test — add skipping to toolproof.
+
+type: reference
+name: >-
+  Exact Phrase Matching > Exact matches will be discouraged across element
+  boundaries
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/catone/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Happy post</p>
+      <p>about cats</p></body></html>
+  - step: I have a "public/cattwo/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Happy post about
+      cats</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search(`"post about"`);
+
+
+      document.querySelector('[data-count]').innerText =
+      `${search.results.length} result(s)`;
+
+      let data = await search.results[0].data();
+
+      document.querySelector('[data-result]').innerText = data.url;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-count]");
+      toolproof.assert_eq(val.innerHTML, `1 result(s)`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/cattwo/`);

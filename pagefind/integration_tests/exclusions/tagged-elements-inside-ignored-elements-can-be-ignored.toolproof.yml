@@ -1,0 +1,45 @@
+name: Exclusions > Tagged elements inside ignored elements can be ignored
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-search>Nothing</p></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Hello World, from
+      Pagefind</p>
+
+      <div data-pagefind-ignore>
+          <p data-pagefind-meta="elided">Nested content</p>
+      </div>
+
+      <div data-pagefind-ignore="index">
+          <p data-pagefind-meta="index">Nested content</p>
+      </div>
+
+      <div data-pagefind-ignore="all">
+          <p data-pagefind-meta="all">Nested content</p>
+      </div></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search("hello");
+      let searchdata = await search.results[0].data();
+      document.querySelector('[data-search]').innerText = [
+          searchdata.meta?.elided || "None",
+          searchdata.meta?.index || "None",
+          searchdata.meta?.all || "None",
+      ].join(' — ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-search]");
+
+      toolproof.assert_eq(val.innerHTML, `Nested content — Nested content —
+      None`);

@@ -1,0 +1,29 @@
+name: Filtering > Filtering without search term returns an unprocessed excerpt
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      // Run a search so that some index words are loaded
+
+      let unused = await pagefind.search("cat");
+
+
+      let search = await pagefind.search(null, {
+          filters: {
+              color: ["Black", "White"]
+          }
+      });
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+
+      document.querySelector('[data-results]').innerText = data.map(d =>
+      d.excerpt).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `Black White Cat.`);

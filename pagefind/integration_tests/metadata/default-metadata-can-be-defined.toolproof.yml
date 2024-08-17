@@ -1,0 +1,24 @@
+name: Metadata > Default metadata can be defined
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search("dog");
+
+      let data = await search.results[0].data();
+      document.querySelector('[data-result]').innerText = [
+          data.meta.title,
+          data.meta.image,
+          data.meta.animal,
+          data.meta.vegetable,
+          data.meta.mineral,
+      ].join(' | ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-result]");
+
+      toolproof.assert_eq(val.innerHTML, `Dog Post. | /puppy.jpg | dog | generic
+      | generic`);

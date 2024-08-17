@@ -1,0 +1,62 @@
+name: Anchors > Pagefind extracts page anchor text where it makes sense
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search("pagetwo");
+      let searchdata = await search.results[0].data();
+      document.querySelector('[data-search]').innerHTML = `
+          <ul>
+              ${searchdata.anchors.map(a => `<li>#${a.id}: '${a.text}'</li>`).join('')}
+          </ul>
+      `;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(1)");
+
+      toolproof.assert_eq(val.innerHTML, `#h1: 'PageTwo, from Pagefind'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(2)");
+
+      toolproof.assert_eq(val.innerHTML, `#p_spans: 'Words in spans should be
+      extracted'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(3)");
+
+      toolproof.assert_eq(val.innerHTML, `#h2_hrefs: 'Links should be
+      extracted'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(4)");
+
+      toolproof.assert_eq(val.innerHTML, `#span_formatted: 'Text that is bold or
+      italic should be extracted'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(5)");
+
+      toolproof.assert_eq(val.innerHTML, `#p_nested_ids: 'Text containing nested
+      IDs should extract both'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(6)");
+
+      toolproof.assert_eq(val.innerHTML, `#span_nested: 'nested IDs'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(7)");
+
+      toolproof.assert_eq(val.innerHTML, `#double_div: 'Divs containing divs
+      should only take from the top level'`);

@@ -1,0 +1,33 @@
+name: Graceful Pagefind Errors > Pagefind doesn't error on parsing ambiguities
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>hello
+      world</h1></body></html>
+  - step: I have a "public/dog/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>hello world</h1>
+      <select><xmp><script>"use strict";</script></select></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("world");
+
+      let results = await Promise.all(search.results.map(r => r.data()));
+
+
+      document.querySelector('[data-url]').innerText = results.map(r =>
+      r.url).sort().join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-url]");
+      toolproof.assert_eq(val.innerHTML, `/cat/, /dog/`);

@@ -1,0 +1,27 @@
+name: Filtering > Filtering to a complex nested filter
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      await test(pagefind.search("Cat", {
+          filters: {
+              any: [{
+                  color: {
+                      any: [{
+                          any: ["Tabby"]
+                      }, {
+                          all: ["Black", "White", "Orange"]
+                      }]
+                  }
+              }, {
+                  mood: {
+                      all: ["Nervous", "Pining"]
+                  }
+              }]
+          }
+      }));
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `/ali/, /grey/, /treacle/`);
