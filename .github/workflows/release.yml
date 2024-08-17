@@ -475,7 +475,7 @@ jobs:
 
       - name: Test CLI
         if: matrix.run_tests == true
-        run: ./test_ci.sh
+        run: ./test_ci.sh "${{ matrix.target }}/release"
 
       - name: Move extended binary aside
         run: |
