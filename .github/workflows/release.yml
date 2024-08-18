@@ -9,7 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.9.1"
+  HUMANE_VERSION: "0.9.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
@@ -29,14 +29,14 @@ jobs:
             ~/.rustup
             target
           key: ${{ runner.os }}-stable-min165
-          
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: stable
-            override: true
-            default: true
-            components: rustfmt, clippy
+          toolchain: stable
+          override: true
+          default: true
+          components: rustfmt, clippy
 
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.4.0
@@ -54,7 +54,7 @@ jobs:
           git checkout -b deploy_branch
       - name: Prepare Crates
         run: |
-          # Update cargo version, 
+          # Update cargo version,
           node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
@@ -398,19 +398,19 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-musl'
         run: |
           sudo apt update -y
-          sudo apt install -y clang gcc-aarch64-linux-gnu         
+          sudo apt install -y clang gcc-aarch64-linux-gnu
           echo "TARGET_CC=clang" >> $GITHUB_ENV
           echo "CFLAGS_aarch64_unknown_linux_musl=--sysroot=/usr/aarch64-linux-gnu" >> $GITHUB_ENV
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/aarch64-linux-gnu/bin/ld" >> $GITHUB_ENV
-      
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: ${{ matrix.rust }}
-            target: ${{ matrix.target }}
-            override: true
-            default: true
-            components: rustfmt, clippy
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
+          override: true
+          default: true
+          components: rustfmt, clippy
 
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.4.0
@@ -434,7 +434,7 @@ jobs:
           git checkout -b deploy_branch
       - name: Prepare Crates
         run: |
-          # Update cargo version, 
+          # Update cargo version,
           node ./.backstage/version.cjs
           git add ./pagefind/Cargo.toml
           git add ./pagefind_web/Cargo.toml
@@ -475,8 +475,7 @@ jobs:
 
       - name: Test CLI
         if: matrix.run_tests == true
-        working-directory: ./pagefind
-        run: TEST_BINARY=../target/${{ matrix.target }}/release/pagefind humane
+        run: ./test_ci.sh "${{ matrix.target }}/release"
 
       - name: Move extended binary aside
         run: |
@@ -485,7 +484,6 @@ jobs:
       - name: Build Non-Extended
         working-directory: ./pagefind
         run: cargo build --release --target ${{ matrix.target }}
-
 
       - name: Create Standard Release
         run: |

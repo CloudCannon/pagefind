@@ -1,0 +1,4 @@
+name: ui/ui_hooks > UI Hooks > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"

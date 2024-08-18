@@ -1,0 +1,57 @@
+name: anchors > Anchors > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-search>Nothing</p></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1
+      id="outer-heading">Outer Heading</h1>
+
+      <div data-pagefind-body>
+          <p>PageOne, from Pagefind</p>
+          <h2 id="cats">Cats</h2>
+          <ul id="list">
+              <li>Cheeka</li>
+              <li id="ali">Ali</li>
+              <li>Theodore</li>
+              <li>Smudge</li>
+          </ul>
+          <h2 id="pagefind">Pagefind</h2>
+          <p>PageOne, again, from Pagefind</p>
+      </div>
+
+      <p id="outer-content">Outer Content</p></body></html>
+  - step: I have a "public/dog/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><div data-pagefind-body>
+          <h1 id="h1">PageTwo, from Pagefind</h1>
+          <p>Some text nested under the h1</p>
+
+          <p id="p_spans">Words <span>in</span> <span><span>spans</span></span> should be extracted</p>
+          <p>Some text nested under the p with spans</p>
+
+          <h2 id="h2_hrefs">Links <a href="/">should be extracted</a></h2>
+          <p>Some text nested under the h2</p>
+
+          <span id="span_formatted">Text that is <b>bold</b> or <i>italic</i> should be extracted</span>
+          <p>Some text nested under the span</p>
+
+          <p id="p_nested_ids">Text containing <span id="span_nested">nested IDs</span> should extract both</p>
+          <p>Some text nested under the p with IDs</p>
+
+          <div id="double_div">Divs containing <div>💀 he he he 💀</div> divs should only take from the top level</div>
+          <p>Some text nested under the divs</p>
+      </div></body></html>
+  - step: I have a "public/repr/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><div data-pagefind-body>
+          <h1 id="repr-heading">My <span data-pagefind-ignore>Redacted</span> Heading about Symbiosis</h1>
+      </div></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"

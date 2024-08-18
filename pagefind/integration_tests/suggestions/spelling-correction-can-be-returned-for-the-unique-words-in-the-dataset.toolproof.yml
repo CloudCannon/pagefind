@@ -1,0 +1,8 @@
+#TODO: This is an intentionally skipped test — add skipping to toolproof.
+
+type: reference
+name: >-
+  Spellcheck > Spelling correction can be returned for the unique words in the
+  dataset
+steps:
+  - ref: ./background.toolproof.yml

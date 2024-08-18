@@ -1,0 +1,37 @@
+name: Word Weighting > Compound words are implicitly weighted lower
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/r1/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>A single reference to
+      antelope</p></body></html>
+  - step: I have a "public/r2/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Two references to
+      SomeLongFiveWordAntelope SomeLongFiveWordAntelope</p></body></html>
+  - step: I have a "public/r3/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>A single reference to
+      the TwoAntelope</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      await pagefind.options({
+          ranking: {
+              termFrequency: 0.0
+          }
+      });
+
+      let search = await pagefind.search(`antelope`);
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+      document.querySelector('p').innerText = data.map(d => d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("p");
+      toolproof.assert_eq(val.innerHTML, `/r1/, /r3/, /r2/`);

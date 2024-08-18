@@ -1,0 +1,34 @@
+name: Multisite Search Languages > Language of merged indexes can be selected
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I run "%pagefind_exec_path% --site root/website_a"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "root/website_a/pagefind/pagefind.js" should not be empty
+  - step: I run "%pagefind_exec_path% --site root/website_b"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "root/website_b/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "root"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/website_a/pagefind/pagefind.js");
+
+      await pagefind.mergeIndex("/website_b/pagefind/", {
+          language: "pt-br"
+      });
+
+
+      let search = await pagefind.search("web");
+
+
+      let pages = await Promise.all(search.results.map(r => r.data()));
+
+      document.querySelector('[data-result]').innerText = pages.map(p =>
+      p.url).sort().join(", ");
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-result]");
+
+      toolproof.assert_eq(val.innerHTML, `/website_a/en/1/, /website_b/pt/1/,
+      /website_b/pt/2/`);

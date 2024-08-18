@@ -1,0 +1,27 @@
+name: Node API Base Tests > Close the Pagefind backend
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.js" file with the content {js}
+    js: |2-
+       import * as pagefind from "pagefind";
+
+       const run = async () => {
+           const { index } = await pagefind.createIndex();
+           const { errors, files } = await index.getFiles();
+           console.log(files.map(f => f.path).join(', '));
+           await pagefind.close();
+           const { errors: es } = await index.getFiles();
+           console.log(`After close: ${es.join(',')}`);
+       }
+       run();
+  - step: >-
+      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
+      node index.js"
+  - step: stdout should contain "pagefind.js"
+  - step: >-
+      stdout should contain "After close: Invalid index, does not yet exist in
+      the Pagefind service"

@@ -1,0 +1,18 @@
+name: highlighting/highlighting_search > Highlighting Search Tests > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-url>Nothing</p></body></html>
+  - step: I have a "public/a/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>Hello
+      World</p></body></html>
+  - step: I have a "public/b/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h2
+      id="second">Second</h2>
+
+      <p>Second Page</p></body></html>

@@ -1,0 +1,42 @@
+name: Multilingual > Pagefind can be configured to lump all languages together
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html lang="en">
+          <head>
+              <title>Document</title>
+          </head>
+          <body>
+              <p data-result>Nothing</p>
+          </body>
+      </html>
+  - step: I run "%pagefind_exec_path% --force-language 'en'"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I run "ls -lh public/pagefind/wasm.unknown.pagefind"
+    notes: 'TODO: Build a file existence check into toolproof'
+  - step: I run "ls -lh public/pagefind/wasm.en.pagefind"
+    notes: 'TODO: Build a file existence check into toolproof'
+  - step: I run "ls -lh public/pagefind/wasm.pt-br.pagefind" and expect it to fail
+    notes: 'TODO: Build a file existence check into toolproof'
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("documenting");
+
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText =
+      `${search.results.length} — ${data.map(d => d.url).sort().join(', ')}`;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `2 — /en/, /pt-br/`);

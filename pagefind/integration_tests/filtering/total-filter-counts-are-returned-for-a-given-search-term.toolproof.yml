@@ -1,0 +1,33 @@
+name: Filtering > Total filter counts are returned for a given search term
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      await pagefind.filters(); // Load filters
+
+      let search = await pagefind.search("Cat", {
+          filters: {
+              color: "White"
+          }
+      });
+
+      let strings = Object.entries(search.totalFilters).map(([filter, values])
+      => {
+          values = Object.entries(values).map(([value, count]) => {
+              return `${value}(${count})`;
+          })
+          return `${filter}:[${values.join(", ")}]`;
+      });
+
+
+      document.querySelector('[data-results]').innerText = strings.join(' ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-results]");
+
+      toolproof.assert_eq(val.innerHTML, `color:[Black(1), Orange(1), Tabby(1),
+      White(2)] mood:[Angry(1)]`);

@@ -1,0 +1,8 @@
+name: sentences > Sentence Building Tests > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-result>Nothing</p></body></html>

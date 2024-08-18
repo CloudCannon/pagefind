@@ -1,0 +1,14 @@
+name: Config Sources > Settings can be pulled from multiple sources
+steps:
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>Hello.</h1></body></html>
+  - step: I have a "pagefind.json" file with the content {json}
+    json: |-
+      {
+          "site": "public"
+      }
+  - step: I run "%pagefind_exec_path% --output-subdir _out"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/_out/pagefind.js" should not be empty

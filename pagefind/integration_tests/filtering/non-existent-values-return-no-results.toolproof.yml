@@ -1,0 +1,22 @@
+name: Filtering > Non-existent values return no results
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("Cat", {
+          filters: {
+              color: "Green"
+          }
+      });
+
+
+      document.querySelector('[data-results]').innerText =
+      search.results.length;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `0`);

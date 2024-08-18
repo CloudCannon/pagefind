@@ -1,0 +1,54 @@
+#TODO: This is an intentionally skipped test — add skipping to toolproof.
+
+type: reference
+name: Result Scoring > Search terms in close proximity rank higher in results
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search(`cats dogs`);
+
+
+      document.querySelector('[data-count]').innerText =
+      `${search.results.length} result(s)`;
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText = data.map(d =>
+      d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-count]");
+      toolproof.assert_eq(val.innerHTML, `2 result(s)`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/dog/, /cat/`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search(`cats posts`);
+
+
+      document.querySelector('[data-count]').innerText =
+      `${search.results.length} result(s)`;
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText = data.map(d =>
+      d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-count]");
+      toolproof.assert_eq(val.innerHTML, `2 result(s)`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/cat/, /dog/`);

@@ -1,0 +1,25 @@
+name: >-
+  Filtering > Total unfiltered result counts are given for a filtered search
+  term
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      await pagefind.filters(); // Load filters
+
+      let search = await pagefind.search("Ali", {
+          filters: {
+              color: "Orange"
+          }
+      });
+
+      document.querySelector('[data-results]').innerText =
+      `results:${search.results.length} total:${search.unfilteredResultCount}`;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `results:0 total:1`);

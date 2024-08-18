@@ -1,0 +1,32 @@
+name: Build Options > LEGACY Source folder can be configured
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "my_website/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><link
+      rel="pre-1.0-signal" href="_pagefind" >
+
+      <p data-url>Nothing</p></body></html>
+  - step: I have a "my_website/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>world</h1></body></html>
+  - step: I run "%pagefind_exec_path% --source my_website"
+  - step: stdout should contain "Running Pagefind"
+  - step: stderr should contain "pre-1.0 compatibility mode"
+  - step: The file "my_website/_pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "my_website"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/_pagefind/pagefind.js");
+
+      let search = await pagefind.search("world");
+
+      let data = await search.results[0].data();
+      document.querySelector('[data-url]').innerText = data.url;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-url]");
+      toolproof.assert_eq(val.innerHTML, `/cat/`);

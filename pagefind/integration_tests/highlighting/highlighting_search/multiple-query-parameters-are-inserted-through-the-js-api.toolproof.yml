@@ -1,0 +1,24 @@
+name: >-
+  Highlighting Search Tests > Multiple query parameters are inserted through the
+  JS API
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      await pagefind.options({ highlightParam: "hi" });
+
+      let search = await pagefind.search("hello world");
+
+      let data = await search.results[0].data();
+      document.querySelector('[data-url]').innerText = data.url;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-url]");
+      toolproof.assert_eq(val.innerHTML, `/a/?hi=hello&amp;hi=world`);

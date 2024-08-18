@@ -1,0 +1,15 @@
+name: multisite/multisite_base > Multisite Search > Background
+type: reference
+steps:
+  - step: I have a "root/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-result>Nothing</p></body></html>
+  - step: I have a "root/website_a/hello/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>web web world web
+      PAGEFIND_ROOT_SELECTOR</h1></body></html>
+  - step: I have a "root/website_b/lorem/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>web
+      ipsum</h1></body></html>

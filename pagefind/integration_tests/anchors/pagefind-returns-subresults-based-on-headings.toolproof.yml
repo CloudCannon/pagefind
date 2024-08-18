@@ -1,0 +1,34 @@
+name: Anchors > Pagefind returns subresults based on headings
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search("extracted");
+      let searchdata = await search.results[0].data();
+      document.querySelector('[data-search]').innerHTML = `
+          <ul>
+              ${searchdata.sub_results.map(r => `<li>${r.url}: ${r.title} / '${r.excerpt}'</li>`).join('')}
+          </ul>
+      `;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(1)");
+
+      toolproof.assert_eq(val.innerHTML, `/dog/#h1: PageTwo, from Pagefind /
+      'PageTwo, from Pagefind. Some text nested under the h1. Words in spans
+      should be <mark>extracted.</mark> Some text nested under the p with
+      spans.'`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await
+      toolproof.querySelector("[data-search]>ul>li:nth-of-type(2)");
+
+      toolproof.assert_eq(val.innerHTML, `/dog/#h2_hrefs: Links should be
+      extracted / 'should be <mark>extracted.</mark> Some text nested under the
+      h2. Text that is bold or italic should be <mark>extracted</mark> Some text
+      nested under the span. Text containing nested IDs should
+      <mark>extract</mark>'`);

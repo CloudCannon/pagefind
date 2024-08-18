@@ -1,0 +1,33 @@
+name: Highlighting Result Tests > Highlight script stays within pagefind-body
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I load "/single-body/?pagefind-highlight=this"
+  - step: In my browser, I evaluate {js}
+    js: await new Promise(r => setTimeout(r, 200));
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("#has-highlight mark");
+      toolproof.assert_eq(val.innerHTML, `This`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("p[data-pagefind-ignore]");
+      toolproof.assert_eq(val.innerHTML, `This should not be highlighted`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("#no-highlight");
+      toolproof.assert_eq(val.innerHTML, `This should not be highlighted`);
+  - step: In my browser, I load "/multiple-bodies/?pagefind-highlight=this"
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("#has-highlight mark");
+      toolproof.assert_eq(val.innerHTML, `This`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("p[data-pagefind-ignore]");
+      toolproof.assert_eq(val.innerHTML, `This should not be highlighted`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("#no-highlight");
+      toolproof.assert_eq(val.innerHTML, `This should not be highlighted`);

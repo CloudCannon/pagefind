@@ -1,0 +1,14 @@
+name: Config Sources > LEGACY Settings can be pulled from TOML configuration files
+steps:
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><link
+      rel="pre-1.0-signal" href="_pagefind" >
+
+      <h1>Hello.</h1></body></html>
+  - step: I have a "pagefind.toml" file with the content {toml}
+    toml: source = "public"
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: stderr should contain "pre-1.0 compatibility mode"
+  - step: The file "public/_pagefind/pagefind.js" should not be empty

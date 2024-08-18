@@ -1,0 +1,20 @@
+name: Metadata > Search results return tagged metadata
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search("cat");
+
+
+      let data = await search.results[0].data();
+
+      document.querySelector('[data-result]').innerText =
+      data.meta["social-image"] + " — " + data.meta.adjective;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/kitty.jpg — gnarly`);
