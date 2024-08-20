@@ -1,9 +1,9 @@
 import logging
-from pathlib import Path
-import platform
-from typing import List
 import os
+import platform
 import sys
+from pathlib import Path
+from typing import List
 
 __all__ = ["get_executable", "cli"]
 
@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 def get_candidate_paths() -> List[Path]:
     names = ["pagefind_extended", "pagefind"]
     extensions = [""]
-    if platform.system().lower() == "Windows":
+    if platform.system().lower() == "windows":
         extensions.append(".exe")
     bin_names = [n + ext for n in names for ext in extensions]
     paths = [this_dir / bin for bin in bin_names]
@@ -36,8 +36,8 @@ def get_executable() -> Path:
     raise FileNotFoundError(f"Could not find any of {candidates}")
 
 
-def cli():
-    bin = get_executable().absolute()
+def cli() -> None:
+    bin = str(get_executable().absolute())
     argv = [bin, *sys.argv[1:]]
     if os.name == "posix":
         os.execv(bin, argv)
@@ -45,7 +45,3 @@ def cli():
         import subprocess
 
         sys.exit(subprocess.call(argv))
-
-
-if __name__ == "__main__":
-    cli()

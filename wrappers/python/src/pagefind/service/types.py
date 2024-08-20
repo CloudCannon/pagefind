@@ -1,8 +1,8 @@
-from enum import StrEnum
-from typing import Dict, List, Union, Optional, TypedDict, Sequence, Literal
+from enum import Enum
+from typing import Dict, List, Literal, Optional, Sequence, TypedDict, Union
 
 
-class InternalRequestType(StrEnum):
+class InternalRequestType(Enum):
     NEW_INDEX = "NewIndex"
     ADD_FILE = "AddFile"
     ADD_RECORD = "AddRecord"
@@ -90,7 +90,7 @@ class InternalServiceRequest(TypedDict):
     payload: InternalRequestPayload
 
 
-class InternalResponseType(StrEnum):
+class InternalResponseType(Enum):
     NEW_INDEX = "NewIndex"
     INDEXED_FILE = "IndexedFile"
     INDEXED_DIR = "IndexedDir"

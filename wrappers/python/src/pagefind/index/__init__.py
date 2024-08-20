@@ -1,19 +1,19 @@
-from typing import Any, Dict, List, Optional, Sequence, TypedDict, cast
 import logging
+from typing import Any, Dict, List, Optional, Sequence, TypedDict, cast
+
+from ..service import PagefindService
 from ..service.types import (
+    InternalAddDirRequest,
     InternalAddFileRequest,
     InternalAddRecordRequest,
     InternalDeleteIndexRequest,
     InternalGetFilesRequest,
     InternalGetFilesResponse,
-    InternalIndexedFileResponse,
-    InternalAddDirRequest,
     InternalIndexedDirResponse,
+    InternalIndexedFileResponse,
     InternalSyntheticFile,
     InternalWriteFilesRequest,
 )
-
-from ..service import PagefindService
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +117,7 @@ class PagefindIndex:
         result = cast(InternalGetFilesResponse, response)["files"]
         return result
 
-    async def delete_index(self):
+    async def delete_index(self) -> None:
         assert self._service is not None
         assert self._index_id is not None
         result = await self._service.send(
@@ -163,7 +163,7 @@ class PagefindIndex:
         assert result["type"] == "IndexedFile"
         return cast(InternalIndexedFileResponse, result)
 
-    async def write_files(self):
+    async def write_files(self) -> None:
         assert self._service is not None
         assert self._index_id is not None
         if not self.config:

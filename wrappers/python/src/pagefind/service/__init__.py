@@ -1,23 +1,23 @@
-import os
-
-from pathlib import Path
-import json
-from contextlib import AbstractAsyncContextManager
-from typing import Any, Dict, Optional, cast, TYPE_CHECKING
 import asyncio
 import base64
+import json
 import logging
+import os
 import shutil
+from contextlib import AbstractAsyncContextManager
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
 from .types import (
     InternalNewIndexRequest,
     InternalNewIndexResponse,
     InternalRequestPayload,
-    InternalResponsePayload,
     InternalResponseError,
+    InternalResponsePayload,
+    InternalResponseType,
     InternalServiceRequest,
     InternalServiceResponse,
-    InternalResponseType,
+    InternalSyntheticFile,
 )
 
 if TYPE_CHECKING:
@@ -26,30 +26,42 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def _must_find_binary() -> Path:
+__all__ = ["PagefindService", "get_executable"]
+
+
+def get_executable() -> Optional[Path]:
     try:
         from pagefind_bin_extended import get_executable  # type: ignore
 
-        executable: Path = get_executable()
-        log.debug(f"using {executable}")
-        return executable
+        extended: Path = get_executable()
+        log.debug(f"using {extended}")
+        return extended
     except ImportError:
         log.debug("unable to import pagefind_bin_extended")
 
     try:
         from pagefind_bin import get_executable  # type: ignore
 
-        executable: Path = get_executable()
-        log.debug(f"using {executable}")
-        return executable
+        bin: Path = get_executable()
+        log.debug(f"using {bin}")
+        return bin
     except ImportError:
         log.debug("unable to import pagefind_bin")
 
-    exe: Optional[str] = shutil.which("pagefind_extended") or shutil.which("pagefind")
-    if exe is None:
-        raise FileNotFoundError("Could not find pagefind binary")
+    external: Optional[str] = shutil.which("pagefind_extended")
+    external = external or shutil.which("pagefind")
+    if external is None:
+        log.debug("Could not find externally-installed pagefind binary")
+        return None
     else:
-        return Path(exe)
+        log.debug(f"using {external}")
+        return Path(external)
+
+
+def _must_get_executable() -> Path:
+    if (bin := get_executable()) is None:
+        raise FileNotFoundError("Could not find pagefind binary")
+    return bin
 
 
 def _encode(req: InternalServiceRequest) -> bytes:
@@ -65,9 +77,9 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
     _poll_task: asyncio.Task[None]
 
     # _messages
-    def __init__(self):
+    def __init__(self) -> None:
         self._loop = asyncio.get_event_loop()
-        self._bin = _must_find_binary()
+        self._bin = _must_get_executable()
         self._responses = dict()
 
     async def launch(self) -> "PagefindService":
@@ -79,7 +91,7 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
         self._backend = await asyncio.create_subprocess_exec(
             self._bin,
             "--service",
-            "--verbose",
+            # "--verbose", # <- verbose emits debug logs to stdout, which is also used for IPC
             cwd=os.getcwd(),
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
@@ -116,7 +128,13 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
         await self._backend.stdin.drain()
         log.debug(f"request sent: {req}")
         result = await future
-        log.debug(f"received response: {result}")
+        if result["type"] == InternalResponseType.GET_FILES.value:  # these are HUGE
+            if (files := result.get("files")) is not None:
+                files = cast(List[InternalSyntheticFile], files)
+                base64_ch = sum(len(file["content"]) for file in files)
+                log.debug(f"received response: <{len(files)} files, {base64_ch} chars>")
+        else:
+            log.debug(f"received response: {result}")
         return result
 
     async def _wait_for_responses(self) -> None:
@@ -128,11 +146,11 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
             assert self._backend.stdout is not None
             log.debug("checking for data")
             output = await self._backend.stdout.readuntil(b",")
-            if len(output) <= 100:
-                log.debug(f"received data: {output}")
+            if len(output) <= 200:
+                log.debug(f"received data: {output!r}")
             else:
                 log.debug(
-                    f"received data: {output[:30]}...{len(output) - 40}B...{output[-10:]}"
+                    f"received data: {output[:30]!r}...{len(output) - 40}B...{output[-10:]!r}"
                 )
             if (resp := json.loads(base64.b64decode(output[:-1]))) is None:
                 continue
@@ -160,7 +178,7 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
                     #     payload["type"] == InternalResponseType.ERROR.value
                     # ), f"unexpected message type: {payload['type']}"
 
-    async def close(self):
+    async def close(self) -> None:
         # wait for all _responses to be resolved
         await asyncio.gather(*self._responses.values())  # IDEA: add timeout?
         self._poll_task.cancel()
