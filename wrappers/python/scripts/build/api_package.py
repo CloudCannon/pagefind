@@ -4,18 +4,23 @@
 
 from . import python_root, setup_logging
 import subprocess
+import re
+import os
 
 pyproject_toml = python_root / "pyproject.toml"
 
 
 def main() -> None:
+    version = os.environ.get("PAGEFIND_VERSION")
+    if version is None:
+        version = "1"
     original = pyproject_toml.read_text()
     temp = ""
     for line in original.splitlines():
         if line.endswith("#!!opt"):
-            temp += line.removeprefix("# ") + "\n"
-        else:
-            temp += line + "\n"
+            line = line.removeprefix("# ") + "\n"
+            line = re.sub(r'version = "[^"]+"', f'version = "~={version}"', line)
+        temp += line + "\n"
     with pyproject_toml.open("w") as f:
         f.write(temp)
     subprocess.run(["poetry", "build"], check=True)

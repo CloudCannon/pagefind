@@ -1,4 +1,6 @@
-<!-- Note: this is a template file that is used for both pagefind_bin and pagefind_python_extended. All occurrences of `pagefind_bin` will be replaced with the actual package name -->
+<!-- Note: this is a template file that is used for both the `pagefind_bin` and
+`pagefind_bin_extended` python packages. All occurrences of `pagefind_bin` will
+be replaced with the actual package name. -->
 # `pagefind_bin`
 A python wrapper for the `pagefind` executable.
 

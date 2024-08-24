@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 from urllib.request import urlopen
 
-from . import vendor_dir, upstream_version_file
+from . import vendor_dir
 from .download_verification import verify_hashes
 
 log = logging.getLogger(__name__)
@@ -48,11 +48,20 @@ def get_version_downloads(
     return urls, files, tag_name
 
 
+def find_bins(target_dir: Path) -> List[Path]:
+    assert target_dir.is_dir()
+    name_to_hash = {}
+    for hash_file in vendor_dir.glob("*.sha256"):
+        if (file := vendor_dir / hash_file.name.removesuffix(".sha256")).exists():
+            name_to_hash[file.name] = hash_file.name
+    return verify_hashes(target_dir, name_to_hash)
+
+
 def download(
     version: Union[str, None] = None, dry_run: bool = True
 ) -> Tuple[List[Path], str]:
     urls, files, tag_name = get_version_downloads(version or "latest")
-    target_dir = vendor_dir / tag_name
+    target_dir = vendor_dir / tag_name  # TODO: rm -rf this to ensure it's clean
     if dry_run:
         log.info(f"would download {len(urls)} assets to {target_dir}")
         for url in urls:
@@ -60,6 +69,7 @@ def download(
         return [], tag_name
     target_dir.mkdir(parents=True, exist_ok=True)
     log.info(f"downloading {len(urls)} assets to {target_dir}")
+    # TODO: parallelize downloads
     for i, url in enumerate(urls):
         name = url.split("/")[-1]
         with urlopen(url) as response:
@@ -77,7 +87,4 @@ def download(
 if __name__ == "__main__":
     _urls, _files, tag_name = get_version_downloads("latest")
     version = tag_name.removeprefix("v")
-    with upstream_version_file.open("w") as f:
-        f.write(version + "\n")
-        # to avoid IDEs adding a trailing newline and causing a diff, we add one here.
     print(version)

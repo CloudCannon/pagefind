@@ -203,10 +203,9 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
 
         _config: Optional["IndexConfig"] = None
         if config is not None:
-            _config = {**config}
-            _ = _config.pop("output_path", None)
-        else:
-            _config = None
+            _config = {**config}  # clone the config to avoid modifying the original
+            _config.pop("output_path", None)
+
         log.debug(f"creating index with config: {_config}")
         result = await self.send(
             InternalNewIndexRequest(type="NewIndex", config=_config)

@@ -111,3 +111,41 @@ jobs:
 
       - name: Test CLI
         run: ./test_ci.sh "release"
+
+      - name: Set up python 3.12 
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          # NOTE: ^this strategy leaves older python versions intentionally
+          # without test coverage to keep CI fast.
+
+      - name: Set up poetry
+        run: ./wrappers/python/scripts/ci/github/setup_poetry.sh
+      
+      - name: cache venv
+        uses: actions/cache@v4
+        with:
+          path: wrappers/python/.venv
+          key: ${{ runner.os }}-poetry-3.12-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dev dependencies
+        run: ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
+
+      - name: debug python paths
+        run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
+
+      - name: Lint python
+        working-directory: ./wrappers/python
+        run: |
+          export VIRTUAL_ENV="$PWD/.venv"
+          export PATH="$VIRTUAL_ENV/bin:$PATH"
+          bash ./scripts/ci/python_lints.sh
+
+      - name: ensure cog up-to-date
+        working-directory: ./wrappers/python
+        run: ./scripts/ci/github/cog/check.sh
+
+      - name: Test python API
+        timeout-minutes: 1
+        run: ./wrappers/python/scripts/ci/github/integration_tests.sh
+

@@ -1,4 +1,4 @@
-# `pagefind_python`
+# `pagefind`
 An async python API for the [pagefind](https://pagefind.app) binary.
 
 ## Installation

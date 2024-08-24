@@ -5,7 +5,6 @@ from pathlib import Path
 this_file = Path(__file__)
 this_dir = Path(__file__).parent
 python_root = this_dir.parent.parent.resolve().absolute()
-upstream_version_file = python_root / "pagefind_version.txt"
 dist_dir = python_root / "dist"
 vendor_dir = python_root / "vendor"
 

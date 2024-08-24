@@ -152,7 +152,7 @@ def write_wheel(
             f"{dist_info}/WHEEL": make_message(
                 {
                     "Wheel-Version": "1.0",
-                    "Generator": "build_binary_only_wheel.py",
+                    "Generator": "scripts/build/binary_only_wheel.py",
                     "Root-Is-Purelib": "false",  # see https://packaging.python.org/en/latest/specifications/binary-distribution-format/#what-s-the-deal-with-purelib-vs-platlib
                     "Tag": tag,
                 }

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pagefind_python"
+name = "pagefind"
 version = "0.0.0a0"
 # note that ^this^ is the version number of the python API, not the version of
 # the pagefind executable.
@@ -15,7 +15,9 @@ exclude = [
     "*.egg-info",
     "*.log",
     ".venv",
-    "pagefind_python_bin"
+    "pagefind_python_bin" # poetry has a *.pth file in its .venv that causes
+    # directories in src/ to be preferentially imported. To allow testing
+    # `import pagefind_bin`, we use ./src/pagefind_python_bin as a workaround.
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -24,28 +26,23 @@ classifiers = [
 ]
 
 # Note: we *aren't* including an `entry-points` section here to avoid clobbering
-# the user's natively-installed `pagefind` binary. Using `python3 -m pagefind_python`
+# the user's natively-installed `pagefind` binary. Using `python3 -m pagefind`
 # is an informatively-namespaced alternative that doesn't add too many keystrokes.
 # See https://packaging.python.org/en/latest/specifications/entry-points/
 
 [tool.poetry.dependencies]
 python = ">=3.9"
 
-# during the building of the pagefind_python package, the pagefind binary packages
+# during the building of the `pagefind` python package, the pagefind binary packages
 # aren't yet published. Thus, `poetry lock` will fail if we include them here.
 # However, `poetry build` fails to include the binary package extras in
-# `pagefind_python`'s distribution info if these lines are commented out. Thus,
+# `pagefind`'s distribution info if these lines are commented out. Thus,
 # we temporarily uncomment these lines during the build process, and then re-comment
 # them afterwards
 
-# [[[cog
-#   version = open("pagefind_version.txt").read().strip()
-#   print(f"# pagefind_bin = {{ version = \"~={version}\", optional = true }} #!!opt")
-#   print(f"# pagefind_bin_extended = {{ version = \"~={version}\", optional = true }} #!!opt")
-# ]]]
-# pagefind_bin = { version = "~=1.1.0", optional = true } #!!opt
-# pagefind_bin_extended = { version = "~=1.1.0", optional = true } #!!opt
-# [[[end]]]
+# these next two lines are owned by ./scripts/build/api_package.py
+# pagefind_bin = { version = "~=1", optional = true } #!!opt
+# pagefind_bin_extended = { version = "~=1", optional = true } #!!opt
 
 [tool.poetry.extras]
 bin = ["pagefind_bin"]
