@@ -180,10 +180,18 @@ class PagefindService(AbstractAsyncContextManager["PagefindService"]):
 
     async def close(self) -> None:
         # wait for all _responses to be resolved
-        await asyncio.gather(*self._responses.values())  # IDEA: add timeout?
+        log.debug("waiting for all responses to be resolved")
+        try:
+            # wait at most 5s for all responses to be resolved
+            async with asyncio.timeout(5):
+                await asyncio.gather(*self._responses.values())
+                log.debug("all responses resolved")
+        except asyncio.TimeoutError:
+            log.error("timed out waiting for responses to be resolved")
         self._poll_task.cancel()
         self._backend.terminate()
         await self._backend.wait()
+        log.debug("backend terminated")
 
     async def __aenter__(self) -> "PagefindService":
         return await self.launch()
