@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -eu
 export PATH="$PWD/target/release:$PATH"
-export PYTHONPATH="$PWD/wrappers/python/src:$PYTHONPATH"
+export PYTHONPATH="$PWD/wrappers/python/src:${PYTHONPATH:-}"
 export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
 
 cd wrappers/python
-python3 -c 'import sys; print("pythonpath"\n" + "\n".join(sys.path))'
+python3 -c 'import sys; print("pythonpath\n" + "\n".join(sys.path))'
 python3 -c '
 import logging
 import os

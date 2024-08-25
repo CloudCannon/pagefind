@@ -143,7 +143,10 @@ jobs:
 
       - name: ensure cog up-to-date
         working-directory: ./wrappers/python
-        run: ./scripts/ci/github/cog/check.sh
+        run: |
+          export VIRTUAL_ENV="$PWD/.venv"
+          export PATH="$VIRTUAL_ENV/bin:$PATH"
+          ./scripts/ci/cog/check.sh
 
       - name: Test python API
         timeout-minutes: 1
