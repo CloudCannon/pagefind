@@ -65,8 +65,10 @@ if __name__ == "__main__":
     if bin_dir is None:
         certified, tag_name = download("latest", dry_run=False)
     else:
-        if (tag_name := os.environ.get("GIT_VERSION")) is None:
+        if os.environ.get("GIT_VERSION") is None:
             raise KeyError("Missing DIR argument and GIT_VERSION environment variable")
+        else:
+            tag_name = os.environ["GIT_VERSION"]
         certified = find_bins(bin_dir)
     check_platforms(certified)
 
