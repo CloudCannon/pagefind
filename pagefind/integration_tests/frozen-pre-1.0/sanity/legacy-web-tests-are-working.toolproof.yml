@@ -1,0 +1,12 @@
+name: Sanity Tests > LEGACY Web tests are working
+steps:
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>Hello!</h1></body></html>
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("h1");
+      toolproof.assert_eq(val.innerHTML, `Hello!`);

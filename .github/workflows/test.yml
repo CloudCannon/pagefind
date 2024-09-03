@@ -8,7 +8,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.9.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
@@ -19,6 +18,7 @@ jobs:
       run:
         shell: bash
     strategy:
+      fail-fast: false
       matrix:
         include:
           - build: linux
@@ -38,12 +38,12 @@ jobs:
             cross: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -52,18 +52,18 @@ jobs:
             target
           key: ${{ runner.os }}-${{ matrix.rust }}-min165
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: ${{ matrix.rust }}
-            target: ${{ matrix.target }}
-            override: true
-            default: true
-            components: rustfmt, clippy
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
+          override: true
+          default: true
+          components: rustfmt, clippy
 
       - name: Check versions
         run: |
@@ -74,13 +74,6 @@ jobs:
         uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: ${{env.WASM_PACK_VERSION}}
-
-      - name: Install humane
-        uses: supplypike/setup-bin@v3
-        with:
-          uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.target}}.tar.gz"
-          name: "humane"
-          version: ${{env.HUMANE_VERSION}}
 
       - name: Build Coupled JS
         working-directory: ./pagefind_web_js
@@ -117,5 +110,4 @@ jobs:
         run: cargo test --release --lib --features extended
 
       - name: Test CLI
-        working-directory: ./pagefind
-        run: TEST_BINARY=../target/release/pagefind humane
+        run: ./test_ci.sh "release"

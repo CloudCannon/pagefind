@@ -1,0 +1,34 @@
+name: Node API Base Tests > Build a synthetic index to memory via the api
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.js" file with the content {js}
+    js: |2-
+       import * as pagefind from "pagefind";
+
+       const run = async () => {
+           const { index } = await pagefind.createIndex();
+           await index.addHTMLFile({sourcePath: "dogs/index.html", content: "<html><body><h1>Testing, testing</h1></body></html>"});
+           const { files } = await index.getFiles();
+
+           const jsFile = files.filter(file => file.path.includes("pagefind.js"))[0];
+           console.log(jsFile.content.toString());
+
+           console.log(`JS is at ${jsFile.path}`);
+
+           const fragments = files.filter(file => file.path.includes("fragment"));
+           console.log(`${fragments.length} fragment(s)`);
+       }
+
+       run();
+  - step: >-
+      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
+      node index.js"
+  - step: stdout should contain "pagefind_version="
+  - step: stdout should contain "JS is at pagefind.js"
+  - step: stdout should contain "1 fragment(s)"
+  - step: I run "ls -lh public/pagefind/pagefind.js" and expect it to fail
+    notes: "TODO: Build a file existence check into toolproof"

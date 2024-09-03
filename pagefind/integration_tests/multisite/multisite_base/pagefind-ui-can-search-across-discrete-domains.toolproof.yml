@@ -1,0 +1,55 @@
+#TODO: This is an intentionally skipped test — add skipping to toolproof.
+
+type: reference
+name: Multisite Search > Pagefind UI can search across discrete domains
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "root/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><div id="search"></div>
+      <script src="/website_a/pagefind/pagefind-ui.js"></script></body></html>
+  - step: I run "%pagefind_exec_path% --site root/website_a"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "root/website_a/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "root"
+  - step: In my browser, I load "/"
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pui = new PagefindUI({
+          element: "#search",
+          mergeIndex: [{
+              bundlePath: "https://pagefind.app/pagefind/"
+          }]
+      });
+
+      pui.triggerSearch("PAGEFIND_ROOT_SELECTOR");
+
+
+      let waiting_since = Date.now();
+
+      while
+      (!document.querySelector(".pagefind-ui__result-link:nth-of-type(2)")) {
+          await new Promise(r => setTimeout(r, 100)); // TODO: await el in humane
+          if (Date.now() - waiting_since > 10000) {
+              break;
+          }
+      }
+
+
+      const links =
+      [...document.querySelectorAll(".pagefind-ui__result-link")].map(l =>
+      l.getAttribute('href')).sort();
+
+      const expected = ["/website_a/hello/",
+      "https://pagefind.app/docs/config-options/"];
+
+      if (links.length < expected.length) {
+              throw new Error(`Expected ${expected.length} links, found ${links.length}`);
+      }
+
+      for (let i = 0; i < links.length; i++) {
+          if (links[i] !== expected[i]) {
+              throw new Error(`${links[i]} !== ${expected[i]}`);
+          }
+      }

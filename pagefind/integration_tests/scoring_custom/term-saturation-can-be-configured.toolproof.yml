@@ -1,0 +1,63 @@
+name: Result Scoring > Term saturation can be configured
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/lots/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h3>post</h3>
+      <p>common and common and common and unrelated</p></body></html>
+  - step: >-
+      I have a "public/slightly-less-than-lots/index.html" file with the content
+      {html}
+    html: |-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>post</h1>
+      <p>common and common and unrelated and unrelated</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      await pagefind.options({
+          ranking: {
+              termSaturation: 2.0
+          }
+      });
+
+
+      let search = await pagefind.search(`common post`);
+
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText = data.map(d =>
+      d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/slightly-less-than-lots/, /lots/`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      await pagefind.options({
+          ranking: {
+              termSaturation: 0.1
+          }
+      });
+
+
+      let search = await pagefind.search(`common post`);
+
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText = data.map(d =>
+      d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/lots/, /slightly-less-than-lots/`);

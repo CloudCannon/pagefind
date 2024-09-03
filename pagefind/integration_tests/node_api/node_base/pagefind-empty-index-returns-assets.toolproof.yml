@@ -1,0 +1,26 @@
+name: Node API Base Tests > Pagefind empty index returns assets
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.js" file with the content {js}
+    js: |2-
+       import * as pagefind from "pagefind";
+
+       const run = async () => {
+           const { index } = await pagefind.createIndex();
+           const { errors, files } = await index.getFiles();
+           console.log(files.map(f => f.path).join(', '));
+       }
+       run();
+  - step: >-
+      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
+      node index.js"
+  - step: stdout should contain "pagefind.js"
+  - step: stdout should contain "pagefind-ui.js"
+  - step: stdout should contain "pagefind-ui.css"
+  - step: stdout should contain "pagefind-modular-ui.js"
+  - step: stdout should contain "pagefind-modular-ui.css"
+  - step: stdout should contain "wasm.unknown.pagefind"

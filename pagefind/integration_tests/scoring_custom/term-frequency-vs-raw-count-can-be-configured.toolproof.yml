@@ -1,0 +1,73 @@
+name: Result Scoring > Term frequency vs raw count can be configured
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/longer/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>This post is quite
+      long, and talks about terracotta at length.</p>
+
+      <p>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum
+      nibh, ut fermentum terracotta justo sit amet risus. Donec sed odio dui.
+      Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis
+      vestibulum. Nulla vitae elit libero, a pharetra augue. Aenean lacinia
+      bibendum nulla sed consectetur. Donec id elit non mi porta gravida at eget
+      metus. Maecenas faucibus mollis interdum.</p>
+
+      <p>Integer erat a ante venenatis dapibus posuere velit aliquet. Vivamus
+      sagittis lacus vel augue laoreet rutrum faucibus auctor. Nullam quis risus
+      eget urna mollis ornare vel eu leo. Aenean lacinia bibendum nulla sed
+      consectetur.</p>
+
+      <p>Praesent commodo cursus magna, vel scelerisque consectetur et. Fusce
+      dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut
+      fermentum massa justo sit amet risus. Lorem ipsum dolor sit amet,
+      consectetur adipiscing elit. Curabitur blandit tempus
+      porttitor.</p></body></html>
+  - step: I have a "public/shorter/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p>This is a shorter
+      terracotta page.</p></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search(`terracotta`);
+
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText = data.map(d =>
+      d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/shorter/, /longer/`);
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      await pagefind.options({
+          ranking: {
+              termFrequency: 0.0
+          }
+      });
+
+
+      let search = await pagefind.search(`terracotta`);
+
+
+      let data = await Promise.all(search.results.map(result => result.data()));
+
+      document.querySelector('[data-result]').innerText = data.map(d =>
+      d.url).join(', ');
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/longer/, /shorter/`);

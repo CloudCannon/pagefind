@@ -1,0 +1,41 @@
+name: >-
+  Exact Phrase Matching > Searching in quotes will return pages with exact
+  matches
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Happy post about
+      cats</h1></body></html>
+  - step: I have a "public/dog/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>A post about how
+      cats do not like dogs</h1></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+
+      let search = await pagefind.search(`"about cats"`);
+
+
+      document.querySelector('[data-count]').innerText =
+      `${search.results.length} result(s)`;
+
+      let data = await search.results[0]?.data();
+
+      document.querySelector('[data-result]').innerText = data?.url;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-count]");
+      toolproof.assert_eq(val.innerHTML, `1 result(s)`);
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/cat/`);

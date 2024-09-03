@@ -1,7 +1,7 @@
 /**
  * Create a new Pagefind index that files can be added to
  */
-export function createIndex(config: PagefindServiceConfig): Promise<NewIndexResponse>;
+export function createIndex(config?: PagefindServiceConfig): Promise<NewIndexResponse>;
 
 /**
  * Close the Pagefind service and clean up, stopping the binary altogether.
@@ -82,7 +82,7 @@ declare function addDirectory(path: SiteDirectory): Promise<IndexingResponse>;
  * The data required for Pagefind to index an HTML file that isn't on disk
  * @example
  * {
- *   path: "about/index.html",
+ *   sourcePath: "about/index.html",
  *   content: "<html lang='en'><body><h1>Meet the team</h1></body></html>"
  * }
  */

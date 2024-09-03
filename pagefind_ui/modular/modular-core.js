@@ -8,9 +8,12 @@ const sleep = async (ms = 50) =>
 
 let scriptBundlePath;
 try {
-  scriptBundlePath = new URL(document.currentScript.src).pathname.match(
-    /^(.*\/)(?:pagefind-)?modular-ui.js.*$/
-  )[1];
+  // Important: Check that the element is indeed a <script> node, to avoid a DOM clobbering vulnerability
+  if (document?.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT') {
+    scriptBundlePath = new URL(document.currentScript.src).pathname.match(
+      /^(.*\/)(?:pagefind-)?modular-ui.js.*$/
+    )[1];
+  }
 } catch (e) {
   scriptBundlePath = "/pagefind/";
 }
@@ -166,12 +169,22 @@ export class Instance {
         console.error(
           [
             `Pagefind couldn't be loaded from ${this.options.bundlePath}pagefind.js`,
-            `You can configure this by passing a bundlePath option to PagefindComposable Instance`,
-            `[DEBUG: Loaded from ${
-              document?.currentScript?.src ?? "no known script location"
-            }]`,
+            `You can configure this by passing a bundlePath option to PagefindComposable Instance`
           ].join("\n")
         );
+        // Important: Check that the element is indeed a <script> node, to avoid a DOM clobbering vulnerability
+        if (
+          document?.currentScript &&
+          document.currentScript.tagName.toUpperCase() === "SCRIPT"
+        ) {
+          console.error(
+            `[DEBUG: Loaded from ${
+              document.currentScript?.src ?? "bad script location"
+            }]`
+          );
+        } else {
+          console.error("no known script location");
+        }
       }
 
       await imported_pagefind.options(this.pagefindOptions || {});

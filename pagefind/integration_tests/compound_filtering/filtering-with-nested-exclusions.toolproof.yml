@@ -1,0 +1,38 @@
+name: Filtering > Filtering with nested exclusions
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      await test(pagefind.search("Cat", {
+          filters: {
+              all: [
+                  {
+                      all: [
+                          {
+                              color: {
+                                  any: ["Orange", "White"]
+                              },
+                              mood: {
+                                  any: ["Lazy", "Zen"]
+                              }
+                          },
+                          {
+                              not: {
+                                  color: "Black"
+                              }
+                          }
+                      ]
+                  },
+                  {
+                      mood: {
+                          none: ["Lazy", "Nervous"]
+                      }
+                  }
+              ],
+          }
+      }));
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-results]");
+      toolproof.assert_eq(val.innerHTML, `/theodore/`);

@@ -1,0 +1,70 @@
+name: metadata > Metadata > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: |-
+      <html>
+      <head></head>
+      <body>
+          <p data-result>Nothing</p>
+          <p data-result-two>Nothing</p>
+      </body>
+      </html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: |-
+      <html>
+      <head>
+          <meta data-pagefind-meta="social-image[content]" content="/kitty.jpg" property="og:image">
+      </head>
+      <body>
+          <img src="/logo.png" />
+          <h1 data-pagefind-filter="title">
+              Cat Post.
+          </h1>
+          <span data-pagefind-ignore data-pagefind-filter="animal">cats</span>
+          <img src="/cat.png" alt="cat picture" />
+          <p>A post about the 'felines'</p>
+          <p>This post has some <span data-pagefind-meta="adjective">gnarly</span> things to test the fragment formatting.</p>
+          <img data-pagefind-meta="footer[src], footer_alt[alt]" src="/cat-footer.png" alt="cat footer picture" />
+      </body>
+      </html>
+  - step: I have a "public/dog/index.html" file with the content {html}
+    html: |-
+      <html>
+      <head>
+          <meta data-pagefind-default-meta="image[content]" content="/puppy.jpg" property="og:image">
+          <title data-pagefind-default-meta="title">Website | Dogs</title>
+      </head>
+      <body>
+          <h1>Dog Post.</h1>
+          <span data-pagefind-meta="animal">dog</span>
+          <span data-pagefind-default-meta="animal,vegetable,mineral">generic</span>
+      </body>
+      </html>
+  - step: I have a "public/kea/index.html" file with the content {html}
+    html: |-
+      <html>
+      <head>
+          <title>Website | Kea</title>
+      </head>
+      <body>
+          <p>NZ Kea Post.</p>
+      </body>
+      </html>
+  - step: I have a "public/kaka/index.html" file with the content {html}
+    html: |-
+      <html>
+      <head>
+          <title>Website | Kaka</title>
+      </head>
+      <body>
+          <h1></h1>
+          <p>NZ Kaka Post.</p>
+      </body>
+      </html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"

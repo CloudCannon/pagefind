@@ -1,0 +1,43 @@
+name: multisite/multisite_lang > Multisite Search Languages > Background
+type: reference
+steps:
+  - step: I have a "root/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-result>Nothing</p></body></html>
+  - step: I have a "root/website_a/en/1/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html lang="en">
+          <head></head>
+          <body>
+              <h1>Website site A English</h1>
+          </body>
+      </html>
+  - step: I have a "root/website_b/pt/1/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html lang="pt-br">
+          <head></head>
+          <body>
+              <h1>Website site B Portuguese</h1>
+          </body>
+      </html>
+  - step: I have a "root/website_b/pt/2/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html lang="pt-br">
+          <head></head>
+          <body>
+              <h1>Website site B Portuguese</h1>
+          </body>
+      </html>
+  - step: I have a "root/website_b/en/1/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html lang="en">
+          <head></head>
+          <body>
+              <h1>Website site B English</h1>
+          </body>
+      </html>

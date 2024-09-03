@@ -1,0 +1,27 @@
+name: frozen-pre-1.0/multilingual > Multilingual > Background
+type: reference
+steps:
+  - step: I have the environment variable "PAGEFIND_SOURCE" set to "public"
+  - step: I have a "public/en/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html lang="en">
+          <head>
+              <title>Document</title>
+              <link rel="pre-1.0-signal" href="_pagefind" >
+          </head>
+          <body>
+              <p>I am some English documentation</p>
+          </body>
+      </html>
+  - step: I have a "public/pt-br/index.html" file with the content {html}
+    html: |-
+      <!DOCTYPE html>
+      <html lang="pt-br">
+          <head>
+              <title>Document</title>
+          </head>
+          <body>
+              <p>I am a Portuguese document (trust me — quilométricas — see?)</p>
+          </body>
+      </html>

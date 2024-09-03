@@ -1,0 +1,28 @@
+name: >-
+  Multisite Filters > Pagefind can search across multiple sites with unique
+  filters
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let pagefind = await import("/website_a/pagefind/pagefind.js");
+
+      await pagefind.mergeIndex("/website_b/pagefind/");
+
+
+      let search = await pagefind.search("web", {
+          filters: {
+              emote: "happy"
+          }
+      });
+
+
+      let pages = await Promise.all(search.results.map(r => r.data()));
+
+      document.querySelector('[data-result]').innerText = pages.map(p =>
+      p.url).join(", ");
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("[data-result]");
+      toolproof.assert_eq(val.innerHTML, `/website_b/lorem/`);

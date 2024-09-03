@@ -1,0 +1,19 @@
+name: Metadata > Search results return highlighted search excerpt
+steps:
+  - ref: ./background.toolproof.yml
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search("feline");
+
+      let data = await search.results[0].data();
+      document.querySelector('[data-result]').innerText = data.excerpt;
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: >-
+      let val = await toolproof.querySelector("[data-result]");
+
+      toolproof.assert_eq(val.innerHTML, `Cat Post. A post about the
+      &lt;mark&gt;'felines'.&lt;/mark&gt; This post has some gnarly things to
+      test the fragment formatting.`);

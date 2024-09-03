@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Anonymous",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Tafuta",
+        "clear_search": "Futa",
+        "load_more": "Pakia matokeo zaidi",
+        "search_label": "Tafuta tovuti hii",
+        "filters_label": "Vichujio",
+        "zero_results": "Hakuna matokeo ya [SEARCH_TERM]",
+        "many_results": "Matokeo [COUNT] ya [SEARCH_TERM]",
+        "one_result": "Tokeo [COUNT] la [SEARCH_TERM]",
+        "alt_search": "Hakuna mayokeo ya [SEARCH_TERM]. Badala yake, inaonyesha matokeo ya [DIFFERENT_TERM]",
+        "search_suggestion": "Hakuna matokeo ya [SEARCH_TERM]. Jaribu mojawapo ya utafutaji ufuatao:",
+        "searching": "Kutafuta [SEARCH_TERM]..."
+    }
+}
