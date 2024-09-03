@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.1.1 (September 3, 2024)
+
 ### Fixes & Tweaks
 * Fixes an issue where internal anchor and weight tokens would leak when captured in meta or filter attributes.
 * Improves segmentation for extended languages (PR #600 — thanks @hamano !).
