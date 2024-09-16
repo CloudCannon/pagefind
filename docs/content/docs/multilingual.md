@@ -48,6 +48,7 @@ If word stemming is unsupported, search results won't match across root words. I
 | Irish — `ga`      | ❌               | ✅             |
 | Italian — `it`    | ✅               | ✅             |
 | Japanese — `ja`   | ✅               | See below     |
+| Korean — `ko`     | ✅               | See below     |
 | Lithuanian — `lt` | ❌               | ✅             |
 | Māori — `mi`      | ✅               | ❌             |
 | Nepali — `ne`     | ❌               | ✅             |
