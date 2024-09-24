@@ -8,7 +8,7 @@ This lives in the `pagefind` directory, and houses the code for indexing a built
 ### [JavaScript] The Pagefind search interface
 This lives in the `pagefind_web_js` directory.
 
-### [Rust] The Pagefind WebAssembly 
+### [Rust] The Pagefind WebAssembly
 This lives in `pagefind_web`, and is what performs the actual search actions in the browser.
 
 ### [JavaScript] The Pagefind UI modules
@@ -60,7 +60,7 @@ This step might take a while, as it needs to build a WASM file for each supporte
 
 ## Building the main package
 
-To build the main Pagefind binary, enter the `pagefind` folder and run `cargo build --release --features extended`. 
+To build the main Pagefind binary, enter the `pagefind` folder and run `cargo build --release --features extended`.
 Pagefind currently runs _very_ slowly in a debug build, so the extra time of a `--release` compile is more than made up
 for by the faster runtime of the output binary, especially when running the test suite.
 
@@ -68,23 +68,26 @@ After building, you'll have a final Pagefind binary at `target/release/pagefind`
 
 ## Test suite
 
-To run the test suite, from the `pagefind` directory you can run `cargo test` for unit tests, 
-or the `./test.sh` script for the integration suite. For most changes unit tests are a nice to have, but integration tests are better. 
+To run the integration test suite, from the root folder run `./test_interactive.sh`.
+This will give you a terminal interface to run tests and accept snapshot changes.
 
-You can see the feature files inside `pagefind/features`. These use the Cucumber/Gherkin syntax for specifying tests.
-We don't currently have documentation of the steps available (WIP!), so the best bet is to find a test close to what you need,
-duplicate it, and modify it to fit.
+From the `pagefind` directory you can run `cargo test` for unit tests.
+
+For most changes unit tests are a nice to have, but integration tests are better.
+
+You can see the integration test files inside `pagefind/integration_tests`. These are written for, and run by, Toolproof.
+You can see documentation for this at https://toolproof.app/
 
 ## Manually testing
 
-For the UI packages, running `npm start` in either the `pagefind_ui/default` or `pagefind_ui/modular` directories will 
+For the UI packages, running `npm start` in either the `pagefind_ui/default` or `pagefind_ui/modular` directories will
 start serving a dev server with these UI libraries rendered on the page. Reload to automatically pull in any changes to files.
 
 Currently this does just stub out a Pagefind mock, so for anything more substantial you'll want to run `npm run build`, then build
 the main Pagefind package and test from there.
 
 To test the main package, run the `target/release/pagefind` file however you would normally run Pagefind, and use the assets it creates
-to test any dependent package. 
+to test any dependent package.
 
 A quick way to get off the ground is to test using the `docs` site in this repo. Enter the `docs` directory and follow the given steps:
 
@@ -101,4 +104,4 @@ A quick way to get off the ground is to test using the `docs` site in this repo.
 
 TODOS:
 - Devise and document a nice way to manually test the npx wrapper behaviour
-- Devise and document a nice way to manually test the Node package interface 
+- Devise and document a nice way to manually test the Node package interface
