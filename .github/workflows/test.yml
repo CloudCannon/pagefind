@@ -131,11 +131,17 @@ jobs:
       - name: Install dev dependencies
         run: ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
 
+      - name: activate venv on windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: ./wrappers/python
+        run: .\.venv\Scripts\Activate.ps1
+      
       - name: debug python paths
         run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
 
       - name: Lint python
-        if: runner.os == 'Linux'
+        # if: runner.os == 'Linux'
         working-directory: ./wrappers/python
         run: |
           export VIRTUAL_ENV="$PWD/.venv"
