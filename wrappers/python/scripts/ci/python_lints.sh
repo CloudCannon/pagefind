@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -eu
-mypy src scripts
-ruff check
-ruff format --check
+python3 -m mypy src scripts
+python3 -m ruff check
+python3 -m ruff format --check
