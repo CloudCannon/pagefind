@@ -135,6 +135,7 @@ jobs:
         run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
 
       - name: Lint python
+        if: runner.os == 'Linux'
         working-directory: ./wrappers/python
         run: |
           export VIRTUAL_ENV="$PWD/.venv"
@@ -142,6 +143,7 @@ jobs:
           bash ./scripts/ci/python_lints.sh
 
       - name: ensure cog up-to-date
+        if: runner.os == 'Linux'
         working-directory: ./wrappers/python
         run: |
           export VIRTUAL_ENV="$PWD/.venv"
