@@ -1,0 +1,26 @@
+name: Base Tests > Load fragment
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>world</h1></body></html>
+  - step: I run "%pagefind_exec_path%"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      let fragment = await pagefind.loadFragment("en_96b6993");
+
+      toolproof.assert_eq(fragment.url, "/cat/");
+      toolproof.assert_eq(fragment.meta.title, "world");
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      fragment = await pagefind.loadFragment("bad");
+
+      toolproof.assert_eq(fragment, null);

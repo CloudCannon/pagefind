@@ -55,7 +55,7 @@ const pagefind = await import("/pagefind/pagefind.js");
 
 This will return an object with the following structure:
 ```js
-{ 
+{
     results: [
         {
             id: "6fceec9",
@@ -266,3 +266,19 @@ await pagefind.search( /* ... */ );
 Calling `pagefind.destroy()` will unload the active Pagefind, and also forget anything that was passed through `pagefind.options()`, resetting to the blank state after the script was first imported.
 
 After being destroyed, initializing Pagefind will look again at the active language, and use any new options you might pass in.
+
+## Loading a fragment directly
+
+In some cases you might want to load a Pagefind result fragment directly. To do so, you can run:
+
+{{< diffcode >}}
+```js
+const result = await pagefind.loadFragment("en_96b6993");
+```
+{{< /diffcode >}}
+
+The data will match the return type of the `.data()` function that exists on search results.
+
+Pagefind fragments are a hash of the file contents. Pagefind endeavors for these to not needlessly change between subsequent indexing operations, but no guarantee is made.
+
+Fragments can be found in the results that come back from a search operation, or can be retrieved when indexing content.

@@ -2,6 +2,7 @@
 public
 .DS_Store
 .hugo_build.lock
+.zed
 _gen
 pagefind_ui/default/_dev_files/_pagefind/ui.*
 pagefind_ui/default/_dev_files/_pagefind/pagefind.js
