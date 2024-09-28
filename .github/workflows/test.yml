@@ -149,6 +149,13 @@ jobs:
         working-directory: ./wrappers/python
         run: ./scripts/ci/cog/check.sh
 
+      - name: set PYTHONPATH
+        shell: bash
+        working-directory: ./wrappers/python
+        run: python ./scripts/ci/github/add_src_to_pythonpath.py
+      - name: add target/release to windows PATH
+        shell: bash
+        run: echo $PWD/target/release >> "$GITHUB_PATH"
       - name: Test python API
         timeout-minutes: 1
         # ^ guard against the tests getting deadlock if the subprocess pipe

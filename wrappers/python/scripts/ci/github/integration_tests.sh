@@ -1,20 +1,46 @@
 #!/usr/bin/env bash
 set -eu
-export PATH="$PWD/target/release:$PATH"
-export PYTHONPATH="$PWD/wrappers/python/src:${PYTHONPATH:-}"
-# ^ ensure `import pagefind` imports wrappers/python/src/pagefind/__init__.py
-export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
 
+# starting in repo root
 cd wrappers/python
-python -c 'import sys; print("pythonpath\n  - " + "\n  - ".join(sys.path))'
+
+echo "PATH: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "$PATH" | tr ':' '\n' | sed 's/^/  - /g'
+
+if ! command -v pagefind; then
+  echo "pagefind not found in PATH"
+  exit 1
+fi
+
+# check that PYTHONPATH is set correctly
+echo
+echo "PYTHONPATH: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo
+
+python -c 'import sys;print("  - " +  "\n  - ".join(sys.path))'
+# ^ wrappers/python/src should be at the front of the path
+
+echo
+echo "testing import ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo
+
+export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
 python -c '
 import logging
 import os
 from pagefind.service import get_executable
 
 logging.basicConfig(level=os.environ.get("PAGEFIND_PYTHON_LOG_LEVEL", "INFO")) 
-print(get_executable())
+print(f"exe={get_executable()}")
 '
+echo
+echo "python -m pagefind --help ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo
 
 python -m pagefind --help
+
+echo
+echo "running integration tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo
+
 python src/tests/integration.py
