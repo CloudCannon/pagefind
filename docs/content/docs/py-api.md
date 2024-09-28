@@ -2,7 +2,7 @@
 title: "Indexing content using the Python API"
 nav_title: "Using the Python API"
 nav_section: References
-weight: 54
+weight: 54 # slightly less weight than the node API
 ---
 
 Pagefind provides an interface to the indexing binary as a Python package you can install and import.
@@ -10,12 +10,12 @@ Pagefind provides an interface to the indexing binary as a Python package you ca
 There are situations where using this Python package is beneficial:
 - Integrating Pagefind into an existing Python project, e.g. writing a plugin for a static site generator that can pass in-memory HTML files to Pagefind.
   Pagefind can also return the search index in-memory, to be hosted via the dev mode alongside the files.
-- Users looking to index their site and augment that index with extra non-HTML pages can run a standard Pagefind crawl with [`add_directory`](#indexadddirectory) and augment it with [`add_custom_record`](#indexaddcustomrecord).
-- Users looking to use Pagefind's engine for searching miscellaneous content such as PDFs or subtitles, where [`add_custom_record`](#indexaddcustomrecord) can be used to build the entire index from scratch.
+- Users looking to index their site and augment that index with extra non-HTML pages can run a standard Pagefind crawl with [`add_directory`](#indexadd_directory) and augment it with [`add_custom_record`](#indexadd_custom_record).
+- Users looking to use Pagefind's engine for searching miscellaneous content such as PDFs or subtitles, where [`add_custom_record`](#indexadd_custom_record) can be used to build the entire index from scratch.
 
 ## Example Usage
 
-<!-- this is copied verbatim from wrappers/python/src/tests/integration.py -->
+<!-- this example is copied verbatim from wrappers/python/src/tests/integration.py -->
 
 ```py
 import asyncio
@@ -90,8 +90,19 @@ from pagefind.index import PagefindIndex
 
 async def main():
     async with PagefindIndex() as index: # open the index
-        ... # write to the index
+        ... # update the index
     # the index is closed here and files are written to disk.
+```
+
+Each method of `PagefindIndex` that talks to the backing Pagefind service can raise errors.
+If an error is is thrown inside `PagefindIndex`'s context, the context closes without writing the index files to disk.
+
+```py
+async def main():
+    async with PagefindIndex() as index: # open the index
+        await index.add_directory("./public")
+        raise Exception("not today")
+    # the index closes without writing anything to disk
 ```
 
 `PagefindIndex` optionally takes a configuration dictionary that can apply parts of the [Pagefind CLI config](/docs/config-options/). The options available at this level are:
@@ -135,8 +146,6 @@ indexed_dir = await index.add_directory("./public", glob="**.{html}")
 Optionally, a custom `glob` can be supplied which controls which files Pagefind will consume within the directory. The default is shown, and the `glob` option can be omitted entirely.  
 See [Wax patterns documentation](https://github.com/olson-sean-k/wax#patterns) for more details.
 
-<!-- FIXME: don't discard errors list -->
-
 ## index.add_html_file
 
 Adds a virtual HTML file to the Pagefind index. Useful for files that don't exist on disk, for example a static site generator that is serving files from memory.
@@ -168,7 +177,6 @@ Instead of `source_path`, a `url` may be supplied to explicitly set the URL of t
 
 The `content` should be the full HTML source, including the outer `<html> </html>` tags. This will be run through Pagefind's standard HTML indexing process, and should contain any required Pagefind attributes to control behaviour.
 
-<!-- FIXME: error array? -->
 If successful, the `file` object is returned containing metadata about the completed indexing.
 
 ## index.add_custom_record
@@ -208,8 +216,6 @@ See the [Filters documentation](https://pagefind.app/docs/filtering/) for semant
 See the [Sort documentation](https://pagefind.app/docs/sorts/) for semantics.  
 *When Pagefind is processing an index, number-like strings will be sorted numerically rather than alphabetically. As such, the value passed in should be `"20"` and not `20`*
 
-<!-- FIXME: errors? -->
-
 If successful, the `file` object is returned containing metadata about the completed indexing.
 
 ## index.get_files
@@ -233,7 +239,12 @@ Closing the `PagefindIndex`'s context automatically calls `index.write_files`.
 If you aren't using `PagefindIndex` as a context manager, calling `index.write_files()` writes the index files to disk, as they would be written when running the standard Pagefind binary directly.
 
 ```py
-await index.write_files("./public/pagefind")
+await index = PagefindIndex(
+    IndexConfig(
+        output_path="./public/pagefind",
+    ),
+)
+await index.write_files()
 ```
 
 The `output_path` option should contain the path to the desired Pagefind bundle directory. If relative, is relative to the current working directory of your Python process.
@@ -244,7 +255,7 @@ Deletes the data for the given index from its backing Pagefind service.
 Doesn't affect any written files or data returned by `get_files()`.
 
 ```python
-await index.delete_index();
+await index.delete_index()
 ```
 
 Calling `index.get_files()` or `index.write_files()` doesn't consume the index, and further modifications can be made. In situations where many indexes are being created, the `delete_index` call helps clear out memory from a shared Pagefind binary service.
