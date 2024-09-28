@@ -131,32 +131,27 @@ jobs:
       - name: Install dev dependencies
         run: ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
 
-      - name: activate venv on windows
-        if: runner.os == 'Windows'
-        shell: pwsh
-        working-directory: ./wrappers/python
-        run: .\.venv\Scripts\Activate.ps1
-      
+      - name: activate venv
+        run: ./wrappers/python/scripts/ci/github/activate_venv.sh
+
       - name: debug python paths
         run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
 
       - name: Lint python
-        # if: runner.os == 'Linux'
-        working-directory: ./wrappers/python
-        run: |
-          export VIRTUAL_ENV="$PWD/.venv"
-          export PATH="$VIRTUAL_ENV/bin:$PATH"
-          bash ./scripts/ci/python_lints.sh
-
-      - name: ensure cog up-to-date
+        # avoid duplicating linting work on different OSes
         if: runner.os == 'Linux'
         working-directory: ./wrappers/python
-        run: |
-          export VIRTUAL_ENV="$PWD/.venv"
-          export PATH="$VIRTUAL_ENV/bin:$PATH"
-          ./scripts/ci/cog/check.sh
+        run: ./scripts/ci/python_lints.sh
+        
+      - name: ensure cog up-to-date
+        # avoid duplicating linting work on different OSes
+        if: runner.os == 'Linux'
+        working-directory: ./wrappers/python
+        run: ./scripts/ci/cog/check.sh
 
       - name: Test python API
         timeout-minutes: 1
+        # ^ guard against the tests getting deadlock if the subprocess pipe
+        # gets clogged
         run: ./wrappers/python/scripts/ci/github/integration_tests.sh
 

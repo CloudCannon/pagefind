@@ -1,8 +1,10 @@
+"""A script that builds all the pagefind binary-only wheels."""
+
 import os
 import tarfile
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from argparse import ArgumentParser
 
 from . import dist_dir, setup_logging
@@ -49,7 +51,7 @@ def check_platforms(certified: List[Path]) -> None:
         raise ValueError(err_message)
 
 
-def parse_args():
+def parse_args() -> Tuple[bool, Optional[Path]]:
     parser = ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("DIR", type=Path, default=None, nargs="?")
