@@ -87,13 +87,15 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  publish-pypi-packages:
-    name: Publish PyPi packages
+  publish-python-packages:
+    name: Publish python packages
     runs-on: ubuntu-latest # ok since none of the scripts depend on version-specific features
     defaults:
       run:
         shell: bash
     needs: publish-github-release
+    permissions: # required for trusted publishing to pypi/test-pypi
+      id-token: write
     steps:
       - name: Clone
         uses: actions/checkout@v4
@@ -117,36 +119,33 @@ jobs:
       - name: Install dev dependencies
         run: bash ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
         working-directory: ./wrappers/python
-      - name: debug
-        run: |
-          set -x
-          echo "$PATH" | tr ':' '\n'
-          command -v python
-          command -v python3
-          command -v poetry || echo "missing poetry"
-          stat .venv/bin/python
-          .venv/bin/python --version
+      - name: activate venv
+        run: ./wrappers/python/scripts/ci/github/activate_venv.sh
+      - name: debug python paths
+        run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
       - name: package binaries
         working-directory: ./wrappers/python
-        run: |
-          export PATH="$PWD/.venv/bin:$PATH"
-          python3 -m scripts.build.all ./vendor # should take ~30s
+        run: python -m scripts.build.all ./vendor # should take ~30s
       - name: package python api
-        run: |
-          export PATH="$PWD/.venv/bin:$PATH"
-          python3 -m scripts.build.api_package
+        working-directory: ./wrappers/python
+        run: python3 -m scripts.build.api_package
       - name: Archive dist
         uses: actions/upload-artifact@v4
         with:
-          path: dist
+          path: wrappers/python/dist
           name: python-packages
           if-no-files-found: error
-      # TODO: once we have a TEST_PYPI_TOKEN, test publishing the packages.
-      # - name: Publish python packages
-      #   working-directory: ./wrappers/python
-      #   run: |
-      #     export PATH="$PWD/.venv/bin:$PATH"
-      #     ./scripts/publish_to_test_pypi.sh
+      
+      - name: Publish to pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Note: this action requires test-pypi / pypi trusted publishing to be
+        # configured in the target repository. For instructions, see
+        # - https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-pypi
+        # - https://docs.pypi.org/trusted-publishers/
+        with: # see https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#customizing-target-package-dists-directory
+          packages-dir: wrappers/python/dist
+          repository-url: https://test.pypi.org/ # FIXME: comment this out when ready to publish to pypi
+          verbose: true # can be commented out once the action is working as expected
 
   publish-npm-package:
     name: Publish NPM packages
