@@ -9,6 +9,20 @@
 
 ## Unreleased
 
+## v1.1.1 (September 3, 2024)
+
+### Fixes & Tweaks
+* Fixes an issue where internal anchor and weight tokens would leak when captured in meta or filter attributes.
+* Improves segmentation for extended languages (PR #600 — thanks @hamano !).
+* Improves Pagefind's processing of "index.html" URLs (PR #604 — thanks @dscho !).
+* Fixes some instances of incorrect types in the Pagefind NodeJS API (PRs #642 & #655 — thanks @vanyauhalin & SKalt !).
+
+### UI Translations
+* Added Swahili translations
+
+### Secutiry
+* Fix potential DOM clobbering when initializing Pagefind
+
 ## v1.1.0 (April 2, 2024)
 
 ### Core Features & Improvements

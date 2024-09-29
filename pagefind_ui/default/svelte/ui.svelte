@@ -99,11 +99,21 @@
           [
             `Pagefind couldn't be loaded from ${this.options.bundlePath}pagefind.js`,
             `You can configure this by passing a bundlePath option to PagefindUI`,
-            `[DEBUG: Loaded from ${
-              document?.currentScript?.src ?? "no known script location"
-            }]`,
           ].join("\n")
         );
+        // Important: Check that the element is indeed a <script> node, to avoid a DOM clobbering vulnerability
+        if (
+          document?.currentScript &&
+          document.currentScript.tagName.toUpperCase() === "SCRIPT"
+        ) {
+          console.error(
+            `[DEBUG: Loaded from ${
+              document.currentScript.src ?? "bad script location"
+            }]`
+          );
+        } else {
+          console.error("no known script location");
+        }
       }
 
       if (!excerpt_length) {

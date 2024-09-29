@@ -2,9 +2,12 @@ import PagefindSvelte from "./svelte/ui.svelte";
 
 let scriptBundlePath;
 try {
-  scriptBundlePath = new URL(document.currentScript.src).pathname.match(
-    /^(.*\/)(?:pagefind-)?ui.js.*$/
-  )[1];
+  // Important: Check that the element is indeed a <script> node, to avoid a DOM clobbering vulnerability
+  if (document?.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT') {
+    scriptBundlePath = new URL(document.currentScript.src).pathname.match(
+      /^(.*\/)(?:pagefind-)?ui.js.*$/
+    )[1];
+  }
 } catch (e) {
   scriptBundlePath = "/pagefind/";
 }
