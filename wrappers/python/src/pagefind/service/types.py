@@ -132,6 +132,9 @@ class InternalSyntheticFile(TypedDict):
     path: str
     content: str
 
+class InternalDecodedFile(TypedDict):
+    path: str
+    content: bytes
 
 class InternalGetFilesResponse(TypedDict):
     type: Literal["GetFiles"]

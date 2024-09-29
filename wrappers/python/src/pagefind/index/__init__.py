@@ -1,4 +1,5 @@
 import logging
+import base64
 from typing import Any, Dict, List, Optional, Sequence, TypedDict, cast
 
 from ..service import PagefindService
@@ -12,6 +13,7 @@ from ..service.types import (
     InternalIndexedDirResponse,
     InternalIndexedFileResponse,
     InternalSyntheticFile,
+    InternalDecodedFile,
     InternalWriteFilesRequest,
 )
 
@@ -152,7 +154,7 @@ class PagefindIndex:
         assert result["type"] == "IndexedDir"
         return cast(InternalIndexedDirResponse, result)
 
-    async def get_files(self) -> List[InternalSyntheticFile]:
+    async def get_files(self) -> List[InternalDecodedFile]:
         """Get raw data of all files in the Pagefind index.
 
         WATCH OUT: this method emits all files. This can be a lot of data, and
@@ -167,8 +169,14 @@ class PagefindIndex:
             InternalGetFilesRequest(type="GetFiles", index_id=self._index_id)
         )
         assert response["type"] == "GetFiles"
-        result = cast(InternalGetFilesResponse, response)["files"]
-        return result
+        files = cast(InternalGetFilesResponse, response)["files"]
+
+        decoded_files = [
+            {'path': file['path'], 'content': base64.b64decode(file['content'])}
+            for file in files
+        ]
+
+        return cast(List[InternalDecodedFile], decoded_files)
 
     async def delete_index(self) -> None:
         """
