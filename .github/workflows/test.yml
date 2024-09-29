@@ -65,6 +65,13 @@ jobs:
           default: true
           components: rustfmt, clippy
 
+      - name: Set up python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          # NOTE: ^this strategy leaves older python versions intentionally
+          # without test coverage to keep CI fast.
+
       - name: Check versions
         run: |
           cargo --version
@@ -112,16 +119,9 @@ jobs:
       - name: Test CLI
         run: ./test_ci.sh "release"
 
-      - name: Set up python 3.12 
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          # NOTE: ^this strategy leaves older python versions intentionally
-          # without test coverage to keep CI fast.
-
       - name: Set up poetry
         run: ./wrappers/python/scripts/ci/github/setup_poetry.sh
-      
+
       - name: cache venv
         uses: actions/cache@v4
         with:
@@ -142,7 +142,7 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: ./wrappers/python
         run: ./scripts/ci/python_lints.sh
-        
+
       - name: ensure cog up-to-date
         # avoid duplicating linting work on different OSes
         if: runner.os == 'Linux'
@@ -161,4 +161,3 @@ jobs:
         # ^ guard against the tests getting deadlock if the subprocess pipe
         # gets clogged
         run: ./wrappers/python/scripts/ci/github/integration_tests.sh
-
