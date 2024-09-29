@@ -12,7 +12,6 @@ from ..service.types import (
     InternalGetFilesResponse,
     InternalIndexedDirResponse,
     InternalIndexedFileResponse,
-    InternalSyntheticFile,
     InternalDecodedFile,
     InternalWriteFilesRequest,
 )
