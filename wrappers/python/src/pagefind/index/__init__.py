@@ -171,7 +171,7 @@ class PagefindIndex:
         files = cast(InternalGetFilesResponse, response)["files"]
 
         decoded_files = [
-            {'path': file['path'], 'content': base64.b64decode(file['content'])}
+            {"path": file["path"], "content": base64.b64decode(file["content"])}
             for file in files
         ]
 
@@ -229,10 +229,7 @@ class PagefindIndex:
         assert result["type"] == "IndexedFile"
         return cast(InternalIndexedFileResponse, result)
 
-    async def write_files(
-        self,
-        output_path: Optional[str] = None
-    ) -> None:
+    async def write_files(self, output_path: Optional[str] = None) -> None:
         """Write the index files to disk.
 
         If you're using PagefindIndex as a context manager, there's no need to call this method:
