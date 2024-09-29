@@ -30,6 +30,11 @@ __all__ = ["PagefindService", "get_executable"]
 
 
 def get_executable() -> Optional[Path]:
+    env_bin_path = os.getenv("PAGEFIND_BINARY_PATH")
+    if env_bin_path is not None:
+        log.debug(f"using {env_bin_path}")
+        return Path(env_bin_path)
+
     try:
         from pagefind_bin_extended import get_executable  # type: ignore
 
