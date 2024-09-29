@@ -230,18 +230,24 @@ class PagefindIndex:
         assert result["type"] == "IndexedFile"
         return cast(InternalIndexedFileResponse, result)
 
-    async def write_files(self) -> None:
+    async def write_files(
+        self,
+        output_path: Optional[str] = None
+    ) -> None:
         """Write the index files to disk.
 
         If you're using PagefindIndex as a context manager, there's no need to call this method:
         if no error occurred, closing the context automatically writes the index files to disk.
+
+        :param output_path: a path to override the configured output path for the index.
         """
         assert self._service is not None
         assert self._index_id is not None
-        if not self._config:
-            output_path = None
-        else:
-            output_path = self._config.get("output_path")
+        if not output_path:
+            if not self._config:
+                output_path = None
+            else:
+                output_path = self._config.get("output_path")
 
         result = await self._service.send(
             InternalWriteFilesRequest(
