@@ -10,4 +10,3 @@ steps:
       <!DOCTYPE html><html lang="en"><head></head><body> <p
       data-url>Nothing</p></body></html>
   - step: I run 'python3 -m venv "$PWD/.venv"'
-  - step: I run 'source "$PWD/.venv/bin/activate"'
