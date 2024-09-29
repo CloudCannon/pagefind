@@ -187,7 +187,7 @@ class PagefindIndex:
         result = await self._service.send(
             InternalDeleteIndexRequest(type="DeleteIndex", index_id=self._index_id)
         )
-        assert result["type"] == "DeletedIndex"
+        assert result["type"] == "DeleteIndex"
         self._index_id = None
         self._service = None
 
