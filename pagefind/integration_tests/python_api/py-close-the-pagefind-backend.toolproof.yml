@@ -1,0 +1,38 @@
+name: Python API > Close the Pagefind backend
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%repo_wd%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        async with PagefindIndex() as index:
+          files = await index.get_files()
+
+          for file in files:
+            print(file["path"])
+
+          await index.delete_index()
+
+          try:
+            files = await index.get_files()
+          except AssertionError:
+            print("errored getting files after close")
+
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - step: I run "cd public && PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - step: stdout should contain "pagefind.js"
+  - step: stdout should contain "pagefind-ui.js"
+  - step: stdout should contain "errored getting files after close"

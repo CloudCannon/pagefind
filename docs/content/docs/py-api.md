@@ -234,17 +234,28 @@ for file in (await index.get_files()):
 
 ## index.write_files
 
-Closing the `PagefindIndex`'s context automatically calls `index.write_files`.
+Calling `index.write_files()` writes the index files to disk, as they would be written when running the standard Pagefind binary directly.
 
-If you aren't using `PagefindIndex` as a context manager, calling `index.write_files()` writes the index files to disk, as they would be written when running the standard Pagefind binary directly.
+Closing the `PagefindIndex`'s context automatically calls `index.write_files`, so calling this function is not necessary in normal operation.
+
+Calling this function won't prevent files being written when the context closes, which may cause duplicate files to be written.
+If calling this function manually, you probably want to also call `index.delete_index()`.
 
 ```py
-await index = PagefindIndex(
-    IndexConfig(
-        output_path="./public/pagefind",
-    ),
+config = IndexConfig(
+    output_path="./public/pagefind",
 )
-await index.write_files()
+async with PagefindIndex(config=config) as index:
+    # ... add content to index
+
+    # write files to the configured output path for the index:
+    await index.write_files()
+
+    # write files to a different output path:
+    await index.write_files(output_path="./custom/pagefind")
+
+    # prevent also writing files when closing the `PagefindIndex`:
+    await index.delete_index()
 ```
 
 The `output_path` option should contain the path to the desired Pagefind bundle directory. If relative, is relative to the current working directory of your Python process.

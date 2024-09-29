@@ -265,8 +265,10 @@ class PagefindIndex:
         exc_value: Optional[Any],
         traceback: Optional[Any],
     ) -> None:
-        assert self._service is not None
-        assert self._index_id is not None
+        if self._service is None:
+            return
+        if self._index_id is None:
+            return
         if exc_type is None:
             await self.write_files()
         await self._service.close()
