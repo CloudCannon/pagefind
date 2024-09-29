@@ -1,0 +1,43 @@
+name: Python API > Build a synthetic index to memory via the api
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%repo_wd%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        async with PagefindIndex() as index:
+          await index.add_html_file(
+              content="<html><body><h1>Testing, testing</h1></body></html>",
+              source_path="dogs/index.html",
+          )
+
+          files = await index.get_files()
+
+          for file in files:
+            if "pagefind.js" in file["path"]:
+              print(file["content"])
+              print(f"JS is at {file["path"]}")
+
+          fragments = [file for file in files if "fragment" in file["path"]]
+          print(f"{len(fragments)} fragment(s)")
+
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - step: I run "PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - step: stdout should contain "pagefind_version="
+  - step: stdout should contain "JS is at pagefind.js"
+  - step: stdout should contain "1 fragment(s)"
+  - step: I run "ls -lh public/pagefind/pagefind.js" and expect it to fail
+    notes: "TODO: Build a file existence check into toolproof"
