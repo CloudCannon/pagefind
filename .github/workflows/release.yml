@@ -9,83 +9,82 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.9.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
-  publish-crate:
-    name: Publish Crate
-    runs-on: ubuntu-20.04
-    needs: publish-github-release
-    steps:
-      - name: Clone
-        uses: actions/checkout@v4
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.rustup
-            target
-          key: ${{ runner.os }}-stable-min165
+  # publish-crate:
+  #   name: Publish Crate
+  #   runs-on: ubuntu-20.04
+  #   needs: publish-github-release
+  #   steps:
+  #     - name: Clone
+  #       uses: actions/checkout@v4
+  #     - name: Cache
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.cargo/registry
+  #           ~/.cargo/git
+  #           ~/.rustup
+  #           target
+  #         key: ${{ runner.os }}-stable-min165
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          default: true
-          components: rustfmt, clippy
+  #     - name: Install Rust
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
+  #         override: true
+  #         default: true
+  #         components: rustfmt, clippy
 
-      - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.4.0
-        with:
-          version: ${{env.WASM_PACK_VERSION}}
+  #     - name: Install wasm-pack
+  #       uses: jetli/wasm-pack-action@v0.4.0
+  #       with:
+  #         version: ${{env.WASM_PACK_VERSION}}
 
-      - name: Get Version
-        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
-      - name: Prepare Git
-        run: |
-          git config user.email "github@github.com"
-          git config user.name "Github Actions"
-          git checkout -b main
-          # Use throw-away branch so we don't push the changes to origin
-          git checkout -b deploy_branch
-      - name: Prepare Crates
-        run: |
-          # Update cargo version,
-          node ./.backstage/version.cjs
-          git add ./pagefind/Cargo.toml
-          git add ./pagefind_web/Cargo.toml
-          git add ./pagefind_ui/default/package.json
-          git add ./pagefind_ui/modular/package.json
-          # Commit changes so cargo doesn't complain about dirty repo
-          git commit -m "Deploy changes."
+  #     - name: Get Version
+  #       run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+  #     - name: Prepare Git
+  #       run: |
+  #         git config user.email "github@github.com"
+  #         git config user.name "Github Actions"
+  #         git checkout -b main
+  #         # Use throw-away branch so we don't push the changes to origin
+  #         git checkout -b deploy_branch
+  #     - name: Prepare Crates
+  #       run: |
+  #         # Update cargo version,
+  #         node ./.backstage/version.cjs
+  #         git add ./pagefind/Cargo.toml
+  #         git add ./pagefind_web/Cargo.toml
+  #         git add ./pagefind_ui/default/package.json
+  #         git add ./pagefind_ui/modular/package.json
+  #         # Commit changes so cargo doesn't complain about dirty repo
+  #         git commit -m "Deploy changes."
 
-      - name: Build Coupled JS
-        working-directory: ./pagefind_web_js
-        run: npm i && npm run build-coupled
+  #     - name: Build Coupled JS
+  #       working-directory: ./pagefind_web_js
+  #       run: npm i && npm run build-coupled
 
-      - name: Build WASM
-        working-directory: ./pagefind_web
-        run: ./local_build.sh
+  #     - name: Build WASM
+  #       working-directory: ./pagefind_web
+  #       run: ./local_build.sh
 
-      - name: Build UI
-        working-directory: ./pagefind_ui/default
-        run: npm i && npm run build
+  #     - name: Build UI
+  #       working-directory: ./pagefind_ui/default
+  #       run: npm i && npm run build
 
-      - name: Build Modular UI
-        working-directory: ./pagefind_ui/modular
-        run: npm i && npm run build
+  #     - name: Build Modular UI
+  #       working-directory: ./pagefind_ui/modular
+  #       run: npm i && npm run build
 
-      - name: Build
-        run: cargo build --release --verbose
-      - name: Publish
-        working-directory: ./pagefind
-        run: cargo publish --allow-dirty
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #     - name: Build
+  #       run: cargo build --release --verbose
+  #     - name: Publish
+  #       working-directory: ./pagefind
+  #       run: cargo publish --allow-dirty
+  #       env:
+  #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   publish-python-packages:
     name: Publish python packages
@@ -141,7 +140,7 @@ jobs:
           path: wrappers/python/dist
           name: python-packages
           if-no-files-found: error
-      
+
       - name: Publish to pypi
         uses: pypa/gh-action-pypi-publish@release/v1
         # Note: this action requires test-pypi / pypi trusted publishing to be
@@ -153,126 +152,125 @@ jobs:
           repository-url: https://test.pypi.org/ # FIXME: comment this out when ready to publish to pypi
           verbose: true # can be commented out once the action is working as expected
 
-  publish-npm-package:
-    name: Publish NPM packages
-    runs-on: ubuntu-20.04
-    needs: publish-binary-npm-packages
-    steps:
-      - name: Clone
-        uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          path: wrappers/node/checksums
-          pattern: release-checksums-*
-          merge-multiple: true
+  # publish-npm-package:
+  #   name: Publish NPM packages
+  #   runs-on: ubuntu-20.04
+  #   needs: publish-binary-npm-packages
+  #   steps:
+  #     - name: Clone
+  #       uses: actions/checkout@v4
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         path: wrappers/node/checksums
+  #         pattern: release-checksums-*
+  #         merge-multiple: true
 
-      - name: Get Version
-        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
-      - name: Get Tag
-        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+  #     - name: Get Version
+  #       run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+  #     - name: Get Tag
+  #       run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
 
-      - name: Version optional dependencies
-        run: |
-          node ./.backstage/version_main_package.cjs
+  #     - name: Version optional dependencies
+  #       run: |
+  #         node ./.backstage/version_main_package.cjs
 
-      - name: Prepare wrapper package
-        working-directory: ./wrappers/node
-        run: |
-          npm version $GIT_VERSION
-      - name: Publish wrapper package
-        working-directory: ./wrappers/node
-        run: npm publish --tag $GIT_TAG
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Prepare wrapper package
+  #       working-directory: ./wrappers/node
+  #       run: |
+  #         npm version $GIT_VERSION
+  #     - name: Publish wrapper package
+  #       working-directory: ./wrappers/node
+  #       run: npm publish --tag $GIT_TAG
+  #       env:
+  #         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Prepare default ui package
-        working-directory: ./pagefind_ui/default
-        run: |
-          npm version $GIT_VERSION
-      - name: Publish default ui package
-        working-directory: ./pagefind_ui/default
-        run: |
-          npm i
-          npm run build
-          npm publish --tag $GIT_TAG --access public
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Prepare default ui package
+  #       working-directory: ./pagefind_ui/default
+  #       run: |
+  #         npm version $GIT_VERSION
+  #     - name: Publish default ui package
+  #       working-directory: ./pagefind_ui/default
+  #       run: |
+  #         npm i
+  #         npm run build
+  #         npm publish --tag $GIT_TAG --access public
+  #       env:
+  #         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Prepare modular ui package
-        working-directory: ./pagefind_ui/modular
-        run: |
-          npm version $GIT_VERSION
-      - name: Publish modular ui package
-        working-directory: ./pagefind_ui/modular
-        run: |
-          npm i
-          npm run build
-          npm publish --tag $GIT_TAG --access public
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Prepare modular ui package
+  #       working-directory: ./pagefind_ui/modular
+  #       run: |
+  #         npm version $GIT_VERSION
+  #     - name: Publish modular ui package
+  #       working-directory: ./pagefind_ui/modular
+  #       run: |
+  #         npm i
+  #         npm run build
+  #         npm publish --tag $GIT_TAG --access public
+  #       env:
+  #         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  # publish-binary-npm-packages:
+  #   name: Publish NPM binaries
+  #   runs-on: ubuntu-20.04
+  #   needs: publish-github-release
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - target: x86_64-pc-windows-msvc
+  #           package: windows-x64
+  #           os: win32
+  #           cpu: x64
+  #         - target: x86_64-unknown-linux-musl
+  #           package: linux-x64
+  #           os: linux
+  #           cpu: x64
+  #         - target: aarch64-unknown-linux-musl
+  #           package: linux-arm64
+  #           os: linux
+  #           cpu: arm64
+  #         - target: x86_64-apple-darwin
+  #           package: darwin-x64
+  #           os: darwin
+  #           cpu: x64
+  #         - target: aarch64-apple-darwin
+  #           package: darwin-arm64
+  #           os: darwin
+  #           cpu: arm64
+  #   steps:
+  #     - name: Clone
+  #       uses: actions/checkout@v4
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: release-${{ matrix.target }}
+  #         path: build-artifacts
 
-  publish-binary-npm-packages:
-    name: Publish NPM binaries
-    runs-on: ubuntu-20.04
-    needs: publish-github-release
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-pc-windows-msvc
-            package: windows-x64
-            os: win32
-            cpu: x64
-          - target: x86_64-unknown-linux-musl
-            package: linux-x64
-            os: linux
-            cpu: x64
-          - target: aarch64-unknown-linux-musl
-            package: linux-arm64
-            os: linux
-            cpu: arm64
-          - target: x86_64-apple-darwin
-            package: darwin-x64
-            os: darwin
-            cpu: x64
-          - target: aarch64-apple-darwin
-            package: darwin-arm64
-            os: darwin
-            cpu: arm64
-    steps:
-      - name: Clone
-        uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-${{ matrix.target }}
-          path: build-artifacts
+  #     - name: Get Version
+  #       run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+  #     - name: Get Tag
+  #       run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
 
-      - name: Get Version
-        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
-      - name: Get Tag
-        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
-
-      - name: Create Package
-        run: |
-          mkdir -p ${{ matrix.package }}/bin/
-          cd ${{ matrix.package }}
-          node ../.backstage/create_package.cjs ${{ matrix.os }} ${{ matrix.cpu }}
-          cp ../wrappers/node/.npmrc .
-      - name: Extract Binary
-        working-directory: build-artifacts
-        run: |
-          tar xzf pagefind_extended-v$GIT_VERSION-${{ matrix.target }}.tar.gz
-          rm *.tar.gz
-          mv * ../${{ matrix.package }}/bin/
-      - name: Prepare package
-        working-directory: ${{ matrix.package }}
-        run: |
-          npm version $GIT_VERSION
-      - name: Publish
-        working-directory: ${{ matrix.package }}
-        run: npm publish --tag $GIT_TAG --access public
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Create Package
+  #       run: |
+  #         mkdir -p ${{ matrix.package }}/bin/
+  #         cd ${{ matrix.package }}
+  #         node ../.backstage/create_package.cjs ${{ matrix.os }} ${{ matrix.cpu }}
+  #         cp ../wrappers/node/.npmrc .
+  #     - name: Extract Binary
+  #       working-directory: build-artifacts
+  #       run: |
+  #         tar xzf pagefind_extended-v$GIT_VERSION-${{ matrix.target }}.tar.gz
+  #         rm *.tar.gz
+  #         mv * ../${{ matrix.package }}/bin/
+  #     - name: Prepare package
+  #       working-directory: ${{ matrix.package }}
+  #       run: |
+  #         npm version $GIT_VERSION
+  #     - name: Publish
+  #       working-directory: ${{ matrix.package }}
+  #       run: npm publish --tag $GIT_TAG --access public
+  #       env:
+  #         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-github-release:
     name: GitHub Release
@@ -294,86 +292,86 @@ jobs:
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
 
-      - name: Swap to main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0 # Full fetch
-          token: ${{ steps.get_workflow_token.outputs.token }}
+      # - name: Swap to main
+      #   uses: actions/checkout@v4
+      #   with:
+      #     ref: main
+      #     fetch-depth: 0 # Full fetch
+      #     token: ${{ steps.get_workflow_token.outputs.token }}
 
-      - name: Get Version
-        run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
-      - name: Get Tag
-        run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
+      # - name: Get Version
+      #   run: echo GIT_VERSION="$(git describe --tags | sed 's/^v\(.*\)$/\1/')" >> $GITHUB_ENV
+      # - name: Get Tag
+      #   run: echo GIT_TAG="$(node ./.backstage/get_tag.cjs)" >> $GITHUB_ENV
 
-      - uses: actions/download-artifact@v4
-        with:
-          path: build-artifacts
-          pattern: release-*
-          merge-multiple: true
+      # - uses: actions/download-artifact@v4
+      #   with:
+      #     path: build-artifacts
+      #     pattern: release-*
+      #     merge-multiple: true
 
-      - name: Build CHANGELOG
-        if: env.GIT_TAG == 'latest'
-        run: |
-          node ./.backstage/changelog.cjs write
-          echo CHANGELOG=\"$(base64 -w 0 -i CHANGELOG.md)\" >> $GITHUB_ENV
-          echo SHA=\"$( git rev-parse main:CHANGELOG.md )\" >> $GITHUB_ENV
-      - name: Build CHANGELOG
-        if: env.GIT_TAG != 'latest'
-        run: |
-          echo "## Prerelease" > RELEASE.md
-          node ./.backstage/changelog.cjs write || true
+      # - name: Build CHANGELOG
+      #   if: env.GIT_TAG == 'latest'
+      #   run: |
+      #     node ./.backstage/changelog.cjs write
+      #     echo CHANGELOG=\"$(base64 -w 0 -i CHANGELOG.md)\" >> $GITHUB_ENV
+      #     echo SHA=\"$( git rev-parse main:CHANGELOG.md )\" >> $GITHUB_ENV
+      # - name: Build CHANGELOG
+      #   if: env.GIT_TAG != 'latest'
+      #   run: |
+      #     echo "## Prerelease" > RELEASE.md
+      #     node ./.backstage/changelog.cjs write || true
 
-      - name: Commit new CHANGELOG
-        uses: octokit/request-action@v2.x
-        if: env.GIT_TAG == 'latest'
-        id: push_changes
-        with:
-          route: PUT /repos/{owner}/{repo}/contents/CHANGELOG.md
-          owner: cloudcannon
-          repo: pagefind
-          branch: main
-          message: Changelog for ${{ env.GIT_VERSION }}
-          sha: ${{ env.SHA }}
-          content: ${{ env.CHANGELOG }}
-        env:
-          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
-      - name: Release documentation branch
-        uses: octokit/request-action@v2.x
-        if: env.GIT_TAG == 'latest'
-        id: merge_docs
-        with:
-          route: POST /repos/{owner}/{repo}/merges
-          owner: cloudcannon
-          repo: pagefind
-          base: production-docs
-          head: main
-          commit_message: Release documentation for ${{ env.GIT_VERSION }}
-        env:
-          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+      # - name: Commit new CHANGELOG
+      #   uses: octokit/request-action@v2.x
+      #   if: env.GIT_TAG == 'latest'
+      #   id: push_changes
+      #   with:
+      #     route: PUT /repos/{owner}/{repo}/contents/CHANGELOG.md
+      #     owner: cloudcannon
+      #     repo: pagefind
+      #     branch: main
+      #     message: Changelog for ${{ env.GIT_VERSION }}
+      #     sha: ${{ env.SHA }}
+      #     content: ${{ env.CHANGELOG }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+      # - name: Release documentation branch
+      #   uses: octokit/request-action@v2.x
+      #   if: env.GIT_TAG == 'latest'
+      #   id: merge_docs
+      #   with:
+      #     route: POST /repos/{owner}/{repo}/merges
+      #     owner: cloudcannon
+      #     repo: pagefind
+      #     base: production-docs
+      #     head: main
+      #     commit_message: Release documentation for ${{ env.GIT_VERSION }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG == 'latest'
-        with:
-          repository: cloudcannon/pagefind
-          prerelease: false
-          body_path: RELEASE.md
-          files: |
-            build-artifacts/*
-        env:
-          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG != 'latest'
-        with:
-          repository: cloudcannon/pagefind-beta
-          prerelease: true
-          body_path: RELEASE.md
-          files: |
-            build-artifacts/*
-        env:
-          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+      # - name: Release
+      #   uses: softprops/action-gh-release@v1
+      #   if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG == 'latest'
+      #   with:
+      #     repository: cloudcannon/pagefind
+      #     prerelease: false
+      #     body_path: RELEASE.md
+      #     files: |
+      #       build-artifacts/*
+      #   env:
+      #     GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+      # - name: Release
+      #   uses: softprops/action-gh-release@v1
+      #   if: startsWith(github.ref, 'refs/tags/') && env.GIT_TAG != 'latest'
+      #   with:
+      #     repository: cloudcannon/pagefind-beta
+      #     prerelease: true
+      #     body_path: RELEASE.md
+      #     files: |
+      #       build-artifacts/*
+      #   env:
+      #     GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
   test-and-build:
     name: Build
@@ -388,35 +386,30 @@ jobs:
             os: windows-latest
             rust: stable
             target: x86_64-pc-windows-msvc
-            humane_target: x86_64-pc-windows-msvc
             cross: false
             run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-musl
-            humane_target: x86_64-unknown-linux-musl
             cross: false
             run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: aarch64-unknown-linux-musl
-            humane_target: x86_64-unknown-linux-musl
             cross: false
             run_tests: false
           - build: macos
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
-            humane_target: x86_64-apple-darwin
             cross: false
             run_tests: true
           - build: macos-m1
             os: macos-latest
             rust: stable
             target: aarch64-apple-darwin
-            humane_target: x86_64-apple-darwin
             cross: false
             run_tests: false
     steps:
@@ -484,19 +477,11 @@ jobs:
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
-      - name: Install humane
-        if: matrix.run_tests == true
-        uses: supplypike/setup-bin@v3
-        with:
-          uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.humane_target}}.tar.gz"
-          name: "humane"
-          version: ${{env.HUMANE_VERSION}}
-
       - name: Prepare Git
         run: |
           git config user.email "github@github.com"
           git config user.name "Github Actions"
-          git checkout -b main
+          # git checkout -b main
           # Use throw-away branch so we don't push the changes to origin
           git checkout -b deploy_branch
       - name: Prepare Crates
