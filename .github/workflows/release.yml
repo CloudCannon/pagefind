@@ -477,6 +477,11 @@ jobs:
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
+      - name: Set up python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Prepare Git
         run: |
           git config user.email "github@github.com"
