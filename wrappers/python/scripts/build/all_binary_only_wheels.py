@@ -14,6 +14,7 @@ from .binary_only_wheel import (
     write_pagefind_bin_only_wheel,
 )
 from .get_pagefind_release import download, find_bins
+from .versioning import process_tag
 
 __candidates = (
     "pagefind",
@@ -87,13 +88,16 @@ if __name__ == "__main__":
     if tag_name is None:
         raise ValueError("tag_name is None")
     assert re.match(
-        r"^v\d+\.\d+\.\d+(-\w+)?", tag_name
+        r"^v\d+\.\d+\.\d+(-\w+\.?\d*)?", tag_name
     ), f"Invalid tag_name: {tag_name}"
     check_platforms(certified)
 
     if not dry_run:
-        dist_dir.rmdir()
+        if dist_dir.exists():
+            dist_dir.rmdir()
     dist_dir.mkdir(exist_ok=True)
+
+    version = process_tag(tag_name)
 
     for tar_gz in certified:
         log.info("Processing %s", tar_gz)
@@ -112,6 +116,6 @@ if __name__ == "__main__":
             write_pagefind_bin_only_wheel(
                 executable=find_bin(temp_dir),
                 output_dir=dist_dir,
-                version=tag_name.removeprefix("v"),
+                version=version,
                 platform=platform,
             )
