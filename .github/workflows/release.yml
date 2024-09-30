@@ -154,7 +154,7 @@ jobs:
         # - https://docs.pypi.org/trusted-publishers/
         with: # see https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#customizing-target-package-dists-directory
           packages-dir: wrappers/python/dist
-          repository-url: https://test.pypi.org/ # FIXME: comment this out when ready to publish to pypi
+          repository-url: https://test.pypi.org/legacy/ # FIXME: comment this out when ready to publish to pypi
           verbose: true # can be commented out once the action is working as expected
 
   # publish-npm-package:
