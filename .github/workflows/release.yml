@@ -108,27 +108,32 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Set up poetry
-        run: bash ./wrappers/python/scripts/ci/github/setup_poetry.sh
+        run: ./wrappers/python/scripts/ci/github/setup_poetry.sh
+
       - name: cache venv
         uses: actions/cache@v4
         with:
-          path: .venv
+          path: wrappers/python/.venv
           key: ${{ runner.os }}-poetry-3.12-${{ hashFiles('**/poetry.lock') }}
+
       - name: Install dev dependencies
-        run: bash ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
-        working-directory: ./wrappers/python
+        run: ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
+
       - name: activate venv
         run: ./wrappers/python/scripts/ci/github/activate_venv.sh
+
       - name: debug python paths
         run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
-      - name: package binaries
-        working-directory: ./wrappers/python
-        run: | # should take ~30s; writes wheels to wrappers/python/dist
-          export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
-          python -m scripts.build.all_binary_only_wheels \
-            --git-tag "${{ github.ref_name }}" \
-            --bin-dir ./vendor
+
+      # - name: package binaries
+      #   working-directory: ./wrappers/python
+      #   run: | # should take ~30s; writes wheels to wrappers/python/dist
+      #     export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
+      #     python -m scripts.build.all_binary_only_wheels \
+      #       --git-tag "${{ github.ref_name }}" \
+      #       --bin-dir ./vendor
       - name: package python api
         working-directory: ./wrappers/python
         run: | # writes stdist + wheel to wrappers/python/dist
