@@ -93,7 +93,8 @@ if __name__ == "__main__":
     check_platforms(certified)
 
     if not dry_run:
-        dist_dir.rmdir()
+        if dist_dir.exists():
+            dist_dir.rmdir()
     dist_dir.mkdir(exist_ok=True)
 
     version = process_tag(tag_name)
