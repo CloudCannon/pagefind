@@ -132,7 +132,7 @@ jobs:
         run: | # should take ~30s; writes wheels to wrappers/python/dist
           export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
           python -m scripts.build.all_binary_only_wheels \
-            --git-tag "${{ github.ref_name }}" \
+            --tag "${{ github.ref_name }}" \
             --bin-dir ./vendor
       - name: package python api
         working-directory: ./wrappers/python
