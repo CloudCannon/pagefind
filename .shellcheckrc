@@ -1,0 +1,4 @@
+external-sources=true
+source-path=SCRIPTDIR
+disable=SC2002
+# SC2002: ignore "useless cat" warning: starting pipes with `cat` improves composability

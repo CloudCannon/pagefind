@@ -1,0 +1,66 @@
+name: Python API > Build a blended index to memory via the api
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: >-
+      I have a "public/custom_files/real/index.html" file with the content
+      {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body> <p>A testing file that
+      exists on disk</p></body></html>
+  - step: I have a "public/run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%repo_wd%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        async with PagefindIndex() as index:
+          await index.add_directory(
+            path="custom_files"
+          )
+          await index.add_custom_record(
+              url="/synth/",
+              content="A testing file that doesn't exist.",
+              language="en"
+          )
+
+          files = await index.get_files()
+
+          for file in files:
+            output_path = os.path.join("pagefind", file["path"])
+            dir = os.path.dirname(output_path)
+            if not os.path.exists(dir):
+              os.makedirs(dir, exist_ok=True)
+
+            with open(output_path, 'wb') as f:
+              f.write(file["content"])
+
+          print("Donezo!")
+
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - step: I run "cd public && PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - step: stdout should contain "Donezo!"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search("testing");
+
+      let pages = await Promise.all(search.results.map(r => r.data()));
+      let matches = pages.map(p => p.url).sort().join(', ');
+
+      toolproof.assert_eq(matches, `/real/, /synth/`);
+  - step: In my browser, the console should be empty

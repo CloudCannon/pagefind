@@ -10,4 +10,4 @@ cd $SCRIPT_DIR
 PAGEFIND=$(realpath "$SCRIPT_DIR/target/release/pagefind")
 REPO_WD=$(realpath "$SCRIPT_DIR")
 
-npx -y toolproof@0.3.0 --placeholders pagefind_exec_path="$PAGEFIND" repo_wd="$REPO_WD" -c 4 -i
+npx -y toolproof@0.4.1 --placeholders pagefind_exec_path="$PAGEFIND" repo_wd="$REPO_WD" -c 4 -i

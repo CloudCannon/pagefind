@@ -1,0 +1,48 @@
+name: Python API > Pagefind service config
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%repo_wd%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        config = IndexConfig(
+          root_selector="h1",
+          exclude_selectors=["span"],
+          keep_index_url=True
+        )
+        async with PagefindIndex(config=config) as index:
+          await index.add_html_file(
+              content="<h1>Testing, <span>testing</span></h1>",
+              source_path="dogs/index.html",
+          )
+
+        print("Complete")
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - step: I run "cd public && PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - step: stdout should contain "Complete"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+       let search = await pagefind.search("testing");
+
+       let data = await search.results[0].data();
+       toolproof.assert_eq(data.url, `/dogs/index.html`);
+       toolproof.assert_eq(data.content, `Testing,`);
+  - step: In my browser, the console should be empty

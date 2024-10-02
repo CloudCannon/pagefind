@@ -9,7 +9,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  HUMANE_VERSION: "0.9.0"
   WASM_PACK_VERSION: "v0.10.3"
 
 jobs:
@@ -86,6 +85,77 @@ jobs:
         run: cargo publish --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish-python-packages:
+    name: Publish python packages
+    runs-on: ubuntu-latest # ok since none of the scripts depend on version-specific features
+    defaults:
+      run:
+        shell: bash
+    needs: publish-github-release
+    permissions: # required for trusted publishing to pypi/test-pypi
+      id-token: write
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+      - name: Download CLI binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: ./wrappers/python/vendor
+      - name: Set up python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up poetry
+        run: ./wrappers/python/scripts/ci/github/setup_poetry.sh
+
+      - name: cache venv
+        uses: actions/cache@v4
+        with:
+          path: wrappers/python/.venv
+          key: ${{ runner.os }}-poetry-3.12-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dev dependencies
+        run: ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
+
+      - name: activate venv
+        run: ./wrappers/python/scripts/ci/github/activate_venv.sh
+
+      - name: debug python paths
+        run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
+
+      - name: package binaries
+        working-directory: ./wrappers/python
+        run: | # should take ~30s; writes wheels to wrappers/python/dist
+          export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
+          python -m scripts.build.all_binary_only_wheels \
+            --tag "${{ github.ref_name }}" \
+            --bin-dir ./vendor
+      - name: package python api
+        working-directory: ./wrappers/python
+        run: | # writes stdist + wheel to wrappers/python/dist
+          export PAGEFIND_PYTHON_LOG_LEVEL=DEBUG
+          python -m scripts.build.api_package --tag "${{ github.ref_name }}"
+      - name: Archive dist
+        uses: actions/upload-artifact@v4
+        with:
+          path: wrappers/python/dist
+          name: python-packages
+          if-no-files-found: error
+
+      - name: Publish to pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Note: this action requires test-pypi / pypi trusted publishing to be
+        # configured in the target repository. For instructions, see
+        # - https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-pypi
+        # - https://docs.pypi.org/trusted-publishers/
+        with: # see https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#customizing-target-package-dists-directory
+          packages-dir: wrappers/python/dist
+          # repository-url: https://test.pypi.org/legacy/ # Use to publish test packages
+          verbose: true # can be commented out once the action is working as expected
 
   publish-npm-package:
     name: Publish NPM packages
@@ -321,35 +391,30 @@ jobs:
             os: windows-latest
             rust: stable
             target: x86_64-pc-windows-msvc
-            humane_target: x86_64-pc-windows-msvc
             cross: false
             run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-musl
-            humane_target: x86_64-unknown-linux-musl
             cross: false
             run_tests: true
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: aarch64-unknown-linux-musl
-            humane_target: x86_64-unknown-linux-musl
             cross: false
             run_tests: false
           - build: macos
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
-            humane_target: x86_64-apple-darwin
             cross: false
             run_tests: true
           - build: macos-m1
             os: macos-latest
             rust: stable
             target: aarch64-apple-darwin
-            humane_target: x86_64-apple-darwin
             cross: false
             run_tests: false
     steps:
@@ -417,13 +482,10 @@ jobs:
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
-      - name: Install humane
-        if: matrix.run_tests == true
-        uses: supplypike/setup-bin@v3
+      - name: Set up python 3.12
+        uses: actions/setup-python@v5
         with:
-          uri: "https://github.com/CloudCannon/humane/releases/download/v${{env.HUMANE_VERSION}}/humane-v${{env.HUMANE_VERSION}}-${{matrix.humane_target}}.tar.gz"
-          name: "humane"
-          version: ${{env.HUMANE_VERSION}}
+          python-version: "3.12"
 
       - name: Prepare Git
         run: |

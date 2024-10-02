@@ -1,0 +1,47 @@
+name: Python API > Force language takes precedence over records
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%repo_wd%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        config = IndexConfig(
+          force_language="fr",
+        )
+        async with PagefindIndex(config=config) as index:
+          await index.add_custom_record(
+            url="/one/",
+            content="Testing file #1",
+            language="pt",
+          )
+          await index.add_html_file(
+            source_path="two/index.html",
+            content="<html lang='en'><body><h1>Testing file #2</h1></body></html>",
+          )
+
+        print("Complete")
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - step: I run "cd public && PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - step: stdout should contain "Complete"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I run "ls -lh public/pagefind/wasm.unknown.pagefind"
+    notes: "TODO: Build a file existence check into toolproof"
+  - step: I run "ls -lh public/pagefind/wasm.fr.pagefind"
+    notes: "TODO: Build a file existence check into toolproof"
+  - step: I run "ls -lh public/pagefind/wasm.pt.pagefind" and expect it to fail
+    notes: "TODO: Build a file existence check into toolproof"
+  - step: I run "ls -lh public/pagefind/wasm.en.pagefind" and expect it to fail
+    notes: "TODO: Build a file existence check into toolproof"
