@@ -13,6 +13,23 @@ There are situations where using this Python package is beneficial:
 - Users looking to index their site and augment that index with extra non-HTML pages can run a standard Pagefind crawl with [`add_directory`](#indexadd_directory) and augment it with [`add_custom_record`](#indexadd_custom_record).
 - Users looking to use Pagefind's engine for searching miscellaneous content such as PDFs or subtitles, where [`add_custom_record`](#indexadd_custom_record) can be used to build the entire index from scratch.
 
+## Installation
+
+To install just the Python wrapper, and use a `pagefind` executable from your system:
+```bash
+python3 -m pip install 'pagefind'
+```
+
+To install the Python wrapper as well as the standard binary for your platform:
+```bash
+python3 -m pip install 'pagefind[bin]'
+```
+
+To install the Python wrapper as well as the extended binary for your platform:
+```bash
+python3 -m pip install 'pagefind[extended]'
+```
+
 ## Example Usage
 
 <!-- this example is copied verbatim from wrappers/python/src/tests/integration.py -->
@@ -143,7 +160,7 @@ If the `path` provided is relative, it will be relative to the current working d
 indexed_dir = await index.add_directory("./public", glob="**.{html}")
 ```
 
-Optionally, a custom `glob` can be supplied which controls which files Pagefind will consume within the directory. The default is shown, and the `glob` option can be omitted entirely.  
+Optionally, a custom `glob` can be supplied which controls which files Pagefind will consume within the directory. The default is shown, and the `glob` option can be omitted entirely.
 See [Wax patterns documentation](https://github.com/olson-sean-k/wax#patterns) for more details.
 
 ## index.add_html_file
@@ -206,14 +223,14 @@ page_meta: dict[str, str] = custom_record["page_meta"]
 
 The `url`, `content`, and `language` fields are all required. `language` should be an [ISO 639-1 code](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
 
-`meta` is optional, and is strictly a flat object of keys to string values.  
+`meta` is optional, and is strictly a flat object of keys to string values.
 See the [Metadata documentation](https://pagefind.app/docs/metadata/) for semantics.
 
-`filters` is optional, and is strictly a flat object of keys to arrays of string values.  
+`filters` is optional, and is strictly a flat object of keys to arrays of string values.
 See the [Filters documentation](https://pagefind.app/docs/filtering/) for semantics.
 
-`sort` is optional, and is strictly a flat object of keys to string values.  
-See the [Sort documentation](https://pagefind.app/docs/sorts/) for semantics.  
+`sort` is optional, and is strictly a flat object of keys to string values.
+See the [Sort documentation](https://pagefind.app/docs/sorts/) for semantics.
 *When Pagefind is processing an index, number-like strings will be sorted numerically rather than alphabetically. As such, the value passed in should be `"20"` and not `20`*
 
 If successful, the `file` object is returned containing metadata about the completed indexing.

@@ -30,15 +30,22 @@ Now build your site to an output directory — this guide assumes that you're ru
 
 ## Indexing your site
 
-The easiest way to run pagefind is through npx. If you don't have Node and npm installed, or want to install Pagefind another way, see the [Installing Pagefind](/docs/installation/) guide.
+The easiest way to run Pagefind is through one of the official wrapper packages. If you don't have Node or Python installed, or want to install Pagefind another way, see the [Installing Pagefind](/docs/installation/) guide.
 
-Run the following command from your terminal, where `--site` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
+To use the Node wrapper, run the following command from your terminal, where `--site` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
 
 ```bash
 npx -y pagefind --site public --serve
 ```
 
-You should see some output along the lines of:
+Using the Python wrapper is similar, but requires an initial install:
+
+```bash
+python3 -m pip install 'pagefind[extended]'
+python3 -m pagefind --site public --serve
+```
+
+Regardless of the command you choose, after Pagefind has downloaded you should see some output along the lines of:
 ```
 Indexed 2496 pages
 Indexed 22852 words
