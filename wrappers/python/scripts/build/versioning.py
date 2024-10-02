@@ -1,5 +1,6 @@
 import re
 
+
 def process_tag(tag: str) -> str:
     """Convert a git tag to a version string compliant with PEP 440.
     See https://peps.python.org/pep-0440/#public-version-identifiers

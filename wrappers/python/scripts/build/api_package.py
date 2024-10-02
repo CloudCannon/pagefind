@@ -17,6 +17,7 @@ cli.add_argument("--dry-run", action="store_true")
 cli.add_argument("--tag", required=True, help="The version to build.")
 log = logging.getLogger(__name__)
 
+
 def main() -> None:
     setup_logging()
     args = cli.parse_args()
