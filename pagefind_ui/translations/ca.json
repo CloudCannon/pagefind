@@ -5,7 +5,7 @@
     "strings": {
         "placeholder": "Cerca",
         "clear_search": "Netejar",
-        "load_more": "Veure mées resultats",
+        "load_more": "Veure més resultats",
         "search_label": "Cerca en aquest lloc",
         "filters_label": "Filtres",
         "zero_results": "No es van trobar resultats per [SEARCH_TERM]",
