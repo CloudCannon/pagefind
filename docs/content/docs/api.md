@@ -58,7 +58,7 @@ This will return an object with the following structure:
 { 
     results: [
         {
-            id: "6fceec9",
+            id: "en_6fceec9",
             data: async function data()
         }
     ]
@@ -66,6 +66,8 @@ This will return an object with the following structure:
 ```
 
 At this point you will have access to the number of search results, and a unique ID for each result. Also see [Debounced search](#debounced-search) below for an alternative API.
+
+> Note that the prefix `en` in `en_6fceec9` matches the `lang` attribute of your `html` element. If `lang` is not set, the prefix defaults to `unknown`. See [Multilingual Search](/docs/multilingual) for more details.
 
 ## Loading a result
 
