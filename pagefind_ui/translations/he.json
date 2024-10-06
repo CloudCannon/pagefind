@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Nir Tamir <nirtamir2@gmail.com>",
+    "comments": "",
+    "direction": "rtl",
+    "strings": {
+        "placeholder": "חיפוש",
+        "clear_search": "ניקוי",
+        "load_more": "עוד תוצאות",
+        "search_label": "חיפוש באתר זה",
+        "filters_label": "מסננים",
+        "zero_results": "לא נמצאו תוצאות עבור [SEARCH_TERM]",
+        "many_results": "נמצאו [COUNT] תוצאות עבור [SEARCH_TERM]",
+        "one_result": "נמצאה תוצאה אחת עבור [SEARCH_TERM]",
+        "alt_search": "לא נמצאו תוצאות עבור [SEARCH_TERM]. מוצגות תוצאות עבור [DIFFERENT_TERM]",
+        "search_suggestion": "לא נמצאו תוצאות עבור [SEARCH_TERM]. נסו אחד מהחיפושים הבאים:",
+        "searching": "מחפש את [SEARCH_TERM]..."
+    }
+}
