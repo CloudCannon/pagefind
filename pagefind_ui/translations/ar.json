@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Oussama Rabi <oussama.rabi@targamat.eu>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "بحث",
+        "clear_search": "مسح",
+        "load_more": "حمِّل المزيد من النتائج",
+        "search_label": "ابحث في هذا الموقع",
+        "filters_label": "اختيار",
+        "zero_results": "لا توجد نتائج من أجل [SEARCH_TERM]",
+        "many_results": "[COUNT]  النتائج[SEARCH_TERM]",
+        "one_result": "[COUNT] النتيجة [SEARCH_TERM]",
+        "alt_search": " لا توجد نتائج من أجل[SEARCH_TERM]. عرض النتائج من أجل [DIFFERENT_TERM] بدلًا من",
+        "search_suggestion": " لا توجد نتائج من أجل[SEARCH_TERM]. حاول البحث بطريقة أخرى",
+        "searching": "البحث عن [SEARCH_TERM]..."
+    }
+}
