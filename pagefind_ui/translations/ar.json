@@ -1,7 +1,7 @@
 {
     "thanks_to": "Oussama Rabi <oussama.rabi@targamat.eu>",
     "comments": "",
-    "direction": "ltr",
+    "direction": "rtl",
     "strings": {
         "placeholder": "بحث",
         "clear_search": "مسح",
