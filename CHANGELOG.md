@@ -1,6 +1,6 @@
 # Changelog
 
-<!-- 
+<!--
     Add changes to the Unreleased section during development.
     Do not change this header — the GitHub action that releases
     this project will edit this file and add the version header for you.
@@ -8,6 +8,20 @@
 -->
 
 ## Unreleased
+
+### Core Features & Improvements
+* Added Python bindings for indexing sites with Pagefind. This has feature parity with the Node/npx binary wrapper for running Pagefind, as well as feature parity with the NodeJS Indexing API for Pagefind.
+  * Enormous thanks to @SKalt for implementing this in #672 ❤️
+  * For documentation, see [📘 Installation > Running via Python](https://pagefind.app/docs/installation/#running-via-python), and [📘 Using the Python API](https://pagefind.app/docs/py-api/).
+
+### UI Translations
+* Fixed Catalan translations (PR #718 — thanks @danurbanowicz !).
+* *️⃣ Added Persian translations (PR #690 — thanks @YektaDev !).
+* *️⃣ Added Hebrew translations (PR #453 — thanks @nirtamir2 !).
+* *️⃣ Added Arabic translations (PR #533 — thanks @jermanuts !).
+
+*️⃣ : These languages are the first right-to-left languages in the translation set.
+Please open any issues if improvements can be made to the Pagefind UI libraries when rendered for these RTL languages.
 
 ## v1.1.1 (September 3, 2024)
 
@@ -124,7 +138,7 @@ A full writeup of these changes and their effects exists in the [📘 Migrating 
 
 #### ✨ Content weighting ✨
 
-Pagefind now supports configurable weighting for regions of content, which will be used when ranking results and generating excerpts.  
+Pagefind now supports configurable weighting for regions of content, which will be used when ranking results and generating excerpts.
 Headings are automatically weighted higher, and custom weights can be inserted anywhere in your page.
 
 See [📘 Weighting sections of the page higher or lower](https://pagefind.app/docs/weighting/) for documentation.
@@ -145,7 +159,7 @@ See [📘 Indexing content using the NodeJS API](https://pagefind.app/docs/node-
 
 #### ✨ Greatly improved ranking and relevancy ✨
 
-Pagefind now takes inverse document frequency into account, meaning words that are unique across your site will rank higher than common words.  
+Pagefind now takes inverse document frequency into account, meaning words that are unique across your site will rank higher than common words.
 The ranking algorithm has also been improved across the board, which should result in better search relevance by default.
 
 We're always looking to improve search relevance further, so open an issue on GitHub if you have any examples of searches that don't hit the mark.
@@ -336,7 +350,7 @@ Pagefind now better supports indexing various forms of compound words and code, 
 
 ## v0.7.1 (August 13, 2022)
 
-* Added French translations for Pagefind UI — thanks [@nfriedli](https://github.com/nfriedli)! 
+* Added French translations for Pagefind UI — thanks [@nfriedli](https://github.com/nfriedli)!
 * Fixed standard & extended release archives attached to GitHub releases to be correctly assigned
 
 ## v0.7.0 (August 12, 2022)
@@ -389,7 +403,7 @@ Pagefind now better supports indexing various forms of compound words and code, 
 * Added a `data-pagefind-ignore="all"` option that does not process filters or metadata within the target element. See [Indexing > Removing individual elements from the index](https://pagefind.app/docs/indexing/#removing-individual-elements-from-the-index)
 * Added a `data-pagefind-default-meta` attribute that can provide fallback values for metadata that could not be found on the page. See [Metadata > Defining default metadata](https://pagefind.app/docs/metadata/#defining-default-metadata)
 * UI: Pagefind UI will now check for a `url` key in a page's metadata that should be used over the generated URL. See [UI > Overriding the URL of a result](https://pagefind.app/docs/ui/#overriding-the-url-of-a-result)
-* UI: Added a configuration option for hiding images from the Pagefind UI. See [UI > Show images](https://pagefind.app/docs/ui/#show-images) 
+* UI: Added a configuration option for hiding images from the Pagefind UI. See [UI > Show images](https://pagefind.app/docs/ui/#show-images)
 * UI: Added a configuration option to hide filter values that have no available results given the search query and existing filters. See [UI > Show empty filters](https://pagefind.app/docs/ui/#show-empty-filters)
 * UI: The Pagefind UI filter panel will now default to expanded if there are sufficiently few filters
 
