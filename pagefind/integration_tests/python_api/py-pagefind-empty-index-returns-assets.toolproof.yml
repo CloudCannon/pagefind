@@ -1,0 +1,38 @@
+name: Python API > Pagefind empty index returns assets
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%repo_wd%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        async with PagefindIndex() as index:
+          files = await index.get_files()
+
+          for file in files:
+            print(file["path"])
+
+          await index.delete_index()
+
+        print("Complete")
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - step: I run "cd public && PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - step: stdout should contain "Complete"
+  - step: stdout should contain "pagefind.js"
+  - step: stdout should contain "pagefind-ui.js"
+  - step: stdout should contain "pagefind-ui.css"
+  - step: stdout should contain "pagefind-modular-ui.js"
+  - step: stdout should contain "pagefind-modular-ui.css"
+  - step: stdout should contain "wasm.unknown.pagefind"

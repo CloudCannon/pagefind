@@ -34,3 +34,11 @@ vendor
 
 # Node
 node_modules
+
+# Python
+__pycache__/
+*.pyc
+dist
+*.whl
+*.egg-info
+*.log

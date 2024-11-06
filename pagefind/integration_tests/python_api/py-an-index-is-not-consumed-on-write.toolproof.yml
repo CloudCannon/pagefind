@@ -1,0 +1,83 @@
+name: Python API > An index is not consumed on write
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "output/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body> <p
+      data-url>Nothing</p></body></html>
+  - step: I have a "public/run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%repo_wd%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        config = IndexConfig(
+          output_path="./pagefind",
+        )
+
+        async with PagefindIndex(config=config) as index:
+          await index.add_html_file(
+            content="<html><body><h1>Testing, testing</h1></body></html>",
+            source_path="dogs/index.html",
+          )
+          await index.write_files(output_path="../output/pagefind");
+
+          await index.add_html_file(
+            content="<html><body><h1>Testing, testing</h1></body></html>",
+            source_path="rabbits/index.html",
+          )
+
+          files = await index.get_files()
+
+          fragments = [file for file in files if "fragment" in file["path"]]
+          print(f"{len(fragments)} fragment(s)")
+
+          await index.add_html_file(
+            content="<html><body><h1>Testing, testing</h1></body></html>",
+            source_path="cats/index.html",
+          )
+
+        print("Finished")
+
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - step: I run "cd public && PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - step: stdout should contain "Finished"
+  - step: stdout should contain "2 fragment(s)"
+  - step: The file "output/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "output"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+      let search = await pagefind.search("testing");
+
+      let pages = await Promise.all(search.results.map(r => r.data()));
+      let matches = pages.map(p => p.url).sort().join(', ');
+
+      toolproof.assert_eq(matches, `/dogs/`);
+  - step: In my browser, the console should be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+
+       let search = await pagefind.search("testing");
+
+       let pages = await Promise.all(search.results.map(r => r.data()));
+       let matches = pages.map(p => p.url).sort().join(', ');
+
+       toolproof.assert_eq(matches, `/cats/, /dogs/, /rabbits/`);
+  - step: In my browser, the console should be empty

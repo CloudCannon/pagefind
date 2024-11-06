@@ -30,15 +30,22 @@ Now build your site to an output directory — this guide assumes that you're ru
 
 ## Indexing your site
 
-The easiest way to run pagefind is through npx. If you don't have Node and npm installed, or want to install Pagefind another way, see the [Installing Pagefind](/docs/installation/) guide.
+The easiest way to run Pagefind is through one of the official wrapper packages. If you don't have Node or Python installed, or want to install Pagefind another way, see the [Installing Pagefind](/docs/installation/) guide.
 
-Run the following command from your terminal, where `--site` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
+To use the Node wrapper, run the following command from your terminal, where `--site` points to the output directory of your static site generator. We'll also add `--serve` so that we can view our final site right away.
 
 ```bash
 npx -y pagefind --site public --serve
 ```
 
-You should see some output along the lines of:
+Using the Python wrapper is similar, but requires an initial install:
+
+```bash
+python3 -m pip install 'pagefind[extended]'
+python3 -m pagefind --site public --serve
+```
+
+Regardless of the command you choose, after Pagefind has downloaded you should see some output along the lines of:
 ```
 Indexed 2496 pages
 Indexed 22852 words
@@ -56,3 +63,7 @@ Loading this in your browser, you should see a search input on your page. Try se
 The last required step is to run Pagefind after building your site on your CMS or hosting platform. If you're a CloudCannon user, add a [`.cloudcannon/postbuild`](https://cloudcannon.com/documentation/articles/extending-your-build-process-with-hooks/) file containing the npx command above (minus the `--serve` flag). For other platforms, set up an equivalent command to run after your site build — the end goal is that Pagefind will run after every build of your site before it is deployed.
 
 For many use cases, you can stop here and mark it as complete. Or, you can dive deeper into Pagefind and configure it to your liking — check out [Configuring the index](/docs/indexing/) for some next steps.
+
+## Notes
+
+> For optimal performance, ensure the `lang` attribute is set on your `html` element. See [Multilingual Search](/docs/multilingual) for more details.

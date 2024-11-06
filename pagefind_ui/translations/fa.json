@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Ali Khaleqi Yekta <https://yekta.dev>",
+    "comments": "",
+    "direction": "rtl",
+    "strings": {
+        "placeholder": "جستجو",
+        "clear_search": "پاکسازی",
+        "load_more": "بارگذاری نتایج بیشتر",
+        "search_label": "جستجو در سایت",
+        "filters_label": "فیلترها",
+        "zero_results": "نتیجه‌ای برای [SEARCH_TERM] یافت نشد",
+        "many_results": "[COUNT] نتیجه برای [SEARCH_TERM] یافت شد",
+        "one_result": "[COUNT] نتیجه برای [SEARCH_TERM] یافت شد",
+        "alt_search": "نتیجه‌ای برای [SEARCH_TERM] یافت نشد. در عوض نتایج برای [DIFFERENT_TERM] نمایش داده می‌شود",
+        "search_suggestion": "نتیجه‌ای برای [SEARCH_TERM] یافت نشد. یکی از جستجوهای زیر را امتحان کنید:",
+        "searching": "در حال جستجوی [SEARCH_TERM]..."
+    }
+}
