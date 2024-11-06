@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.2.0 (November 6, 2024)
+
 ### Core Features & Improvements
 * Added Python bindings for indexing sites with Pagefind. This has feature parity with the Node/npx binary wrapper for running Pagefind, as well as feature parity with the NodeJS Indexing API for Pagefind.
   * Enormous thanks to @SKalt for implementing this in #672 ❤️
