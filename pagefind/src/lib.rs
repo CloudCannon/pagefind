@@ -6,6 +6,7 @@ use hashbrown::HashMap;
 use index::PagefindIndexes;
 pub use options::{PagefindInboundConfig, SearchOptions};
 use output::SyntheticFile;
+pub use service::api;
 use wax::{Glob, WalkEntry};
 
 use crate::index::build_indexes;
