@@ -36,13 +36,6 @@ pub(super) enum ResponseAction {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct IndexedFileResponse {
-    pub page_word_count: u32,
-    pub page_url: String,
-    pub page_meta: HashMap<String, String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
 pub struct SyntheticFileResponse {
     pub path: String,
     pub content: String,

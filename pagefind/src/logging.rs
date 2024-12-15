@@ -14,6 +14,7 @@ pub enum LogLevel {
     Verbose,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum LogStyle {
     Info,
@@ -55,6 +56,7 @@ lazy_static! {
     static ref SUCCESS: Style = Style::new().green();
 }
 
+#[allow(dead_code)]
 impl Logger {
     pub fn new(log_level: LogLevel, use_terminal: bool, logfile: Option<PathBuf>) -> Self {
         if let Some(filename) = &logfile {
