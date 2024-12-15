@@ -6,6 +6,7 @@ use crate::{
     utils::full_hash,
     SearchOptions,
 };
+use anyhow::{bail, Result};
 use index_filter::{FilterIndex, PackedValue};
 use index_metadata::{MetaChunk, MetaIndex, MetaPage};
 use index_words::{PackedPage, PackedWord, WordIndex};
@@ -44,7 +45,7 @@ pub async fn build_indexes(
     mut pages: Vec<FossickedData>,
     language: String,
     options: &SearchOptions,
-) -> PagefindIndexes {
+) -> Result<PagefindIndexes> {
     let mut meta = MetaIndex {
         version: options.version.into(),
         pages: Vec::new(),
@@ -265,7 +266,10 @@ pub async fn build_indexes(
             language,
             u32::MAX
         ));
-        std::process::exit(1);
+        bail!(
+            "Language {language} has too many documents to index, must be < {}",
+            u32::MAX
+        );
     }
 
     // TODO: Parameterize these chunk sizes via options
@@ -306,7 +310,7 @@ pub async fn build_indexes(
         &full_hash(&meta_index)[0..=(language.len() + 7)]
     );
 
-    PagefindIndexes {
+    Ok(PagefindIndexes {
         word_indexes,
         filter_indexes,
         sorts,
@@ -317,7 +321,7 @@ pub async fn build_indexes(
             .collect(),
         language,
         word_count,
-    }
+    })
 }
 
 fn chunk_index(word_map: HashMap<String, PackedWord>, chunk_size: usize) -> Vec<Vec<PackedWord>> {
