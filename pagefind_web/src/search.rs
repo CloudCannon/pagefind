@@ -336,10 +336,12 @@ impl SearchIndex {
                             // If the new word is weighted _lower_ than the working word,
                             // we want to use the lower value. (Lowest weight wins)
                             working_word.weight = next_word.weight;
+                            working_word.length_bonus = next_word.length_bonus;
                         } else if next_word.weight == working_word.weight {
                             // If the new word is weighted the same,
                             // we want to combine them to boost matching both halves of a compound word
                             working_word.weight += next_word.weight;
+                            working_word.length_bonus += next_word.length_bonus;
                         }
                         // We don't want to do anything if the new word is weighted higher
                         // (Lowest weight wins)
