@@ -1,9 +1,12 @@
+//! Configuration that can be supplied to the `api` module when using Pagefind as a service.
+
 use anyhow::{bail, Result};
 use clap::Parser;
 use rust_patch::Patch;
 use serde::{Deserialize, Serialize};
 use std::{env, path::PathBuf};
 use twelf::config;
+use typed_builder::TypedBuilder;
 
 use crate::logging::{LogLevel, Logger};
 
@@ -19,16 +22,16 @@ use crate::logging::{LogLevel, Logger};
 #[config]
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
-pub struct PagefindInboundConfig {
+pub(crate) struct PagefindInboundConfig {
     #[clap(long, help = "DEPRECATED: Use the `site` option instead")]
     #[clap(required = false, hide = true)]
     #[serde(default)] // This is actually required, but we validate that later
-    pub source: String,
+    pub(crate) source: String,
 
     #[clap(long, short, help = "The location of your built static website")]
     #[clap(required = false)]
     #[serde(default)] // This is actually required, but we validate that later
-    pub site: String,
+    pub(crate) site: String,
 
     #[clap(
         long,
@@ -36,21 +39,21 @@ pub struct PagefindInboundConfig {
         help = "DEPRECATED: Use `output_subdir` or `output_path` instead"
     )]
     #[clap(required = false, hide = true)]
-    pub bundle_dir: Option<String>,
+    pub(crate) bundle_dir: Option<String>,
 
     #[clap(
         long,
         help = "Where to output the search bundle, relative to the processed site"
     )]
     #[clap(required = false)]
-    pub output_subdir: Option<String>,
+    pub(crate) output_subdir: Option<String>,
 
     #[clap(
         long,
         help = "Where to output the search bundle, relative to the working directory of the command"
     )]
     #[clap(required = false)]
-    pub output_path: Option<String>,
+    pub(crate) output_path: Option<String>,
 
     #[clap(
         long,
@@ -58,7 +61,7 @@ pub struct PagefindInboundConfig {
     )]
     #[clap(required = false)]
     #[serde(default = "defaults::default_root_selector")]
-    pub root_selector: String,
+    pub(crate) root_selector: String,
 
     #[clap(
         long,
@@ -66,7 +69,7 @@ pub struct PagefindInboundConfig {
     )]
     #[clap(required = false)]
     #[serde(default)]
-    pub exclude_selectors: Vec<String>,
+    pub(crate) exclude_selectors: Vec<String>,
 
     #[clap(
         long,
@@ -74,14 +77,14 @@ pub struct PagefindInboundConfig {
     )]
     #[clap(required = false)]
     #[serde(default = "defaults::default_glob")]
-    pub glob: String,
+    pub(crate) glob: String,
 
     #[clap(
         long,
         help = "Ignore any detected languages and index the whole site as a single language. Expects an ISO 639-1 code."
     )]
     #[clap(required = false)]
-    pub force_language: Option<String>,
+    pub(crate) force_language: Option<String>,
 
     #[clap(
         long,
@@ -89,7 +92,7 @@ pub struct PagefindInboundConfig {
     )]
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
-    pub serve: bool,
+    pub(crate) serve: bool,
 
     #[clap(
         long,
@@ -98,7 +101,7 @@ pub struct PagefindInboundConfig {
     )]
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
-    pub verbose: bool,
+    pub(crate) verbose: bool,
 
     #[clap(
         long,
@@ -107,7 +110,7 @@ pub struct PagefindInboundConfig {
     )]
     #[clap(required = false)]
     #[serde(default)]
-    pub logfile: Option<String>,
+    pub(crate) logfile: Option<String>,
 
     #[clap(
         long,
@@ -116,28 +119,46 @@ pub struct PagefindInboundConfig {
     )]
     #[clap(required = false)]
     #[serde(default = "defaults::default_false")]
-    pub keep_index_url: bool,
+    pub(crate) keep_index_url: bool,
 
     #[clap(long)]
     #[clap(required = false, hide = true)]
     #[serde(default = "defaults::default_false")]
-    pub service: bool,
+    pub(crate) service: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, Patch)]
+#[derive(Debug, Deserialize, Serialize, Patch, TypedBuilder)]
 #[patch = "PagefindInboundConfig"]
+#[builder(
+    doc,
+    field_defaults(default, setter(strip_option)),
+    builder_method(
+        vis = "pub",
+        doc = "Create a builder for building `PagefindServiceConfig` for the api."
+    ),
+    builder_type(vis = "pub"),
+    build_method(vis = "pub")
+)]
 /// Fields that can be set via the Pagefind service.
-/// In other words, the subset of the above fields that make sense to set globally,
-/// excluding those that are set when each individual method is called.
+/// In other words, the subset of the Pagefind configuration that makes sense to set globally,
+/// excluding fields that are irrelevant or set when each individual method is called.
+///
+/// Must be constructed through the `PagefindServiceConfigBuilder` interface.
 pub struct PagefindServiceConfig {
-    pub root_selector: Option<String>,
-    pub exclude_selectors: Option<Vec<String>>,
+    /// The element Pagefind should treat as the root of the document.
+    pub(crate) root_selector: Option<String>,
+    /// Custom selectors that Pagefind should ignore when indexing.
+    pub(crate) exclude_selectors: Option<Vec<String>>,
     #[patch(as_option)]
-    pub force_language: Option<String>,
-    pub verbose: Option<bool>,
+    /// Ignore any detected languages and index the whole site as a single language. Expects an ISO 639-1 code.
+    pub(crate) force_language: Option<String>,
+    /// Print verbose logging while indexing the site. Does not impact the web-facing search.
+    pub(crate) verbose: Option<bool>,
     #[patch(as_option)]
-    pub logfile: Option<String>,
-    pub keep_index_url: Option<bool>,
+    /// Path to a logfile to write to. Will replace the file on each run
+    pub(crate) logfile: Option<String>,
+    /// Keep \"index.html\" at the end of search result paths. Defaults to false, stripping \"index.html\".
+    pub(crate) keep_index_url: Option<bool>,
 }
 
 mod defaults {
@@ -157,30 +178,30 @@ mod defaults {
 
 // The configuration object used internally
 #[derive(Debug, Clone)]
-pub struct SearchOptions {
-    pub working_directory: PathBuf,
-    pub site_source: PathBuf,
-    pub bundle_output: PathBuf,
-    pub root_selector: String,
-    pub exclude_selectors: Vec<String>,
-    pub glob: String,
-    pub force_language: Option<String>,
-    pub version: &'static str,
-    pub logger: Logger,
-    pub keep_index_url: bool,
-    pub running_as_service: bool,
-    pub config_warnings: ConfigWarnings,
+pub(crate) struct SearchOptions {
+    pub(crate) working_directory: PathBuf,
+    pub(crate) site_source: PathBuf,
+    pub(crate) bundle_output: PathBuf,
+    pub(crate) root_selector: String,
+    pub(crate) exclude_selectors: Vec<String>,
+    pub(crate) glob: String,
+    pub(crate) force_language: Option<String>,
+    pub(crate) version: &'static str,
+    pub(crate) logger: Logger,
+    pub(crate) keep_index_url: bool,
+    pub(crate) running_as_service: bool,
+    pub(crate) config_warnings: ConfigWarnings,
 }
 
 #[derive(Debug, Clone)]
-pub struct ConfigWarnings {
-    pub unconfigured_bundle_output: bool,
-    pub using_deprecated_source: bool,
-    pub using_deprecated_bundle_dir: bool,
+pub(crate) struct ConfigWarnings {
+    pub(crate) unconfigured_bundle_output: bool,
+    pub(crate) using_deprecated_source: bool,
+    pub(crate) using_deprecated_bundle_dir: bool,
 }
 
 impl SearchOptions {
-    pub fn load(config: PagefindInboundConfig) -> Result<Self> {
+    pub(crate) fn load(config: PagefindInboundConfig) -> Result<Self> {
         if !config.service && config.site.is_empty() && config.source.is_empty() {
             eprintln!("Required argument site not supplied. Pagefind needs to know the root of your built static site.");
             eprintln!("Provide a --site flag, a PAGEFIND_SITE environment variable, or a site key in a Pagefind configuration file.");
@@ -249,7 +270,7 @@ impl SearchOptions {
 }
 
 impl ConfigWarnings {
-    pub fn get_strings(&self) -> Vec<String> {
+    pub(crate) fn get_strings(&self) -> Vec<String> {
         let mut strings = vec![];
         if self.using_deprecated_bundle_dir {
             strings.push(

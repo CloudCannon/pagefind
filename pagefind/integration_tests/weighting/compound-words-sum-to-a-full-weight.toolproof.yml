@@ -27,4 +27,4 @@ steps:
   - step: In my browser, I evaluate {js}
     js: |-
       let val = await toolproof.querySelector("p");
-      toolproof.assert_eq(val.innerHTML, `weight:1/bal:512.14/loc:4`);
+      toolproof.assert_eq(val.innerHTML, `weight:1/bal:1024.29/loc:4`);

@@ -36,7 +36,7 @@ pub(super) enum ResponseAction {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub(super) struct SyntheticFileResponse {
-    pub(super) path: String,
-    pub(super) content: String,
+pub struct SyntheticFileResponse {
+    pub path: String,
+    pub content: String,
 }

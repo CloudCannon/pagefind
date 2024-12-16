@@ -1,3 +1,4 @@
+use anyhow::{bail, Result};
 use async_compression::tokio::bufread::GzipDecoder;
 #[cfg(feature = "extended")]
 use charabia::Segment;
@@ -64,16 +65,6 @@ pub struct Fossicker {
 }
 
 impl Fossicker {
-    pub fn new(file_path: PathBuf) -> Self {
-        Self {
-            file_path: Some(file_path),
-            root_path: None,
-            page_url: None,
-            synthetic_content: None,
-            data: None,
-        }
-    }
-
     pub fn new_relative_to(file_path: PathBuf, root_path: PathBuf) -> Self {
         Self {
             file_path: Some(file_path),
@@ -459,7 +450,7 @@ impl Fossicker {
         }
     }
 
-    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
+    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData> {
         if (self.file_path.is_some() || self.synthetic_content.is_some()) && self.data.is_none() {
             self.fossick_html(options).await;
         };
@@ -480,7 +471,7 @@ impl Fossicker {
             options
                 .logger
                 .error("Tried to index file with no specified URL or file path, ignoring.");
-            return Err(());
+            bail!("Tried to index file with no specified URL or file path, ignoring.");
         };
 
         Ok(FossickedData {
