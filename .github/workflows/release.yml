@@ -537,7 +537,7 @@ jobs:
 
       - name: Test CLI
         if: matrix.run_tests == true
-        run: npx -y toolproof@latest -s --placeholders pagefind_mode="${{ matrix.target }}/release"
+        run: npx -y toolproof@latest -s -c 1 --placeholders pagefind_mode="${{ matrix.target }}/release"
 
       - name: Move extended binary aside
         run: |
