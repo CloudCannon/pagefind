@@ -646,7 +646,7 @@ fn parse_attr_string(input: String, el: &Element) -> Vec<String> {
 impl DomParsingNode {
     fn get_attribute_pair(&self, input: &str) -> Option<(String, String)> {
         match input.split_once(':') {
-            Some((filter, value)) => Some((filter.to_owned(), value.to_owned())),
+            Some((filter, value)) => Some((filter.to_owned(), normalize_content(&value))),
             None => {
                 if self.current_value.is_empty() {
                     None
