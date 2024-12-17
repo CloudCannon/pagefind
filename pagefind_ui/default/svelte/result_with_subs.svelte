@@ -81,7 +81,10 @@
       {#if meta.length}
         <ul class="pagefind-ui__result-tags">
           {#each meta as [metaTitle, metaValue]}
-            <li class="pagefind-ui__result-tag">
+              <li
+                class="pagefind-ui__result-tag"
+                data-pagefind-ui-meta={metaTitle}
+              >
               {metaTitle.replace(/^(\w)/, (c) => c.toLocaleUpperCase())}: {metaValue}
             </li>
           {/each}

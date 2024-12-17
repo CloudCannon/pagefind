@@ -12,7 +12,7 @@
         data = await r.data();
         data = process_result?.(data) ?? data;
         meta = Object.entries(data.meta).filter(
-            ([key]) => !skipMeta.includes(key)
+            ([key]) => !skipMeta.includes(key),
         );
     };
     $: load(result);
@@ -39,17 +39,19 @@
             <p class="pagefind-ui__result-title">
                 <a
                     class="pagefind-ui__result-link"
-                    href={data.meta?.url || data.url}
-                    >{data.meta?.title}</a
+                    href={data.meta?.url || data.url}>{data.meta?.title}</a
                 >
             </p>
             <p class="pagefind-ui__result-excerpt">{@html data.excerpt}</p>
             {#if meta.length}
                 <ul class="pagefind-ui__result-tags">
                     {#each meta as [metaTitle, metaValue]}
-                        <li class="pagefind-ui__result-tag">
+                        <li
+                            class="pagefind-ui__result-tag"
+                            data-pagefind-ui-meta={metaTitle}
+                        >
                             {metaTitle.replace(/^(\w)/, (c) =>
-                                c.toLocaleUpperCase()
+                                c.toLocaleUpperCase(),
                             )}: {metaValue}
                         </li>
                     {/each}
