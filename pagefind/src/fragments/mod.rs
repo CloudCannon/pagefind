@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use std::collections::BTreeMap;
 
 use serde::Serialize;
 
@@ -15,8 +15,8 @@ pub struct PageFragmentData {
     pub url: String,
     pub content: String,
     pub word_count: usize,
-    pub filters: HashMap<String, Vec<String>>,
-    pub meta: HashMap<String, String>,
+    pub filters: BTreeMap<String, Vec<String>>,
+    pub meta: BTreeMap<String, String>,
     pub anchors: Vec<PageAnchorData>,
 }
 

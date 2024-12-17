@@ -1,4 +1,5 @@
-use hashbrown::HashMap;
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -20,7 +21,7 @@ pub(super) enum ResponseAction {
     IndexedFile {
         page_word_count: u32,
         page_url: String,
-        page_meta: HashMap<String, String>,
+        page_meta: BTreeMap<String, String>,
     },
     IndexedDir {
         page_count: u32,

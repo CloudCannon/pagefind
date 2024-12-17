@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 use pagefind_stem::{Algorithm, Stemmer};
 use path_slash::PathExt as _;
 use regex::Regex;
+use std::collections::BTreeMap;
 use std::io::Error;
 use std::ops::Mul;
 use std::path::{Path, PathBuf};
@@ -46,7 +47,7 @@ pub struct FossickedData {
     pub url: String,
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<FossickedWord>>,
-    pub sort: HashMap<String, String>,
+    pub sort: BTreeMap<String, String>,
     pub has_custom_body: bool,
     pub force_inclusion: bool,
     pub has_html_element: bool,

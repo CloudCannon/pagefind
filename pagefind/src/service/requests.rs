@@ -1,4 +1,5 @@
-use hashbrown::HashMap;
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::options::PagefindServiceConfig;
@@ -26,9 +27,9 @@ pub(super) enum RequestAction {
         url: String,
         content: String,
         language: String,
-        meta: Option<HashMap<String, String>>,
-        filters: Option<HashMap<String, Vec<String>>>,
-        sort: Option<HashMap<String, String>>,
+        meta: Option<BTreeMap<String, String>>,
+        filters: Option<BTreeMap<String, Vec<String>>>,
+        sort: Option<BTreeMap<String, String>>,
     },
     AddDir {
         index_id: u32,
