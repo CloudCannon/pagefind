@@ -25,7 +25,7 @@ steps:
           <h2 id="building-from-source">Building from source</h2>
           <p>You can run <code class="inline">cargo install pagefind</code> to build from source.</p>
       </main></body></html>
-  - step: I run "%pagefind_exec_path%"
+  - macro: I run Pagefind
   - step: stdout should contain "Running Pagefind"
   - step: I serve the directory "public"
   - step: In my browser, I load "/"

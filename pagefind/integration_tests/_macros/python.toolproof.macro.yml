@@ -1,0 +1,3 @@
+macro: I run Pagefind Python as {file} in {dir}
+steps:
+  - I run "cd %dir% && PAGEFIND_BINARY_PATH=%toolproof_process_directory%/target/%pagefind_mode%/pagefind python3 %file%"

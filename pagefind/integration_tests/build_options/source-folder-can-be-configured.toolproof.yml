@@ -9,7 +9,7 @@ steps:
     html: >-
       <!DOCTYPE html><html
       lang="en"><head></head><body><h1>world</h1></body></html>
-  - step: I run "%pagefind_exec_path% --site my_website"
+  - macro: I run Pagefind with "--site my_website"
   - step: stdout should contain "Running Pagefind"
   - step: The file "my_website/pagefind/pagefind.js" should not be empty
   - step: I serve the directory "my_website"

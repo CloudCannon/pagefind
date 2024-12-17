@@ -8,7 +8,7 @@ steps:
   - step: I have a "public/run.py" file with the content {python}
     python: |2-
       import sys
-      sys.path.append('%repo_wd%/wrappers/python/src')
+      sys.path.append('%toolproof_process_directory%/wrappers/python/src')
 
       import asyncio
       import json
@@ -33,6 +33,6 @@ steps:
         print("Complete")
       if __name__ == "__main__":
         asyncio.run(main())
-  - step: I run "cd public && PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - macro: I run Pagefind Python as "run.py" in "public"
   - step: 'stdout should contain "invalid type: integer `5`"'
   - step: stdout should contain "Index deleted"

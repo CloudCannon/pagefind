@@ -21,7 +21,7 @@ steps:
       </html>
 
       <script></script>
-  - step: I run "%pagefind_exec_path%"
+  - macro: I run Pagefind
   - step: stdout should contain "Running Pagefind"
   - step: stdout should contain "Found a data-pagefind-body element on the site"
   - step: The file "public/pagefind/pagefind.js" should not be empty

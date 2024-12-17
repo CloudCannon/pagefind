@@ -15,9 +15,7 @@ steps:
            console.log(files.map(f => f.path).join(', '));
        }
        run();
-  - step: >-
-      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
-      node index.js"
+  - macro: I run Pagefind Node as "index.js" in "public"
   - step: stdout should contain "pagefind.js"
   - step: stdout should contain "pagefind-ui.js"
   - step: stdout should contain "pagefind-ui.css"

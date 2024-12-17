@@ -68,7 +68,7 @@ After building, you'll have a final Pagefind binary at `target/release/pagefind`
 
 ## Test suite
 
-To run the integration test suite, from the root folder run `./test_interactive.sh`.
+To run the integration test suite, from the root folder run `npx toolproof@latest`.
 This will give you a terminal interface to run tests and accept snapshot changes.
 
 From the `pagefind` directory you can run `cargo test` for unit tests.

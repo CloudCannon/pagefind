@@ -117,7 +117,7 @@ jobs:
         run: cargo test --release --lib --features extended
 
       - name: Test CLI
-        run: ./test_ci.sh "release"
+        run: npx -y toolproof@latest -s
 
       - name: Set up poetry
         run: ./wrappers/python/scripts/ci/github/setup_poetry.sh

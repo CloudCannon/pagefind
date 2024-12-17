@@ -8,7 +8,7 @@ steps:
   - step: I have a "run.py" file with the content {python}
     python: |2-
       import sys
-      sys.path.append('%repo_wd%/wrappers/python/src')
+      sys.path.append('%toolproof_process_directory%/wrappers/python/src')
 
       import asyncio
       import json
@@ -35,7 +35,7 @@ steps:
 
       if __name__ == "__main__":
         asyncio.run(main())
-  - step: I run "PAGEFIND_BINARY_PATH=%pagefind_exec_path% python3 run.py"
+  - macro: I run Pagefind Python as "run.py" in "."
   - step: stdout should contain "pagefind_version="
   - step: stdout should contain "JS is at pagefind.js"
   - step: stdout should contain "1 fragment(s)"
