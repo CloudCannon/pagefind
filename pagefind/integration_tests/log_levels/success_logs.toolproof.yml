@@ -1,0 +1,26 @@
+name: Log level > success logs
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><p
+      data-url>Nothing</p></body></html>
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html
+      lang="en"><head></head><body><h1>world</h1><p data-pagefind-ignore="misc">Hello</p></body></html>
+  - step: I have a "public/no-lang/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html><head></head><body><h1>world</h1></body></html>
+
+  - macro: I run Pagefind with "--verbose"
+  - "stdout should contain 'unknown: 1 page'"
+  - 'stderr should contain ''data-pagefind-ignore value of "misc" is not valid'''
+
+  - macro: I run Pagefind with "--quiet && echo done"
+  - "stdout should be exactly 'done\n'"
+  - 'stderr should contain ''data-pagefind-ignore value of "misc" is not valid'''
+
+  - macro: I run Pagefind with "--silent && echo complete"
+  - "stdout should be exactly 'complete\n'"
+  - stderr should be empty

@@ -106,6 +106,24 @@ pub(crate) struct PagefindInboundConfig {
     #[clap(
         long,
         short,
+        help = "Only log errors and warnings while indexing the site. Does not impact the web-facing search."
+    )]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_false")]
+    pub(crate) quiet: bool,
+
+    #[clap(
+        long,
+        short,
+        help = "Only log errors while indexing the site. Does not impact the web-facing search."
+    )]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_false")]
+    pub(crate) silent: bool,
+
+    #[clap(
+        long,
+        short,
         help = "Path to a logfile to write to. Will replace the file on each run"
     )]
     #[clap(required = false)]
@@ -209,6 +227,10 @@ impl SearchOptions {
         } else {
             let log_level = if config.verbose {
                 LogLevel::Verbose
+            } else if config.quiet {
+                LogLevel::Quiet
+            } else if config.silent {
+                LogLevel::Silent
             } else {
                 LogLevel::Standard
             };

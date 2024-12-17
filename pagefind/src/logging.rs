@@ -10,6 +10,8 @@ use lazy_static::lazy_static;
 
 #[derive(Debug, Clone)]
 pub enum LogLevel {
+    Silent,
+    Quiet,
     Standard,
     Verbose,
 }
@@ -98,25 +100,28 @@ impl Logger {
     }
 
     pub fn warn<S: AsRef<str>>(&self, msg: S) {
-        self.log(msg, LogLevel::Standard, LogStyle::Warning);
+        self.log(msg, LogLevel::Quiet, LogStyle::Warning);
     }
 
     pub fn v_warn<S: AsRef<str>>(&self, msg: S) {
-        self.log(msg, LogLevel::Verbose, LogStyle::Warning);
+        self.log(msg, LogLevel::Quiet, LogStyle::Warning);
     }
 
     pub fn error<S: AsRef<str>>(&self, msg: S) {
-        self.log(msg, LogLevel::Standard, LogStyle::Error);
+        self.log(msg, LogLevel::Silent, LogStyle::Error);
     }
 
     pub fn success<S: AsRef<str>>(&self, msg: S) {
         self.log(msg, LogLevel::Standard, LogStyle::Success);
     }
 
-    pub fn log<S: AsRef<str>>(&self, msg: S, log_level: LogLevel, log_style: LogStyle) {
-        let log = match log_level {
-            LogLevel::Standard => true,
-            LogLevel::Verbose => matches!(self.log_level, LogLevel::Verbose),
+    fn log<S: AsRef<str>>(&self, msg: S, min_log_level: LogLevel, log_style: LogStyle) {
+        use LogLevel::*;
+        let log = match min_log_level {
+            Silent => true,
+            Quiet => matches!(self.log_level, Quiet | Standard | Verbose),
+            Standard => matches!(self.log_level, Standard | Verbose),
+            Verbose => matches!(self.log_level, Verbose),
         };
 
         if let Some(filename) = &self.logfile {

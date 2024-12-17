@@ -5,11 +5,11 @@ nav_section: References
 weight: 51
 ---
 
-The Pagefind CLI has the following options.  
+The Pagefind CLI has the following options.
 These can be set via any [configuration source](/docs/config-sources/).
 
 > These configuration options only apply when running the Pagefind indexing tool on your site.
-> For configuring Pagefind search in the browser, see [Pagefind Search Config](/docs/search-config/).  
+> For configuring Pagefind search in the browser, see [Pagefind Search Config](/docs/search-config/).
 > For configuring the Pagefind Default UI, see [Pagefind UI](/docs/ui/).
 
 ## Required arguments
@@ -101,6 +101,20 @@ Prints extra logging while indexing the site. Only affects the CLI, does not imp
 | CLI Flag    | ENV Variable       | Config Key |
 |-------------|--------------------|------------|
 | `--verbose` | `PAGEFIND_VERBOSE` | `verbose`  |
+
+### Quiet
+Only logs errors and warnings while indexing the site. Only affects the CLI, does not impact web-facing search.
+
+| CLI Flag  | ENV Variable     | Config Key |
+|-----------|------------------|------------|
+| `--quiet` | `PAGEFIND_QUIET` | `quiet`  |
+
+### Silent
+Only logs errors while indexing the site. Only affects the CLI, does not impact web-facing search.
+
+| CLI Flag  | ENV Variable     | Config Key |
+|-----------|------------------|------------|
+| `--silent` | `PAGEFIND_SILENT` | `silent`  |
 
 ### Logfile
 Writes logs to the given logfile, in addition to the console. Replaces the file on each run.

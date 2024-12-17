@@ -123,10 +123,10 @@ impl Fossicker {
                     break;
                 }
                 if let Err(error) = rewriter.write(&buf[..read]) {
-                    println!(
+                    options.logger.error(format!(
                         "Failed to parse file {} — skipping this file. Error:\n{error}",
-                        file_path.to_str().unwrap_or("[unknown file]")
-                    );
+                        file_path.to_str().unwrap_or("[unknown file]"),
+                    ));
                     return Ok(());
                 }
             }
@@ -136,10 +136,10 @@ impl Fossicker {
                     break;
                 }
                 if let Err(error) = rewriter.write(&buf[..read]) {
-                    println!(
+                    options.logger.error(format!(
                         "Failed to parse file {} — skipping this file. Error:\n{error}",
                         file_path.to_str().unwrap_or("[unknown file]")
-                    );
+                    ));
                     return Ok(());
                 }
             }
@@ -170,7 +170,7 @@ impl Fossicker {
                 break;
             }
             if let Err(error) = rewriter.write(&buf[..read]) {
-                println!(
+                options.logger.error(format!(
                     "Failed to parse file {} — skipping this file. Error:\n{error}",
                     &self
                         .file_path
@@ -179,7 +179,7 @@ impl Fossicker {
                         .flatten()
                         .or(self.page_url.as_ref().map(|u| u.as_str()))
                         .unwrap_or("[unknown file]")
-                );
+                ));
                 return Ok(());
             }
         }
