@@ -63,7 +63,7 @@ steps:
           <p>NZ Kaka Post.</p>
       </body>
       </html>
-  - step: I run "%pagefind_exec_path%"
+  - macro: I run Pagefind
   - step: stdout should contain "Running Pagefind"
   - step: The file "public/pagefind/pagefind.js" should not be empty
   - step: I serve the directory "public"

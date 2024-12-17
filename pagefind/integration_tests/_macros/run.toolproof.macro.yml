@@ -1,0 +1,3 @@
+macro: I run Pagefind
+steps:
+  - I run "%toolproof_process_directory%/target/%pagefind_mode%/pagefind"

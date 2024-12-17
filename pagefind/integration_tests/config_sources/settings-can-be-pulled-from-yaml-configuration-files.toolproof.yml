@@ -5,7 +5,7 @@ steps:
       <!DOCTYPE html><html
       lang="en"><head></head><body><h1>Hello.</h1></body></html>
   - step: I have a "pagefind.yml" file with the content {yml}
-    yml: 'site: public'
-  - step: I run "%pagefind_exec_path%"
+    yml: "site: public"
+  - macro: I run Pagefind
   - step: stdout should contain "Running Pagefind"
   - step: The file "public/pagefind/pagefind.js" should not be empty

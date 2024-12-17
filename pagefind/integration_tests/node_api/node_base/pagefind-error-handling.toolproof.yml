@@ -24,9 +24,7 @@ steps:
            }
        }
        bad();
-  - step: >-
-      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
-      node index.js"
+  - macro: I run Pagefind Node as "index.js" in "public"
   - step: 'stdout should contain "invalid type: integer `5`"'
   - step: >-
       stdout should contain "Index has been deleted from the Pagefind service

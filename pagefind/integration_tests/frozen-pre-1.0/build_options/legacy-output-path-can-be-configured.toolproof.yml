@@ -11,7 +11,7 @@ steps:
     html: >-
       <!DOCTYPE html><html
       lang="en"><head></head><body><h1>world</h1></body></html>
-  - step: I run "%pagefind_exec_path% --bundle-dir _search"
+  - macro: I run Pagefind with "--bundle-dir _search"
   - step: stdout should contain "Running Pagefind"
   - step: The file "public/_search/pagefind.js" should not be empty
   - step: I serve the directory "public"

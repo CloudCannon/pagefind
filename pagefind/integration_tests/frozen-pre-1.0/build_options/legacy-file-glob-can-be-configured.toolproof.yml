@@ -13,7 +13,7 @@ steps:
       lang="en"><head></head><body><h1>world</h1></body></html>
   - step: I have a "pagefind.yml" file with the content {yml}
     yml: 'glob: "**/*.{htm,html}"'
-  - step: I run "%pagefind_exec_path%"
+  - macro: I run Pagefind
   - step: stdout should contain "Running Pagefind"
   - step: stderr should contain "pre-1.0 compatibility mode"
   - step: The file "public/_pagefind/pagefind.js" should not be empty

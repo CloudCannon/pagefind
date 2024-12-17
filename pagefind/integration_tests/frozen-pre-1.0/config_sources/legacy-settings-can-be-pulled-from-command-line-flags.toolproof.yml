@@ -6,7 +6,7 @@ steps:
       rel="pre-1.0-signal" href="_pagefind" >
 
       <h1>Hello.</h1></body></html>
-  - step: I run "%pagefind_exec_path% --source public"
+  - macro: I run Pagefind with "--source public"
   - step: stdout should contain "Running Pagefind"
   - step: stderr should contain "pre-1.0 compatibility mode"
   - step: The file "public/_pagefind/pagefind.js" should not be empty

@@ -12,9 +12,7 @@ steps:
     html: >-
       <!DOCTYPE html><html
       lang="en"><head></head><body><h1>world</h1></body></html>
-  - step: >-
-      I run "%pagefind_exec_path% --bundle-dir
-      %toolproof_test_directory%/other/_search"
+  - macro: I run Pagefind with "--bundle-dir %toolproof_test_directory%/other/_search"
   - step: stdout should contain "Running Pagefind"
   - step: The file "other/_search/pagefind.js" should not be empty
   - step: I serve the directory "."

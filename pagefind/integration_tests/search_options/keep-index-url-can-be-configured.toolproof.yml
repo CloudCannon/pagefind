@@ -9,9 +9,7 @@ steps:
     html: >-
       <!DOCTYPE html><html
       lang="en"><head></head><body><h1>world</h1></body></html>
-  - step: >-
-      I run "%pagefind_exec_path% --output-subdir blog/pagefind
-      --keep-index-url"
+  - macro: I run Pagefind with "--output-subdir blog/pagefind --keep-index-url"
   - step: stdout should contain "Running Pagefind"
   - step: The file "public/blog/pagefind/pagefind.js" should not be empty
   - step: I serve the directory "public"

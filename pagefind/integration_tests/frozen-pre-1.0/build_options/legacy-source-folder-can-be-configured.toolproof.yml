@@ -11,7 +11,7 @@ steps:
     html: >-
       <!DOCTYPE html><html
       lang="en"><head></head><body><h1>world</h1></body></html>
-  - step: I run "%pagefind_exec_path% --source my_website"
+  - macro: I run Pagefind with "--source my_website"
   - step: stdout should contain "Running Pagefind"
   - step: stderr should contain "pre-1.0 compatibility mode"
   - step: The file "my_website/_pagefind/pagefind.js" should not be empty

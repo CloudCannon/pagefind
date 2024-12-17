@@ -1,0 +1,10 @@
+# Run Toolproof tests from the root of the repo with `npx toolproof@latest`
+
+browser: chrome
+concurrency: 4
+timeout: 20
+browser_timeout: 16
+before_all:
+  - command: cd pagefind && cargo build --release --features extended
+placeholders:
+  pagefind_mode: release

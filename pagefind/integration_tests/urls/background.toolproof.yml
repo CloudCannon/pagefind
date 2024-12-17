@@ -14,6 +14,6 @@ steps:
           "version": "1.0.0",
           "main": "index.js",
           "dependencies": {
-              "pagefind": "file:%repo_wd%/wrappers/node"
+              "pagefind": "file:%toolproof_process_directory%/wrappers/node"
           }
       }

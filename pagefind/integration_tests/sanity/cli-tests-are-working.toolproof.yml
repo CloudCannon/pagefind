@@ -2,5 +2,5 @@ name: Sanity Tests > CLI tests are working
 steps:
   - step: I have a "public/index.html" file with the content {html}
     html: <!DOCTYPE html><html lang="en"><head></head><body><p>a</p></body></html>
-  - step: I run "%pagefind_exec_path% --site public"
+  - macro: I run Pagefind with "--site public"
   - step: stdout should contain "Running Pagefind"
