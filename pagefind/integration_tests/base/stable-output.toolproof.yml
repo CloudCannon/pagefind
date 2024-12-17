@@ -46,13 +46,16 @@ steps:
   # - snapshot: stdout
   #   snapshot_content: |-
   #     ╎en_8d32c48.pf_filter
+  # -----------------------------------------
+  # TODO: Stabilise the `pf_meta` file hashes
+  # -----------------------------------------
+  # - I run "ls public/pagefind/index"
+  # - snapshot: stdout
+  #   snapshot_content: |-
+  #     ╎en_b2167ad.pf_index
   - I run "ls public/pagefind/fragment"
   - snapshot: stdout
     snapshot_content: |-
       ╎en_282213b.pf_fragment
       ╎en_4375818.pf_fragment
       ╎en_571daca.pf_fragment
-  - I run "ls public/pagefind/index"
-  - snapshot: stdout
-    snapshot_content: |-
-      ╎en_b2167ad.pf_index
