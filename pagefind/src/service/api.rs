@@ -35,9 +35,8 @@
 
 pub use crate::output::SyntheticFile;
 use anyhow::{bail, Result};
-use hashbrown::HashMap;
 use rust_patch::Patch;
-use std::path::PathBuf;
+use std::{collections::BTreeMap, path::PathBuf};
 
 use crate::{
     fossick::{parser::DomParserResult, Fossicker},
@@ -49,7 +48,7 @@ use crate::{
 pub struct IndexedFileResponse {
     pub page_word_count: u32,
     pub page_url: String,
-    pub page_meta: HashMap<String, String>,
+    pub page_meta: BTreeMap<String, String>,
 }
 
 pub struct PagefindIndex {
@@ -126,16 +125,16 @@ impl PagefindIndex {
         url: String,
         content: String,
         language: String,
-        meta: Option<HashMap<String, String>>,
-        filters: Option<HashMap<String, Vec<String>>>,
-        sort: Option<HashMap<String, String>>,
+        meta: Option<BTreeMap<String, String>>,
+        filters: Option<BTreeMap<String, Vec<String>>>,
+        sort: Option<BTreeMap<String, String>>,
     ) -> Result<IndexedFileResponse> {
         let data = DomParserResult {
             digest: content,
             filters: filters.unwrap_or_default(),
             sort: sort.unwrap_or_default(),
             meta: meta.unwrap_or_default(),
-            anchor_content: HashMap::new(),
+            anchor_content: BTreeMap::new(),
             has_custom_body: false,
             force_inclusion: true,
             has_html_element: true,
@@ -214,7 +213,6 @@ impl PagefindIndex {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio;
 
     #[tokio::test]
     async fn test_add_file() {
