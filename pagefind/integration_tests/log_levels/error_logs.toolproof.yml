@@ -1,0 +1,15 @@
+name: Log level > error logs
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+
+  - macro: I run a failing Pagefind with "--verbose"
+  - "stdout should contain 'Found 0 files'"
+  - "stderr should contain 'Error: Pagefind was not able to build an index'"
+
+  - macro: I run a failing Pagefind with "--quiet"
+  - "stdout should be empty"
+  - "stderr should contain 'Error: Pagefind was not able to build an index'"
+
+  - macro: I run a failing Pagefind with "--silent"
+  - "stdout should be empty"
+  - "stderr should contain 'Error: Pagefind was not able to build an index'"
