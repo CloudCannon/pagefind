@@ -92,6 +92,14 @@ const stub_results = (term): PagefindSearchResult[] => {
     words[Math.floor(Math.random() * 15) + 14] = `<mark>${term}</mark>`;
     let excerpt = words.join(" ");
 
+    let extra_meta = {};
+    if (/m/.test(term)) {
+      const num_meta = Math.floor(Math.random() * 5) + 1;
+      for (let i = 0; i < num_meta; i += 1) {
+        extra_meta[get_a_word()] = get_a_word();
+      }
+    }
+    
     results.push({
       id: Math.random().toString(),
       score: Math.random(),
@@ -113,6 +121,7 @@ const stub_results = (term): PagefindSearchResult[] => {
             image: `https://placekitten.com/${Math.floor(
               Math.random() * 1000
             )}/${Math.floor(Math.random() * 1000)}`,
+            ...extra_meta,
           },
           anchors: [
             {
