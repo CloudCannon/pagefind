@@ -9,6 +9,28 @@
 
 ## Unreleased
 
+## v1.3.0 (December 18, 2024)
+
+### Core Features & Improvements
+* Added `--quiet` and `--silent` flags when running the Pagefind CLI, which reduce the logging output to only warnings or only errors respectively.
+* Stablized the [Pagefind Rust library](https://docs.rs/pagefind/latest/pagefind/).
+  * Thanks to @cdxker for leading this in #751 ❤️
+  * This library interface has feature parity with the Node and Python indexing APIs, and is a great solution for integrating Pagefind indexing into any Rust-based tooling.
+
+### Default UI Features & Improvements
+* Added a `data-pagefind-ui-meta` attribute to the metadata tags on search results in the Default UI, allowing them to be targeted with CSS.
+  * For example, a tag on a result containing `Date: April 19, 2024` will now have `data-pagefind-ui-meta="date"`.
+
+### Fixes & Tweaks
+* Fixed an issue where inline metadata would incorrectly render with html-escaped characters.
+  * Specifically, tagging metadata inline with `data-pagefind-meta="phrase:this &lt; that` would index the literal `&lt;` rather than a `<` character.
+  * This bug didn't occur when using `data-pagefind-meta` to capture the content of an element.
+* Fixed an issue where matches in compound words could (sometimes) be ranked lower than intended.
+  * Specifically, for example, matching just the `Cannon` in `CloudCannon` may have ranked the word incorrectly.
+* Fixed an issue where fragment hashes would change between every Pagefind build.
+  * Now, if an HTML page has not changed between two Pagefind indexes, the fragment filename will not change.
+  * This saves you from having to re-upload all fragment files after every Pagefind build.
+
 ## v1.2.0 (November 6, 2024)
 
 ### Core Features & Improvements
@@ -36,7 +58,7 @@ Please open any issues if improvements can be made to the Pagefind UI libraries 
 ### UI Translations
 * Added Swahili translations
 
-### Secutiry
+### Security
 * Fix potential DOM clobbering when initializing Pagefind
 
 ## v1.1.0 (April 2, 2024)

@@ -4,6 +4,6 @@ steps:
     html: >-
       <!DOCTYPE html><html
       lang="en"><head></head><body><h1>Hello.</h1></body></html>
-  - step: I run "%pagefind_exec_path% --site public"
+  - macro: I run Pagefind with "--site public"
   - step: stdout should contain "Running Pagefind"
   - step: The file "public/pagefind/pagefind.js" should not be empty

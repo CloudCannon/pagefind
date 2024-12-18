@@ -1,0 +1,3 @@
+macro: I run Pagefind Node as {file} in {dir}
+steps:
+  - I run "cd %dir% && npm i && PAGEFIND_BINARY_PATH=%toolproof_process_directory%/target/%pagefind_mode%/pagefind node %file%"

@@ -26,7 +26,7 @@ steps:
       data-pagefind-filter="mood">Angry</span>
 
       <h1 data-pagefind-filter="color:Tabby">Ali Cat</h1></body></html>
-  - step: I run "%pagefind_exec_path%"
+  - macro: I run Pagefind
   - step: stdout should contain "Running Pagefind"
   - step: I serve the directory "public"
   - step: In my browser, I load "/"

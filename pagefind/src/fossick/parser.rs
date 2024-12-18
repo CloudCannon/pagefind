@@ -1,9 +1,9 @@
-use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use lol_html::html_content::Element;
 use lol_html::{element, text, HtmlRewriter, Settings};
 use regex::Regex;
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::default::Default;
 use std::rc::Rc;
 
@@ -53,11 +53,11 @@ pub struct DomParser<'a> {
 #[derive(Default, Debug)]
 struct DomParserData {
     current_node: Rc<RefCell<DomParsingNode>>,
-    filters: HashMap<String, Vec<String>>,
-    sort: HashMap<String, String>,
-    meta: HashMap<String, String>,
-    default_meta: HashMap<String, String>,
-    anchor_content: HashMap<String, String>,
+    filters: BTreeMap<String, Vec<String>>,
+    sort: BTreeMap<String, String>,
+    meta: BTreeMap<String, String>,
+    default_meta: BTreeMap<String, String>,
+    anchor_content: BTreeMap<String, String>,
     language: Option<String>,
     has_html_element: bool,
     has_old_bundle_reference: bool,
@@ -104,10 +104,10 @@ struct DomParsingNode {
 #[derive(Debug)]
 pub struct DomParserResult {
     pub digest: String,
-    pub filters: HashMap<String, Vec<String>>,
-    pub sort: HashMap<String, String>,
-    pub meta: HashMap<String, String>,
-    pub anchor_content: HashMap<String, String>,
+    pub filters: BTreeMap<String, Vec<String>>,
+    pub sort: BTreeMap<String, String>,
+    pub meta: BTreeMap<String, String>,
+    pub anchor_content: BTreeMap<String, String>,
     pub has_custom_body: bool,
     pub force_inclusion: bool, // Include this page even if there is no body
     pub has_html_element: bool,
@@ -646,7 +646,7 @@ fn parse_attr_string(input: String, el: &Element) -> Vec<String> {
 impl DomParsingNode {
     fn get_attribute_pair(&self, input: &str) -> Option<(String, String)> {
         match input.split_once(':') {
-            Some((filter, value)) => Some((filter.to_owned(), value.to_owned())),
+            Some((filter, value)) => Some((filter.to_owned(), normalize_content(&value))),
             None => {
                 if self.current_value.is_empty() {
                     None

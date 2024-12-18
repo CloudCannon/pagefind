@@ -20,9 +20,7 @@ steps:
        }
 
        run();
-  - step: >-
-      I run "cd public && npm i && PAGEFIND_BINARY_PATH=%pagefind_exec_path%
-      node index.js"
+  - macro: I run Pagefind Node as "index.js" in "public"
   - step: stdout should contain "Successfully wrote files"
   - step: The file "public/pagefind/pagefind.js" should not be empty
   - step: I serve the directory "public"

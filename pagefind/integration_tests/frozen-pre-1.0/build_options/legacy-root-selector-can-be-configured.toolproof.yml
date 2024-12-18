@@ -14,7 +14,7 @@ steps:
           <h1>Hello</h1>
       </div>
       <p data-pagefind-meta="ignored">Also ignored</p></body></html>
-  - step: I run "%pagefind_exec_path% --root-selector 'body > .content'"
+  - macro: I run Pagefind with "--root-selector 'body > .content'"
   - step: stdout should contain "Running Pagefind"
   - step: stderr should contain "pre-1.0 compatibility mode"
   - step: The file "public/_pagefind/pagefind.js" should not be empty

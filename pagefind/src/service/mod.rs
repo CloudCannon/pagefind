@@ -1,17 +1,10 @@
-use std::{
-    io::{BufRead, Write},
-    path::PathBuf,
-};
+use std::io::{BufRead, Write};
 
+pub use api::PagefindIndex;
 use base64::{engine::general_purpose, Engine as _};
-use hashbrown::HashMap;
-use rust_patch::Patch;
 use tokio::sync::mpsc;
 
-use crate::{
-    fossick::{parser::DomParserResult, Fossicker},
-    PagefindInboundConfig, SearchOptions, SearchState,
-};
+pub mod api;
 
 use requests::*;
 use responses::*;
@@ -37,19 +30,18 @@ pub async fn run_service() {
                 std::process::exit(0);
             }
 
-            let Ok(decoded) = general_purpose::STANDARD
-                .decode(buf) else {
-                    parse_error_outgoing_tx
-                        .send(ServiceResponse {
-                            message_id: None,
-                            payload: ResponseAction::Error {
-                                original_message: None,
-                                message: "Unparseable message, not valid base64".into()
-                            },
-                        })
-                        .expect("Channel is open");
-                    return;
-                };
+            let Ok(decoded) = general_purpose::STANDARD.decode(buf) else {
+                parse_error_outgoing_tx
+                    .send(ServiceResponse {
+                        message_id: None,
+                        payload: ResponseAction::Error {
+                            original_message: None,
+                            message: "Unparseable message, not valid base64".into(),
+                        },
+                    })
+                    .expect("Channel is open");
+                return;
+            };
 
             match serde_json::from_slice::<ServiceRequest>(&decoded) {
                 Ok(msg) => {
@@ -118,10 +110,10 @@ pub async fn run_service() {
         };
 
         fn get_index<'a>(
-            indexes: &'a mut Vec<Option<SearchState>>,
+            indexes: &'a mut Vec<Option<api::PagefindIndex>>,
             index_id: u32,
             err: impl FnOnce(&str),
-        ) -> Option<&'a mut SearchState> {
+        ) -> Option<&'a mut api::PagefindIndex> {
             match indexes.get_mut(index_id as usize) {
                 Some(Some(index)) => Some(index),
                 Some(None) => {
@@ -139,16 +131,9 @@ pub async fn run_service() {
             RequestAction::NewIndex { config } => {
                 let index_id = indexes.len();
 
-                let mut service_options: PagefindInboundConfig =
-                    serde_json::from_str("{}").expect("All fields have serde defaults");
-                service_options.service = true;
-                if let Some(config) = config {
-                    service_options = config.apply(service_options);
-                }
-
-                match SearchOptions::load(service_options) {
-                    Ok(opts) => {
-                        indexes.insert(index_id, Some(SearchState::new(opts)));
+                match PagefindIndex::new(config) {
+                    Ok(index) => {
+                        indexes.insert(index_id, Some(index));
                         send(ResponseAction::NewIndex {
                             index_id: index_id as u32,
                         });
@@ -165,22 +150,14 @@ pub async fn run_service() {
                 file_contents,
             } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
-                    if file_path.is_none() && url.is_none() {
-                        return err(
-                            "Either a source path to the file, or an explicit URL must be provided",
-                        );
-                    }
-
-                    let file =
-                        Fossicker::new_synthetic(file_path.map(PathBuf::from), url, file_contents);
-                    let data = index.fossick_one(file).await;
-                    match data {
+                    let page_fragment = index.add_html_file(file_path, url, file_contents).await;
+                    match page_fragment {
                         Ok(data) => send(ResponseAction::IndexedFile {
-                            page_word_count: data.fragment.data.word_count as u32,
-                            page_url: data.fragment.data.url.clone(),
-                            page_meta: data.fragment.data.meta.clone(),
+                            page_word_count: data.page_word_count,
+                            page_url: data.page_url.clone(),
+                            page_meta: data.page_meta.clone(),
                         }),
-                        Err(_) => err("Failed to add file"),
+                        Err(message) => err(&message.to_string()),
                     }
                 }
             }
@@ -194,27 +171,16 @@ pub async fn run_service() {
                 sort,
             } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
-                    let data = DomParserResult {
-                        digest: content,
-                        filters: filters.unwrap_or_default(),
-                        sort: sort.unwrap_or_default(),
-                        meta: meta.unwrap_or_default(),
-                        anchor_content: HashMap::new(),
-                        has_custom_body: false,
-                        force_inclusion: true,
-                        has_html_element: true,
-                        has_old_bundle_reference: false,
-                        language: index.options.force_language.clone().unwrap_or(language),
-                    };
-                    let file = Fossicker::new_with_data(url, data);
-                    let data = index.fossick_one(file).await;
+                    let data = index
+                        .add_custom_record(url, content, language, meta, filters, sort)
+                        .await;
                     match data {
                         Ok(data) => send(ResponseAction::IndexedFile {
-                            page_word_count: data.fragment.data.word_count as u32,
-                            page_url: data.fragment.data.url.clone(),
-                            page_meta: data.fragment.data.meta.clone(),
+                            page_word_count: data.page_word_count,
+                            page_url: data.page_url.clone(),
+                            page_meta: data.page_meta.clone(),
                         }),
-                        Err(_) => err("Failed to add file"),
+                        Err(message) => err(&message.to_string()),
                     }
                 }
             }
@@ -224,23 +190,20 @@ pub async fn run_service() {
                 glob,
             } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
-                    let defaults: PagefindInboundConfig =
-                        serde_json::from_str("{}").expect("All fields have serde defaults");
-                    let glob = glob.unwrap_or_else(|| defaults.glob);
-
-                    let data = index.fossick_many(PathBuf::from(path), glob).await;
-                    match data {
+                    match index.add_directory(path, glob).await {
                         Ok(page_count) => send(ResponseAction::IndexedDir {
                             page_count: page_count as u32,
                         }),
-                        Err(_) => err("Failed to index directory"),
+                        Err(message) => err(&message.to_string()),
                     }
                 }
             }
             RequestAction::BuildIndex { index_id } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
-                    index.build_indexes().await;
-                    send(ResponseAction::BuildIndex {});
+                    match index.build_indexes().await {
+                        Ok(_) => send(ResponseAction::BuildIndex {}),
+                        Err(e) => err(&e.to_string()),
+                    }
                 }
             }
             RequestAction::WriteFiles {
@@ -248,26 +211,38 @@ pub async fn run_service() {
                 output_path,
             } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
-                    index.build_indexes().await;
-                    let resolved_output_path = index.write_files(output_path.map(Into::into)).await;
-                    send(ResponseAction::WriteFiles {
-                        output_path: resolved_output_path.to_string_lossy().into(),
-                    });
+                    match index.build_indexes().await {
+                        Ok(_) => match index.write_files(output_path.map(Into::into)).await {
+                            Ok(resolved_output_path) => send(ResponseAction::WriteFiles {
+                                output_path: resolved_output_path,
+                            }),
+                            Err(e) => err(&e.to_string()),
+                        },
+                        Err(e) => err(&e.to_string()),
+                    }
                 }
             }
             RequestAction::GetFiles { index_id } => {
                 if let Some(index) = get_index(&mut indexes, index_id, err) {
-                    index.build_indexes().await;
-                    let files = index.get_files().await;
-                    send(ResponseAction::GetFiles {
-                        files: files
-                            .into_iter()
-                            .map(|file| SyntheticFileResponse {
-                                path: file.filename.to_string_lossy().into(),
-                                content: general_purpose::STANDARD.encode(file.contents),
-                            })
-                            .collect(),
-                    });
+                    match index.build_indexes().await {
+                        Ok(_) => match index.get_files().await {
+                            Ok(files) => {
+                                let response_files = files
+                                    .into_iter()
+                                    .map(|file| SyntheticFileResponse {
+                                        path: file.filename.to_string_lossy().into(),
+                                        content: general_purpose::STANDARD.encode(file.contents),
+                                    })
+                                    .collect();
+
+                                send(ResponseAction::GetFiles {
+                                    files: response_files,
+                                })
+                            }
+                            Err(e) => err(&e.to_string()),
+                        },
+                        Err(e) => err(&e.to_string()),
+                    }
                 }
             }
             RequestAction::DeleteIndex { index_id } => match indexes.get_mut(index_id as usize) {

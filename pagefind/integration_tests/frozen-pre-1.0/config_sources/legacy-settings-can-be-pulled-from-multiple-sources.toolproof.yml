@@ -11,6 +11,6 @@ steps:
       {
           "source": "public"
       }
-  - step: I run "%pagefind_exec_path% --bundle-dir _out"
+  - macro: I run Pagefind with "--bundle-dir _out"
   - step: stdout should contain "Running Pagefind"
   - step: The file "public/_out/pagefind.js" should not be empty

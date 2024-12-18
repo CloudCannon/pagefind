@@ -5,11 +5,11 @@ steps:
     html: |-
       <!DOCTYPE html><html lang="en"><head></head><body><div id="search"></div>
       <script src="/website_a/_pagefind/pagefind-ui.js"></script></body></html>
-  - step: I run "%pagefind_exec_path% --source root/website_a"
+  - macro: I run Pagefind with "--source root/website_a"
   - step: stdout should contain "Running Pagefind"
   - step: stderr should contain "pre-1.0 compatibility mode"
   - step: The file "root/website_a/_pagefind/pagefind.js" should not be empty
-  - step: I run "%pagefind_exec_path% --source root/website_b"
+  - macro: I run Pagefind with "--source root/website_b"
   - step: stdout should contain "Running Pagefind"
   - step: stderr should contain "pre-1.0 compatibility mode"
   - step: The file "root/website_b/_pagefind/pagefind.js" should not be empty

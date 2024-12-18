@@ -1,11 +1,13 @@
 use std::{cmp::Ordering, path::PathBuf};
 
-pub use fossick::{FossickedData, Fossicker};
+use anyhow::{bail, Result};
+use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
 use index::PagefindIndexes;
-pub use options::{PagefindInboundConfig, SearchOptions};
+use options::{PagefindInboundConfig, SearchOptions};
 use output::SyntheticFile;
+pub use service::api;
 use wax::{Glob, WalkEntry};
 
 use crate::index::build_indexes;
@@ -15,16 +17,17 @@ mod fragments;
 mod index;
 #[macro_use]
 mod logging;
-mod options;
+pub mod options;
 mod output;
-pub mod serve;
-pub mod service;
+pub mod runner;
+mod serve;
+mod service;
 mod utils;
 
-pub struct SearchState {
-    pub options: SearchOptions,
-    pub fossicked_pages: Vec<FossickedData>,
-    pub built_indexes: Vec<PagefindIndexes>,
+struct SearchState {
+    options: SearchOptions,
+    fossicked_pages: Vec<FossickedData>,
+    built_indexes: Vec<PagefindIndexes>,
 }
 
 impl SearchState {
@@ -36,28 +39,31 @@ impl SearchState {
         }
     }
 
-    pub async fn walk_for_files(&mut self, dir: PathBuf, glob: String) -> Vec<Fossicker> {
+    pub async fn walk_for_files(&mut self, dir: PathBuf, glob: String) -> Result<Vec<Fossicker>> {
         let log = &self.options.logger;
 
         log.status("[Walking source directory]");
         if let Ok(glob) = Glob::new(&glob) {
-            glob.walk(&dir)
+            Ok(glob
+                .walk(&dir)
                 .filter_map(Result::ok)
                 .map(WalkEntry::into_path)
                 .map(|file_path| Fossicker::new_relative_to(file_path, dir.clone()))
-                .collect()
+                .collect())
         } else {
             log.error(format!(
                 "Error: Provided glob \"{}\" did not parse as a valid glob.",
                 self.options.glob
             ));
-            // TODO: Bubble this error back to the Node API if applicable
-            std::process::exit(1);
+            bail!(
+                "Error: Provided glob \"{}\" did not parse as a valid glob.",
+                self.options.glob
+            );
         }
     }
 
-    pub async fn fossick_many(&mut self, dir: PathBuf, glob: String) -> Result<usize, ()> {
-        let files = self.walk_for_files(dir.clone(), glob).await;
+    pub async fn fossick_many(&mut self, dir: PathBuf, glob: String) -> Result<usize> {
+        let files = self.walk_for_files(dir.clone(), glob).await?;
         let log = &self.options.logger;
 
         log.info(format!(
@@ -80,23 +86,23 @@ impl SearchState {
         Ok(self.fossicked_pages.len() - existing_page_count)
     }
 
-    pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData, ()> {
+    pub async fn fossick_one(&mut self, file: Fossicker) -> Result<FossickedData> {
         let result = file.fossick(&self.options).await;
-        if let Ok(result) = result.clone() {
+        if let Some(result) = result.as_ref().ok() {
             let existing = self
                 .fossicked_pages
                 .iter()
                 .position(|page| page.url == result.url);
             if let Some(existing) = existing {
-                *self.fossicked_pages.get_mut(existing).unwrap() = result;
+                *self.fossicked_pages.get_mut(existing).unwrap() = result.clone();
             } else {
-                self.fossicked_pages.push(result);
+                self.fossicked_pages.push(result.clone());
             }
         }
         result
     }
 
-    pub async fn build_indexes(&mut self) {
+    pub async fn build_indexes(&mut self) -> Result<()> {
         let log = &self.options.logger;
 
         let used_custom_body = self.fossicked_pages.iter().any(|page| page.has_custom_body);
@@ -210,7 +216,8 @@ impl SearchState {
             .into_iter()
             .map(|(language, pages)| async { build_indexes(pages, language, &self.options).await })
             .collect();
-        self.built_indexes = join_all(indexes).await;
+        let built_indexes = join_all(indexes).await;
+        self.built_indexes = built_indexes.into_iter().flat_map(|i| i.ok()).collect();
 
         let stats = self.built_indexes.iter().fold((0, 0, 0, 0), |mut stats, index| {
             log.v_info(format!(
@@ -262,12 +269,17 @@ impl SearchState {
 
         if stats.1 == 0 && !self.options.running_as_service {
             log.error(
-                "Error: Pagefind wasn't able to build an index. \n\
+                "Error: Pagefind was not able to build an index. \n\
                 Most likely, the directory passed to Pagefind was empty \
                 or did not contain any html files.",
             );
-            std::process::exit(1);
+            bail!(
+                "Error: Pagefind was not able to build an index. \n\
+                Most likely, the directory passed to Pagefind was empty \
+                or did not contain any html files."
+            );
         }
+        Ok(())
     }
 
     pub async fn write_files(&self, custom_outdir: Option<PathBuf>) -> PathBuf {

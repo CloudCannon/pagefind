@@ -1,3 +1,4 @@
+use anyhow::{bail, Result};
 use async_compression::tokio::bufread::GzipDecoder;
 #[cfg(feature = "extended")]
 use charabia::Segment;
@@ -7,6 +8,7 @@ use lazy_static::lazy_static;
 use pagefind_stem::{Algorithm, Stemmer};
 use path_slash::PathExt as _;
 use regex::Regex;
+use std::collections::BTreeMap;
 use std::io::Error;
 use std::ops::Mul;
 use std::path::{Path, PathBuf};
@@ -45,7 +47,7 @@ pub struct FossickedData {
     pub url: String,
     pub fragment: PageFragment,
     pub word_data: HashMap<String, Vec<FossickedWord>>,
-    pub sort: HashMap<String, String>,
+    pub sort: BTreeMap<String, String>,
     pub has_custom_body: bool,
     pub force_inclusion: bool,
     pub has_html_element: bool,
@@ -64,16 +66,6 @@ pub struct Fossicker {
 }
 
 impl Fossicker {
-    pub fn new(file_path: PathBuf) -> Self {
-        Self {
-            file_path: Some(file_path),
-            root_path: None,
-            page_url: None,
-            synthetic_content: None,
-            data: None,
-        }
-    }
-
     pub fn new_relative_to(file_path: PathBuf, root_path: PathBuf) -> Self {
         Self {
             file_path: Some(file_path),
@@ -132,10 +124,10 @@ impl Fossicker {
                     break;
                 }
                 if let Err(error) = rewriter.write(&buf[..read]) {
-                    println!(
+                    options.logger.error(format!(
                         "Failed to parse file {} — skipping this file. Error:\n{error}",
-                        file_path.to_str().unwrap_or("[unknown file]")
-                    );
+                        file_path.to_str().unwrap_or("[unknown file]"),
+                    ));
                     return Ok(());
                 }
             }
@@ -145,10 +137,10 @@ impl Fossicker {
                     break;
                 }
                 if let Err(error) = rewriter.write(&buf[..read]) {
-                    println!(
+                    options.logger.error(format!(
                         "Failed to parse file {} — skipping this file. Error:\n{error}",
                         file_path.to_str().unwrap_or("[unknown file]")
-                    );
+                    ));
                     return Ok(());
                 }
             }
@@ -179,7 +171,7 @@ impl Fossicker {
                 break;
             }
             if let Err(error) = rewriter.write(&buf[..read]) {
-                println!(
+                options.logger.error(format!(
                     "Failed to parse file {} — skipping this file. Error:\n{error}",
                     &self
                         .file_path
@@ -188,7 +180,7 @@ impl Fossicker {
                         .flatten()
                         .or(self.page_url.as_ref().map(|u| u.as_str()))
                         .unwrap_or("[unknown file]")
-                );
+                ));
                 return Ok(());
             }
         }
@@ -459,7 +451,7 @@ impl Fossicker {
         }
     }
 
-    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData, ()> {
+    pub async fn fossick(mut self, options: &SearchOptions) -> Result<FossickedData> {
         if (self.file_path.is_some() || self.synthetic_content.is_some()) && self.data.is_none() {
             self.fossick_html(options).await;
         };
@@ -480,7 +472,7 @@ impl Fossicker {
             options
                 .logger
                 .error("Tried to index file with no specified URL or file path, ignoring.");
-            return Err(());
+            bail!("Tried to index file with no specified URL or file path, ignoring.");
         };
 
         Ok(FossickedData {

@@ -4,7 +4,7 @@ type: reference
 name: Multisite Search > Pagefind can search across discrete domains
 steps:
   - ref: ./background.toolproof.yml
-  - step: I run "%pagefind_exec_path% --site root/website_a"
+  - macro: I run Pagefind with "--site root/website_a"
   - step: stdout should contain "Running Pagefind"
   - step: The file "root/website_a/pagefind/pagefind.js" should not be empty
   - step: I serve the directory "root"

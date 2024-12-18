@@ -51,7 +51,7 @@ steps:
       <!DOCTYPE html><html lang="en"><head></head><body><div data-pagefind-body>
           <h1 id="repr-heading">My <span data-pagefind-ignore>Redacted</span> Heading about Symbiosis</h1>
       </div></body></html>
-  - step: I run "%pagefind_exec_path%"
+  - macro: I run Pagefind
   - step: stdout should contain "Running Pagefind"
   - step: I serve the directory "public"
   - step: In my browser, I load "/"

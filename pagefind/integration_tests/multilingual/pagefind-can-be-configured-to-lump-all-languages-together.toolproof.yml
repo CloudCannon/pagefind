@@ -12,15 +12,15 @@ steps:
               <p data-result>Nothing</p>
           </body>
       </html>
-  - step: I run "%pagefind_exec_path% --force-language 'en'"
+  - macro: I run Pagefind with "--force-language 'en'"
   - step: stdout should contain "Running Pagefind"
   - step: The file "public/pagefind/pagefind.js" should not be empty
   - step: I run "ls -lh public/pagefind/wasm.unknown.pagefind"
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"
   - step: I run "ls -lh public/pagefind/wasm.en.pagefind"
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"
   - step: I run "ls -lh public/pagefind/wasm.pt-br.pagefind" and expect it to fail
-    notes: 'TODO: Build a file existence check into toolproof'
+    notes: "TODO: Build a file existence check into toolproof"
   - step: I serve the directory "public"
   - step: In my browser, I load "/"
   - step: In my browser, I evaluate {js}

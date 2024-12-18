@@ -1,0 +1,61 @@
+name: Base Tests > Stable Output
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/cat/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body>
+        <h1>Hello world</h1>
+        <p data-pagefind-meta="animal">Cat</p>
+        <p data-pagefind-filter="species">Feline</p>
+        <p data-pagefind-sort="order">1</p>
+      </body></html>
+  - step: I have a "public/dog/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body>
+        <h1>Dog world</h1>
+        <p data-pagefind-meta="animal">Dog</p>
+        <p data-pagefind-filter="species">Canine</p>
+        <p data-pagefind-sort="order">2</p>
+      </body></html>
+  - macro: I run Pagefind
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  # -----------------------------------------
+  # TODO: Stabilise the `pf_meta` file hashes
+  # -----------------------------------------
+  # - I run "ls public/pagefind"
+  # - snapshot: stdout
+  #   snapshot_content: |-
+  #     ╎filter
+  #     ╎fragment
+  #     ╎index
+  #     ╎pagefind-entry.json
+  #     ╎pagefind-highlight.js
+  #     ╎pagefind-modular-ui.css
+  #     ╎pagefind-modular-ui.js
+  #     ╎pagefind-ui.css
+  #     ╎pagefind-ui.js
+  #     ╎pagefind.en_3918d9ab34.pf_meta
+  #     ╎pagefind.js
+  #     ╎wasm.en.pagefind
+  #     ╎wasm.unknown.pagefind
+  # -----------------------------------------
+  # TODO: Stabilise the `pf_meta` file hashes
+  # -----------------------------------------
+  # - I run "ls public/pagefind/filter"
+  # - snapshot: stdout
+  #   snapshot_content: |-
+  #     ╎en_8d32c48.pf_filter
+  # -----------------------------------------
+  # TODO: Stabilise the `pf_meta` file hashes
+  # -----------------------------------------
+  # - I run "ls public/pagefind/index"
+  # - snapshot: stdout
+  #   snapshot_content: |-
+  #     ╎en_b2167ad.pf_index
+  - I run "ls public/pagefind/fragment"
+  - snapshot: stdout
+    snapshot_content: |-
+      ╎en_282213b.pf_fragment
+      ╎en_4375818.pf_fragment
+      ╎en_571daca.pf_fragment
