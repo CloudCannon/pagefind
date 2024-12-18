@@ -9,6 +9,8 @@
 
 ## Unreleased
 
+## v1.3.0 (December 18, 2024)
+
 ### Core Features & Improvements
 * Added `--quiet` and `--silent` flags when running the Pagefind CLI, which reduce the logging output to only warnings or only errors respectively.
 * Stablized the [Pagefind Rust library](https://docs.rs/pagefind/latest/pagefind/).
