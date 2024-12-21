@@ -73,10 +73,10 @@ This example will return all pages with `author` filters associated, where one o
 
 ## Getting the remaining results available for each filter
 
-If all filters have been loaded with `await pagefind.filters()`, counts will also be returned alongside each search, detailing the number of remaining items for each filter value. 
+If all filters have been loaded with `await pagefind.filters()`, counts will also be returned alongside each search, detailing the number of remaining items for each filter value.
 
 ```js
-{ 
+{
     "results": [
         {
             "id": "6fceec9",
@@ -197,4 +197,4 @@ Matches pages that are authored by `Pagefind` with a tag of `Article`, or pages 
 
 ***
 
-To dive deeper into complex filtering, see the [compound_filtering.feature](https://github.com/CloudCannon/pagefind/blob/main/pagefind/features/compound_filtering.feature) test file in Pagefind's GitHub repository.
+To dive deeper into complex filtering, see the [compound_filtering](https://github.com/CloudCannon/pagefind/tree/main/pagefind/integration_tests/compound_filtering) test files in Pagefind's GitHub repository.
