@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Harry Min Khant <https://harrymkt.github.io>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "ရှာရန်",
+        "clear_search": "ရှာဖွေမှုကို ရှင်းလင်းပါ။",
+        "load_more": "နောက်ထပ်ရလဒ်များကို တင်ပါ။",
+        "search_label": "ဤဆိုက်တွင်ရှာဖွေပါ။",
+        "filters_label": "စစ်ထုတ်မှုများ",
+        "zero_results": "[SEARCH_TERM] အတွက် ရလဒ်များ မရှိပါ",
+        "many_results": "[SEARCH_TERM] အတွက် ရလဒ် [COUNT] ခု",
+        "one_result": "[SEARCH_TERM] အတွက် ရလဒ် [COUNT]",
+        "alt_search": "[SEARCH_TERM] အတွက် ရလဒ်မရှိပါ။ ၎င်းအစား [DIFFERENT_TERM] အတွက် ရလဒ်များကို ပြသသည်။",
+        "search_suggestion": "[SEARCH_TERM] အတွက် ရလဒ်မရှိပါ။ အောက်ပါရှာဖွေမှုများထဲမှ တစ်ခုကို စမ်းကြည့်ပါ:",
+        "searching": "[SEARCH_TERM] ကို ရှာဖွေနေသည်..."
+    }
+}
