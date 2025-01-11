@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": true,
+    "target": "esnext",
+    "types": ["svelte"],
+    "strict": true,
+    "lib": ["esnext", "dom"],
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["lib/playground.ts"],
+  "exclude": ["node_modules/**"]
+}
