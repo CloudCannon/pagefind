@@ -36,18 +36,22 @@
         <details>
             <summary>Statistics</summary>
 
-            <dl>
-                <dt>Word count</dt>
-                <dd>{loadedData.word_count}</dd>
-                <dt>Matched words</dt>
-                <dd>{loadedData.locations.length}</dd>
-            </dl>
+            <div class="inner">
+                <dl>
+                    <dt>Word count</dt>
+                    <dd>{loadedData.word_count}</dd>
+                    <dt>Matched words</dt>
+                    <dd>{loadedData.locations.length}</dd>
+                </dl>
+            </div>
         </details>
 
         <details>
             <summary>Excerpt</summary>
 
-            <p>{@html loadedData.excerpt}</p>
+            <div class="inner">
+                <p>{@html loadedData.excerpt}</p>
+            </div>
         </details>
 
         <details>
@@ -56,49 +60,57 @@
                     .length})</summary
             >
 
-            <dl>
-                {#each Object.entries(loadedData.meta) as [metaName, metaValue]}
-                    <dt>{metaName}</dt>
-                    <dd>{metaValue}</dd>
-                {/each}
-            </dl>
+            <div class="inner">
+                <dl>
+                    {#each Object.entries(loadedData.meta) as [metaName, metaValue]}
+                        <dt>{metaName}</dt>
+                        <dd>{metaValue}</dd>
+                    {/each}
+                </dl>
+            </div>
         </details>
 
         <details>
             <summary>Anchors ({loadedData.anchors.length})</summary>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Node</th>
-                        <th>ID attribute</th>
-                        <th>Location</th>
-                        <th>Text</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {#each loadedData.anchors as anchor}
+            <div class="inner">
+                <table>
+                    <thead>
                         <tr>
-                            <td>{anchor.element}</td>
-                            <td>{anchor.id}</td>
-                            <td>{anchor.location}</td>
-                            <td>"{anchor.text}"</td>
+                            <th>Node</th>
+                            <th>ID attribute</th>
+                            <th>Location</th>
+                            <th>Text</th>
                         </tr>
-                    {/each}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {#each loadedData.anchors as anchor}
+                            <tr>
+                                <td>{anchor.element}</td>
+                                <td>{anchor.id}</td>
+                                <td>{anchor.location}</td>
+                                <td>"{anchor.text}"</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
         </details>
 
         <details>
             <summary>Raw Result JSON</summary>
 
-            <pre><code>{JSON.stringify(result, null, 2)}</code></pre>
+            <div class="inner">
+                <pre><code>{JSON.stringify(result, null, 2)}</code></pre>
+            </div>
         </details>
 
         <details>
             <summary>Raw Data JSON</summary>
 
-            <pre><code>{JSON.stringify(loadedData, null, 2)}</code></pre>
+            <div class="inner">
+                <pre><code>{JSON.stringify(loadedData, null, 2)}</code></pre>
+            </div>
         </details>
     {/if}
 </li>
@@ -127,7 +139,16 @@
         content: " [+]";
     }
 
+    .inner {
+        max-width: 100%;
+        overflow-x: scroll;
+    }
+
     details[open] {
+        border-color: var(--hl);
+    }
+
+    details:has(summary:hover) {
         border-color: var(--hl);
     }
 

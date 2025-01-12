@@ -1,9 +1,11 @@
 <script lang="ts">
     // Directly import our search API from a layer behind the public API
     import { Pagefind } from "../../pagefind_web_js/lib/coupled_search";
+    import { pagefindRankingDefaults } from "./defaults";
     import Search from "./panels/Search.svelte";
     import TopBar from "./panels/TopBar.svelte";
     import RankingSettings from "./panels/RankingSettings.svelte";
+    import RankingPresets from "./panels/RankingPresets.svelte";
     import Results from "./panels/Results.svelte";
 
     import { onMount } from "svelte";
@@ -15,12 +17,9 @@
     let currentTerm: string = $state("");
     let debounceSearches: number = $state(50);
 
-    let rankingSettings: Record<string, number> = $state({
-        termSimilarity: 1.0,
-        pageLength: 0.75,
-        termSaturation: 1.4,
-        termFrequency: 1.0,
-    });
+    let rankingSettings: Record<string, number> = $state(
+        pagefindRankingDefaults,
+    );
 
     const kickoff = async () => {
         pagefind = new Pagefind({
@@ -56,32 +55,48 @@
         }
     };
 
+    const updateSettings = async (target: Record<string, number>) => {
+        if (pagefind) {
+            rankingSettings = target;
+            await pagefind.options({
+                ranking: rankingSettings,
+            });
+            runSearch(currentTerm);
+        }
+    };
+
     onMount(() => {
         kickoff();
     });
 </script>
 
-<h1>Pagefind Playground</h1>
+<h1 style="grid-area: eyebrow;">Pagefind Playground</h1>
 
-<details open class="panel top-bar">
+<details open class="panel" style="grid-area: top-bar;">
     <summary>Details</summary>
 
     <TopBar {pagefindVersion} bind:debounceSearches />
 </details>
 
-<details open class="panel search">
+<details open class="panel" style="grid-area: search;">
     <summary>Search</summary>
 
     <Search {runSearch} />
 </details>
 
-<details open class="panel top-bar">
+<details open class="panel" style="grid-area: ranking-settings;">
     <summary>Ranking Settings</summary>
 
     <RankingSettings settings={rankingSettings} {updateSetting} />
 </details>
 
-<details open class="panel results">
+<details open class="panel" style="grid-area: ranking-presets;">
+    <summary>Ranking Presets</summary>
+
+    <RankingPresets settings={rankingSettings} {updateSettings} />
+</details>
+
+<details open class="panel" style="grid-area: results;">
     <summary>Results</summary>
 
     <Results {results} />
@@ -110,16 +125,31 @@
         color: var(--fg);
         font-size: var(--fz);
     }
-    :global(.playground) {
+    :global(#playground) {
         width: 100%;
         height: 100%;
         display: grid;
         grid-template-areas:
+            "eyebrow eyebrow"
             "top-bar top-bar"
             "search search"
+            "ranking-settings ranking-presets"
             "results results";
         grid-template-rows: auto 1fr auto;
-        grid-template-columns: 200px 1fr;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 940px) {
+        :global(#playground) {
+            grid-template-areas:
+                "eyebrow"
+                "top-bar"
+                "search"
+                "ranking-settings"
+                "ranking-presets"
+                "results";
+            grid-template-columns: 1fr;
+        }
     }
 
     h1 {
@@ -135,6 +165,12 @@
         margin-top: -1px;
         margin-left: -1px;
         position: relative;
+        container-type: inline-size;
+    }
+
+    .panel:has(summary:hover) {
+        border-color: var(--hl);
+        z-index: 9;
     }
 
     .panel[open] {
@@ -142,6 +178,7 @@
     }
 
     .panel summary {
+        z-index: 99;
         position: absolute;
         top: 0;
         left: 4px;
@@ -160,15 +197,5 @@
 
     .panel[open] summary::after {
         content: " [-]";
-    }
-
-    .top-bar {
-        grid-area: top-bar;
-    }
-    .search {
-        grid-area: search;
-    }
-    .results {
-        grid-area: results;
     }
 </style>

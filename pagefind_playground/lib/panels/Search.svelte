@@ -29,16 +29,14 @@
     }
 
     input {
+        box-sizing: border-box;
         color: var(--fg);
         border: solid 1px var(--fg);
         background-color: var(--bg);
-        padding: 6px;
+        padding: 0 6px;
+        height: 36px;
         width: 100%;
         font-size: 16px;
-    }
-    input:focus {
-        border-color: var(--hl);
-        outline: none;
     }
     input::placeholder {
         color: var(--fg);
