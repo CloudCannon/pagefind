@@ -1,5 +1,11 @@
 <script lang="ts">
-    let { runSearch } = $props();
+    let { runSearch }: { runSearch: (term: string) => void } = $props();
+
+    const handleInput = async (e: Event) => {
+        if (e.target instanceof HTMLInputElement) {
+            runSearch(e.target.value);
+        }
+    };
 </script>
 
 <label for="#search">Search</label>
@@ -7,7 +13,7 @@
     type="search"
     id="search"
     placeholder="Search term..."
-    oninput={runSearch}
+    oninput={handleInput}
 />
 
 <style>

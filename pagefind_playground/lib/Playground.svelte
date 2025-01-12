@@ -3,6 +3,7 @@
     import { Pagefind } from "../../pagefind_web_js/lib/coupled_search";
     import Search from "./panels/Search.svelte";
     import TopBar from "./panels/TopBar.svelte";
+    import RankingSettings from "./panels/RankingSettings.svelte";
     import Results from "./panels/Results.svelte";
 
     import { onMount } from "svelte";
@@ -11,6 +12,15 @@
 
     let pagefind: Pagefind | null = $state(null);
     let results: any[] = $state([]);
+    let currentTerm: string = $state("");
+    let debounceSearches: number = $state(50);
+
+    let rankingSettings: Record<string, number> = $state({
+        termSimilarity: 1.0,
+        pageLength: 0.75,
+        termSaturation: 1.4,
+        termFrequency: 1.0,
+    });
 
     const kickoff = async () => {
         pagefind = new Pagefind({
@@ -21,15 +31,28 @@
         console.log(pagefind);
     };
 
-    const runSearch = async (e: Event) => {
-        if (pagefind && e.target instanceof HTMLInputElement) {
-            const searchResp = await pagefind.debouncedSearch(e.target.value);
+    const runSearch = async (term: string) => {
+        currentTerm = term;
+        if (pagefind) {
+            const searchResp = await pagefind.debouncedSearch(
+                term,
+                null,
+                debounceSearches,
+            );
             if (searchResp) {
                 console.log(searchResp);
-                results = await Promise.all(
-                    searchResp.results.map((r) => r.data()),
-                );
+                results = searchResp.results;
             }
+        }
+    };
+
+    const updateSetting = async (name: string, target: number) => {
+        if (pagefind) {
+            rankingSettings[name] = target;
+            await pagefind.options({
+                ranking: rankingSettings,
+            });
+            runSearch(currentTerm);
         }
     };
 
@@ -43,13 +66,19 @@
 <details open class="panel top-bar">
     <summary>Details</summary>
 
-    <TopBar {pagefindVersion} />
+    <TopBar {pagefindVersion} bind:debounceSearches />
 </details>
 
 <details open class="panel search">
     <summary>Search</summary>
 
     <Search {runSearch} />
+</details>
+
+<details open class="panel top-bar">
+    <summary>Ranking Settings</summary>
+
+    <RankingSettings settings={rankingSettings} {updateSetting} />
 </details>
 
 <details open class="panel results">
@@ -109,7 +138,7 @@
     }
 
     .panel[open] {
-        padding: 16px 8px;
+        padding: 24px 16px;
     }
 
     .panel summary {
