@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use super::SearchIndex;
 use crate::util::*;
@@ -36,7 +36,7 @@ impl SearchIndex {
         let values = consume_arr_len!(decoder);
 
         debug!({ format!("Reading {:#?} values", values) });
-        let mut value_map = HashMap::new();
+        let mut value_map = BTreeMap::new();
         for _ in 0..values {
             consume_fixed_arr!(decoder);
             let value = consume_string!(decoder);
@@ -82,7 +82,7 @@ impl SearchIndex {
                     debug!({
                         format! {"No map found for {}, adding one.", filter_name}
                     });
-                    let filter_map = HashMap::new();
+                    let filter_map = BTreeMap::new();
                     self.filters.insert(filter_name.to_string(), filter_map);
                 }
 

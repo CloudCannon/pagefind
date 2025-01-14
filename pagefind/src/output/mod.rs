@@ -58,7 +58,7 @@ const WEB_MODULAR_UI_CSS: &[u8] = include_bytes!(concat!(
 ));
 const SEARCH_JS: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/vendor/pagefind_coupled_search.",
+    "/vendor/pagefind_public_search_api.",
     env!("CARGO_PKG_VERSION"),
     ".js"
 ));
@@ -76,10 +76,7 @@ pub struct LanguageMeta {
     pub wasm: Option<String>,
 }
 
-pub async fn write_common_to_disk(
-    language_indexes: Vec<LanguageMeta>,
-    outdir: &PathBuf,
-) {
+pub async fn write_common_to_disk(language_indexes: Vec<LanguageMeta>, outdir: &PathBuf) {
     write_common(language_indexes, outdir, false).await;
 }
 
@@ -87,9 +84,7 @@ pub async fn write_common_to_memory(
     language_indexes: Vec<LanguageMeta>,
     outdir: &PathBuf,
 ) -> Vec<SyntheticFile> {
-    write_common(language_indexes, outdir, true)
-        .await
-        .unwrap()
+    write_common(language_indexes, outdir, true).await.unwrap()
 }
 
 async fn write_common(

@@ -409,28 +409,6 @@ export class PagefindInstance {
     return this.raw_ptr;
   }
 
-  parseFilters(str: string) {
-    let output: PagefindFilterCounts = {};
-    if (!str) return output;
-    for (const block of str.split("__PF_FILTER_DELIM__")) {
-      let [filter, values] = block.split(/:(.*)$/);
-      output[filter] = {};
-      if (values) {
-        for (const valueBlock of values.split("__PF_VALUE_DELIM__")) {
-          if (valueBlock) {
-            let extract = valueBlock.match(/^(.*):(\d+)$/);
-            if (extract) {
-              let [, value, count] = extract;
-              output[filter][value] = parseInt(count) ?? count;
-            }
-          }
-        }
-      }
-    }
-
-    return output;
-  }
-
   stringifyFilters(obj = {}) {
     return JSON.stringify(obj);
   }
@@ -460,17 +438,19 @@ export class PagefindInstance {
     let ptr = await this.getPtr();
 
     let filters = this.backend.request_all_filter_indexes(ptr) as string;
-    let filter_chunks = filters
-      .split(" ")
-      .filter((v) => v)
-      .map((chunk) => this.loadFilterChunk(chunk));
-    await Promise.all([...filter_chunks]);
+    let filter_array = JSON.parse(filters);
+    if (Array.isArray(filter_array)) {
+      let filter_chunks = filter_array
+        .filter((v) => v)
+        .map((chunk) => this.loadFilterChunk(chunk));
+      await Promise.all([...filter_chunks]);
+    }
 
     // pointer may have updated from the loadChunk calls
     ptr = await this.getPtr();
 
-    let results = this.backend.filters(ptr);
-    return this.parseFilters(results);
+    let results = this.backend.filters(ptr) as string;
+    return JSON.parse(results) as PagefindFilterCounts;
   }
 
   async preload(term: string, options: PagefindSearchOptions = {}) {
@@ -533,17 +513,17 @@ export class PagefindInstance {
     log(`Stringified filters to ${filter_list}`);
 
     let index_resp = this.backend.request_indexes(ptr, term) as string;
+    let index_array: string[] = JSON.parse(index_resp);
     let filter_resp = this.backend.request_filter_indexes(
       ptr,
       filter_list,
     ) as string;
+    let filter_array: string[] = JSON.parse(filter_resp);
 
-    let chunks = index_resp
-      .split(" ")
+    let chunks = index_array
       .filter((v) => v)
       .map((chunk) => this.loadChunk(chunk));
-    let filter_chunks = filter_resp
-      .split(" ")
+    let filter_chunks = filter_array
       .filter((v) => v)
       .map((chunk) => this.loadFilterChunk(chunk));
     await Promise.all([...chunks, ...filter_chunks]);
@@ -565,35 +545,29 @@ export class PagefindInstance {
       exact_search,
     ) as string;
     log(`Got the raw search result: ${result}`);
-    let [unfilteredResultCount, all_results, filters, totalFilters] =
-      result.split(/:([^:]*):(.*)__PF_UNFILTERED_DELIM__(.*)$/);
-    let filterObj = this.parseFilters(filters);
-    let totalFilterObj = this.parseFilters(totalFilters);
-    log(`Remaining filters: ${JSON.stringify(result)}`);
-    let results = all_results.length ? all_results.split(" ") : [];
+
+    let {
+      filtered_counts,
+      total_counts,
+      results,
+      unfiltered_total,
+    }: internal.PagefindSearchResponse = JSON.parse(result);
 
     let resultsInterface = results.map((result) => {
-      let [hash, score, all_locations] = result.split("@");
-      log(
-        `Processing result: \n  hash:${hash}\n  score:${score}\n  locations:${all_locations}`,
-      );
-      let weighted_locations = all_locations.length
-        ? all_locations.split(",").map((l) => {
-            let [weight, balanced_score, location] = l.split(">");
-            return {
-              weight: parseInt(weight) / 24.0,
-              balanced_score: parseFloat(balanced_score),
-              location: parseInt(location),
-            };
-          })
-        : [];
+      let weighted_locations = result.l.map((l) => {
+        return {
+          weight: l.w / 24.0,
+          balanced_score: l.s,
+          location: l.l,
+        };
+      });
       let locations = weighted_locations.map((l) => l.location);
       return {
-        id: hash,
-        score: parseFloat(score) * this.indexWeight,
+        id: result.p,
+        score: result.s * this.indexWeight,
         words: locations,
         data: async () =>
-          await this.loadFragment(hash, weighted_locations, term),
+          await this.loadFragment(result.p, weighted_locations, term),
       };
     });
 
@@ -605,9 +579,9 @@ export class PagefindInstance {
     );
     return {
       results: resultsInterface,
-      unfilteredResultCount: parseInt(unfilteredResultCount),
-      filters: filterObj,
-      totalFilters: totalFilterObj,
+      unfilteredResultCount: unfiltered_total,
+      filters: filtered_counts,
+      totalFilters: total_counts,
       timings: {
         preload: realTime - searchTime,
         search: searchTime,

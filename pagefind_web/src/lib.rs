@@ -1,6 +1,6 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use pagefind_microjson::JSONValue;
 use util::*;
@@ -39,7 +39,7 @@ pub struct SearchIndex {
     chunks: Vec<IndexChunk>,
     filter_chunks: HashMap<String, String>,
     words: HashMap<String, Vec<PageWord>>,
-    filters: HashMap<String, HashMap<String, Vec<u32>>>,
+    filters: BTreeMap<String, BTreeMap<String, Vec<u32>>>,
     sorts: HashMap<String, Vec<u32>>,
     ranking_weights: RankingWeights,
 }
@@ -108,7 +108,7 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
         chunks: Vec::new(),
         filter_chunks: HashMap::new(),
         words: HashMap::new(),
-        filters: HashMap::new(),
+        filters: BTreeMap::new(),
         sorts: HashMap::new(),
         ranking_weights: RankingWeights::default(),
     };
@@ -205,17 +205,26 @@ pub fn add_synthetic_filter(ptr: *mut SearchIndex, filter: &str) -> *mut SearchI
 
 #[wasm_bindgen]
 pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
-    let indexes = try_request_indexes(ptr, query, false);
+    let mut indexes = try_request_indexes(ptr, query, false);
     if indexes.is_empty() && !query.trim().is_empty() {
         debug!({
             "No index chunks found with strict boundaries. Loading all possible extension chunks."
         });
-        return try_request_indexes(ptr, query, true);
+        indexes = try_request_indexes(ptr, query, true);
     }
-    indexes
+
+    let mut output = String::new();
+    {
+        let mut arr = write_json::array(&mut output);
+        indexes.into_iter().for_each(|i| {
+            arr.string(&i);
+        });
+    }
+
+    output
 }
 
-fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bool) -> String {
+fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bool) -> Vec<String> {
     debug!({
         format! {"Finding the index chunks needed for {:?}", query}
     });
@@ -253,7 +262,8 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
-    indexes.join(" ")
+
+    indexes
 }
 
 #[wasm_bindgen]
@@ -263,7 +273,15 @@ pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
-    indexes.join(" ")
+    let mut output = String::new();
+    {
+        let mut arr = write_json::array(&mut output);
+        indexes.into_iter().for_each(|i| {
+            arr.string(&i);
+        });
+    }
+
+    output
 }
 
 #[wasm_bindgen]
@@ -280,7 +298,15 @@ pub fn request_all_filter_indexes(ptr: *mut SearchIndex) -> String {
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
-    indexes.join(" ")
+    let mut output = String::new();
+    {
+        let mut arr = write_json::array(&mut output);
+        indexes.into_iter().for_each(|i| {
+            arr.string(&i);
+        });
+    }
+
+    output
 }
 
 #[wasm_bindgen]
@@ -289,92 +315,108 @@ pub fn filters(ptr: *mut SearchIndex) -> String {
 
     let search_index = unsafe { Box::from_raw(ptr) };
 
-    let results = search_index.get_filters(None);
+    let mut output = String::new();
+    {
+        let mut obj = write_json::object(&mut output);
+        search_index.get_filters(&mut obj, None);
+    }
 
     let _ = Box::into_raw(search_index);
-    results
+    output
 }
 
 #[wasm_bindgen]
 pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exact: bool) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
+    let mut output = String::new();
+    {
+        let mut output_obj = write_json::object(&mut output);
 
-    if let Some(generator_version) = search_index.generator_version.as_ref() {
-        if generator_version != search_index.web_version {
-            // TODO: Return this as a warning alongside a search result if possible
-            // let _ = Box::into_raw(search_index);
-            // return "ERROR: Version mismatch".into();
+        if let Some(generator_version) = search_index.generator_version.as_ref() {
+            if generator_version != search_index.web_version {
+                // TODO: Return this as a warning alongside a search result if possible
+                // let _ = Box::into_raw(search_index);
+                // return "ERROR: Version mismatch".into();
+            }
         }
-    }
 
-    let filter_set = search_index.filter(filter);
-    let (unfiltered_results, mut results) = if exact {
-        search_index.exact_term(query, filter_set)
-    } else {
-        search_index.search_term(query, filter_set)
-    };
-    let unfiltered_total = unfiltered_results.len();
-    debug!({ format!("Raw total of {} results", unfiltered_total) });
-    debug!({ format!("Filtered total of {} results", query.len()) });
+        let filter_set = search_index.filter(filter);
+        let (unfiltered_results, mut results) = if exact {
+            search_index.exact_term(query, filter_set)
+        } else {
+            search_index.search_term(query, filter_set)
+        };
+        let unfiltered_total = unfiltered_results.len();
+        debug!({ format!("Raw total of {} results", unfiltered_total) });
+        debug!({ format!("Filtered total of {} results", query.len()) });
 
-    let filter_string =
-        search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
-    let unfiltered_string = search_index.get_filters(Some(unfiltered_results));
+        {
+            let mut filter_obj = output_obj.object("filtered_counts");
+            search_index.get_filters(
+                &mut filter_obj,
+                Some(results.iter().map(|r| r.page_index).collect()),
+            );
+        }
+        {
+            let mut unfilter_obj = output_obj.object("total_counts");
+            search_index.get_filters(&mut unfilter_obj, Some(unfiltered_results));
+        }
 
-    if let Some((sort, direction)) = sort.split_once(':') {
-        debug!({ format!("Trying to sort by {sort} ({direction})") });
-        if let Some(sorted_pages) = search_index.sorts.get(sort) {
-            debug!({ format!("Found {} pages sorted by {sort}", sorted_pages.len()) });
-            results.retain(|result| sorted_pages.contains(&(result.page_index as u32)));
+        if let Some((sort, direction)) = sort.split_once(':') {
+            debug!({ format!("Trying to sort by {sort} ({direction})") });
+            if let Some(sorted_pages) = search_index.sorts.get(sort) {
+                debug!({ format!("Found {} pages sorted by {sort}", sorted_pages.len()) });
+                results.retain(|result| sorted_pages.contains(&(result.page_index as u32)));
 
-            for result in results.iter_mut() {
-                result.page_score = sorted_pages
-                    .iter()
-                    .position(|p| p == &(result.page_index as u32))
-                    .expect("Sorted pages should contain all remaining results")
-                    as f32;
-                if direction == "asc" {
-                    result.page_score = 0.0 - result.page_score;
+                for result in results.iter_mut() {
+                    result.page_score = sorted_pages
+                        .iter()
+                        .position(|p| p == &(result.page_index as u32))
+                        .expect("Sorted pages should contain all remaining results")
+                        as f32;
+                    if direction == "asc" {
+                        result.page_score = 0.0 - result.page_score;
+                    }
                 }
             }
         }
-    }
 
-    debug!({ "Building the result string" });
-    let result_string = results
-        .into_iter()
-        .map(|result| {
-            format!(
-                "{}@{}@{}",
-                &result.page,
-                result.page_score,
-                result
-                    .word_locations
-                    .iter()
-                    .map(
-                        |BalancedWordScore {
-                             weight,
-                             balanced_score,
-                             word_location,
-                         }| format!(
-                            "{weight}>{balanced_score}>{word_location}"
-                        )
-                    )
-                    .collect::<Vec<String>>()
-                    .join(",")
-            )
-        })
-        .collect::<Vec<String>>()
-        .join(" ");
+        {
+            debug!({ "Building the result string" });
+            let mut arr = output_obj.array("results");
+
+            for result in results {
+                let mut page_obj = arr.object();
+                page_obj
+                    .string("p", &result.page)
+                    .number("s", result.page_score as f64);
+                {
+                    let mut locs_arr = page_obj.array("l");
+
+                    for BalancedWordScore {
+                        weight,
+                        balanced_score,
+                        word_location,
+                    } in result.word_locations
+                    {
+                        locs_arr
+                            .object()
+                            .number("w", weight as f64)
+                            .number("s", balanced_score as f64)
+                            .number("l", word_location as f64);
+                    }
+                }
+            }
+        }
+
+        output_obj.number("unfiltered_total", unfiltered_total as f64);
+    }
 
     debug!({ "Boxing and returning the result" });
     let _ = Box::into_raw(search_index);
 
     #[cfg(debug_assertions)]
-    debug_log(&format! {"{:?}", result_string});
+    debug_log(&format! {"{:?}", output});
 
-    format!(
-        "{}:{}:{}__PF_UNFILTERED_DELIM__{}",
-        unfiltered_total, result_string, filter_string, unfiltered_string
-    )
+    output
 }
