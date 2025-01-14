@@ -3,6 +3,9 @@ name = "pagefind_web"
 version = "0.0.0"
 edition = "2021"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Oz']
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 

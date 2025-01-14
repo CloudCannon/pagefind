@@ -1,7 +1,7 @@
 use std::{
     borrow::Cow,
     cmp::Ordering,
-    collections::HashMap,
+    collections::BTreeMap,
     ops::{Add, AddAssign, Div},
 };
 
@@ -145,8 +145,13 @@ impl SearchIndex {
         }
 
         if !maps.is_empty() {
-            maps = vec![intersect_maps(maps).expect("some search results should exist here")];
-            unfiltered_results.extend(maps[0].iter());
+            let map = match intersect_maps(maps) {
+                Some(maps) => maps,
+                // Results must exist at this point.
+                None => std::process::abort(),
+            };
+            unfiltered_results.extend(map.iter());
+            maps = vec![map];
         }
 
         if let Some(filter) = filter_results {
@@ -175,17 +180,21 @@ impl SearchIndex {
                 format! {"Word locations {:?}", word_locations}
             });
 
-            if word_locations.len() > 1 {
-                'indexes: for (_, pos) in &word_locations[0] {
+            if let (Some(loc_0), Some(loc_rest)) = (word_locations.get(0), word_locations.get(1..))
+            {
+                'indexes: for (_, pos) in loc_0 {
                     let mut i = *pos;
-                    for subsequent in &word_locations[1..] {
+                    for subsequent in loc_rest {
                         i += 1;
                         // Test each subsequent word map to try and find a contiguous block
                         if !subsequent.iter().any(|(_, p)| *p == i) {
                             continue 'indexes;
                         }
                     }
-                    let page = &self.pages[page_index];
+                    let page = match self.pages.get(page_index) {
+                        Some(p) => p,
+                        None => std::process::abort(),
+                    };
                     let search_result = PageSearchResult {
                         page: page.hash.clone(),
                         page_index,
@@ -201,21 +210,26 @@ impl SearchIndex {
                     break 'indexes;
                 }
             } else {
-                let page = &self.pages[page_index];
-                let search_result = PageSearchResult {
-                    page: page.hash.clone(),
-                    page_index,
-                    page_score: 1.0,
-                    word_locations: word_locations[0]
-                        .iter()
-                        .map(|(weight, word_location)| BalancedWordScore {
-                            weight: *weight,
-                            balanced_score: *weight as f32,
-                            word_location: *word_location,
-                        })
-                        .collect(),
+                let page = match self.pages.get(page_index) {
+                    Some(p) => p,
+                    None => std::process::abort(),
                 };
-                pages.push(search_result);
+                if let Some(loc_0) = word_locations.get(0) {
+                    let search_result = PageSearchResult {
+                        page: page.hash.clone(),
+                        page_index,
+                        page_score: 1.0,
+                        word_locations: loc_0
+                            .iter()
+                            .map(|(weight, word_location)| BalancedWordScore {
+                                weight: *weight,
+                                balanced_score: *weight as f32,
+                                word_location: *word_location,
+                            })
+                            .collect(),
+                    };
+                    pages.push(search_result);
+                }
             }
         }
 
@@ -271,8 +285,13 @@ impl SearchIndex {
         }
 
         if !maps.is_empty() {
-            maps = vec![intersect_maps(maps).expect("some search results should exist here")];
-            unfiltered_results.extend(maps[0].iter());
+            let map = match intersect_maps(maps) {
+                Some(maps) => maps,
+                // Results must exist at this point.
+                None => std::process::abort(),
+            };
+            unfiltered_results.extend(map.iter());
+            maps = vec![map];
         }
 
         if let Some(filter) = filter_results {
@@ -292,9 +311,10 @@ impl SearchIndex {
 
         let mut pages: Vec<PageSearchResult> = vec![];
 
-        for page_index in results.iter() {
-            let page = &self.pages[page_index];
-
+        for (page_index, page) in results
+            .iter()
+            .flat_map(|p| self.pages.get(p).map(|page| (p, page)))
+        {
             let mut word_locations: Vec<_> = words
                 .iter()
                 .filter_map(|w| {
@@ -325,10 +345,9 @@ impl SearchIndex {
 
             let mut unique_word_locations: Vec<BalancedWordScore> =
                 Vec::with_capacity(word_locations.len());
-            let mut weighted_words: HashMap<&str, usize> = HashMap::with_capacity(words.len());
+            let mut weighted_words: BTreeMap<&str, usize> = BTreeMap::new();
 
-            if !word_locations.is_empty() {
-                let mut working_word = word_locations[0].clone();
+            if let Some(mut working_word) = word_locations.get(0).cloned() {
                 for next_word in word_locations.into_iter().skip(1) {
                     // If we're matching the same position again (this Vec is in location order)
                     if working_word.word_location == next_word.word_location {

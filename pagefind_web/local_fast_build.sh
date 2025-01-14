@@ -21,7 +21,7 @@ mkdir -p ../pagefind/vendor/wasm
 if [ "$1" = "debug" ]; then
     wasm-pack build --dev -t no-modules
 else
-    wasm-pack build --release -t no-modules 
+    wasm-pack build --release -t no-modules
 fi
 node build.js
 mv pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$WASM_VERSION.js

@@ -1,6 +1,6 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use pagefind_microjson::JSONValue;
 use util::*;
@@ -37,10 +37,10 @@ pub struct SearchIndex {
     pages: Vec<Page>,
     average_page_length: f32,
     chunks: Vec<IndexChunk>,
-    filter_chunks: HashMap<String, String>,
-    words: HashMap<String, Vec<PageWord>>,
+    filter_chunks: BTreeMap<String, String>,
+    words: BTreeMap<String, Vec<PageWord>>,
     filters: BTreeMap<String, BTreeMap<String, Vec<u32>>>,
-    sorts: HashMap<String, Vec<u32>>,
+    sorts: BTreeMap<String, Vec<u32>>,
     ranking_weights: RankingWeights,
 }
 
@@ -106,10 +106,10 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
         pages: Vec::new(),
         average_page_length: 0.0,
         chunks: Vec::new(),
-        filter_chunks: HashMap::new(),
-        words: HashMap::new(),
+        filter_chunks: BTreeMap::new(),
+        words: BTreeMap::new(),
         filters: BTreeMap::new(),
-        sorts: HashMap::new(),
+        sorts: BTreeMap::new(),
         ranking_weights: RankingWeights::default(),
     };
 
@@ -241,8 +241,19 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
                 let from_length = term.len().min(chunk.from.len());
                 let to_length = term.len().min(chunk.to.len());
 
-                term[0..from_length] >= chunk.from[0..from_length]
-                    && term[0..to_length] <= chunk.to[0..to_length]
+                let (Some(term_pre), Some(chunk_pre)) =
+                    (term.get(0..from_length), chunk.from.get(0..from_length))
+                else {
+                    return false;
+                };
+
+                let (Some(term_post), Some(chunk_post)) =
+                    (term.get(0..to_length), chunk.to.get(0..to_length))
+                else {
+                    return false;
+                };
+
+                term_pre >= chunk_pre && term_post <= chunk_post
             } else {
                 term >= &chunk.from && term <= &chunk.to
             }
