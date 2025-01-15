@@ -29,6 +29,14 @@ jobs:
             target
           key: ${{ runner.os }}-stable-min165
 
+      - name: Install Nightly Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          default: true
+          components: rustfmt, clippy
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:

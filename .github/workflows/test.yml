@@ -23,17 +23,14 @@ jobs:
         include:
           - build: linux
             os: ubuntu-latest
-            rust: beta
             target: x86_64-unknown-linux-musl
             cross: false
           - build: macos
             os: macos-latest
-            rust: beta
             target: x86_64-apple-darwin
             cross: false
           - build: windows
             os: windows-latest
-            rust: beta
             target: x86_64-pc-windows-msvc
             cross: false
     steps:
@@ -50,16 +47,25 @@ jobs:
             ~/.cargo/git
             ~/.rustup
             target
-          key: ${{ runner.os }}-${{ matrix.rust }}-min165
+          key: ${{ runner.os }}-min165
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      - name: Install Nightly Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: ${{ matrix.target }}
+          override: true
+          default: true
+          components: rustfmt, clippy
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: beta
           target: ${{ matrix.target }}
           override: true
           default: true

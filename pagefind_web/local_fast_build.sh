@@ -21,7 +21,7 @@ mkdir -p ../pagefind/vendor/wasm
 if [ "$1" = "debug" ]; then
     wasm-pack build --dev -t no-modules
 else
-    wasm-pack build --release -t no-modules
+    RUSTUP_TOOLCHAIN=nightly wasm-pack build --release -t no-modules --manifest-path ./Cargo.toml -Z build-std=panic_abort,std -Z build-std-features=panic_immediate_abort
 fi
 node build.js
 mv pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$WASM_VERSION.js
@@ -35,7 +35,7 @@ gzip --best ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
 if [ "$1" = "debug" ]; then
     wasm-pack build --dev -t no-modules --features en
 else
-    wasm-pack build --release -t no-modules --features en
+    RUSTUP_TOOLCHAIN=nightly wasm-pack build --release -t no-modules --features en --manifest-path ./Cargo.toml -Z build-std=panic_abort,std -Z build-std-features=panic_immediate_abort
 fi
 
 # Append pagefind_dcd to the decompressed wasm as a magic word read by the frontend
