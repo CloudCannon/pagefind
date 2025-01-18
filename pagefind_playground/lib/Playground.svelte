@@ -1,20 +1,24 @@
 <script lang="ts">
     // Directly import our search API from a layer behind the public API
     import { Pagefind } from "../../pagefind_web_js/lib/coupled_search";
+    import "../../pagefind_web_js/types/index.d.ts";
     import { pagefindRankingDefaults } from "./defaults";
     import Search from "./panels/Search.svelte";
     import TopBar from "./panels/TopBar.svelte";
     import RankingSettings from "./panels/RankingSettings.svelte";
     import RankingPresets from "./panels/RankingPresets.svelte";
     import Results from "./panels/Results.svelte";
+    import PinnedResults from "./panels/PinnedResults.svelte";
 
     import { onMount } from "svelte";
 
     let { pagefindVersion }: { pagefindVersion: string } = $props();
 
     let pagefind: Pagefind | null = $state(null);
-    let results: any[] = $state([]);
+    let results: PagefindSearchResult[] = $state([]);
+    let pinnedResults: PinnedPagefindSearchResult[] = $state([]);
     let currentTerm: string = $state("");
+    let searchKeywords: string[] = $state([]);
     let debounceSearches: number = $state(50);
 
     let rankingSettings: Record<string, number> = $state(
@@ -26,8 +30,7 @@
             // NB: This assumed we are always loaded at `/{pagefind_index}/playground/`
             basePath: "../",
         });
-
-        console.log(pagefind);
+        await pagefind.enterPlaygroundMode();
     };
 
     const runSearch = async (term: string) => {
@@ -35,12 +38,13 @@
         if (pagefind) {
             const searchResp = await pagefind.debouncedSearch(
                 term,
-                null,
+                undefined,
                 debounceSearches,
             );
             if (searchResp) {
-                console.log(searchResp);
                 results = searchResp.results;
+                searchKeywords = searchResp.search_keywords ?? [];
+                updateResultPins(searchResp.results);
             }
         }
     };
@@ -65,6 +69,35 @@
         }
     };
 
+    const toggleResultPin = (
+        position: number,
+        result: PagefindSearchResult,
+    ) => {
+        const existingResult = pinnedResults.findIndex(
+            (r) => r.last_result.id === result.id,
+        );
+        if (existingResult === -1) {
+            pinnedResults.push({
+                position,
+                last_result: result,
+            });
+        } else {
+            delete pinnedResults[existingResult];
+        }
+    };
+
+    const updateResultPins = (results: PagefindSearchResult[]) => {
+        for (const pinnedResult of pinnedResults) {
+            const newResult = results.findIndex(
+                (r) => r.id === pinnedResult.last_result.id,
+            );
+            pinnedResult.position = newResult;
+            if (newResult >= 0) {
+                pinnedResult.last_result = results[newResult];
+            }
+        }
+    };
+
     onMount(() => {
         kickoff();
     });
@@ -81,7 +114,7 @@
 <details open class="panel" style="grid-area: search;">
     <summary>Search</summary>
 
-    <Search {runSearch} />
+    <Search {runSearch} {searchKeywords} />
 </details>
 
 <details open class="panel" style="grid-area: ranking-settings;">
@@ -96,10 +129,16 @@
     <RankingPresets settings={rankingSettings} {updateSettings} />
 </details>
 
+<details open class="panel" style="grid-area: pinned-results;">
+    <summary>Pinned Results</summary>
+
+    <PinnedResults {pinnedResults} {toggleResultPin} />
+</details>
+
 <details open class="panel" style="grid-area: results;">
     <summary>Results</summary>
 
-    <Results {results} />
+    <Results {results} {pinnedResults} {toggleResultPin} />
 </details>
 
 <style>
@@ -134,6 +173,7 @@
             "top-bar top-bar"
             "search search"
             "ranking-settings ranking-presets"
+            "pinned-results pinned-results"
             "results results";
         grid-template-rows: auto 1fr auto;
         grid-template-columns: 1fr 1fr;
@@ -147,6 +187,7 @@
                 "search"
                 "ranking-settings"
                 "ranking-presets"
+                "pinned-results"
                 "results";
             grid-template-columns: 1fr;
         }

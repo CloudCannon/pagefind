@@ -1,5 +1,9 @@
 <script lang="ts">
-    let { runSearch }: { runSearch: (term: string) => void } = $props();
+    let {
+        runSearch,
+        searchKeywords,
+    }: { runSearch: (term: string) => void; searchKeywords: string[] } =
+        $props();
 
     const handleInput = async (e: Event) => {
         if (e.target instanceof HTMLInputElement) {
@@ -15,6 +19,13 @@
     placeholder="Search term..."
     oninput={handleInput}
 />
+
+<p>
+    {#if searchKeywords.length}Stemmed search keywords: <code class="kw"
+            >{searchKeywords.join(", ")}</code
+        >{/if}
+    &nbsp;
+</p>
 
 <style>
     label {
@@ -41,5 +52,13 @@
     input::placeholder {
         color: var(--fg);
         opacity: 0.5;
+    }
+
+    p {
+        margin: 8px 0 0 0;
+    }
+
+    .kw {
+        color: var(--hl);
     }
 </style>

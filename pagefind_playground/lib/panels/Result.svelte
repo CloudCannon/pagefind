@@ -1,12 +1,50 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { extract_words } from "../../../pagefind_web_js/lib/excerpt";
 
-    let { result, i } = $props();
+    let {
+        result,
+        i,
+        pinned,
+        toggleResultPin,
+    }: {
+        result: PagefindSearchResult;
+        i: number;
+        pinned: boolean;
+        toggleResultPin: () => void;
+    } = $props();
 
     let resultElement: HTMLLIElement;
-    let loadedData: any = $state(null);
+    let loadedData: PagefindSearchFragment | null = $state(null);
     let startedLoading: boolean = $state(false);
     let score = $derived(result.score.toFixed(8));
+    let position = $derived(i === -1 ? "???" : i);
+    let ghost = $derived(i === -1);
+    let hydratedWords = $derived.by(() => {
+        if (loadedData) {
+            let words = extract_words(
+                loadedData.raw_content ?? loadedData.content,
+                loadedData.weighted_locations.map((wl) => wl.location),
+            );
+            return loadedData.weighted_locations.map((wl, i) => {
+                return {
+                    weighted: wl,
+                    word: words[i],
+                };
+            });
+        } else {
+            return [];
+        }
+    });
+
+    const reloadData = async () => {
+        loadedData = await result.data();
+    };
+    $effect(() => {
+        if (result && startedLoading) {
+            reloadData();
+        }
+    });
 
     onMount(() => {
         const observer = new IntersectionObserver(async (entries) => {
@@ -22,14 +60,22 @@
     });
 </script>
 
-<li class="result" bind:this={resultElement}>
+<li class="result" class:ghost bind:this={resultElement}>
     {#if !startedLoading}
-        <code>{i}: [<span class="hl">{score}</span>] unloaded</code>
+        <code>{position}: [<span class="hl">{score}</span>] unloaded</code>
     {:else if !loadedData}
-        <code>{i}: [<span class="hl">{score}</span>] loading...</code>
+        <code>{position}: [<span class="hl">{score}</span>] loading...</code>
     {:else}
         <code
-            >{i}: [<span class="hl">{score}</span>]
+            >{position}: [<span class="hl"
+                >{ghost ? "Last seen: " : ""}{score}</span
+            >]
+            <button
+                class="pinner"
+                class:hl={pinned}
+                onclick={toggleResultPin}
+                aria-label="Pin this result">{pinned ? "★" : "☆"}</button
+            >
             {loadedData.url} — {loadedData.meta.title}</code
         >
 
@@ -51,6 +97,131 @@
 
             <div class="inner">
                 <p>{@html loadedData.excerpt}</p>
+            </div>
+        </details>
+
+        <details>
+            <summary>Matching Words</summary>
+
+            <div class="inner">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>Indexed</th>
+                            <th>Location</th>
+                            <th>Weight</th>
+                            <th>Bal score</th>
+                            <th>Length bonus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each hydratedWords as hword}
+                            <tr>
+                                <td>{hword.word}</td>
+                                <td>{hword.weighted.verbose?.word_string}</td>
+                                <td>{hword.weighted.location}</td>
+                                <td>{hword.weighted.weight}</td>
+                                <td
+                                    >{hword.weighted.balanced_score.toFixed(
+                                        6,
+                                    )}</td
+                                >
+                                <td
+                                    >{hword.weighted.verbose?.length_bonus?.toFixed?.(
+                                        6,
+                                    )}</td
+                                >
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+
+        <details>
+            <summary>Term Scoring</summary>
+
+            <div class="inner">
+                <p>Page score input</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Page length</th>
+                            <th>Avg length</th>
+                            <th>Total pages</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{result.params?.document_length}</td>
+                            <td
+                                >{result.params?.average_page_length.toFixed(
+                                    6,
+                                )}</td
+                            >
+                            <td>{result.params?.total_pages}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>Term score input</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Weighted TF</th>
+                            <th>Matching pages</th>
+                            <th>Length bonus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each result.scores ?? [] as score}
+                            <tr>
+                                <td>{score.search_term}</td>
+                                <td
+                                    >{score.params.weighted_term_frequency.toFixed(
+                                        2,
+                                    )}</td
+                                >
+                                <td
+                                    >{score.params.pages_containing_term} ({(
+                                        (score.params.pages_containing_term /
+                                            (result.params?.total_pages || 1)) *
+                                        100
+                                    ).toFixed(2)}%)</td
+                                >
+                                <td>{score.params.length_bonus.toFixed(6)}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+
+                <p>Score output</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>IDF</th>
+                            <th>TF (Sat)</th>
+                            <th>TF (Raw)</th>
+                            <th>Final TF</th>
+                            <th>Final score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each result.scores ?? [] as score}
+                            <tr>
+                                <td>{score.search_term}</td>
+                                <td>{score.idf.toFixed(6)}</td>
+                                <td>{score.saturating_tf.toFixed(6)}</td>
+                                <td>{score.raw_tf.toFixed(6)}</td>
+                                <td>{score.pagefind_tf.toFixed(6)}</td>
+                                <td class="hl">{score.score.toFixed(6)}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
             </div>
         </details>
 
@@ -122,6 +293,20 @@
         border-bottom: dotted 1px var(--sub-fg);
     }
 
+    .ghost {
+        opacity: 0.6;
+    }
+
+    .pinner {
+        border: none;
+        background-color: transparent;
+        appearance: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+        color: var(--sub-fg);
+    }
+
     details {
         border-left: solid 2px var(--sub-fg);
         padding-left: 8px;
@@ -137,6 +322,10 @@
 
     summary::after {
         content: " [+]";
+    }
+
+    .ghost summary::before {
+        content: "Last seen ";
     }
 
     .inner {
@@ -166,6 +355,10 @@
 
     tbody tr:nth-child(even) {
         background-color: var(--sub-bg);
+    }
+
+    td {
+        padding-right: 8px;
     }
 
     p {

@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use pagefind_microjson::JSONValue;
+use search::{stems_from_term, BM25Params, ScoringMetrics};
 use util::*;
 use wasm_bindgen::prelude::*;
 
@@ -33,6 +34,7 @@ pub struct Page {
 
 pub struct SearchIndex {
     web_version: &'static str,
+    playground_mode: bool,
     generator_version: Option<String>,
     pages: Vec<Page>,
     average_page_length: f32,
@@ -102,6 +104,7 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
     debug_log("Initializing Pagefind");
     let mut search_index = SearchIndex {
         web_version: env!("CARGO_PKG_VERSION"),
+        playground_mode: false,
         generator_version: None,
         pages: Vec::new(),
         average_page_length: 0.0,
@@ -121,6 +124,17 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
             std::ptr::null_mut::<SearchIndex>()
         }
     }
+}
+
+#[wasm_bindgen]
+pub fn enter_playground_mode(ptr: *mut SearchIndex) -> *mut SearchIndex {
+    debug!({ "Entering Pagefind Playground Mode" });
+
+    let mut search_index = unsafe { Box::from_raw(ptr) };
+
+    search_index.playground_mode = true;
+
+    Box::into_raw(search_index)
 }
 
 #[wasm_bindgen]
@@ -401,6 +415,57 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
                 page_obj
                     .string("p", &result.page)
                     .number("s", result.page_score as f64);
+                if search_index.playground_mode {
+                    let mut params_obj = page_obj.object("params");
+
+                    params_obj
+                        .number("tp", search_index.pages.len() as f64)
+                        .number("apl", search_index.average_page_length as f64)
+                        .number("dl", result.page_length as f64);
+                }
+                if let Some(verbose_scores) = result.verbose_scores {
+                    let mut score_arr = page_obj.array("scores");
+                    for (
+                        word,
+                        ScoringMetrics {
+                            idf,
+                            bm25_tf,
+                            raw_tf,
+                            pagefind_tf,
+                            score,
+                        },
+                        params,
+                    ) in verbose_scores
+                    {
+                        let mut score_obj = score_arr.object();
+
+                        score_obj
+                            .string("w", &word)
+                            .number("idf", idf as f64)
+                            .number("b_tf", bm25_tf as f64)
+                            .number("r_tf", raw_tf as f64)
+                            .number("p_tf", pagefind_tf as f64)
+                            .number("s", score as f64);
+
+                        {
+                            let mut params_obj = score_obj.object("params");
+
+                            let BM25Params {
+                                weighted_term_frequency,
+                                document_length: _,
+                                average_page_length: _,
+                                total_pages: _,
+                                pages_containing_term,
+                                length_bonus,
+                            } = params;
+
+                            params_obj
+                                .number("w_tf", weighted_term_frequency as f64)
+                                .number("pct", pages_containing_term as f64)
+                                .number("lb", length_bonus as f64);
+                        }
+                    }
+                }
                 {
                     let mut locs_arr = page_obj.array("l");
 
@@ -408,19 +473,33 @@ pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exac
                         weight,
                         balanced_score,
                         word_location,
+                        verbose_word_info,
                     } in result.word_locations
                     {
-                        locs_arr
-                            .object()
+                        let mut locs_obj = locs_arr.object();
+                        locs_obj
                             .number("w", weight as f64)
                             .number("s", balanced_score as f64)
                             .number("l", word_location as f64);
+                        if let Some(verbose_word_info) = verbose_word_info {
+                            locs_obj
+                                .object("v")
+                                .string("ws", &verbose_word_info.word)
+                                .number("lb", verbose_word_info.length_bonus as f64);
+                        }
                     }
                 }
             }
         }
 
         output_obj.number("unfiltered_total", unfiltered_total as f64);
+
+        if search_index.playground_mode {
+            let mut arr = output_obj.array("search_keywords");
+            for term in stems_from_term(query) {
+                arr.string(&term);
+            }
+        }
     }
 
     debug!({ "Boxing and returning the result" });

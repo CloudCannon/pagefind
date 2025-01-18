@@ -2,11 +2,9 @@
     import Result from "./Result.svelte";
 
     let {
-        results,
         pinnedResults,
         toggleResultPin,
     }: {
-        results: PagefindSearchResult[];
         pinnedResults: PinnedPagefindSearchResult[];
         toggleResultPin: (
             position: number,
@@ -16,12 +14,13 @@
 </script>
 
 <ol>
-    {#each results as result, i (result.id)}
+    {#each pinnedResults as result (result.last_result.id)}
         <Result
-            {result}
-            {i}
-            pinned={pinnedResults.some((r) => r.last_result.id == result.id)}
-            toggleResultPin={() => toggleResultPin(i, result)}
+            result={result.last_result}
+            i={result.position}
+            pinned={true}
+            toggleResultPin={() =>
+                toggleResultPin(result.position, result.last_result)}
         />
     {/each}
 </ol>

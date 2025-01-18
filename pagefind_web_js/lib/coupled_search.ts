@@ -130,6 +130,11 @@ export class PagefindInstance {
     }
   }
 
+  async enterPlaygroundMode() {
+    let ptr = await this.getPtr();
+    this.raw_ptr = this.backend.enter_playground_mode(ptr);
+  }
+
   decompress(data: Uint8Array, file = "unknown file") {
     if (this.decoder.decode(data.slice(0, 12)) === "pagefind_dcd") {
       // File is already decompressed
@@ -551,24 +556,63 @@ export class PagefindInstance {
       total_counts,
       results,
       unfiltered_total,
+      search_keywords,
     }: internal.PagefindSearchResponse = JSON.parse(result);
 
     let resultsInterface = results.map((result) => {
       let weighted_locations = result.l.map((l) => {
-        return {
+        let loc: PagefindWordLocation = {
           weight: l.w / 24.0,
           balanced_score: l.s,
           location: l.l,
         };
+
+        if (l.v) {
+          loc.verbose = {
+            word_string: l.v.ws,
+            length_bonus: l.v.lb,
+          };
+        }
+
+        return loc;
       });
       let locations = weighted_locations.map((l) => l.location);
-      return {
+
+      let res: PagefindSearchResult = {
         id: result.p,
         score: result.s * this.indexWeight,
         words: locations,
         data: async () =>
           await this.loadFragment(result.p, weighted_locations, term),
       };
+
+      if (result.params) {
+        res.params = {
+          document_length: result.params.dl,
+          average_page_length: result.params.apl,
+          total_pages: result.params.tp,
+        };
+      }
+
+      if (result.scores) {
+        res.scores = result.scores.map((r) => {
+          return {
+            search_term: r.w,
+            idf: r.idf,
+            saturating_tf: r.b_tf,
+            raw_tf: r.r_tf,
+            pagefind_tf: r.p_tf,
+            score: r.s,
+            params: {
+              weighted_term_frequency: r.params.w_tf,
+              pages_containing_term: r.params.pct,
+              length_bonus: r.params.lb,
+            },
+          };
+        });
+      }
+
+      return res;
     });
 
     const searchTime = Date.now() - searchStart;
@@ -577,7 +621,7 @@ export class PagefindInstance {
     log(
       `Found ${results.length} result${results.length == 1 ? "" : "s"} for "${term}" in ${Date.now() - searchStart}ms (${Date.now() - start}ms realtime)`,
     );
-    return {
+    let response: PagefindSearchResults = {
       results: resultsInterface,
       unfilteredResultCount: unfiltered_total,
       filters: filtered_counts,
@@ -588,6 +632,12 @@ export class PagefindInstance {
         total: realTime,
       },
     };
+
+    if (search_keywords) {
+      response.search_keywords = search_keywords;
+    }
+
+    return response;
   }
 }
 
@@ -615,6 +665,11 @@ export class Pagefind {
   async options(options: PagefindIndexOptions) {
     // Using .options() only affects the primary Pagefind instance.
     await this.primary.options(options);
+  }
+
+  async enterPlaygroundMode() {
+    // Using .enter_playground_mode() only affects the primary Pagefind instance.
+    await this.primary.enterPlaygroundMode();
   }
 
   async init(overrideLanguage?: string) {
@@ -689,7 +744,7 @@ export class Pagefind {
     term: string,
     options?: PagefindSearchOptions,
     debounceTimeoutMs?: number,
-  ) {
+  ): Promise<PagefindIndexesSearchResults | null> {
     const thisSearchID = ++this.searchID;
     this.preload(term, options);
     await asyncSleep(debounceTimeoutMs);
@@ -705,7 +760,10 @@ export class Pagefind {
     return searchResult;
   }
 
-  async search(term: string, options: PagefindSearchOptions = {}) {
+  async search(
+    term: string,
+    options: PagefindSearchOptions = {},
+  ): Promise<PagefindIndexesSearchResults> {
     let search = await Promise.all(
       this.instances.map(
         (i) => i.search(term, options) as Promise<PagefindSearchResults>,
@@ -724,6 +782,18 @@ export class Pagefind {
       0,
     );
 
-    return { results, unfilteredResultCount, filters, totalFilters, timings };
+    let response: PagefindIndexesSearchResults = {
+      results,
+      unfilteredResultCount,
+      filters,
+      totalFilters,
+      timings,
+    };
+
+    if (search[0].search_keywords) {
+      response.search_keywords = search[0].search_keywords;
+    }
+
+    return response;
   }
 }

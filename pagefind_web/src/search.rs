@@ -14,8 +14,10 @@ use crate::SearchIndex;
 pub struct PageSearchResult {
     pub page: String,
     pub page_index: usize,
-    pub page_score: f32, // TODO: tf-idf implementation? Paired with the dictionary-in-meta approach
+    pub page_length: u32,
+    pub page_score: f32,
     pub word_locations: Vec<BalancedWordScore>,
+    pub verbose_scores: Option<Vec<(String, ScoringMetrics, BM25Params)>>,
 }
 
 struct MatchingPageWord<'a> {
@@ -38,16 +40,32 @@ pub struct BalancedWordScore {
     pub weight: u8,
     pub balanced_score: f32,
     pub word_location: u32,
+    pub verbose_word_info: Option<VerboseWordInfo>,
+}
+
+#[derive(Debug, Clone)]
+pub struct VerboseWordInfo {
+    pub word: String,
+    pub length_bonus: f32,
 }
 
 #[derive(Debug)]
-struct BM25Params {
-    weighted_term_frequency: f32,
-    document_length: f32,
-    average_page_length: f32,
-    total_pages: usize,
-    pages_containing_term: usize,
-    length_bonus: f32,
+pub struct BM25Params {
+    pub weighted_term_frequency: f32,
+    pub document_length: f32,
+    pub average_page_length: f32,
+    pub total_pages: usize,
+    pub pages_containing_term: usize,
+    pub length_bonus: f32,
+}
+
+#[derive(Clone, Copy)]
+pub struct ScoringMetrics {
+    pub idf: f32,
+    pub bm25_tf: f32,
+    pub raw_tf: f32,
+    pub pagefind_tf: f32,
+    pub score: f32,
 }
 
 /// Returns a score between 0.0 and 1.0 for the given word.
@@ -72,7 +90,7 @@ fn calculate_bm25_word_score(
         length_bonus,
     }: BM25Params,
     ranking: &RankingWeights,
-) -> f32 {
+) -> ScoringMetrics {
     let weighted_with_length = weighted_term_frequency * length_bonus;
 
     let k1 = ranking.term_saturation;
@@ -90,23 +108,30 @@ fn calculate_bm25_word_score(
     // and only caring about the original weighted word count on the page.
     // Attempting to scale the original weighted word count to roughly the same bounds as the BM25 output (k1 + 1)
     let raw_count_scalar = average_page_length / 5.0;
-    let scaled_raw_count = (weighted_with_length / raw_count_scalar).min(k1 + 1.0);
-    let tf = (1.0 - ranking.term_frequency) * scaled_raw_count + ranking.term_frequency * bm25_tf;
+    let raw_tf = (weighted_with_length / raw_count_scalar).min(k1 + 1.0);
+    let pagefind_tf = (1.0 - ranking.term_frequency) * raw_tf + ranking.term_frequency * bm25_tf;
 
     debug!({
-        format! {"TF is {tf:?}, IDF is {idf:?}"}
+        format! {"TF is {pagefind_tf:?}, IDF is {idf:?}"}
     });
 
-    idf * tf
+    ScoringMetrics {
+        idf,
+        bm25_tf,
+        raw_tf,
+        pagefind_tf,
+        score: idf * pagefind_tf,
+    }
 }
 
 fn calculate_individual_word_score(
     VerboseWordLocation {
-        word_str: _,
+        word_str,
         weight,
         length_bonus,
         word_location,
     }: VerboseWordLocation,
+    playground_mode: bool,
 ) -> BalancedWordScore {
     let balanced_score = (weight as f32).powi(2) * length_bonus;
 
@@ -114,6 +139,14 @@ fn calculate_individual_word_score(
         weight,
         balanced_score,
         word_location,
+        verbose_word_info: if playground_mode {
+            Some(VerboseWordInfo {
+                word: word_str.to_string(),
+                length_bonus,
+            })
+        } else {
+            None
+        },
     }
 }
 
@@ -199,12 +232,15 @@ impl SearchIndex {
                         page: page.hash.clone(),
                         page_index,
                         page_score: 1.0,
+                        page_length: page.word_count,
                         word_locations: ((*pos..=i).map(|w| BalancedWordScore {
                             weight: 1,
                             balanced_score: 1.0,
                             word_location: w,
+                            verbose_word_info: None, // TODO: bring playground info to quoted searches
                         }))
                         .collect(),
+                        verbose_scores: None, // TODO: bring playground info to quoted searches
                     };
                     pages.push(search_result);
                     break 'indexes;
@@ -219,14 +255,17 @@ impl SearchIndex {
                         page: page.hash.clone(),
                         page_index,
                         page_score: 1.0,
+                        page_length: page.word_count,
                         word_locations: loc_0
                             .iter()
                             .map(|(weight, word_location)| BalancedWordScore {
                                 weight: *weight,
                                 balanced_score: *weight as f32,
                                 word_location: *word_location,
+                                verbose_word_info: None, // TODO: bring playground info to quoted searches
                             })
                             .collect(),
+                        verbose_scores: None, // TODO: bring playground info to quoted searches
                     };
                     pages.push(search_result);
                 }
@@ -370,7 +409,10 @@ impl SearchIndex {
                             .or_default()
                             .add_assign(working_word.weight as usize);
 
-                        unique_word_locations.push(calculate_individual_word_score(working_word));
+                        unique_word_locations.push(calculate_individual_word_score(
+                            working_word,
+                            self.playground_mode,
+                        ));
                         working_word = next_word;
                     }
                 }
@@ -379,7 +421,10 @@ impl SearchIndex {
                     .or_default()
                     .add_assign(working_word.weight as usize);
 
-                unique_word_locations.push(calculate_individual_word_score(working_word));
+                unique_word_locations.push(calculate_individual_word_score(
+                    working_word,
+                    self.playground_mode,
+                ));
             }
 
             debug!({
@@ -389,6 +434,11 @@ impl SearchIndex {
                 format! {"Words have the final weights {:?}", weighted_words}
             });
 
+            let mut verbose_scores = if self.playground_mode {
+                Some(vec![])
+            } else {
+                None
+            };
             let word_scores =
                 weighted_words
                     .into_iter()
@@ -398,7 +448,7 @@ impl SearchIndex {
                             .find(|w| w.word_str == word_str)
                             .expect("word should be in the initial set");
 
-                        let params = BM25Params {
+                        let params = || BM25Params {
                             weighted_term_frequency: (weighted_term_frequency as f32) / 24.0,
                             document_length: page.word_count as f32,
                             average_page_length: self.average_page_length,
@@ -408,19 +458,23 @@ impl SearchIndex {
                         };
 
                         debug!({
-                            format! {"Calculating BM25 with the params {:?}", params}
+                            format! {"Calculating BM25 with the params {:?}", params()}
                         });
                         debug!({
                             format! {"And the weights {:?}", self.ranking_weights}
                         });
 
-                        let score = calculate_bm25_word_score(params, &self.ranking_weights);
+                        let score = calculate_bm25_word_score(params(), &self.ranking_weights);
 
                         debug!({
-                            format! {"BM25 gives us the score {:?}", score}
+                            format! {"BM25 gives us the score {:?}", score.score}
                         });
 
-                        score
+                        if let Some(verbose_scores) = verbose_scores.as_mut() {
+                            verbose_scores.push((word_str.to_string(), score, params()));
+                        }
+
+                        score.score
                     });
 
             let page_score = word_scores.sum();
@@ -429,7 +483,9 @@ impl SearchIndex {
                 page: page.hash.clone(),
                 page_index,
                 page_score,
+                page_length: page.word_count,
                 word_locations: unique_word_locations,
+                verbose_scores,
             };
 
             debug!({
@@ -479,7 +535,7 @@ impl SearchIndex {
     }
 }
 
-fn stems_from_term(term: &str) -> Vec<Cow<str>> {
+pub fn stems_from_term(term: &str) -> Vec<Cow<str>> {
     if term.trim().is_empty() {
         return vec![];
     }
