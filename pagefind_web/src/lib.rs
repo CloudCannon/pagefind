@@ -1,8 +1,9 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use pagefind_microjson::JSONValue;
+use search::{stems_from_term, BM25Params, ScoringMetrics};
 use util::*;
 use wasm_bindgen::prelude::*;
 
@@ -33,14 +34,15 @@ pub struct Page {
 
 pub struct SearchIndex {
     web_version: &'static str,
+    playground_mode: bool,
     generator_version: Option<String>,
     pages: Vec<Page>,
     average_page_length: f32,
     chunks: Vec<IndexChunk>,
-    filter_chunks: HashMap<String, String>,
-    words: HashMap<String, Vec<PageWord>>,
-    filters: HashMap<String, HashMap<String, Vec<u32>>>,
-    sorts: HashMap<String, Vec<u32>>,
+    filter_chunks: BTreeMap<String, String>,
+    words: BTreeMap<String, Vec<PageWord>>,
+    filters: BTreeMap<String, BTreeMap<String, Vec<u32>>>,
+    sorts: BTreeMap<String, Vec<u32>>,
     ranking_weights: RankingWeights,
 }
 
@@ -102,14 +104,15 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
     debug_log("Initializing Pagefind");
     let mut search_index = SearchIndex {
         web_version: env!("CARGO_PKG_VERSION"),
+        playground_mode: false,
         generator_version: None,
         pages: Vec::new(),
         average_page_length: 0.0,
         chunks: Vec::new(),
-        filter_chunks: HashMap::new(),
-        words: HashMap::new(),
-        filters: HashMap::new(),
-        sorts: HashMap::new(),
+        filter_chunks: BTreeMap::new(),
+        words: BTreeMap::new(),
+        filters: BTreeMap::new(),
+        sorts: BTreeMap::new(),
         ranking_weights: RankingWeights::default(),
     };
 
@@ -121,6 +124,17 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
             std::ptr::null_mut::<SearchIndex>()
         }
     }
+}
+
+#[wasm_bindgen]
+pub fn enter_playground_mode(ptr: *mut SearchIndex) -> *mut SearchIndex {
+    debug!({ "Entering Pagefind Playground Mode" });
+
+    let mut search_index = unsafe { Box::from_raw(ptr) };
+
+    search_index.playground_mode = true;
+
+    Box::into_raw(search_index)
 }
 
 #[wasm_bindgen]
@@ -205,17 +219,26 @@ pub fn add_synthetic_filter(ptr: *mut SearchIndex, filter: &str) -> *mut SearchI
 
 #[wasm_bindgen]
 pub fn request_indexes(ptr: *mut SearchIndex, query: &str) -> String {
-    let indexes = try_request_indexes(ptr, query, false);
+    let mut indexes = try_request_indexes(ptr, query, false);
     if indexes.is_empty() && !query.trim().is_empty() {
         debug!({
             "No index chunks found with strict boundaries. Loading all possible extension chunks."
         });
-        return try_request_indexes(ptr, query, true);
+        indexes = try_request_indexes(ptr, query, true);
     }
-    indexes
+
+    let mut output = String::new();
+    {
+        let mut arr = write_json::array(&mut output);
+        indexes.into_iter().for_each(|i| {
+            arr.string(&i);
+        });
+    }
+
+    output
 }
 
-fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bool) -> String {
+fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bool) -> Vec<String> {
     debug!({
         format! {"Finding the index chunks needed for {:?}", query}
     });
@@ -232,8 +255,19 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
                 let from_length = term.len().min(chunk.from.len());
                 let to_length = term.len().min(chunk.to.len());
 
-                term[0..from_length] >= chunk.from[0..from_length]
-                    && term[0..to_length] <= chunk.to[0..to_length]
+                let (Some(term_pre), Some(chunk_pre)) =
+                    (term.get(0..from_length), chunk.from.get(0..from_length))
+                else {
+                    return false;
+                };
+
+                let (Some(term_post), Some(chunk_post)) =
+                    (term.get(0..to_length), chunk.to.get(0..to_length))
+                else {
+                    return false;
+                };
+
+                term_pre >= chunk_pre && term_post <= chunk_post
             } else {
                 term >= &chunk.from && term <= &chunk.to
             }
@@ -253,7 +287,8 @@ fn try_request_indexes(ptr: *mut SearchIndex, query: &str, load_all_possible: bo
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
-    indexes.join(" ")
+
+    indexes
 }
 
 #[wasm_bindgen]
@@ -263,7 +298,15 @@ pub fn request_filter_indexes(ptr: *mut SearchIndex, filters: &str) -> String {
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
-    indexes.join(" ")
+    let mut output = String::new();
+    {
+        let mut arr = write_json::array(&mut output);
+        indexes.into_iter().for_each(|i| {
+            arr.string(&i);
+        });
+    }
+
+    output
 }
 
 #[wasm_bindgen]
@@ -280,7 +323,15 @@ pub fn request_all_filter_indexes(ptr: *mut SearchIndex) -> String {
     let _ = Box::into_raw(search_index);
     indexes.sort();
     indexes.dedup();
-    indexes.join(" ")
+    let mut output = String::new();
+    {
+        let mut arr = write_json::array(&mut output);
+        indexes.into_iter().for_each(|i| {
+            arr.string(&i);
+        });
+    }
+
+    output
 }
 
 #[wasm_bindgen]
@@ -289,92 +340,173 @@ pub fn filters(ptr: *mut SearchIndex) -> String {
 
     let search_index = unsafe { Box::from_raw(ptr) };
 
-    let results = search_index.get_filters(None);
+    let mut output = String::new();
+    {
+        let mut obj = write_json::object(&mut output);
+        search_index.get_filters(&mut obj, None);
+    }
 
     let _ = Box::into_raw(search_index);
-    results
+    output
 }
 
 #[wasm_bindgen]
 pub fn search(ptr: *mut SearchIndex, query: &str, filter: &str, sort: &str, exact: bool) -> String {
     let search_index = unsafe { Box::from_raw(ptr) };
+    let mut output = String::new();
+    {
+        let mut output_obj = write_json::object(&mut output);
 
-    if let Some(generator_version) = search_index.generator_version.as_ref() {
-        if generator_version != search_index.web_version {
-            // TODO: Return this as a warning alongside a search result if possible
-            // let _ = Box::into_raw(search_index);
-            // return "ERROR: Version mismatch".into();
+        if let Some(generator_version) = search_index.generator_version.as_ref() {
+            if generator_version != search_index.web_version {
+                // TODO: Return this as a warning alongside a search result if possible
+                // let _ = Box::into_raw(search_index);
+                // return "ERROR: Version mismatch".into();
+            }
         }
-    }
 
-    let filter_set = search_index.filter(filter);
-    let (unfiltered_results, mut results) = if exact {
-        search_index.exact_term(query, filter_set)
-    } else {
-        search_index.search_term(query, filter_set)
-    };
-    let unfiltered_total = unfiltered_results.len();
-    debug!({ format!("Raw total of {} results", unfiltered_total) });
-    debug!({ format!("Filtered total of {} results", query.len()) });
+        let filter_set = search_index.filter(filter);
+        let (unfiltered_results, mut results) = if exact {
+            search_index.exact_term(query, filter_set)
+        } else {
+            search_index.search_term(query, filter_set)
+        };
+        let unfiltered_total = unfiltered_results.len();
+        debug!({ format!("Raw total of {} results", unfiltered_total) });
+        debug!({ format!("Filtered total of {} results", query.len()) });
 
-    let filter_string =
-        search_index.get_filters(Some(results.iter().map(|r| r.page_index).collect()));
-    let unfiltered_string = search_index.get_filters(Some(unfiltered_results));
+        {
+            let mut filter_obj = output_obj.object("filtered_counts");
+            search_index.get_filters(
+                &mut filter_obj,
+                Some(results.iter().map(|r| r.page_index).collect()),
+            );
+        }
+        {
+            let mut unfilter_obj = output_obj.object("total_counts");
+            search_index.get_filters(&mut unfilter_obj, Some(unfiltered_results));
+        }
 
-    if let Some((sort, direction)) = sort.split_once(':') {
-        debug!({ format!("Trying to sort by {sort} ({direction})") });
-        if let Some(sorted_pages) = search_index.sorts.get(sort) {
-            debug!({ format!("Found {} pages sorted by {sort}", sorted_pages.len()) });
-            results.retain(|result| sorted_pages.contains(&(result.page_index as u32)));
+        if let Some((sort, direction)) = sort.split_once(':') {
+            debug!({ format!("Trying to sort by {sort} ({direction})") });
+            if let Some(sorted_pages) = search_index.sorts.get(sort) {
+                debug!({ format!("Found {} pages sorted by {sort}", sorted_pages.len()) });
+                results.retain(|result| sorted_pages.contains(&(result.page_index as u32)));
 
-            for result in results.iter_mut() {
-                result.page_score = sorted_pages
-                    .iter()
-                    .position(|p| p == &(result.page_index as u32))
-                    .expect("Sorted pages should contain all remaining results")
-                    as f32;
-                if direction == "asc" {
-                    result.page_score = 0.0 - result.page_score;
+                for result in results.iter_mut() {
+                    result.page_score = sorted_pages
+                        .iter()
+                        .position(|p| p == &(result.page_index as u32))
+                        .expect("Sorted pages should contain all remaining results")
+                        as f32;
+                    if direction == "asc" {
+                        result.page_score = 0.0 - result.page_score;
+                    }
                 }
             }
         }
-    }
 
-    debug!({ "Building the result string" });
-    let result_string = results
-        .into_iter()
-        .map(|result| {
-            format!(
-                "{}@{}@{}",
-                &result.page,
-                result.page_score,
-                result
-                    .word_locations
-                    .iter()
-                    .map(
-                        |BalancedWordScore {
-                             weight,
-                             balanced_score,
-                             word_location,
-                         }| format!(
-                            "{weight}>{balanced_score}>{word_location}"
-                        )
-                    )
-                    .collect::<Vec<String>>()
-                    .join(",")
-            )
-        })
-        .collect::<Vec<String>>()
-        .join(" ");
+        {
+            debug!({ "Building the result string" });
+            let mut arr = output_obj.array("results");
+
+            for result in results {
+                let mut page_obj = arr.object();
+                page_obj
+                    .string("p", &result.page)
+                    .number("s", result.page_score as f64);
+                if search_index.playground_mode {
+                    let mut params_obj = page_obj.object("params");
+
+                    params_obj
+                        .number("tp", search_index.pages.len() as f64)
+                        .number("apl", search_index.average_page_length as f64)
+                        .number("dl", result.page_length as f64);
+                }
+                if let Some(verbose_scores) = result.verbose_scores {
+                    let mut score_arr = page_obj.array("scores");
+                    for (
+                        word,
+                        ScoringMetrics {
+                            idf,
+                            bm25_tf,
+                            raw_tf,
+                            pagefind_tf,
+                            score,
+                        },
+                        params,
+                    ) in verbose_scores
+                    {
+                        let mut score_obj = score_arr.object();
+
+                        score_obj
+                            .string("w", &word)
+                            .number("idf", idf as f64)
+                            .number("b_tf", bm25_tf as f64)
+                            .number("r_tf", raw_tf as f64)
+                            .number("p_tf", pagefind_tf as f64)
+                            .number("s", score as f64);
+
+                        {
+                            let mut params_obj = score_obj.object("params");
+
+                            let BM25Params {
+                                weighted_term_frequency,
+                                document_length: _,
+                                average_page_length: _,
+                                total_pages: _,
+                                pages_containing_term,
+                                length_bonus,
+                            } = params;
+
+                            params_obj
+                                .number("w_tf", weighted_term_frequency as f64)
+                                .number("pct", pages_containing_term as f64)
+                                .number("lb", length_bonus as f64);
+                        }
+                    }
+                }
+                {
+                    let mut locs_arr = page_obj.array("l");
+
+                    for BalancedWordScore {
+                        weight,
+                        balanced_score,
+                        word_location,
+                        verbose_word_info,
+                    } in result.word_locations
+                    {
+                        let mut locs_obj = locs_arr.object();
+                        locs_obj
+                            .number("w", weight as f64)
+                            .number("s", balanced_score as f64)
+                            .number("l", word_location as f64);
+                        if let Some(verbose_word_info) = verbose_word_info {
+                            locs_obj
+                                .object("v")
+                                .string("ws", &verbose_word_info.word)
+                                .number("lb", verbose_word_info.length_bonus as f64);
+                        }
+                    }
+                }
+            }
+        }
+
+        output_obj.number("unfiltered_total", unfiltered_total as f64);
+
+        if search_index.playground_mode {
+            let mut arr = output_obj.array("search_keywords");
+            for term in stems_from_term(query) {
+                arr.string(&term);
+            }
+        }
+    }
 
     debug!({ "Boxing and returning the result" });
     let _ = Box::into_raw(search_index);
 
     #[cfg(debug_assertions)]
-    debug_log(&format! {"{:?}", result_string});
+    debug_log(&format! {"{:?}", output});
 
-    format!(
-        "{}:{}:{}__PF_UNFILTERED_DELIM__{}",
-        unfiltered_total, result_string, filter_string, unfiltered_string
-    )
+    output
 }

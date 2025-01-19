@@ -1,0 +1,47 @@
+name: Python API > Pagefind playground can be built via the API
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/run.py" file with the content {python}
+    python: |2-
+      import sys
+      sys.path.append('%toolproof_process_directory%/wrappers/python/src')
+
+      import asyncio
+      import json
+      import logging
+      import os
+      from pagefind.index import PagefindIndex, IndexConfig
+
+      async def main():
+        config = IndexConfig(
+          write_playground=True,
+        )
+        async with PagefindIndex(config=config) as index:
+          await index.add_custom_record(
+            url="/one/",
+            content="Testing file #1",
+            language="en",
+          )
+          await index.add_html_file(
+            source_path="two/index.html",
+            content="<html lang='en'><body><h1>Testing file #2</h1></body></html>",
+          )
+
+        print("Complete")
+      if __name__ == "__main__":
+        asyncio.run(main())
+  - macro: I run Pagefind Python as "run.py" in "public"
+  - step: stdout should contain "Complete"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/pagefind/playground/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let heading = await toolproof.querySelector("h1");
+      toolproof.assert_eq(heading.innerText, `Pagefind Playground`);
+
+      let val = await toolproof.querySelector("details > summary");
+      toolproof.assert_eq(val.innerText, `Details`);

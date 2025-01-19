@@ -1,0 +1,34 @@
+name: Pagefind Playground can be output
+steps:
+  - step: I have the environment variable "PAGEFIND_SITE" set to "public"
+  - step: I have a "public/res-zero/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>title title title</h1></body></html>
+  - step: I have a "public/res-one/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>title res one</h1></body></html>
+  - step: I have a "public/res-two/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>title res two</h1></body></html>
+  - macro: I run Pagefind with "--write-playground"
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/pagefind/playground/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("details > summary");
+      toolproof.assert_eq(val.innerText, `Details`);
+
+      let search = await toolproof.querySelector("input[type='search']");
+      search.value = "title";
+      search.dispatchEvent(new Event('input', { bubbles: true }));
+  - snapshot: In my browser, the result of {js}
+    js: |-
+      // Only exists when the result data loads
+      let pinButton = await toolproof.querySelector(".result > code > button");
+      let title = await toolproof.querySelector(".result > code");
+
+      return title.innerText;
+    snapshot_content: |-
+      ╎0: [0.29812253] ☆ /res-zero/ — title title title

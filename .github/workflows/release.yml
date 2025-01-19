@@ -29,6 +29,14 @@ jobs:
             target
           key: ${{ runner.os }}-stable-min165
 
+      - name: Install Nightly Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          default: true
+          components: rustfmt, clippy, rust-src
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -76,6 +84,10 @@ jobs:
 
       - name: Build Modular UI
         working-directory: ./pagefind_ui/modular
+        run: npm i && npm run build
+
+      - name: Build Playground
+        working-directory: ./pagefind_playground
         run: npm i && npm run build
 
       - name: Build

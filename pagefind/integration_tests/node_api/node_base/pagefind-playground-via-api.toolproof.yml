@@ -1,0 +1,40 @@
+name: Node API Base Tests > Pagefind playground can be built via the API
+platforms:
+  - linux
+  - mac
+
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/index.js" file with the content {js}
+    js: |-
+      import * as pagefind from "pagefind";
+      import fs from "fs";
+      import path from "path";
+
+      const run = async () => {
+          const { index } = await pagefind.createIndex({
+              writePlayground: true
+          });
+          await index.addCustomRecord({
+              url: "/one/",
+              content: "Testing file #1",
+              language: "en"
+          });
+          await index.addHTMLFile({sourcePath: "two/index.html", content: "<html lang='en'><body><h1>Testing file #2</h1></body></html>"});
+          await index.writeFiles();
+
+          console.log("✨!");
+      }
+
+      run();
+  - macro: I run Pagefind Node as "index.js" in "public"
+  - step: stdout should contain "✨!"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/pagefind/playground/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let heading = await toolproof.querySelector("h1");
+      toolproof.assert_eq(heading.innerText, `Pagefind Playground`);
+
+      let val = await toolproof.querySelector("details > summary");
+      toolproof.assert_eq(val.innerText, `Details`);

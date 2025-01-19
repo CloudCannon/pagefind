@@ -3,6 +3,9 @@ name = "pagefind_web"
 version = "0.0.0"
 edition = "2021"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Oz']
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -12,6 +15,7 @@ bit-set = "0.5"
 pagefind_stem = "0.2.0"
 minicbor = "0.20.0"
 pagefind_microjson = "0.1.4"
+write-json = "0.1.4"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

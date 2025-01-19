@@ -49,6 +49,11 @@ class IndexConfig(TypedDict, total=False):
     ``/animals/cat/``. Setting this option to ``true`` will result in the URL
     ``/animals/cat/index.html``.
     """
+    write_playground: Optional[bool]
+    """When writing or outputting files, also write the Pagefind playground to /pagefind/playground/.
+
+    Defaults to false, ensuring the playground isn't available on a live site.
+    """
     output_path: Optional[str]
     """
     The folder to output the search bundle into, relative to the processed site.

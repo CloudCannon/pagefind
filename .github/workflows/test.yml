@@ -23,17 +23,14 @@ jobs:
         include:
           - build: linux
             os: ubuntu-latest
-            rust: beta
             target: x86_64-unknown-linux-musl
             cross: false
           - build: macos
             os: macos-latest
-            rust: beta
             target: x86_64-apple-darwin
             cross: false
           - build: windows
             os: windows-latest
-            rust: beta
             target: x86_64-pc-windows-msvc
             cross: false
     steps:
@@ -50,20 +47,20 @@ jobs:
             ~/.cargo/git
             ~/.rustup
             target
-          key: ${{ runner.os }}-${{ matrix.rust }}-min165
+          key: ${{ runner.os }}-min165
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Rust
+      - name: Install Nightly Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: nightly
           target: ${{ matrix.target }}
           override: true
           default: true
-          components: rustfmt, clippy
+          components: rustfmt, clippy, rust-src
 
       - name: Set up python 3.12
         uses: actions/setup-python@v5
@@ -82,13 +79,27 @@ jobs:
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
-      - name: Build Coupled JS
-        working-directory: ./pagefind_web_js
-        run: npm i && npm run build-coupled
-
       - name: Build WASM
         working-directory: ./pagefind_web
         run: ./local_build.sh
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: beta
+          target: ${{ matrix.target }}
+          override: true
+          default: true
+          components: rustfmt, clippy
+
+      - name: Check versions
+        run: |
+          cargo --version
+          rustc --version
+
+      - name: Build Coupled JS
+        working-directory: ./pagefind_web_js
+        run: npm i && npm run build-coupled
 
       - name: Build UI
         working-directory: ./pagefind_ui/default
@@ -96,6 +107,10 @@ jobs:
 
       - name: Build Modular UI
         working-directory: ./pagefind_ui/modular
+        run: npm i && npm run build
+
+      - name: Build Playground
+        working-directory: ./pagefind_playground
         run: npm i && npm run build
 
       - name: Test Web

@@ -9,6 +9,9 @@
 
 ## Unreleased
 
+* Added the Pagefind Playground
+* Reduced filesizes for the Pagefind WebAssembly
+
 ## v1.3.0 (December 18, 2024)
 
 ### Core Features & Improvements
