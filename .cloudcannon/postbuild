@@ -1,1 +1,1 @@
-npx -y pagefind@latest --site docs/public --write-playground
+npx -y pagefind@alpha --site docs/public --write-playground
