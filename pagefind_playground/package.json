@@ -3,7 +3,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node _serve.js",
+    "build": "node _build.js"
   },
   "dependencies": {
     "@tsconfig/svelte": "^5.0.4",
