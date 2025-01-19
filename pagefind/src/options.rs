@@ -141,7 +141,6 @@ pub(crate) struct PagefindInboundConfig {
 
     #[clap(
         long,
-        short,
         help = "Output the Pagefind Playground to <bundle_dir>/playground/ when building the search index. By default, this is only available via --serve."
     )]
     #[clap(required = false)]
