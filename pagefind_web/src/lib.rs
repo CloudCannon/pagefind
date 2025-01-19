@@ -118,6 +118,7 @@ pub fn init_pagefind(metadata_bytes: &[u8]) -> *mut SearchIndex {
 
     match search_index.decode_metadata(metadata_bytes) {
         Ok(_) => Box::into_raw(Box::new(search_index)),
+        #[allow(unused_variables)]
         Err(e) => {
             #[cfg(debug_assertions)]
             debug_log(&format!("{:#?}", e));
@@ -185,6 +186,7 @@ pub fn load_index_chunk(ptr: *mut SearchIndex, chunk_bytes: &[u8]) -> *mut Searc
 
     match search_index.decode_index_chunk(chunk_bytes) {
         Ok(_) => Box::into_raw(search_index),
+        #[allow(unused_variables)]
         Err(e) => {
             debug!({ format!("{:#?}", e) });
             std::ptr::null_mut::<SearchIndex>()
@@ -199,6 +201,7 @@ pub fn load_filter_chunk(ptr: *mut SearchIndex, chunk_bytes: &[u8]) -> *mut Sear
 
     match search_index.decode_filter_index_chunk(chunk_bytes) {
         Ok(_) => Box::into_raw(search_index),
+        #[allow(unused_variables)]
         Err(e) => {
             debug!({ format!("{:#?}", e) });
             std::ptr::null_mut::<SearchIndex>()
