@@ -480,6 +480,15 @@ jobs:
           echo "CFLAGS_aarch64_unknown_linux_musl=--sysroot=/usr/aarch64-linux-gnu" >> $GITHUB_ENV
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/aarch64-linux-gnu/bin/ld" >> $GITHUB_ENV
 
+      - name: Install Nightly Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: ${{ matrix.target }}
+          override: true
+          default: true
+          components: rustfmt, clippy, rust-src
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
