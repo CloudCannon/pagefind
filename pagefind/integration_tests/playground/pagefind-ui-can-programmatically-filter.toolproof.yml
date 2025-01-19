@@ -26,8 +26,8 @@ steps:
   - snapshot: In my browser, the result of {js}
     js: |-
       // Only exists when the result data loads
-      let pinButton = await toolproof.querySelector(".result > code > button");
-      let title = await toolproof.querySelector(".result > code");
+      let pinButton = await toolproof.querySelector(".result:nth-of-type(1) > code > button");
+      let title = await toolproof.querySelector(".result:nth-of-type(1) > code");
 
       return title.innerText;
     snapshot_content: |-
