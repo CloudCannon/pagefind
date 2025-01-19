@@ -11,6 +11,8 @@ A good example is sites with a mix of long and short pages, where the long pages
 
 Ranking parameters are configured within the `ranking` option passed to Pagefind, which can optionally contain any or all of the available parameters.
 
+> Ranking can be explored for your content via the [Pagefind playground](/docs/playground/).
+
 ## Configuring ranking parameters
 
 Ranking parameters can be passed to the JavaScript API via `pagefind.options()`:

@@ -45,7 +45,7 @@ All interactions with Pagefind are asynchronous, as they communicate with the na
 
 ## pagefind.createIndex
 
-Creates a Pagefind index that files can be added to.  
+Creates a Pagefind index that files can be added to.
 The index object returned is unique, and multiple calls to `pagefind.createIndex()` can be made without conflicts.
 
 ```js
@@ -64,6 +64,7 @@ const { index } = await pagefind.createIndex({
     excludeSelectors: [".my-code-blocks"],
     forceLanguage: "en",
     keepIndexUrl: false,
+    writePlayground: false,
     verbose: false,
     logfile: "debug.log"
 });
@@ -73,7 +74,7 @@ See the relevant documentation for these configuration options in the [Configuri
 
 ## index.addDirectory
 
-Indexes a directory from disk using the standard Pagefind indexing behaviour.  
+Indexes a directory from disk using the standard Pagefind indexing behaviour.
 This is equivalent to running the Pagefind binary with `--site <dir>`.
 
 ```js
@@ -91,7 +92,7 @@ const { errors, page_count } = await index.addDirectory({
 
 If the `path` provided is relative, it will be relative to the current working directory of your Node process.
 
-Optionally, a custom `glob` can be supplied which controls which files Pagefind will consume within the directory. The default is shown, and the `glob` option can be omitted entirely.  
+Optionally, a custom `glob` can be supplied which controls which files Pagefind will consume within the directory. The default is shown, and the `glob` option can be omitted entirely.
 See [Wax patterns documentation](https://github.com/olson-sean-k/wax#patterns) for more details.
 
 A response with an `errors` array containing error messages indicates that Pagefind failed to process this directory.
@@ -148,14 +149,14 @@ const { errors, file } = await index.addCustomRecord({
 
 The `url`, `content`, and `language` fields are all required. `language` should be an [ISO 639-1 code](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
 
-`meta` is optional, and is strictly a flat object of keys to string values.  
+`meta` is optional, and is strictly a flat object of keys to string values.
 See the [Metadata documentation](https://pagefind.app/docs/metadata/) for semantics.
 
-`filters` is optional, and is strictly a flat object of keys to arrays of string values.  
+`filters` is optional, and is strictly a flat object of keys to arrays of string values.
 See the [Filters documentation](https://pagefind.app/docs/filtering/) for semantics.
 
-`sort` is optional, and is strictly a flat object of keys to string values.  
-See the [Sort documentation](https://pagefind.app/docs/sorts/) for semantics.  
+`sort` is optional, and is strictly a flat object of keys to string values.
+See the [Sort documentation](https://pagefind.app/docs/sorts/) for semantics.
 *When Pagefind is processing an index, number-like strings will be sorted numerically rather than alphabetically. As such, the value passed in should be `"20"` and not `20`*
 
 A response with an `errors` array containing error messages indicates that Pagefind failed to index this content.
@@ -176,7 +177,7 @@ for (const file of files) {
 
 A response with an `errors` array containing error messages indicates that Pagefind failed to action this request.
 
-If successful, `files` will be an array containing file objects. Each object contains a `content` key with the raw data as a Uint8Array `path` key, and a `path` key which is the relative URL this file should be served at within a bundle directory. 
+If successful, `files` will be an array containing file objects. Each object contains a `content` key with the raw data as a Uint8Array `path` key, and a `path` key which is the relative URL this file should be served at within a bundle directory.
 
 ## index.writeFiles
 
@@ -208,7 +209,7 @@ Not calling this method is fine — these indexes will be cleaned up when your N
 
 ## pagefind.close
 
-Closes the Pagefind service and errors out any pending tasks, stopping the linked binary altogether.  
+Closes the Pagefind service and errors out any pending tasks, stopping the linked binary altogether.
 Called on the top-level `pagefind` object.
 
 ```js
