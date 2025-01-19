@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::index::PagefindIndexes;
-use crate::SearchOptions;
+use crate::{SearchOptions, PAGEFIND_VERSION};
 use flate2::write::GzEncoder; // TODO: Replace flate2 with async-compression since we
 use flate2::Compression; //   // require that crate for the input compression anyway.
 use futures::future::join_all;
@@ -15,8 +15,6 @@ use tokio::io::AsyncWriteExt;
 use tokio::time::sleep;
 
 mod entry;
-
-const PAGEFIND_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const GENERIC_WEB_WASM: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -76,19 +74,27 @@ pub struct LanguageMeta {
     pub wasm: Option<String>,
 }
 
-pub async fn write_common_to_disk(language_indexes: Vec<LanguageMeta>, outdir: &PathBuf) {
-    write_common(language_indexes, outdir, false).await;
+pub async fn write_common_to_disk(
+    language_indexes: Vec<LanguageMeta>,
+    output_playground: bool,
+    outdir: &PathBuf,
+) {
+    write_common(language_indexes, output_playground, outdir, false).await;
 }
 
 pub async fn write_common_to_memory(
     language_indexes: Vec<LanguageMeta>,
+    output_playground: bool,
     outdir: &PathBuf,
 ) -> Vec<SyntheticFile> {
-    write_common(language_indexes, outdir, true).await.unwrap()
+    write_common(language_indexes, output_playground, outdir, true)
+        .await
+        .unwrap()
 }
 
 async fn write_common(
     language_indexes: Vec<LanguageMeta>,
+    output_playground: bool,
     outdir: &PathBuf,
     synthetic: bool,
 ) -> Option<Vec<SyntheticFile>> {
@@ -119,7 +125,7 @@ async fn write_common(
         WriteBehavior::Disk
     };
 
-    let files = vec![
+    let mut files = vec![
         write(
             outdir.join("pagefind.js"),
             vec![&js],
@@ -169,6 +175,29 @@ async fn write_common(
             write_behavior,
         ),
     ];
+
+    if output_playground {
+        files.extend([
+            write(
+                outdir.join("playground/index.html"),
+                vec![crate::playground::PLAYGROUND_HTML.as_bytes()],
+                Compress::None,
+                write_behavior,
+            ),
+            write(
+                outdir.join("playground/pagefind-playground.js"),
+                vec![crate::playground::PLAYGROUND_JS.as_bytes()],
+                Compress::None,
+                write_behavior,
+            ),
+            write(
+                outdir.join("playground/pagefind-playground.css"),
+                vec![crate::playground::PLAYGROUND_CSS.as_bytes()],
+                Compress::None,
+                write_behavior,
+            ),
+        ]);
+    }
 
     let output_files = join_all(files).await;
 

@@ -139,6 +139,15 @@ pub(crate) struct PagefindInboundConfig {
     #[serde(default = "defaults::default_false")]
     pub(crate) keep_index_url: bool,
 
+    #[clap(
+        long,
+        short,
+        help = "Output the Pagefind Playground to <bundle_dir>/playground/ when building the search index. By default, this is only available via --serve."
+    )]
+    #[clap(required = false)]
+    #[serde(default = "defaults::default_false")]
+    pub(crate) write_playground: bool,
+
     #[clap(long)]
     #[clap(required = false, hide = true)]
     #[serde(default = "defaults::default_false")]
@@ -177,6 +186,8 @@ pub struct PagefindServiceConfig {
     pub(crate) logfile: Option<String>,
     /// Keep \"index.html\" at the end of search result paths. Defaults to false, stripping \"index.html\".
     pub(crate) keep_index_url: Option<bool>,
+    /// Output the Pagefind Playground to <bundle_dir>/playground/ when building the search index.
+    pub(crate) write_playground: Option<bool>,
 }
 
 mod defaults {
@@ -208,6 +219,7 @@ pub(crate) struct SearchOptions {
     pub(crate) logger: Logger,
     pub(crate) keep_index_url: bool,
     pub(crate) running_as_service: bool,
+    pub(crate) write_playground: bool,
     pub(crate) config_warnings: ConfigWarnings,
 }
 
@@ -285,6 +297,7 @@ impl SearchOptions {
                 ),
                 keep_index_url: config.keep_index_url,
                 running_as_service: config.service,
+                write_playground: config.write_playground,
                 config_warnings: warnings,
             })
         }
