@@ -60,7 +60,7 @@ jobs:
           target: ${{ matrix.target }}
           override: true
           default: true
-          components: rustfmt, clippy
+          components: rustfmt, clippy, rust-src
 
       - name: Set up python 3.12
         uses: actions/setup-python@v5
