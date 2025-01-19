@@ -62,15 +62,6 @@ jobs:
           default: true
           components: rustfmt, clippy
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: beta
-          target: ${{ matrix.target }}
-          override: true
-          default: true
-          components: rustfmt, clippy
-
       - name: Set up python 3.12
         uses: actions/setup-python@v5
         with:
@@ -88,13 +79,27 @@ jobs:
         with:
           version: ${{env.WASM_PACK_VERSION}}
 
-      - name: Build Coupled JS
-        working-directory: ./pagefind_web_js
-        run: npm i && npm run build-coupled
-
       - name: Build WASM
         working-directory: ./pagefind_web
         run: ./local_build.sh
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: beta
+          target: ${{ matrix.target }}
+          override: true
+          default: true
+          components: rustfmt, clippy
+
+      - name: Check versions
+        run: |
+          cargo --version
+          rustc --version
+
+      - name: Build Coupled JS
+        working-directory: ./pagefind_web_js
+        run: npm i && npm run build-coupled
 
       - name: Build UI
         working-directory: ./pagefind_ui/default
