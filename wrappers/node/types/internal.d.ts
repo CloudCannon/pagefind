@@ -32,6 +32,7 @@ export interface InternalPagefindServiceConfig {
     verbose?: boolean,
     logfile?: string,
     keep_index_url?: boolean,
+    write_playground?: boolean,
 }
 
 export interface InternalAddFileRequest {

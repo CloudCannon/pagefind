@@ -45,6 +45,11 @@ export interface PagefindServiceConfig {
      * Defaults to false, stripping `index.html`.
      */
     keepIndexUrl?: boolean,
+    /**
+     * When writing or outputting files, also write the Pagefind playground to /pagefind/playground/.
+     * Defaults to false, ensuring the playground isn't available on a live site.
+     */
+    writePlayground?: boolean,
 }
 
 
