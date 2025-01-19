@@ -2,6 +2,7 @@
     // Directly import our search API from a layer behind the public API
     import { Pagefind } from "../../pagefind_web_js/lib/coupled_search";
     import "../../pagefind_web_js/types/index.d.ts";
+    import type * as internal from "../../pagefind_web_js/types/internal.d.ts";
     import { pagefindRankingDefaults } from "./defaults";
     import Search from "./panels/Search.svelte";
     import TopBar from "./panels/TopBar.svelte";
@@ -15,6 +16,12 @@
     let { pagefindVersion }: { pagefindVersion: string } = $props();
 
     let pagefind: Pagefind | null = $state(null);
+    let loadedPagefindVersion = $state("unloaded");
+    let loadedPagefindLanguage = $state("unloaded");
+    let availablePagefindLanguages: Record<
+        string,
+        internal.PagefindEntryLanguage
+    > = $state({});
     let results: PagefindSearchResult[] = $state([]);
     let pinnedResults: PinnedPagefindSearchResult[] = $state([]);
     let currentTerm: string = $state("");
@@ -25,12 +32,22 @@
         pagefindRankingDefaults,
     );
 
-    const kickoff = async () => {
-        pagefind = new Pagefind({
+    const kickoff = async (lang?: string) => {
+        let opts: PagefindIndexOptions = {
             // NB: This assumed we are always loaded at `/{pagefind_index}/playground/`
             basePath: "../",
-        });
+        };
+        if (lang) {
+            opts.language = lang;
+        }
+        pagefind = new Pagefind(opts);
+
         await pagefind.enterPlaygroundMode();
+        loadedPagefindVersion = pagefind.primary.loadedVersion ?? "Bad state";
+        loadedPagefindLanguage = pagefind.primary.loadedLanguage ?? "Bad state";
+        availablePagefindLanguages = pagefind.primary.languages ?? {};
+        results = [];
+        pinnedResults = [];
     };
 
     const runSearch = async (term: string) => {
@@ -108,7 +125,14 @@
 <details open class="panel" style="grid-area: top-bar;">
     <summary>Details</summary>
 
-    <TopBar {pagefindVersion} bind:debounceSearches />
+    <TopBar
+        {pagefindVersion}
+        {loadedPagefindVersion}
+        {loadedPagefindLanguage}
+        {availablePagefindLanguages}
+        loadLanguage={(lang) => kickoff(lang)}
+        bind:debounceSearches
+    />
 </details>
 
 <details open class="panel" style="grid-area: search;">
@@ -130,13 +154,13 @@
 </details>
 
 <details open class="panel" style="grid-area: pinned-results;">
-    <summary>Pinned Results</summary>
+    <summary>Pinned Results ({pinnedResults.length})</summary>
 
     <PinnedResults {pinnedResults} {toggleResultPin} />
 </details>
 
 <details open class="panel" style="grid-area: results;">
-    <summary>Results</summary>
+    <summary>Results ({results.length})</summary>
 
     <Results {results} {pinnedResults} {toggleResultPin} />
 </details>

@@ -349,6 +349,10 @@
         content: " [-]";
     }
 
+    table {
+        border-collapse: collapse;
+    }
+
     tbody tr:nth-child(odd) {
         background-color: transparent;
     }
@@ -357,7 +361,8 @@
         background-color: var(--sub-bg);
     }
 
-    td {
+    td,
+    th {
         padding-right: 8px;
     }
 

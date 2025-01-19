@@ -32,8 +32,10 @@ export class PagefindInstance {
   raw_ptr: number | null;
   searchMeta: any;
   languages: Record<string, internal.PagefindEntryLanguage> | null;
+  loadedLanguage?: string;
 
   version: string;
+  loadedVersion?: string;
 
   constructor(opts: PagefindIndexOptions = {}) {
     this.version = pagefind_version;
@@ -171,6 +173,7 @@ export class PagefindInstance {
     await this.loadEntry();
     let index = this.findIndex(language);
     let lang_wasm = index.wasm ? index.wasm : "unknown";
+    this.loadedLanguage = language;
 
     let resources = [this.loadMeta(index.hash)];
     if (opts.load_wasm === true) {
@@ -199,6 +202,7 @@ export class PagefindInstance {
       let entry_json =
         (await entry_response.json()) as internal.PagefindEntryJson;
       this.languages = entry_json.languages;
+      this.loadedVersion = entry_json.version;
       if (entry_json.version !== this.version) {
         if (this.primary) {
           console.warn(
