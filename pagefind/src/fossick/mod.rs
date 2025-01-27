@@ -338,12 +338,12 @@ impl Fossicker {
 
             // We use zero-width spaces as boundary values for some languages,
             // so we make sure that all are removed from the source content before going into the index.
-            let normalized_word = word.replace('\u{200B}', "");
-            if normalized_word.is_empty() {
+            let base_word = word.replace('\u{200B}', "");
+            if base_word.is_empty() {
                 return;
             }
 
-            content.push_str(&word.replace('\u{200B}', ""));
+            content.push_str(&base_word);
             if append_whitespace {
                 content.push(' ');
             }
@@ -351,10 +351,10 @@ impl Fossicker {
             if should_segment {
                 content.push('\u{200B}');
             }
-            let mut normalized_word = String::with_capacity(word.len());
+            let mut normalized_word = String::with_capacity(base_word.len());
             let mut possibly_compound = false;
 
-            for mut c in word.chars() {
+            for mut c in base_word.chars() {
                 let is_alpha = c.is_alphanumeric();
                 if !is_alpha {
                     possibly_compound = true;
@@ -378,25 +378,31 @@ impl Fossicker {
             // For words that may be CompoundWords, also index them as their constituent parts
             if possibly_compound {
                 let (word_parts, extras) = get_discrete_words(word);
-                // Only proceed if the word was broken into multiple parts
-                if word_parts.contains(|c: char| c.is_whitespace())
-                    || (!normalized_word.starts_with(&word_parts))
-                {
-                    let part_words: Vec<_> = word_parts.split_whitespace().collect();
 
-                    if !part_words.is_empty() {
-                        // Index constituents of a compound word as a proportion of the
-                        // weight of the full word.
-                        let per_weight = (word_weight
-                            / part_words.len().try_into().unwrap_or(std::u8::MAX))
-                        .max(1);
+                // If this word normalized to nothing, we don't want to insert it here.
+                // (Though we do want to process the extras below, for things like emoji).
+                if !normalized_word.is_empty() {
+                    // Only proceed if the word was broken into multiple parts
+                    if word_parts.contains(|c: char| c.is_whitespace())
+                        || (!normalized_word.starts_with(&word_parts))
+                    {
+                        let part_words: Vec<_> = word_parts.split_whitespace().collect();
 
-                        // Only index two+ character words
-                        for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
-                            store_word(part_word, total_word_index, per_weight);
+                        if !part_words.is_empty() {
+                            // Index constituents of a compound word as a proportion of the
+                            // weight of the full word.
+                            let per_weight = (word_weight
+                                / part_words.len().try_into().unwrap_or(std::u8::MAX))
+                            .max(1);
+
+                            // Only index two+ character words
+                            for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
+                                store_word(part_word, total_word_index, per_weight);
+                            }
                         }
                     }
                 }
+
                 // Additionally store any special extra characters we are given
                 if let Some(extras) = extras {
                     for extra in extras {
