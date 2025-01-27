@@ -29,8 +29,6 @@ lazy_static! {
     static ref TRIM_NEWLINES: Regex = Regex::new("^[\n\r\\s]+|[\n\r\\s]+$").unwrap();
     static ref EXTRANEOUS_SPACES: Regex = Regex::new("\\s{2,}").unwrap();
     static ref PRIVATE_PAGEFIND: Regex = Regex::new("___PAGEFIND_[\\S]+\\s?").unwrap();
-    // TODO: i18n?
-    static ref SPECIAL_CHARS: Regex = Regex::new("[^\\w]").unwrap();
 }
 
 pub mod parser;
@@ -197,6 +195,7 @@ impl Fossicker {
 
     fn parse_digest(
         &mut self,
+        options: &SearchOptions,
     ) -> (
         String,
         HashMap<String, Vec<FossickedWord>>,
@@ -352,10 +351,24 @@ impl Fossicker {
             if should_segment {
                 content.push('\u{200B}');
             }
-            let normalized_word = SPECIAL_CHARS
-                .replace_all(word, "")
-                .into_owned()
-                .to_lowercase();
+            let mut normalized_word = String::with_capacity(word.len());
+            let mut possibly_compound = false;
+
+            for mut c in word.chars() {
+                let is_alpha = c.is_alphanumeric();
+                if !is_alpha {
+                    possibly_compound = true;
+                }
+                if is_alpha || options.include_characters.contains(&c) {
+                    c.make_ascii_lowercase();
+                    if c.is_uppercase() {
+                        // Non-ascii uppercase can lower to multiple chars
+                        normalized_word.extend(c.to_lowercase());
+                    } else {
+                        normalized_word.push(c);
+                    }
+                }
+            }
 
             let word_weight = weight_stack.last().unwrap_or(&1);
             if !normalized_word.is_empty() {
@@ -363,10 +376,12 @@ impl Fossicker {
             }
 
             // For words that may be CompoundWords, also index them as their constituent parts
-            if normalized_word != word {
+            if possibly_compound {
                 let (word_parts, extras) = get_discrete_words(word);
                 // Only proceed if the word was broken into multiple parts
-                if word_parts.contains(|c: char| c.is_whitespace()) {
+                if word_parts.contains(|c: char| c.is_whitespace())
+                    || (!normalized_word.starts_with(&word_parts))
+                {
                     let part_words: Vec<_> = word_parts.split_whitespace().collect();
 
                     if !part_words.is_empty() {
@@ -456,7 +471,7 @@ impl Fossicker {
             self.fossick_html(options).await;
         };
 
-        let (content, word_data, anchors, word_count) = self.parse_digest();
+        let (content, word_data, anchors, word_count) = self.parse_digest(options);
         self.tidy_meta_and_filters();
 
         let data = self.data.unwrap();
@@ -601,12 +616,14 @@ mod tests {
         assert_eq!(&output, "Hello Wor ld?");
     }
 
-    async fn test_fossick(s: String) -> Fossicker {
+    fn test_opts() -> SearchOptions {
         std::env::set_var("PAGEFIND_SOURCE", "somewhere");
         let config =
             PagefindInboundConfig::with_layers(&[Layer::Env(Some("PAGEFIND_".into()))]).unwrap();
-        let opts = SearchOptions::load(config).unwrap();
+        SearchOptions::load(config).unwrap()
+    }
 
+    async fn test_fossick(s: String) -> Fossicker {
         let mut f = Fossicker {
             file_path: Some("test/index.html".into()),
             root_path: None,
@@ -615,7 +632,7 @@ mod tests {
             data: None,
         };
 
-        _ = f.read_synthetic(&opts).await;
+        _ = f.read_synthetic(&test_opts()).await;
 
         f
     }
@@ -625,7 +642,7 @@ mod tests {
         let mut f =
             test_fossick(["<html><body>", "<p>Hello World!</p>", "</body></html>"].concat()).await;
 
-        let (digest, words, _, _) = f.parse_digest();
+        let (digest, words, _, _) = f.parse_digest(&test_opts());
 
         assert_eq!(digest, "Hello World!".to_string());
         assert_eq!(
@@ -650,6 +667,117 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn parse_chars() {
+        let mut f = test_fossick(
+            [
+                "<html><body>",
+                "<p>He&amp;llo htmltag&lt;head&gt; *before mid*dle after*</p>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let mut opts = test_opts();
+        opts.include_characters.extend(['<', '>', '*']);
+        let (digest, words, _, _) = f.parse_digest(&opts);
+
+        assert_eq!(
+            digest,
+            "He&llo htmltag<head> *before mid*dle after*.".to_string()
+        );
+        assert_eq!(
+            words,
+            HashMap::from_iter([
+                (
+                    "he".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "llo".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "hello".to_string(),
+                    vec![FossickedWord {
+                        position: 0,
+                        weight: 24
+                    }]
+                ),
+                (
+                    "htmltag<head>".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 24
+                    }]
+                ),
+                (
+                    "htmltag".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "head".to_string(),
+                    vec![FossickedWord {
+                        position: 1,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "*before".to_string(),
+                    vec![FossickedWord {
+                        position: 2,
+                        weight: 24
+                    }]
+                ),
+                (
+                    "before".to_string(),
+                    vec![FossickedWord {
+                        position: 2,
+                        weight: 24
+                    }]
+                ),
+                (
+                    "mid*dle".to_string(),
+                    vec![FossickedWord {
+                        position: 3,
+                        weight: 24
+                    }]
+                ),
+                (
+                    "mid".to_string(),
+                    vec![FossickedWord {
+                        position: 3,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "dle".to_string(),
+                    vec![FossickedWord {
+                        position: 3,
+                        weight: 12
+                    }]
+                ),
+                (
+                    "after*".to_string(),
+                    vec![FossickedWord {
+                        position: 4,
+                        weight: 24
+                    }]
+                )
+            ])
+        );
+    }
+
+    #[tokio::test]
     async fn parse_weighted_file() {
         let mut f = test_fossick(
             [
@@ -665,7 +793,7 @@ mod tests {
         )
         .await;
 
-        let (digest, words, _, _) = f.parse_digest();
+        let (digest, words, _, _) = f.parse_digest(&test_opts());
 
         assert_eq!(digest, "The Quick Brown. Fox Jumps Over. Ryan.".to_string());
         assert_eq!(
@@ -743,7 +871,7 @@ mod tests {
         )
         .await;
 
-        let (_, words, _, _) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest(&test_opts());
 
         assert_eq!(
             words,
@@ -802,7 +930,7 @@ mod tests {
         )
         .await;
 
-        let (_, words, _, _) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest(&test_opts());
 
         assert_eq!(
             words,
@@ -851,7 +979,7 @@ mod tests {
         )
         .await;
 
-        let (_, words, _, _) = f.parse_digest();
+        let (_, words, _, _) = f.parse_digest(&test_opts());
 
         let mut words = words.keys().collect::<Vec<_>>();
         words.sort();

@@ -301,7 +301,13 @@ impl SearchState {
         )
         .await;
 
-        output::write_common_to_disk(index_entries, self.options.write_playground, &outdir).await;
+        output::write_common_to_disk(
+            index_entries,
+            self.options.write_playground,
+            &outdir,
+            &self.options,
+        )
+        .await;
 
         outdir
     }
@@ -325,9 +331,14 @@ impl SearchState {
             .collect();
 
         files.extend(
-            output::write_common_to_memory(index_entries, self.options.write_playground, outdir)
-                .await
-                .into_iter(),
+            output::write_common_to_memory(
+                index_entries,
+                self.options.write_playground,
+                outdir,
+                &self.options,
+            )
+            .await
+            .into_iter(),
         );
 
         // SyntheticFiles should only return the relative path to the file

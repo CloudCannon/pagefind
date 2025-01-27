@@ -33,6 +33,7 @@ export class PagefindInstance {
   searchMeta: any;
   languages: Record<string, internal.PagefindEntryLanguage> | null;
   loadedLanguage?: string;
+  includeCharacters?: string[];
 
   version: string;
   loadedVersion?: string;
@@ -203,6 +204,7 @@ export class PagefindInstance {
         (await entry_response.json()) as internal.PagefindEntryJson;
       this.languages = entry_json.languages;
       this.loadedVersion = entry_json.version;
+      this.includeCharacters = entry_json.include_characters ?? [];
       if (entry_json.version !== this.version) {
         if (this.primary) {
           console.warn(
@@ -491,14 +493,56 @@ export class PagefindInstance {
     if (exact_search) {
       log(`Running an exact search`);
     }
-    // Strip special characters to match the indexing operation
-    // TODO: Maybe move regex over the wasm boundary, or otherwise work to match the Rust regex engine
-    term = term
-      .toLowerCase()
-      .trim()
-      .replace(/[\.`~!@#\$%\^&\*\(\)\{\}\[\]\\\|:;'",<>\/\?\-]/g, "")
+
+    let trueLanguage: string | null = null;
+    try {
+      trueLanguage = Intl.getCanonicalLocales(this.loadedLanguage)[0];
+    } catch (err) {
+      // Loaded language is not valid
+    }
+    const term_chunks: string[] = [];
+    let segments: string[];
+
+    // TODO: resolve type error for Intl.Segmenter
+    //@ts-ignore: Property 'Segmenter' does not exist on type 'typeof Intl'
+    if (trueLanguage && typeof Intl.Segmenter !== "undefined") {
+      //@ts-ignore: Property 'Segmenter' does not exist on type 'typeof Intl'
+      const segmenter = new Intl.Segmenter(trueLanguage, {
+        granularity: "grapheme",
+      });
+      segments = [...segmenter.segment(term)].map(
+        ({ segment }: { segment: string }) => segment,
+      );
+    } else {
+      segments = [...term];
+    }
+
+    for (const segment of segments) {
+      if (this.includeCharacters?.includes(segment)) {
+        term_chunks.push(segment);
+      } else if (
+        !/^\p{Pd}|\p{Pe}|\p{Pf}|\p{Pi}|\p{Po}|\p{Ps}$/u.test(segment)
+      ) {
+        term_chunks.push(segment.toLocaleLowerCase());
+      }
+
+      /**
+       * Notes:
+       * Regex to match the Rust \w class if we need it:
+       * /^\p{Pc}|\p{LC}|\p{Ll}|\p{Lm}|\p{Lo}|\p{Lt}|\p{Lu}|\p{Nd}|\p{Nl}|\p{No}|\s$/u
+       * ES2024 regex to match emoji if we need it:
+       * /\p{RGI_Emoji}/v
+       */
+    }
+
+    // TODO: We could use the "word" granularity for Intl.Segmenter to handle
+    // segmentation for non-whitespace-delimited languages.
+
+    term = term_chunks
+      .join("")
       .replace(/\s{2,}/g, " ")
       .trim();
+
     log(`Normalized search term to ${term}`);
 
     if (!term?.length && !filter_only) {

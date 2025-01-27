@@ -6,6 +6,7 @@ use serde::Serialize;
 pub struct PagefindEntryMeta {
     pub version: &'static str,
     pub languages: HashMap<String, PagefindEntryLanguage>,
+    pub include_characters: Vec<char>,
 }
 
 #[derive(Serialize, Debug)]
