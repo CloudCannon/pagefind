@@ -8,7 +8,10 @@ use std::{env, path::PathBuf};
 use twelf::config;
 use typed_builder::TypedBuilder;
 
-use crate::logging::{LogLevel, Logger};
+use crate::{
+    logging::{LogLevel, Logger},
+    utils::WORD_SYMBOLS,
+};
 
 //
 // If editing this configuration struct,
@@ -88,6 +91,13 @@ pub(crate) struct PagefindInboundConfig {
 
     #[clap(
         long,
+        help = "Include these characters when indexing and searching words. Useful for sites documenting technical topics such as programming languages."
+    )]
+    #[clap(required = false)]
+    pub(crate) include_characters: Option<String>,
+
+    #[clap(
+        long,
         help = "Serve the source directory after creating the search index"
     )]
     #[clap(required = false)]
@@ -114,7 +124,6 @@ pub(crate) struct PagefindInboundConfig {
 
     #[clap(
         long,
-        short,
         help = "Only log errors while indexing the site. Does not impact the web-facing search."
     )]
     #[clap(required = false)]
@@ -214,6 +223,7 @@ pub(crate) struct SearchOptions {
     pub(crate) exclude_selectors: Vec<String>,
     pub(crate) glob: String,
     pub(crate) force_language: Option<String>,
+    pub(crate) include_characters: Vec<char>,
     pub(crate) version: &'static str,
     pub(crate) logger: Logger,
     pub(crate) keep_index_url: bool,
@@ -280,6 +290,11 @@ impl SearchOptions {
                 site_source.join(subdir)
             };
 
+            let mut include_characters = WORD_SYMBOLS.to_vec();
+            if let Some(custom_include_characters) = config.include_characters {
+                include_characters.extend(custom_include_characters.chars());
+            }
+
             Ok(Self {
                 working_directory,
                 site_source,
@@ -288,6 +303,7 @@ impl SearchOptions {
                 exclude_selectors: config.exclude_selectors,
                 glob: config.glob,
                 force_language: config.force_language,
+                include_characters,
                 version: env!("CARGO_PKG_VERSION"),
                 logger: Logger::new(
                     log_level,

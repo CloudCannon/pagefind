@@ -78,16 +78,18 @@ pub async fn write_common_to_disk(
     language_indexes: Vec<LanguageMeta>,
     output_playground: bool,
     outdir: &PathBuf,
+    options: &SearchOptions,
 ) {
-    write_common(language_indexes, output_playground, outdir, false).await;
+    write_common(language_indexes, output_playground, outdir, options, false).await;
 }
 
 pub async fn write_common_to_memory(
     language_indexes: Vec<LanguageMeta>,
     output_playground: bool,
     outdir: &PathBuf,
+    options: &SearchOptions,
 ) -> Vec<SyntheticFile> {
-    write_common(language_indexes, output_playground, outdir, true)
+    write_common(language_indexes, output_playground, outdir, options, true)
         .await
         .unwrap()
 }
@@ -96,6 +98,7 @@ async fn write_common(
     language_indexes: Vec<LanguageMeta>,
     output_playground: bool,
     outdir: &PathBuf,
+    options: &SearchOptions,
     synthetic: bool,
 ) -> Option<Vec<SyntheticFile>> {
     let js_version = format!("const pagefind_version = \"{PAGEFIND_VERSION}\";");
@@ -116,6 +119,7 @@ async fn write_common(
                 },
             )
         })),
+        include_characters: options.include_characters.clone(),
     };
     let encoded_entry_meta = serde_json::to_string(&entry_meta).unwrap();
 

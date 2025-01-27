@@ -9,6 +9,7 @@
 
 ## Unreleased
 
+* Added the "Include Characters" option
 * Added the Pagefind Playground
 * Reduced filesizes for the Pagefind WebAssembly
 

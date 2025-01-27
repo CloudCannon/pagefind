@@ -3,6 +3,7 @@ import "pagefindWeb";
 export type PagefindEntryJson = {
   version: string;
   languages: Record<string, PagefindEntryLanguage>;
+  include_characters: string[];
 };
 
 export type PagefindEntryLanguage = {

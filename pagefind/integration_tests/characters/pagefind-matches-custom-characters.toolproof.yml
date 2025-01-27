@@ -1,0 +1,39 @@
+name: Character Tests > Pagefind matches custom characters
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/page_a/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Talking about @money</h1></body></html>
+  - step: I have a "public/page_b/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body><h1>Configure a^b^c^d</h1></body></html>
+  - macro: I run Pagefind with '--include-characters "@^"'
+  - step: stdout should contain "Running Pagefind"
+  - step: The file "public/pagefind/pagefind.js" should not be empty
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      let search = await pagefind.search("@");
+      let pages = await Promise.all(search.results.map(r => r.data()));
+
+      toolproof.assert_eq(pages.length, 1);
+      toolproof.assert_eq(pages[0].url, "/page_a/");
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      let search = await pagefind.search("money");
+      let pages = await Promise.all(search.results.map(r => r.data()));
+
+      toolproof.assert_eq(pages.length, 1);
+      toolproof.assert_eq(pages[0].url, "/page_a/");
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      let search = await pagefind.search("a^b^c^d");
+      let pages = await Promise.all(search.results.map(r => r.data()));
+
+      toolproof.assert_eq(pages.length, 1);
+      toolproof.assert_eq(pages[0].url, "/page_b/");
+  - step: In my browser, the console should be empty
