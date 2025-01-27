@@ -92,5 +92,25 @@ Attributes of HTML elements can be added to the search index with the `data-page
 ```
 {{< /diffcode >}}
 
-This attribute takes a comma-separated list of other attributes to include inline with the indexed content.  
+This attribute takes a comma-separated list of other attributes to include inline with the indexed content.
 The above example will be indexed as: `Condimentum Nullam. Image Title. Image Alt. Nullam id dolor id nibh ultricies.`
+
+## Indexing special characters
+
+By default, Pagefind strips most punctuation out of the page when indexing content. Punctuation is also removed from the search term when searching.
+
+For some sites, such as documentation for programming languages, searching for punctuation can be important. In these cases,
+the default behavior can be changed using the [Include Characters](/docs/config-options/#include-characters) option when running Pagefind.
+
+For example, given the following HTML:
+
+```html
+<p>The &lt;head&gt; tag</p>
+```
+
+Pagefind's default indexing would index `the`, `head`, and `tag`,
+and a user typing in a search term of `<head>` will have their search adapted to `head`.
+While this will still match the correct page, it won't distinguish between this result and a result talking about the head of a git repository.
+
+With the [Include Characters](/docs/config-options/#include-characters) option set to `<>`, Pagefind will instead index `the`, `<head>`, `head`, and `tag`.
+A search for `head` will still locate this page, while a search for `<head>` won't be rewritten and will specifically match this page.

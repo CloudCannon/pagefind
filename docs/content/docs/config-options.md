@@ -71,6 +71,23 @@ Note that currently Pagefind only supports lists of options via configuration fi
 |---------------------------|------------------------------|---------------------|
 | `--exclude-selectors <S>` | `PAGEFIND_EXCLUDE_SELECTORS` | `exclude_selectors` |
 
+### Include characters
+Prevents Pagefind from stripping the provided characters when indexing content.
+Allows users to search for words including these characters.
+
+See [Indexing special characters](/docs/indexing/#indexing-special-characters) for more documentation.
+
+Care is needed if setting this argument via the CLI, as special characters may be interpreted by your shell.
+Configure this via a [configuration file](/docs/config-sources/#config-files) if you encounter issues.
+
+```yml
+include_characters: "<>$"
+```
+
+| CLI Flag                   | ENV Variable                  | Config Key          |
+|----------------------------|-------------------------------|---------------------|
+| `--include-characters <S>` | `PAGEFIND_INCLUDE_CHARACTERS` | `include_characters` |
+
 ### Glob
 Configures the glob used by Pagefind to discover HTML files. Defaults to `**/*.{html}`.
 See [Wax patterns documentation](https://github.com/olson-sean-k/wax#patterns) for more details.
@@ -79,7 +96,7 @@ See [Wax patterns documentation](https://github.com/olson-sean-k/wax#patterns) f
 |-----------------|-----------------|------------|
 | `--glob <GLOB>` | `PAGEFIND_GLOB` | `glob`     |
 
-### Force Language
+### Force language
 Ignores any detected languages and creates a single index for the entire site as the provided language. Expects an ISO 639-1 code, such as `en` or `pt`.
 
 See [Multilingual search](/docs/multilingual/) for more details.
@@ -88,14 +105,14 @@ See [Multilingual search](/docs/multilingual/) for more details.
 |---------------------------|---------------------------|------------------|
 | `--force-language <LANG>` | `PAGEFIND_FORCE_LANGUAGE` | `force_language` |
 
-### Keep Index URL
+### Keep index URL
 Keeps `index.html` at the end of search result paths. By default, a file at `animals/cat/index.html` will be given the URL `/animals/cat/`. Setting this option to `true` will result in the URL `/animals/cat/index.html`.
 
 | CLI Flag           | ENV Variable     | Config Key       |
 |--------------------|------------------|------------------|
 | `--keep-index-url` | `KEEP_INDEX_URL` | `keep_index_url` |
 
-### Write Playground
+### Write playground
 Writes the Pagefind playground files to `/playground` within your bundle directory. For most sites, this will make the Pagefind playground available at `/pagefind/playground/`.
 
 This defaults to false, so playground files are not written to your live site. Playground files are always available when running Pagefind with `--serve`.
