@@ -999,7 +999,7 @@ mod tests {
         )
         .await;
 
-        let (content, words, _, _) = f.parse_digest();
+        let (content, words, _, _) = f.parse_digest(&test_opts());
 
         let mut words = words.keys().collect::<Vec<_>>();
         words.sort();
