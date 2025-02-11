@@ -14,7 +14,7 @@ env:
 jobs:
   publish-crate:
     name: Publish Crate
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: publish-github-release
     steps:
       - name: Clone
@@ -171,7 +171,7 @@ jobs:
 
   publish-npm-package:
     name: Publish NPM packages
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: publish-binary-npm-packages
     steps:
       - name: Clone
@@ -229,7 +229,7 @@ jobs:
 
   publish-binary-npm-packages:
     name: Publish NPM binaries
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: publish-github-release
     strategy:
       matrix:
@@ -291,7 +291,7 @@ jobs:
 
   publish-github-release:
     name: GitHub Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: test-and-build
     defaults:
       run:
