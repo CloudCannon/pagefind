@@ -52,6 +52,10 @@ Next, build the UI packages with:
 This builds the packages for distribution, but also builds the files to the `pagefind/vendor` directory,
 which is where the Pagefind source looks for them during compilation.
 
+Next, build the Playground:
+
+- `cd pagefind_playground && npm i && npm run build`
+
 Next, build the WebAssembly package with:
 - `cd pagefind_web && ./local_build.sh`
 
