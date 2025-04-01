@@ -49,6 +49,9 @@ Next, build the UI packages with:
 - `cd pagefind_ui/default && npm i && npm run build`
 - `cd pagefind_ui/modular && npm i && npm run build`
 
+Then, build the playground packages with:
+- `cd pagefind_playground && npm i && npm run build`
+
 This builds the packages for distribution, but also builds the files to the `pagefind/vendor` directory,
 which is where the Pagefind source looks for them during compilation.
 
