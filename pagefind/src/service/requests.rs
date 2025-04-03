@@ -46,6 +46,9 @@ pub(super) enum RequestAction {
     GetFiles {
         index_id: u32,
     },
+    GetIndexCatalogue {
+        index_id: u32,
+    },
     DeleteIndex {
         index_id: u32,
     },

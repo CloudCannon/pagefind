@@ -41,7 +41,7 @@ use std::{collections::BTreeMap, path::PathBuf};
 use crate::{
     fossick::{parser::DomParserResult, Fossicker},
     options::PagefindServiceConfig,
-    PagefindInboundConfig, SearchOptions, SearchState,
+    PagefindInboundConfig, SearchOptions, SearchState, IndexCatalogueRepresentation,
 };
 
 #[derive(Debug)]
@@ -207,6 +207,14 @@ impl PagefindIndex {
     pub async fn get_files(&mut self) -> Result<Vec<SyntheticFile>> {
         self.search_index.build_indexes().await?;
         Ok(self.search_index.get_files().await)
+    }
+
+    /// Get the catalogue mappings from hashes to encoded data.
+    ///
+    /// # Returns
+    /// An IndexCatalogueRepresentation containing the hash and content of each fragment.
+    pub async fn get_index_catalogue(&mut self) -> Result<IndexCatalogueRepresentation> {
+        self.search_index.get_index_catalogue().await
     }
 }
 
