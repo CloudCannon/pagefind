@@ -1,0 +1,18 @@
+{
+  "thanks_to": "Patiphon Loetsuthakun <ptphon@gmail.com>",
+  "comments": "",
+  "direction": "ltr",
+  "strings": {
+    "placeholder": "ค้นหา",
+    "clear_search": "ล้าง",
+    "load_more": "โหลดผลลัพธ์เพิ่มเติม",
+    "search_label": "ค้นหาบนเว็บไซต์",
+    "filters_label": "ตัวกรอง",
+    "zero_results": "ไม่พบผลลัพธ์สำหรับ [SEARCH_TERM]",
+    "many_results": "พบ [COUNT] ผลการค้นหาสำหรับ [SEARCH_TERM]",
+    "one_result": "พบ [COUNT] ผลการค้นหาสำหรับ [SEARCH_TERM]",
+    "alt_search": "ไม่พบผลลัพธ์สำหรับ [SEARCH_TERM] แสดงผลลัพธ์จากการค้นหา [DIFFERENT_TERM] แทน",
+    "search_suggestion": "ไม่พบผลลัพธ์สำหรับ [SEARCH_TERM] ลองคำค้นหาเหล่านี้แทน:",
+    "searching": "กำลังค้นหา [SEARCH_TERM]..."
+  }
+}
