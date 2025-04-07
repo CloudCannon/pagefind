@@ -255,6 +255,11 @@
         automatic_translations,
         translations
       )}
+      title={translate(
+        "placeholder",
+        automatic_translations,
+        translations
+      )}
       autocapitalize="none"
       enterkeyhint="search"
       {autofocus}
