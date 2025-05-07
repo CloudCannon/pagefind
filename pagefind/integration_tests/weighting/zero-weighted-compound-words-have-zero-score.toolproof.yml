@@ -1,0 +1,95 @@
+name: Word Weighting > Zero-weighted compound words have zero score
+steps:
+  - ref: ./background.toolproof.yml
+  - step: I have a "public/normal/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body>
+      <p>This page contains the term foo.bar.baz that should be searchable normally</p>
+      </body></html>
+  - step: I have a "public/zero-weight/index.html" file with the content {html}
+    html: >-
+      <!DOCTYPE html><html lang="en"><head></head><body>
+      <div data-pagefind-weight="0">
+      <p>This page contains the term foo.bar.baz but with zero weight</p>
+      </div>
+      </body></html>
+  - macro: I run Pagefind
+  - step: stdout should contain "Running Pagefind"
+  - step: I serve the directory "public"
+  - step: In my browser, I load "/"
+  
+  # Test full compound word
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      
+      let search = await pagefind.search("foo.bar.baz");
+      let data = await Promise.all(search.results.map(result => result.data()));
+      
+      // Store search results along with scores
+      let resultData = [];
+      for (let i = 0; i < search.results.length; i++) {
+        resultData.push({
+          url: data[i].url,
+          score: search.results[i].score
+        });
+      }
+      
+      // Sort by URL to make testing predictable
+      resultData.sort((a, b) => a.url.localeCompare(b.url));
+      
+      document.querySelector('p').innerText = JSON.stringify(resultData);
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("p");
+      let results = JSON.parse(val.innerHTML);
+      
+      // Should find two pages: normal with positive score, zero-weight with zero score
+      toolproof.assert_eq(results.length, 2);
+      
+      // Check normal page (higher URL alphabetically)
+      toolproof.assert_eq(results[0].url, "/normal/");
+      toolproof.assert(results[0].score > 0, "Normal page should have positive score");
+      
+      // Check zero-weight page
+      toolproof.assert_eq(results[1].url, "/zero-weight/");
+      toolproof.assert_eq(results[1].score, 0, "Zero-weighted page should have zero score");
+  
+  # Test compound word part "bar"
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let pagefind = await import("/pagefind/pagefind.js");
+      
+      let search = await pagefind.search("bar");
+      let data = await Promise.all(search.results.map(result => result.data()));
+      
+      // Store search results along with scores
+      let resultData = [];
+      for (let i = 0; i < search.results.length; i++) {
+        resultData.push({
+          url: data[i].url,
+          score: search.results[i].score
+        });
+      }
+      
+      // Sort by URL to make testing predictable
+      resultData.sort((a, b) => a.url.localeCompare(b.url));
+      
+      document.querySelector('p').innerText = JSON.stringify(resultData);
+  - step: In my browser, the console should be empty
+  - step: In my browser, I evaluate {js}
+    js: |-
+      let val = await toolproof.querySelector("p");
+      let results = JSON.parse(val.innerHTML);
+      
+      // Should find two pages: normal with positive score, zero-weight with zero score
+      toolproof.assert_eq(results.length, 2);
+      
+      // Check normal page (higher URL alphabetically)
+      toolproof.assert_eq(results[0].url, "/normal/");
+      toolproof.assert(results[0].score > 0, "Normal page should have positive score");
+      
+      // Check zero-weight page
+      toolproof.assert_eq(results[1].url, "/zero-weight/");
+      toolproof.assert_eq(results[1].score, 0, "Zero-weighted page should have zero score for compound word parts too");

@@ -391,9 +391,13 @@ impl Fossicker {
                         if !part_words.is_empty() {
                             // Index constituents of a compound word as a proportion of the
                             // weight of the full word.
-                            let per_weight = (word_weight
-                                / part_words.len().try_into().unwrap_or(std::u8::MAX))
-                            .max(1);
+                            let per_weight = if *word_weight == 0 {
+                                0
+                            } else {
+                                (word_weight
+                                    / part_words.len().try_into().unwrap_or(std::u8::MAX))
+                                .max(1)
+                            };
 
                             // Only index two+ character words
                             for part_word in part_words.into_iter().filter(|w| w.len() > 1) {
@@ -919,6 +923,29 @@ mod tests {
                 ]
             )])
         );
+    }
+    
+    #[tokio::test]
+    async fn parse_zero_weighted_compound_words() {
+        let mut f = test_fossick(
+            [
+                "<html><body>",
+                "<div data-pagefind-weight='0'>",
+                "<p>Simple text and compound.word.with.periods</p>",
+                "</div>",
+                "</body></html>",
+            ]
+            .concat(),
+        )
+        .await;
+
+        let (_, words, _, _) = f.parse_digest(&test_opts());
+
+        for (_, word_positions) in words {
+            for position in word_positions {
+                assert_eq!(position.weight, 0, "Expected all words to have weight 0");
+            }
+        }
     }
 
     #[tokio::test]
