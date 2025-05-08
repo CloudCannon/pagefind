@@ -52,6 +52,7 @@ convert_case = "0.6.0"
 charabia = { version = "0.9.3", optional = true, default-features = false, features = [
     "chinese",
     "japanese",
+    "thai",
 ] }
 unicode-segmentation = "1.10.1"
 emojis = "0.6.1"
