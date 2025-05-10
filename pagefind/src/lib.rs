@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, path::PathBuf};
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Result, anyhow};
 use fossick::{FossickedData, Fossicker};
 use futures::future::join_all;
 use hashbrown::HashMap;
@@ -26,6 +26,10 @@ mod service;
 mod utils;
 
 const PAGEFIND_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+pub struct IndexCatalogueRepresentation {
+    entries: Vec<(String, String)>
+}
 
 struct SearchState {
     options: SearchOptions,
@@ -310,6 +314,19 @@ impl SearchState {
         .await;
 
         outdir
+    }
+
+    pub async fn get_index_catalogue(&self) -> Result<IndexCatalogueRepresentation> {
+        if self.built_indexes.is_empty() {
+            return Err(anyhow!("Indexes empty, are they built yet? (run get_files/write_files)"));
+        }
+        let entries: Vec<(String, String)> = self
+            .built_indexes
+            .iter()
+            .map(|indexes| indexes.fragments.clone()
+                .into_iter()
+            ).flatten().collect();
+        Ok(IndexCatalogueRepresentation { entries })
     }
 
     pub async fn get_files(&self) -> Vec<SyntheticFile> {

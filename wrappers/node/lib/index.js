@@ -96,6 +96,7 @@ const indexFns = (indexId) => {
         addDirectory: (dir) => addDirectory(indexId, dir),
         writeFiles: (options) => writeFiles(indexId, options),
         getFiles: () => getFiles(indexId),
+        getIndexCatalogue: () => getIndexCatalogue(indexId),
         deleteIndex: () => deleteIndex(indexId)
     }
 }
@@ -269,6 +270,36 @@ const getFiles = (indexId) => new Promise((resolve, reject) => {
                             content: decode(file.content)
                         }
                     })
+                }
+            };
+            handleApiResponse(resolve, reject, response, successCallback);
+        }
+    );
+});
+
+/**
+ * @typedef {import ('pagefindService').GetIndexCatalogueResponse} GetIndexCatalogueResponse
+ * 
+ * @param {number} indexId 
+ * @returns {Promise<GetIndexCatalogueResponse>}
+ */
+const getIndexCatalogue = (indexId) => new Promise((resolve, reject) => {
+    const action = 'GetIndexCatalogue';
+    launch().sendMessage(
+        {
+            type: action,
+            index_id: indexId,
+        }, (response) => {
+            /** @type {function(InternalResponsePayload): Omit<GetIndexCatalogueResponse, 'errors'>?} */
+            const successCallback = (success) => {
+                if (success.type !== action) {
+                    reject(`Message returned from backend should have been ${action}, but was ${success.type}`);
+                    return null;
+                }
+
+                return {
+                    entries: success.entries,
+                    entryCount: success.entry_count
                 }
             };
             handleApiResponse(resolve, reject, response, successCallback);

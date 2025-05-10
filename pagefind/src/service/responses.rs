@@ -33,6 +33,10 @@ pub(super) enum ResponseAction {
     GetFiles {
         files: Vec<SyntheticFileResponse>,
     },
+    GetIndexCatalogue {
+        entries: Vec<(String, String)>,
+        entry_count: usize,
+    },
     DeleteIndex {},
 }
 
