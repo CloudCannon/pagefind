@@ -137,6 +137,7 @@ jobs:
         run: cross build --release --target ${{matrix.target}} --features extended
 
       - name: Upload Testing Binary
+        if: matrix.build!= 'freebsd'
         uses: actions/upload-artifact@v4
         with:
           name: pagefind-${{ matrix.target }}
@@ -149,11 +150,13 @@ jobs:
           name: pagefind-${{ matrix.target }}
           path: target/${{matrix.target}}/release/pagefind
 
-      - name: Test Lib
+      - name: Test 
+        if: matrix.build != 'freebsd'
         working-directory: ./pagefind
         run: cargo test --release --lib --features extended
 
       - name: Test CLI
+        if: matrix.build!= 'freebsd'
         run: npx -y toolproof@latest -s -c 1 --timeout 45
 
       - name: Set up poetry
