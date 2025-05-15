@@ -25,6 +25,10 @@ jobs:
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             cross: false
+          - build: freebsd
+            os: ubuntu-latest
+            target: x86_64-unknown-freebsd
+            cross: true
           - build: macos
             os: macos-latest
             target: x86_64-apple-darwin
