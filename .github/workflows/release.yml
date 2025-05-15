@@ -429,6 +429,13 @@ jobs:
             target: aarch64-apple-darwin
             cross: false
             run_tests: false
+          - build: freebsd
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-freebsd
+            cross: true
+            run_tests: false
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
