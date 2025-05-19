@@ -29,6 +29,11 @@ jobs:
             os: macos-latest
             target: x86_64-apple-darwin
             cross: false
+
+          - build: freebsd
+            os: ubuntu-latest
+            target: x86_64-unknown-freebsd
+            cross: true
           - build: windows
             os: windows-latest
             target: x86_64-pc-windows-msvc
@@ -118,61 +123,87 @@ jobs:
         run: cargo test --release
 
       - name: Build Testing Binary
+        if: matrix.build != 'freebsd'
         working-directory: ./pagefind
         run: cargo build --release --features extended
 
+      - name: Install Cross (for FreeBSD compilation)
+        if: matrix.cross == true
+        run: cargo install cross
+
+      - name: Build FreeBSD Test Binary
+        working-directory: ./pagefind
+        if: matrix.build == 'freebsd'
+        run: cross build --release --target ${{matrix.target}} --features extended
+
       - name: Upload Testing Binary
+        if: matrix.build!= 'freebsd'
         uses: actions/upload-artifact@v4
         with:
           name: pagefind-${{ matrix.target }}
           path: target/release/pagefind${{ matrix.build == 'windows' && '.exe' || '' }}
+      
+      - name: Upload Testing Binary (FreeBSD)
+        uses: actions/upload-artifact@v4
+        if: matrix.build == 'freebsd'
+        with:
+          name: pagefind-${{ matrix.target }}
+          path: target/${{matrix.target}}/release/pagefind
 
-      - name: Test Lib
+      - name: Test 
+        if: matrix.build != 'freebsd'
         working-directory: ./pagefind
         run: cargo test --release --lib --features extended
 
       - name: Test CLI
+        if: matrix.build!= 'freebsd'
         run: npx -y toolproof@latest -s -c 1 --timeout 45
 
       - name: Set up poetry
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/setup_poetry.sh
 
       - name: cache venv
+        if: matrix.build != 'freebsd'
         uses: actions/cache@v4
         with:
           path: wrappers/python/.venv
           key: ${{ runner.os }}-poetry-3.12-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dev dependencies
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
 
       - name: activate venv
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/activate_venv.sh
 
       - name: debug python paths
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
 
       - name: Lint python
-        # avoid duplicating linting work on different OSes
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.build != 'freebsd'
         working-directory: ./wrappers/python
         run: ./scripts/ci/python_lints.sh
 
       - name: ensure cog up-to-date
-        # avoid duplicating linting work on different OSes
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.build != 'freebsd'
         working-directory: ./wrappers/python
         run: ./scripts/ci/cog/check.sh
 
       - name: set PYTHONPATH
+        if: matrix.build != 'freebsd'
         shell: bash
         working-directory: ./wrappers/python
         run: python ./scripts/ci/github/add_src_to_pythonpath.py
+
       - name: add target/release to windows PATH
+        if: matrix.build != 'freebsd'
         shell: bash
         run: echo $PWD/target/release >> "$GITHUB_PATH"
+
       - name: Test python API
+        if: matrix.build != 'freebsd'
         timeout-minutes: 1
-        # ^ guard against the tests getting deadlock if the subprocess pipe
-        # gets clogged
         run: ./wrappers/python/scripts/ci/github/integration_tests.sh

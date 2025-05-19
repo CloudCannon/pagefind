@@ -23,7 +23,8 @@
     "@pagefind/linux-arm64": "0.0.0",
     "@pagefind/darwin-x64": "0.0.0",
     "@pagefind/darwin-arm64": "0.0.0",
-    "@pagefind/windows-x64": "0.0.0"
+    "@pagefind/windows-x64": "0.0.0",
+    "@pagefind/freebsd-x64": "0.0.0"
   },
   "keywords": [
     "CloudCannon",

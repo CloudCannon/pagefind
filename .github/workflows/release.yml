@@ -250,6 +250,11 @@ jobs:
             package: darwin-x64
             os: darwin
             cpu: x64
+          
+          - target: x86_64-unknown-freebsd
+            package: freebsd-x64
+            os: freebsd
+            cpu: x64
           - target: aarch64-apple-darwin
             package: darwin-arm64
             os: darwin
@@ -429,6 +434,13 @@ jobs:
             target: aarch64-apple-darwin
             cross: false
             run_tests: false
+          
+          - build: freebsd
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-freebsd
+            cross: true
+            run_tests: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -502,6 +514,10 @@ jobs:
         uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: ${{env.WASM_PACK_VERSION}}
+      
+      - name: Install cross (FreeBSD binary build)
+        if: matrix.cross == true
+        run: cargo install cross
 
       - name: Set up python 3.12
         uses: actions/setup-python@v5
@@ -553,8 +569,12 @@ jobs:
 
       - name: Build
         working-directory: ./pagefind
+        if: matrix.build!= 'freebsd'
         run: cargo build --release --target ${{ matrix.target }} --features extended
-
+      - name: Build FreeBSD Binary
+        working-directory: ./pagefind
+        if: matrix.build == 'freebsd'
+        run: cross build --release --target ${{ matrix.target }} --features extended
       - name: Test Lib
         if: matrix.run_tests == true
         working-directory: ./pagefind
@@ -568,9 +588,16 @@ jobs:
         run: |
           cp target/${{ matrix.target }}/release/pagefind target/${{ matrix.target }}/release/pagefind_extended
 
+
       - name: Build Non-Extended
         working-directory: ./pagefind
+        if: matrix.build!= 'freebsd'
         run: cargo build --release --target ${{ matrix.target }}
+      
+      - name: Build Non-Extended (FreeBSD)
+        if: matrix.build == 'freebsd'
+        working-directory: ./pagefind
+        run: cross build --release --target ${{ matrix.target }}
 
       - name: Create Standard Release
         run: |
