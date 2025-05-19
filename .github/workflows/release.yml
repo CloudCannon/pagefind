@@ -250,6 +250,11 @@ jobs:
             package: darwin-x64
             os: darwin
             cpu: x64
+          
+          - target: x86_64-unknown-freebsd
+            package: freebsd-x64
+            os: freebsd
+            cpu: x64
           - target: aarch64-apple-darwin
             package: darwin-arm64
             os: darwin
