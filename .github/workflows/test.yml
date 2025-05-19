@@ -160,44 +160,50 @@ jobs:
         run: npx -y toolproof@latest -s -c 1 --timeout 45
 
       - name: Set up poetry
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/setup_poetry.sh
 
       - name: cache venv
+        if: matrix.build != 'freebsd'
         uses: actions/cache@v4
         with:
           path: wrappers/python/.venv
           key: ${{ runner.os }}-poetry-3.12-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dev dependencies
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/install_dev_dependencies.sh
 
       - name: activate venv
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/activate_venv.sh
 
       - name: debug python paths
+        if: matrix.build != 'freebsd'
         run: ./wrappers/python/scripts/ci/github/debug_python_paths.sh
 
       - name: Lint python
-        # avoid duplicating linting work on different OSes
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.build != 'freebsd'
         working-directory: ./wrappers/python
         run: ./scripts/ci/python_lints.sh
 
       - name: ensure cog up-to-date
-        # avoid duplicating linting work on different OSes
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.build != 'freebsd'
         working-directory: ./wrappers/python
         run: ./scripts/ci/cog/check.sh
 
       - name: set PYTHONPATH
+        if: matrix.build != 'freebsd'
         shell: bash
         working-directory: ./wrappers/python
         run: python ./scripts/ci/github/add_src_to_pythonpath.py
+
       - name: add target/release to windows PATH
+        if: matrix.build != 'freebsd'
         shell: bash
         run: echo $PWD/target/release >> "$GITHUB_PATH"
+
       - name: Test python API
+        if: matrix.build != 'freebsd'
         timeout-minutes: 1
-        # ^ guard against the tests getting deadlock if the subprocess pipe
-        # gets clogged
         run: ./wrappers/python/scripts/ci/github/integration_tests.sh
