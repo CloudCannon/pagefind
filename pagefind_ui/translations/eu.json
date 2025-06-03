@@ -1,0 +1,18 @@
+{
+    "thanks_to": "Mikel Larreategi <mlarreaegi@codesyntax.com>",
+    "comments": "",
+    "direction": "ltr",
+    "strings": {
+        "placeholder": "Bilatu",
+        "clear_search": "Garbitu",
+        "load_more": "Kargatu emaitza gehiagi",
+        "search_label": "Bilatu",
+        "filters_label": "Iragazkiak",
+        "zero_results": "Ez dago emaitzarik [SEARCH_TERM] bilaketarentzat",
+        "many_results": "[COUNT] emaitza [SEARCH_TERM] bilaketarentzat",
+        "one_result": "Emaitza bat [COUNT] [SEARCH_TERM] bilaketarentzat",
+        "alt_search": "Ez dago emaitzarik [SEARCH_TERM] bilaketarentzat. [DIFFERENT_TERM] bilaketaren emaitzak erakusten",
+        "search_suggestion": "Ez dago emaitzarik [SEARCH_TERM] bilaketarentzat. Saiatu hauetako beste bateikin:",
+        "searching": "[SEARCH_TERM] bilatzen..."
+    }
+}
