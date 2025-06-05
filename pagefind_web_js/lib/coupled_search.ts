@@ -11,6 +11,9 @@ const asyncSleep = async (ms = 100) => {
   return new Promise((r) => setTimeout(r, ms));
 };
 
+// Check if running in browser environment
+const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+
 export class PagefindInstance {
   backend: any;
   decoder: TextDecoder;
@@ -54,6 +57,7 @@ export class PagefindInstance {
       this.basePath = `${this.basePath}/`;
     }
     if (
+      isBrowser &&
       window?.location?.origin &&
       this.basePath.startsWith(window.location.origin)
     ) {
@@ -81,16 +85,18 @@ export class PagefindInstance {
   }
 
   initPrimary() {
-    let derivedBasePath = import.meta.url.match(/^(.*\/)pagefind.js.*$/)?.[1];
-    if (derivedBasePath) {
-      this.basePath = derivedBasePath;
-    } else {
-      console.warn(
-        [
-          "Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.",
-          "Set a basePath option when initialising Pagefind to ignore this message.",
-        ].join("\n"),
-      );
+    if (isBrowser && typeof import.meta.url !== 'undefined') {
+      let derivedBasePath = import.meta.url.match(/^(.*\/)pagefind.js.*$/)?.[1];
+      if (derivedBasePath) {
+        this.basePath = derivedBasePath;
+      } else {
+        console.warn(
+          [
+            "Pagefind couldn't determine the base of the bundle from the import path. Falling back to the default.",
+            "Set a basePath option when initialising Pagefind to ignore this message.",
+          ].join("\n"),
+        );
+      }
     }
   }
 
@@ -721,7 +727,7 @@ export class Pagefind {
   }
 
   async init(overrideLanguage?: string) {
-    if (document?.querySelector) {
+    if (isBrowser && document?.querySelector) {
       const langCode =
         document.querySelector("html")?.getAttribute("lang") || "unknown";
       this.primaryLanguage = langCode.toLocaleLowerCase();
