@@ -85,7 +85,7 @@ export class FilterPills {
 
     pillInner(val, count) {
         if (this.total) {
-            return `<span aria-label="${val}">${val} (${count})</span>`;
+            return `<span aria-label="${val}" data-pfmod-pill-count="${count}">${val} (${count})</span>`;
         } else {
             return `<span aria-label="${val}">${val}</span>`;
         }
