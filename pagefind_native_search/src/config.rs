@@ -35,32 +35,32 @@ pub struct SearchConfig {
     pub language: Option<String>,
 
     /// Default search limit
-    #[clap(long)]
+    #[clap(long, default_value = "30")]
     #[serde(default = "defaults::default_limit")]
     pub default_limit: usize,
 
     /// Enable chunk preloading for better performance
-    #[clap(long)]
+    #[clap(long, default_value = "false")]
     #[serde(default = "defaults::default_false")]
     pub preload_chunks: bool,
 
     /// Cache size for loaded chunks (in MB)
-    #[clap(long)]
+    #[clap(long, default_value = "50")]
     #[serde(default = "defaults::default_cache_size")]
     pub cache_size_mb: usize,
 
     /// Default output format (json or text)
-    #[clap(long)]
+    #[clap(long, default_value = "text")]
     #[serde(default = "defaults::default_output_format")]
     pub output_format: String,
 
     /// Verbose output
-    #[clap(short, long)]
+    #[clap(short, long, default_value = "false")]
     #[serde(default = "defaults::default_false")]
     pub verbose: bool,
 
     /// Quiet mode - only show errors
-    #[clap(short, long)]
+    #[clap(short, long, default_value = "false")]
     #[serde(default = "defaults::default_false")]
     pub quiet: bool,
 
@@ -76,27 +76,27 @@ pub struct SearchConfig {
     // Search-specific options
     
     /// Enable excerpt generation in results
-    #[clap(long)]
+    #[clap(long, default_value = "true")]
     #[serde(default = "defaults::default_true")]
     pub generate_excerpts: bool,
 
     /// Maximum excerpt length in characters
-    #[clap(long)]
+    #[clap(long, default_value = "300")]
     #[serde(default = "defaults::default_excerpt_length")]
     pub excerpt_length: usize,
 
     /// Number of context words around matches in excerpts
-    #[clap(long)]
+    #[clap(long, default_value = "15")]
     #[serde(default = "defaults::default_excerpt_context")]
     pub excerpt_context: usize,
 
     /// Enable fragment loading for results
-    #[clap(long)]
+    #[clap(long, default_value = "true")]
     #[serde(default = "defaults::default_true")]
     pub load_fragments: bool,
 
     /// Maximum number of concurrent fragment loads
-    #[clap(long)]
+    #[clap(long, default_value = "5")]
     #[serde(default = "defaults::default_concurrent_fragments")]
     pub concurrent_fragments: usize,
 

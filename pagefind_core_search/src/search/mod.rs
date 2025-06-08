@@ -192,7 +192,7 @@ impl CoreSearchIndex {
         &self,
         term: &str,
         filter_results: Option<BitSet>,
-        playground_mode: bool,
+        _playground_mode: bool,
     ) -> (Vec<usize>, Vec<PageSearchResult>) {
         let mut unfiltered_results: Vec<usize> = vec![];
         let mut maps = Vec::new();

@@ -148,6 +148,7 @@ pub fn validate_args(bundle_path: &std::path::Path) -> Result<()> {
 
 /// Progress indicator for long operations
 pub struct ProgressIndicator {
+    #[allow(dead_code)]
     message: String,
     verbose: bool,
 }
