@@ -1,0 +1,80 @@
+# Example configuration file for Pagefind Native Search
+# Copy this file to pagefind.toml, pagefind.yml, or pagefind.json and customize as needed
+
+# Path to the Pagefind bundle directory
+# Can be overridden with --bundle CLI flag or PAGEFIND_BUNDLE env var
+bundle = "./pagefind"
+
+# Force a specific language (optional)
+# Can be overridden with --language CLI flag or PAGEFIND_LANGUAGE env var
+# language = "en"
+
+# Default search limit
+# Can be overridden with --limit CLI flag or PAGEFIND_DEFAULT_LIMIT env var
+default_limit = 30
+
+# Enable chunk preloading for better performance
+# Can be overridden with PAGEFIND_PRELOAD_CHUNKS env var
+preload_chunks = false
+
+# Cache size for loaded chunks (in MB)
+# Can be overridden with PAGEFIND_CACHE_SIZE_MB env var
+cache_size_mb = 50
+
+# Default output format (json or text)
+# Can be overridden with --output CLI flag or PAGEFIND_OUTPUT_FORMAT env var
+output_format = "text"
+
+# Verbose output
+# Can be overridden with --verbose CLI flag or PAGEFIND_VERBOSE env var
+verbose = false
+
+# Quiet mode - only show errors
+# Can be overridden with --quiet CLI flag or PAGEFIND_QUIET env var
+quiet = false
+
+# Path to a logfile to write to (optional)
+# Can be overridden with --logfile CLI flag or PAGEFIND_LOGFILE env var
+# logfile = "./pagefind-search.log"
+
+# Search-specific options
+
+# Enable excerpt generation in results
+# Can be overridden with PAGEFIND_GENERATE_EXCERPTS env var
+generate_excerpts = true
+
+# Maximum excerpt length in characters
+# Can be overridden with PAGEFIND_EXCERPT_LENGTH env var
+excerpt_length = 300
+
+# Number of context words around matches in excerpts
+# Can be overridden with PAGEFIND_EXCERPT_CONTEXT env var
+excerpt_context = 15
+
+# Enable fragment loading for results
+# Can be overridden with PAGEFIND_LOAD_FRAGMENTS env var
+load_fragments = true
+
+# Maximum number of concurrent fragment loads
+# Can be overridden with PAGEFIND_CONCURRENT_FRAGMENTS env var
+concurrent_fragments = 5
+
+# Ranking weight configuration (optional)
+# These control how search results are scored and ranked
+# All values are optional and will use defaults if not specified
+
+# Term similarity weight (default: 1.0)
+# Can be overridden with --ranking-term-similarity CLI flag or PAGEFIND_RANKING_TERM_SIMILARITY env var
+# ranking_term_similarity = 1.0
+
+# Page length weight (default: 0.75)
+# Can be overridden with --ranking-page-length CLI flag or PAGEFIND_RANKING_PAGE_LENGTH env var
+# ranking_page_length = 0.75
+
+# Term saturation weight (default: 1.5)
+# Can be overridden with --ranking-term-saturation CLI flag or PAGEFIND_RANKING_TERM_SATURATION env var
+# ranking_term_saturation = 1.5
+
+# Term frequency weight (default: 1.0)
+# Can be overridden with --ranking-term-frequency CLI flag or PAGEFIND_RANKING_TERM_FREQUENCY env var
+# ranking_term_frequency = 1.0

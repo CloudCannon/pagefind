@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use pagefind_native_search::{NativeSearch, NativeSearchConfig};
+use pagefind_native_search::{NativeSearch, config::SearchConfig};
 use std::path::PathBuf;
 
 /// Pagefind native search CLI
@@ -11,27 +11,31 @@ use std::path::PathBuf;
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+    
+    /// Custom configuration file path
+    #[arg(long, global = true)]
+    config: Option<PathBuf>,
 }
 
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Search a Pagefind index
     Search {
-        /// Path to the Pagefind bundle directory
-        #[arg(short, long)]
-        bundle: PathBuf,
-
         /// Search query
         #[arg(short, long)]
         query: String,
 
-        /// Force a specific language
+        /// Path to the Pagefind bundle directory (overrides config)
+        #[arg(short, long)]
+        bundle: Option<PathBuf>,
+
+        /// Force a specific language (overrides config)
         #[arg(short, long)]
         language: Option<String>,
 
-        /// Output format (json or text)
-        #[arg(short, long, default_value = "text")]
-        output: OutputFormat,
+        /// Output format (json or text) (overrides config)
+        #[arg(short, long)]
+        output: Option<OutputFormat>,
 
         /// Filters as JSON string
         #[arg(short, long)]
@@ -41,28 +45,28 @@ enum Commands {
         #[arg(short, long)]
         sort: Option<String>,
 
-        /// Maximum number of results
+        /// Maximum number of results (overrides config)
         #[arg(long)]
         limit: Option<usize>,
 
-        /// Verbose output
+        /// Verbose output (overrides config)
         #[arg(short, long)]
         verbose: bool,
     },
 
     /// List available filters in the index
     Filters {
-        /// Path to the Pagefind bundle directory
+        /// Path to the Pagefind bundle directory (overrides config)
         #[arg(short, long)]
-        bundle: PathBuf,
+        bundle: Option<PathBuf>,
 
-        /// Force a specific language
+        /// Force a specific language (overrides config)
         #[arg(short, long)]
         language: Option<String>,
 
-        /// Output format (json or text)
-        #[arg(short, long, default_value = "text")]
-        output: OutputFormat,
+        /// Output format (json or text) (overrides config)
+        #[arg(short, long)]
+        output: Option<OutputFormat>,
     },
 }
 
@@ -85,12 +89,16 @@ impl std::str::FromStr for OutputFormat {
 }
 
 fn main() -> Result<()> {
+    // Parse CLI args first to get potential config file path
     let cli = Cli::parse();
-
+    
+    // Load configuration from all sources
+    let config = SearchConfig::load()?;
+    
     match cli.command {
         Commands::Search {
-            bundle,
             query,
+            bundle,
             language,
             output,
             filters,
@@ -98,14 +106,48 @@ fn main() -> Result<()> {
             limit,
             verbose,
         } => {
-            search_command(bundle, query, language, output, filters, sort, limit, verbose)?;
+            // Use CLI args to override config values
+            let bundle_path = bundle.or(config.bundle.clone())
+                .ok_or_else(|| anyhow::anyhow!("Bundle path not specified. Use --bundle or set in config."))?;
+            let language = language.or(config.language.clone());
+            let output_format = output.unwrap_or_else(|| {
+                match config.output_format.as_str() {
+                    "json" => OutputFormat::Json,
+                    _ => OutputFormat::Text,
+                }
+            });
+            let limit = limit.or(Some(config.default_limit));
+            let verbose = verbose || config.verbose;
+            
+            search_command(
+                bundle_path,
+                query,
+                language,
+                output_format,
+                filters,
+                sort,
+                limit,
+                verbose,
+                &config,
+            )?;
         }
         Commands::Filters {
             bundle,
             language,
             output,
         } => {
-            filters_command(bundle, language, output)?;
+            // Use CLI args to override config values
+            let bundle_path = bundle.or(config.bundle.clone())
+                .ok_or_else(|| anyhow::anyhow!("Bundle path not specified. Use --bundle or set in config."))?;
+            let language = language.or(config.language.clone());
+            let output_format = output.unwrap_or_else(|| {
+                match config.output_format.as_str() {
+                    "json" => OutputFormat::Json,
+                    _ => OutputFormat::Text,
+                }
+            });
+            
+            filters_command(bundle_path, language, output_format)?;
         }
     }
 
@@ -121,15 +163,24 @@ fn search_command(
     sort: Option<String>,
     limit: Option<usize>,
     verbose: bool,
+    config: &SearchConfig,
 ) -> Result<()> {
     if verbose {
         eprintln!("Searching in bundle: {:?}", bundle);
         eprintln!("Query: {}", query);
+        if let Some(ref lang) = language {
+            eprintln!("Language: {}", lang);
+        }
     }
 
     // Create and initialize search
     let mut search = NativeSearch::new(bundle)?;
     search.init(language.as_deref())?;
+    
+    // Apply ranking weights from config if specified
+    if let Some(weights) = config.get_ranking_weights() {
+        search.set_ranking_weights(weights);
+    }
 
     // Parse filters from JSON string
     let mut search_options = pagefind_native_search::SearchOptions::default();
@@ -184,12 +235,19 @@ fn search_command(
                 println!("   Matched locations: {}", result.word_locations.len());
                 
                 // Try to load fragment for more details
-                if verbose {
+                if verbose && config.load_fragments {
                     match search.load_fragment(&result.page) {
                         Ok(fragment) => {
                             println!("   URL: {}", fragment.url);
                             if let Some(title) = fragment.meta.get("title") {
                                 println!("   Title: {}", title);
+                            }
+                            
+                            // Generate excerpt if enabled
+                            if config.generate_excerpts {
+                                // TODO: Implement excerpt generation
+                                // This would use the fragment content and word locations
+                                // to generate a contextual excerpt
                             }
                         }
                         Err(e) => {

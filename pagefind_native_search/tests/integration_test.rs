@@ -47,10 +47,12 @@ fn test_entry_file_loading() {
         "languages": {
             "en": {
                 "hash": "abc123",
+                "wasm": null,
                 "page_count": 42
             },
             "es": {
                 "hash": "def456",
+                "wasm": null,
                 "page_count": 35
             }
         },

@@ -2065,6 +2065,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror",
+ "twelf",
 ]
 
 [[package]]

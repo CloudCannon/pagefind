@@ -14,6 +14,17 @@ export class SearchService {
         this.bundlePath = path.resolve(config.bundlePath);
         this.language = config.language;
         this.verbose = config.verbose || false;
+        
+        // Additional configuration options
+        this.configFile = config.configFile;
+        this.defaultLimit = config.defaultLimit;
+        this.outputFormat = config.outputFormat || 'json';
+        this.preloadChunks = config.preloadChunks;
+        this.generateExcerpts = config.generateExcerpts;
+        this.excerptLength = config.excerptLength;
+        this.excerptContext = config.excerptContext;
+        this.loadFragments = config.loadFragments;
+        this.rankingWeights = config.rankingWeights;
     }
 
     /**
@@ -53,12 +64,33 @@ export class SearchService {
                 '--output', 'json'
             ];
             
+            // Add configuration file if specified
+            if (this.configFile) {
+                fullArgs.push('--config', this.configFile);
+            }
+            
             if (this.language) {
                 fullArgs.push('--language', this.language);
             }
             
             if (this.verbose) {
                 fullArgs.push('--verbose');
+            }
+            
+            // Add ranking weights if specified
+            if (this.rankingWeights) {
+                if (this.rankingWeights.termSimilarity !== undefined) {
+                    fullArgs.push('--ranking-term-similarity', this.rankingWeights.termSimilarity.toString());
+                }
+                if (this.rankingWeights.pageLength !== undefined) {
+                    fullArgs.push('--ranking-page-length', this.rankingWeights.pageLength.toString());
+                }
+                if (this.rankingWeights.termSaturation !== undefined) {
+                    fullArgs.push('--ranking-term-saturation', this.rankingWeights.termSaturation.toString());
+                }
+                if (this.rankingWeights.termFrequency !== undefined) {
+                    fullArgs.push('--ranking-term-frequency', this.rankingWeights.termFrequency.toString());
+                }
             }
 
             const proc = child_process.spawn(binaryPath, fullArgs, {
@@ -112,8 +144,10 @@ export class SearchService {
             args.push('--sort', sortJson);
         }
         
-        if (options.limit) {
-            args.push('--limit', options.limit.toString());
+        // Use provided limit or fall back to default limit from config
+        const limit = options.limit || this.defaultLimit;
+        if (limit) {
+            args.push('--limit', limit.toString());
         }
 
         return await this.executeCommand(args);
