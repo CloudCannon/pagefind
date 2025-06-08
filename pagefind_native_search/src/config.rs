@@ -8,7 +8,7 @@
 //! The precedence order is: CLI > Environment > Config File > Defaults
 
 use anyhow::{bail, Result};
-use clap::Parser;
+use clap::{CommandFactory, Parser};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use twelf::config;
@@ -22,7 +22,7 @@ const CONFIG_FILES: &[&str] = &[
 
 /// Configuration for pagefind native search
 #[config]
-#[derive(Parser, Debug, Clone, Serialize, Deserialize)]
+#[derive(Parser, Debug, Clone, Serialize)]
 #[clap(author, version, about, long_about = None)]
 pub struct SearchConfig {
     /// Path to the Pagefind bundle directory
