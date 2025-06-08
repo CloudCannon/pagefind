@@ -1882,6 +1882,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "minicbor"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d15f4203d71fdf90903c2696e55426ac97a363c67b218488a73b534ce7aca10"
+
+[[package]]
 name = "minicbor-derive"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2009,7 +2015,7 @@ dependencies = [
  "lazy_static",
  "lexical-core",
  "lol_html",
- "minicbor",
+ "minicbor 0.19.1",
  "minifier",
  "pagefind_stem 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "path-slash",
@@ -2030,9 +2036,12 @@ dependencies = [
 name = "pagefind_core_search"
 version = "0.1.0"
 dependencies = [
+ "bit-set",
+ "minicbor 0.20.0",
  "pagefind_microjson",
  "pagefind_stem 0.2.0",
  "serde",
+ "write-json",
 ]
 
 [[package]]
@@ -3341,6 +3350,12 @@ name = "windows_x86_64_msvc"
 version = "0.52.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32b752e52a2da0ddfbdbcc6fceadfeede4c939ed16d13e648833a61dfb611ed8"
+
+[[package]]
+name = "write-json"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23f6174b2566cc4a74f95e1367ec343e7fa80c93cc8087f5c4a3d6a1088b2118"
 
 [[package]]
 name = "xattr"

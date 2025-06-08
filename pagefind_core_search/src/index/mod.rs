@@ -1,135 +1,117 @@
-//! Index data structures and parsing
+use crate::{CoreSearchIndex, PageWord};
+use minicbor::{decode, Decoder};
 
-use std::collections::HashMap;
-
-/// Represents a chunk of the search index
-#[derive(Debug)]
-pub struct IndexChunk {
-    pub hash: String,
-    pub pages: Vec<Page>,
-    pub words: HashMap<String, Vec<PageWord>>,
+/*
+{} = fixed length array
+{
+    [
+        {
+            String,             // word
+            [
+                {
+                    u32,        // page number
+                    [
+                        u32,    // page location
+                        ...
+                    ]
+                },
+                ...
+            ]
+        },
+        ...
+    ]
 }
+*/
 
-impl IndexChunk {
-    /// Parse an index chunk from raw bytes
-    pub fn from_bytes(data: &[u8]) -> Result<Self, IndexError> {
-        // TODO: Implement parsing logic
-        Ok(Self {
-            hash: String::new(),
-            pages: Vec::new(),
-            words: HashMap::new(),
-        })
-    }
-}
+impl CoreSearchIndex {
+    pub fn decode_index_chunk(&mut self, index_bytes: &[u8]) -> Result<(), decode::Error> {
+        let mut decoder = Decoder::new(index_bytes);
 
-/// Represents a page in the index
-#[derive(Debug, Clone)]
-pub struct Page {
-    pub id: String,
-    pub url: String,
-    pub title: String,
-    pub content: String,
-    pub word_count: usize,
-    pub meta: HashMap<String, String>,
-    pub filters: HashMap<String, Vec<String>>,
-}
+        // Consume fixed array marker
+        decoder.array()?;
 
-impl Page {
-    /// Create a new page
-    pub fn new(id: String, url: String) -> Self {
-        Self {
-            id,
-            url,
-            title: String::new(),
-            content: String::new(),
-            word_count: 0,
-            meta: HashMap::new(),
-            filters: HashMap::new(),
+        // Read words array
+        let words = match decoder.array()? {
+            Some(n) => n,
+            None => return Err(decode::Error::message("Array length not specified")),
+        };
+
+        for _ in 0..words {
+            decoder.array()?;
+            let key = decoder.str()?.to_owned();
+
+            let pages = match decoder.array()? {
+                Some(n) => n,
+                None => return Err(decode::Error::message("Array length not specified")),
+            };
+            let mut page_arr = Vec::with_capacity(pages as usize);
+            for _ in 0..pages {
+                decoder.array()?;
+                let mut page = PageWord {
+                    page: decoder.u32()?,
+                    locs: vec![],
+                };
+
+                let word_locations = match decoder.array()? {
+                    Some(n) => n,
+                    None => return Err(decode::Error::message("Array length not specified")),
+                };
+                let mut weight = 25;
+                for _ in 0..word_locations {
+                    let loc = decoder.i32()?;
+                    // Negative numbers represent a change in the weighting of subsequent words.
+                    if loc.is_negative() {
+                        let abs_weight = (loc + 1) * -1;
+                        weight = if abs_weight > 255 {
+                            255
+                        } else {
+                            abs_weight.try_into().unwrap_or_default()
+                        };
+                    } else {
+                        page.locs.push((weight, loc as u32));
+                    }
+                }
+
+                page_arr.push(page);
+            }
+
+            self.words.insert(key, page_arr);
         }
+
+        Ok(())
     }
-}
 
-/// Represents a word occurrence in a page
-#[derive(Debug, Clone)]
-pub struct PageWord {
-    pub page_id: String,
-    pub positions: Vec<usize>,
-    pub weight: f32,
-}
+    pub fn decode_filter_index_chunk(&mut self, filter_bytes: &[u8]) -> Result<(), decode::Error> {
+        let mut decoder = Decoder::new(filter_bytes);
 
-impl PageWord {
-    /// Create a new page word reference
-    pub fn new(page_id: String) -> Self {
-        Self {
-            page_id,
-            positions: Vec::new(),
-            weight: 1.0,
+        decoder.array()?;
+
+        let filter = decoder.str()?.to_owned();
+
+        let values = match decoder.array()? {
+            Some(n) => n,
+            None => return Err(decode::Error::message("Array length not specified")),
+        };
+
+        let mut value_map = std::collections::BTreeMap::new();
+        for _ in 0..values {
+            decoder.array()?;
+            let value = decoder.str()?.to_owned();
+
+            let pages = match decoder.array()? {
+                Some(n) => n,
+                None => return Err(decode::Error::message("Array length not specified")),
+            };
+            let mut page_arr = Vec::with_capacity(pages as usize);
+            for _ in 0..pages {
+                page_arr.push(decoder.u32()?);
+            }
+
+            value_map.insert(value, page_arr);
         }
-    }
 
-    /// Add a position where this word occurs
-    pub fn add_position(&mut self, position: usize) {
-        self.positions.push(position);
-    }
-}
+        self.filters.insert(filter, value_map);
 
-/// Metadata about the entire index
-#[derive(Debug)]
-pub struct IndexMetadata {
-    pub version: String,
-    pub languages: Vec<String>,
-    pub total_pages: usize,
-    pub total_words: usize,
-    pub chunks: Vec<ChunkMetadata>,
-}
-
-/// Metadata about a single index chunk
-#[derive(Debug)]
-pub struct ChunkMetadata {
-    pub hash: String,
-    pub page_count: usize,
-    pub word_count: usize,
-}
-
-/// Errors that can occur during index operations
-#[derive(Debug)]
-pub enum IndexError {
-    ParseError(String),
-    InvalidFormat(String),
-    CorruptedData(String),
-}
-
-impl std::fmt::Display for IndexError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            IndexError::ParseError(msg) => write!(f, "Parse error: {}", msg),
-            IndexError::InvalidFormat(msg) => write!(f, "Invalid format: {}", msg),
-            IndexError::CorruptedData(msg) => write!(f, "Corrupted data: {}", msg),
-        }
-    }
-}
-
-impl std::error::Error for IndexError {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_page_creation() {
-        let page = Page::new("test-id".to_string(), "/test/url".to_string());
-        assert_eq!(page.id, "test-id");
-        assert_eq!(page.url, "/test/url");
-        assert_eq!(page.word_count, 0);
-    }
-
-    #[test]
-    fn test_page_word_positions() {
-        let mut word = PageWord::new("page-1".to_string());
-        word.add_position(10);
-        word.add_position(25);
-        assert_eq!(word.positions.len(), 2);
-        assert_eq!(word.positions[0], 10);
-        assert_eq!(word.positions[1], 25);
+        Ok(())
     }
 }

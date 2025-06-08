@@ -1,160 +1,317 @@
-//! Filter functionality for search results
+use bit_set::BitSet;
+use pagefind_microjson::JSONValue;
+use pagefind_microjson::JSONValueType;
 
-use std::collections::{HashMap, HashSet};
+use crate::CoreSearchIndex;
 
-/// Represents a set of filters to apply to search results
-#[derive(Debug, Clone, Default)]
-pub struct FilterSet {
-    /// Map of filter name to allowed values
-    pub filters: HashMap<String, HashSet<String>>,
-    /// Whether to use AND or OR logic between different filter types
-    pub mode: FilterMode,
+#[derive(Debug)]
+pub enum FilterBehaviour {
+    Any,
+    All,
 }
 
-impl FilterSet {
-    /// Create a new empty filter set
-    pub fn new() -> Self {
-        Self {
-            filters: HashMap::new(),
-            mode: FilterMode::And,
+fn collapse(mut maps: Vec<BitSet>, behaviour: FilterBehaviour) -> BitSet {
+    let mut maps = maps.drain(..);
+    let mut output = maps.next().unwrap_or_default();
+
+    for map in maps {
+        match behaviour {
+            FilterBehaviour::Any => output.union_with(&map),
+            FilterBehaviour::All => output.intersect_with(&map),
+        }
+    }
+    output
+}
+
+impl CoreSearchIndex {
+    pub fn get_filters(&self, obj: &mut write_json::Object, intersect_pages: Option<Vec<usize>>) {
+        let intersect_pages = intersect_pages.as_ref();
+        for (filter, values) in &self.filters {
+            let mut filter_obj = obj.object(filter);
+
+            for (value, pages) in values {
+                let len = match intersect_pages {
+                    Some(intersection) => pages
+                        .iter()
+                        .filter(|p| intersection.contains(&(**p as usize)))
+                        .count(),
+                    None => pages.len(),
+                };
+                filter_obj.number(value, len as f64);
+            }
         }
     }
 
-    /// Add a filter with allowed values
-    pub fn add_filter(&mut self, name: String, values: Vec<String>) {
-        let value_set: HashSet<String> = values.into_iter().collect();
-        self.filters.insert(name, value_set);
+    fn invert(&self, set: &mut BitSet) {
+        set.symmetric_difference_with(&BitSet::<u32>::from_iter(0..self.pages.len()));
     }
 
-    /// Check if a page matches the filter set
-    pub fn matches(&self, page_filters: &HashMap<String, Vec<String>>) -> bool {
-        if self.filters.is_empty() {
-            return true;
-        }
+    fn parse_filter_value(
+        &self,
+        filter_key: &str,
+        filter: JSONValue,
+        behaviour: FilterBehaviour,
+    ) -> Option<BitSet> {
+        use JSONValueType as J;
 
-        match self.mode {
-            FilterMode::And => self.matches_all(page_filters),
-            FilterMode::Or => self.matches_any(page_filters),
-        }
-    }
+        let filter_map = self.filters.get(filter_key);
 
-    fn matches_all(&self, page_filters: &HashMap<String, Vec<String>>) -> bool {
-        for (filter_name, allowed_values) in &self.filters {
-            if let Some(page_values) = page_filters.get(filter_name) {
-                let has_match = page_values.iter()
-                    .any(|v| allowed_values.contains(v));
-                if !has_match {
-                    return false;
+        let mut maps = Vec::new();
+        let build_set = |val: JSONValue| {
+            if let Some(Some(filter_pages)) =
+                filter_map.map(|m| m.get(val.read_string().unwrap_or_default()))
+            {
+                let mut set = BitSet::new();
+                for page in filter_pages {
+                    set.insert(*page as usize);
                 }
+                set
             } else {
-                return false;
+                // Filter does not exist, push in a set of 0 pages to force no results
+                BitSet::new()
+            }
+        };
+
+        match filter.value_type {
+            JSONValueType::String => maps.push(build_set(filter)),
+            JSONValueType::Array => {
+                if let Ok(arr) = filter.iter_array() {
+                    for value in arr {
+                        match value.value_type {
+                            J::String => {
+                                maps.push(build_set(value));
+                            }
+                            J::Object => {
+                                if let Some(inner_set) =
+                                    self.parse_filter_value(filter_key, value, FilterBehaviour::All)
+                                {
+                                    maps.push(inner_set);
+                                }
+                            }
+                            _ => continue,
+                        }
+                    }
+                }
+            }
+            JSONValueType::Object => {
+                if let Ok(obj) = filter.iter_object() {
+                    for (k, value) in obj.filter_map(|o| o.ok()) {
+                        if let Some(Some(mut map)) = match (k, value.value_type) {
+                            ("any" | "none", J::Object | J::Array | J::String) => Some(
+                                self.parse_filter_value(filter_key, value, FilterBehaviour::Any),
+                            ),
+                            ("all" | "not", J::Object | J::Array | J::String) => Some(
+                                self.parse_filter_value(filter_key, value, FilterBehaviour::All),
+                            ),
+                            _ => None,
+                        } {
+                            if matches!(k, "none" | "not") {
+                                self.invert(&mut map);
+                            }
+                            maps.push(map);
+                        }
+                    }
+                }
+            }
+            _ => {
+                return None;
             }
         }
-        true
+
+        if maps.is_empty() {
+            None
+        } else {
+            Some(collapse(maps, behaviour))
+        }
     }
 
-    fn matches_any(&self, page_filters: &HashMap<String, Vec<String>>) -> bool {
-        for (filter_name, allowed_values) in &self.filters {
-            if let Some(page_values) = page_filters.get(filter_name) {
-                let has_match = page_values.iter()
-                    .any(|v| allowed_values.contains(v));
-                if has_match {
-                    return true;
+    fn parse_filter_arr(&self, filter: JSONValue, behaviour: FilterBehaviour) -> Option<BitSet> {
+        use JSONValueType as J;
+        debug_assert!(matches!(filter.value_type, J::Array));
+
+        let mut maps = Vec::new();
+
+        if let Ok(arr) = filter.iter_array() {
+            for value in arr {
+                if !matches!(value.value_type, J::Object) {
+                    continue;
+                }
+                if let Some(map) = self.parse_filter_obj(value, FilterBehaviour::All) {
+                    maps.push(map)
                 }
             }
         }
-        false
-    }
-}
 
-/// Mode for combining multiple filters
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FilterMode {
-    /// All filters must match (default)
-    And,
-    /// At least one filter must match
-    Or,
-}
-
-impl Default for FilterMode {
-    fn default() -> Self {
-        FilterMode::And
-    }
-}
-
-/// Represents a chunk of filter data
-#[derive(Debug)]
-pub struct FilterChunk {
-    pub hash: String,
-    pub filters: HashMap<String, FilterData>,
-}
-
-impl FilterChunk {
-    /// Parse a filter chunk from raw bytes
-    pub fn from_bytes(data: &[u8]) -> Result<Self, FilterError> {
-        // TODO: Implement parsing logic
-        Ok(Self {
-            hash: String::new(),
-            filters: HashMap::new(),
-        })
-    }
-}
-
-/// Data about a specific filter
-#[derive(Debug)]
-pub struct FilterData {
-    pub name: String,
-    pub values: HashMap<String, usize>, // value -> count
-}
-
-/// Errors that can occur during filter operations
-#[derive(Debug)]
-pub enum FilterError {
-    ParseError(String),
-    InvalidFilter(String),
-}
-
-impl std::fmt::Display for FilterError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FilterError::ParseError(msg) => write!(f, "Filter parse error: {}", msg),
-            FilterError::InvalidFilter(msg) => write!(f, "Invalid filter: {}", msg),
+        if maps.is_empty() {
+            None
+        } else {
+            Some(collapse(maps, behaviour))
         }
     }
-}
 
-impl std::error::Error for FilterError {}
+    fn parse_filter_obj(&self, filter: JSONValue, behaviour: FilterBehaviour) -> Option<BitSet> {
+        use JSONValueType as J;
+        debug_assert!(matches!(filter.value_type, J::Object));
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+        let mut maps = Vec::new();
 
-    #[test]
-    fn test_filter_set_creation() {
-        let filter_set = FilterSet::new();
-        assert_eq!(filter_set.filters.len(), 0);
-        assert_eq!(filter_set.mode, FilterMode::And);
+        if let Ok(obj) = filter.iter_object() {
+            for (k, value) in obj.filter_map(|o| o.ok()) {
+                let map = match (k, value.value_type) {
+                    ("any" | "none", J::Object) => {
+                        self.parse_filter_obj(value, FilterBehaviour::Any)
+                    }
+                    ("all" | "not", J::Object) => {
+                        self.parse_filter_obj(value, FilterBehaviour::All)
+                    }
+                    ("any" | "none", J::Array) => {
+                        self.parse_filter_arr(value, FilterBehaviour::Any)
+                    }
+                    ("all" | "not", J::Array) => self.parse_filter_arr(value, FilterBehaviour::All),
+                    (k, _) => self.parse_filter_value(k, value, FilterBehaviour::All),
+                };
+                if let Some(mut map) = map {
+                    if matches!(k, "none" | "not") {
+                        self.invert(&mut map);
+                    }
+                    maps.push(map);
+                }
+            }
+        }
+
+        if maps.is_empty() {
+            None
+        } else {
+            Some(collapse(maps, behaviour))
+        }
     }
 
-    #[test]
-    fn test_filter_matching_and_mode() {
-        let mut filter_set = FilterSet::new();
-        filter_set.add_filter("category".to_string(), vec!["tech".to_string(), "news".to_string()]);
-        filter_set.add_filter("author".to_string(), vec!["alice".to_string()]);
+    pub fn filter(&self, filter: &str) -> Option<BitSet> {
+        use JSONValueType as J;
 
-        let mut page_filters = HashMap::new();
-        page_filters.insert("category".to_string(), vec!["tech".to_string()]);
-        page_filters.insert("author".to_string(), vec!["alice".to_string()]);
+        if self.filter_chunks(filter).is_none() {
+            return None;
+        }
 
-        // Should match with AND mode
-        assert!(filter_set.matches(&page_filters));
+        let Ok(all_filters) = JSONValue::parse(filter) else {
+            return None;
+        };
+        if !matches!(all_filters.value_type, J::Object) {
+            return None;
+        }
 
-        // Should not match if missing a filter
-        page_filters.remove("author");
-        assert!(!filter_set.matches(&page_filters));
+        self.parse_filter_obj(all_filters, FilterBehaviour::All)
+    }
 
-        // Should match with OR mode
-        filter_set.mode = FilterMode::Or;
-        assert!(filter_set.matches(&page_filters));
+    pub fn dig_filter(&self, filter: JSONValue) -> Option<Vec<String>> {
+        use JSONValueType as J;
+
+        let mut has_filters = false;
+        let mut indexes = Vec::new();
+
+        match filter.value_type {
+            J::Object => {
+                if let Ok(obj) = filter.iter_object() {
+                    for (k, value) in obj.filter_map(|o| o.ok()) {
+                        match (k, value.value_type) {
+                            ("any" | "all" | "not" | "none", J::Object | J::Array) => {
+                                if let Some(nested_filters) = self.dig_filter(value) {
+                                    has_filters = true;
+                                    indexes.extend(nested_filters)
+                                }
+                            }
+                            (filter, _) => {
+                                has_filters = true;
+                                if let Some(hash) = self.filter_chunks.get(filter) {
+                                    indexes.push(hash.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            J::Array => {
+                if let Ok(arr) = filter.iter_array() {
+                    for value in arr {
+                        match value.value_type {
+                            J::Object | J::Array => {
+                                if let Some(nested_filters) = self.dig_filter(value) {
+                                    has_filters = true;
+                                    indexes.extend(nested_filters)
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        if has_filters {
+            Some(indexes)
+        } else {
+            None
+        }
+    }
+
+    pub fn filter_chunks(&self, filter: &str) -> Option<Vec<String>> {
+        use JSONValueType as J;
+
+        let Ok(all_filters) = JSONValue::parse(filter) else {
+            return None;
+        };
+        if !matches!(all_filters.value_type, J::Object) {
+            return None;
+        }
+
+        self.dig_filter(all_filters)
+    }
+
+    // Used to parse one-off filters that were generated by the JS API, not the Rust CLI
+    pub fn decode_synthetic_filter(&mut self, filter: &str) {
+        use JSONValueType as J;
+
+        let Ok(all_filters) = JSONValue::parse(filter) else {
+            return;
+        };
+        if !matches!(all_filters.value_type, J::Object) {
+            return;
+        }
+
+        let all_pages = Vec::from_iter(0..self.pages.len() as u32);
+
+        if let Ok(obj) = all_filters.iter_object() {
+            for (filter_name, value) in obj.filter_map(|o| o.ok()) {
+                if !self.filters.contains_key(filter_name) {
+                    let filter_map = std::collections::BTreeMap::new();
+                    self.filters.insert(filter_name.to_string(), filter_map);
+                }
+
+                let filter_map = self
+                    .filters
+                    .get_mut(filter_name)
+                    .expect("Filter should have just been created");
+
+                match value.value_type {
+                    J::String => {
+                        filter_map
+                            .insert(value.read_string().unwrap().to_string(), all_pages.clone());
+                    }
+                    J::Array => {
+                        for value in value.iter_array().unwrap() {
+                            if !matches!(value.value_type, J::String) {
+                                continue;
+                            }
+                            filter_map.insert(
+                                value.read_string().unwrap().to_string(),
+                                all_pages.clone(),
+                            );
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
     }
 }

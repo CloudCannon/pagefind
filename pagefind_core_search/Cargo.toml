@@ -7,9 +7,12 @@ description = "Core search logic for Pagefind - platform-agnostic search algorit
 license = "MIT"
 
 [dependencies]
+bit-set = "0.5"
+minicbor = "0.20.0"
 pagefind_microjson = "0.1.4"
 pagefind_stem = { path = "../pagefind_stem" }
 serde = { version = "1.0", features = ["derive"] }
+write-json = "0.1.4"
 
 [dev-dependencies]
 
