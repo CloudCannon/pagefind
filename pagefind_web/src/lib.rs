@@ -1,8 +1,8 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-use pagefind_core_search::{CoreSearchIndex, PageSearchResult, RankingWeights};
+use pagefind_core_search::{CoreSearchIndex};
 use wasm_bindgen::prelude::*;
-use bit_set::BitSet;
+// use bit_set::BitSet;
 
 #[cfg(debug_assertions)]
 #[wasm_bindgen]
