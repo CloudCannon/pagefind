@@ -1,7 +1,7 @@
 //! CLI-specific utilities and helpers
 
-use anyhow::{Context, Result};
-use pagefind_core_search::{SearchResult, RankingWeights};
+use anyhow::Result;
+use pagefind_core_search::RankingWeights;
 use serde::Serialize;
 use std::collections::HashMap;
 
@@ -17,19 +17,8 @@ pub struct CliSearchResult {
     pub meta: HashMap<String, String>,
 }
 
-impl From<SearchResult> for CliSearchResult {
-    fn from(result: SearchResult) -> Self {
-        Self {
-            id: result.page_id,
-            url: None, // TODO: Extract from metadata
-            title: None, // TODO: Extract from metadata
-            score: result.score,
-            words: result.words,
-            excerpt: None, // TODO: Generate excerpt
-            meta: HashMap::new(), // TODO: Include metadata
-        }
-    }
-}
+// Note: This conversion is not used in the current implementation
+// as we handle PageSearchResult directly in main.rs
 
 /// CLI search response format
 #[derive(Debug, Serialize)]

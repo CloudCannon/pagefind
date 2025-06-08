@@ -3,8 +3,8 @@
 use anyhow::{Context, Result};
 use flate2::read::GzDecoder;
 use std::fs::File;
-use std::io::{Read, BufReader};
-use std::path::{Path, PathBuf};
+use std::io::Read;
+use std::path::Path;
 
 /// Magic bytes for pagefind_dcd format
 const PAGEFIND_DCD_MAGIC: &[u8] = b"pagefind_dcd";
@@ -15,31 +15,32 @@ pub fn load_pagefind_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
     let mut file = File::open(path)
         .with_context(|| format!("Failed to open file: {:?}", path))?;
     
-    // Read the first bytes to check for magic signature
-    let mut magic_buffer = vec![0u8; PAGEFIND_DCD_MAGIC.len()];
-    file.read_exact(&mut magic_buffer)
-        .with_context(|| format!("Failed to read magic bytes from: {:?}", path))?;
+    let mut contents = Vec::new();
+    file.read_to_end(&mut contents)
+        .with_context(|| format!("Failed to read file: {:?}", path))?;
     
-    // Reset file position
-    file = File::open(path)?;
-    
-    if &magic_buffer == PAGEFIND_DCD_MAGIC {
-        // This is a pagefind_dcd file, skip the magic bytes and decompress
-        let mut reader = BufReader::new(file);
-        reader.read_exact(&mut magic_buffer)?; // Skip magic bytes
-        
-        let mut gz = GzDecoder::new(reader);
-        let mut decompressed = Vec::new();
-        gz.read_to_end(&mut decompressed)
-            .with_context(|| format!("Failed to decompress file: {:?}", path))?;
-        
-        Ok(decompressed)
+    // Check if this is already decompressed (has magic bytes at start)
+    if contents.starts_with(PAGEFIND_DCD_MAGIC) {
+        // File is already decompressed, return data after magic bytes
+        Ok(contents[PAGEFIND_DCD_MAGIC.len()..].to_vec())
     } else {
-        // Regular file, read as-is
-        let mut contents = Vec::new();
-        file.read_to_end(&mut contents)
-            .with_context(|| format!("Failed to read file: {:?}", path))?;
-        Ok(contents)
+        // Try to decompress with gzip
+        let mut gz = GzDecoder::new(&contents[..]);
+        let mut decompressed = Vec::new();
+        match gz.read_to_end(&mut decompressed) {
+            Ok(_) => {
+                // Check if decompressed data has the correct signature
+                if decompressed.starts_with(PAGEFIND_DCD_MAGIC) {
+                    Ok(decompressed[PAGEFIND_DCD_MAGIC.len()..].to_vec())
+                } else {
+                    anyhow::bail!("Decompressed file does not have the correct pagefind_dcd signature");
+                }
+            }
+            Err(_) => {
+                // Not gzipped, return as-is
+                Ok(contents)
+            }
+        }
     }
 }
 
@@ -144,13 +145,33 @@ mod tests {
         let file_path = temp_dir.path().join("test.pf_index");
         let content = b"Compressed content";
         
-        // Create a pagefind_dcd compressed file
-        let mut file = File::create(&file_path).unwrap();
-        file.write_all(PAGEFIND_DCD_MAGIC).unwrap();
+        // Create a gzipped file with pagefind_dcd magic bytes
+        let mut compressed_data = Vec::new();
+        compressed_data.extend_from_slice(PAGEFIND_DCD_MAGIC);
+        compressed_data.extend_from_slice(content);
         
-        let mut encoder = GzEncoder::new(file, Compression::default());
-        encoder.write_all(content).unwrap();
-        encoder.finish().unwrap();
+        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(&compressed_data).unwrap();
+        let gzipped = encoder.finish().unwrap();
+        
+        fs::write(&file_path, gzipped).unwrap();
+        
+        let loaded = load_pagefind_file(&file_path).unwrap();
+        assert_eq!(loaded, content);
+    }
+
+    #[test]
+    fn test_load_already_decompressed_file() {
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("test.pf_meta");
+        let content = b"Already decompressed content";
+        
+        // Create a file that starts with magic bytes (already decompressed)
+        let mut data = Vec::new();
+        data.extend_from_slice(PAGEFIND_DCD_MAGIC);
+        data.extend_from_slice(content);
+        
+        fs::write(&file_path, data).unwrap();
         
         let loaded = load_pagefind_file(&file_path).unwrap();
         assert_eq!(loaded, content);

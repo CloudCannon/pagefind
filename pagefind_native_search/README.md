@@ -15,21 +15,34 @@ This crate provides native search functionality for Pagefind indexes, allowing s
 ## Library Usage
 
 ```rust
-use pagefind_native_search::{NativeSearch, RankingWeights};
-use pagefind_core_search::SearchOptions;
+use pagefind_native_search::{NativeSearch, SearchOptions};
+use pagefind_core_search::RankingWeights;
+use std::collections::HashMap;
 
 // Create a new native search instance
 let mut search = NativeSearch::new("/path/to/pagefind/bundle")?;
-search.init()?;
 
-// Set language (optional)
-search.set_language("en".to_string());
+// Initialize with optional language preference
+search.init(Some("en"))?;
 
 // Set custom ranking weights (optional)
 search.set_ranking_weights(RankingWeights::default());
 
 // Perform a search
-let results = search.search("query", Some(SearchOptions::default()))?;
+let options = SearchOptions {
+    filters: HashMap::new(),
+    sort: None,
+};
+let results = search.search("query", options)?;
+
+// Process results
+for result in results.results {
+    println!("Page: {} (score: {})", result.page, result.page_score);
+    
+    // Load fragment for more details
+    let fragment = search.load_fragment(&result.page)?;
+    println!("URL: {}", fragment.url);
+}
 ```
 
 ## CLI Usage
@@ -57,11 +70,37 @@ pagefind-search search --bundle /path/to/bundle --query "search term" --output j
 - JSON and human-readable output formats
 - Progress indicators for long operations
 
-## Status
+## Implementation Status
 
-This is a skeleton implementation. The following features need to be implemented:
-- Actual file decompression logic
-- Integration with pagefind_core_search for search operations
-- Fragment loading for full page content
-- Excerpt generation
-- Metadata extraction
+✅ **Implemented:**
+- File loading and gzip decompression with `pagefind_dcd` magic byte detection
+- Entry file (`pagefind-entry.json`) parsing
+- Metadata loading and CBOR decoding
+- Index chunk loading with lazy loading based on search terms
+- Filter chunk loading and filtering support
+- Fragment loading (JSON format)
+- Search functionality (term search and exact phrase search)
+- Filter support with bitset operations
+- Sorting support
+- CLI interface with search and filter commands
+- JSON and text output formats
+
+🚧 **TODO:**
+- Excerpt generation from fragments
+- Highlighting support in search results
+- Sub-result calculation for headings/anchors
+- Performance optimizations for large indexes
+- More comprehensive error handling
+- Additional language stemming support
+
+## File Format Support
+
+The implementation supports all Pagefind file formats:
+
+- `pagefind-entry.json`: Entry point with language information
+- `pagefind.{hash}.pf_meta`: Metadata files (CBOR encoded, optionally gzipped)
+- `index/{hash}.pf_index`: Index chunks (CBOR encoded, optionally gzipped)
+- `filter/{hash}.pf_filter`: Filter chunks (CBOR encoded, optionally gzipped)
+- `fragment/{hash}.pf_fragment`: Page fragments (JSON, optionally gzipped)
+
+Files are automatically decompressed if they are gzipped and contain the `pagefind_dcd` magic bytes.

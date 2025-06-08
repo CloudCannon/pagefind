@@ -139,30 +139,18 @@ impl RuntimeSearchOptions {
     }
 
     /// Merge with config defaults to produce final search options
-    pub fn merge_with_config(&self, config: &SearchConfig) -> pagefind_core_search::SearchOptions {
+    pub fn merge_with_config(&self, config: &SearchConfig) -> crate::SearchOptions {
         let filters = self.filters.clone()
-            .or_else(|| config.default_filters.clone());
+            .or_else(|| config.default_filters.clone())
+            .unwrap_or_default();
 
         let sort = self.sort.as_ref()
             .or(config.default_sort.as_ref())
-            .map(|s| {
-                pagefind_core_search::SortOptions::new(
-                    s.field.clone(),
-                    s.order.as_str().into(),
-                )
-            });
+            .map(|s| (s.field.clone(), s.order.clone()));
 
-        pagefind_core_search::SearchOptions {
-            filters: filters.map(|f| {
-                let mut filter_set = pagefind_core_search::FilterSet::new();
-                for (name, values) in f {
-                    filter_set.add_filter(name, values);
-                }
-                filter_set
-            }),
+        crate::SearchOptions {
+            filters,
             sort,
-            limit: self.limit.or(config.default_limit),
-            offset: self.offset,
         }
     }
 }
@@ -210,7 +198,7 @@ mod tests {
         assert_eq!(core_weights.page_length, 0.5);
         assert_eq!(core_weights.term_frequency, 1.0); // Default
         assert_eq!(core_weights.term_similarity, 2.0);
-        assert_eq!(core_weights.term_saturation, 1.5); // Default
+        assert_eq!(core_weights.term_saturation, 1.4); // Default
     }
 
     #[test]

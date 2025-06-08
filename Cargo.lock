@@ -2055,9 +2055,12 @@ name = "pagefind_native_search"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bit-set",
  "clap",
  "flate2",
+ "minicbor 0.20.0",
  "pagefind_core_search",
+ "pagefind_stem 0.2.0",
  "serde",
  "serde_json",
  "tempfile",

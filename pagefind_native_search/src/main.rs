@@ -129,33 +129,83 @@ fn search_command(
 
     // Create and initialize search
     let mut search = NativeSearch::new(bundle)?;
-    search.init()?;
+    search.init(language.as_deref())?;
 
-    if let Some(lang) = language {
-        search.set_language(lang);
+    // Parse filters from JSON string
+    let mut search_options = pagefind_native_search::SearchOptions::default();
+    
+    if let Some(filters_json) = filters {
+        let parsed_filters: std::collections::HashMap<String, Vec<String>> =
+            serde_json::from_str(&filters_json)?;
+        search_options.filters = parsed_filters;
+    }
+    
+    if let Some(sort_json) = sort {
+        let parsed_sort: (String, String) = serde_json::from_str(&sort_json)?;
+        search_options.sort = Some(parsed_sort);
     }
 
-    // TODO: Parse filters and sort options from JSON strings
-    let search_options = pagefind_core_search::SearchOptions {
-        limit,
-        ..Default::default()
-    };
-
     // Perform search
-    let results = search.search(&query, Some(search_options))?;
+    let results = search.search(&query, search_options)?;
+    
+    // Apply limit if specified
+    let limited_results: Vec<_> = if let Some(limit) = limit {
+        results.results.into_iter().take(limit).collect()
+    } else {
+        results.results
+    };
 
     // Output results
     match output {
         OutputFormat::Json => {
-            let json = serde_json::to_string_pretty(&results)?;
-            println!("{}", json);
+            let json_output = serde_json::json!({
+                "results": limited_results.iter().map(|r| {
+                    serde_json::json!({
+                        "page": r.page,
+                        "score": r.page_score,
+                        "word_count": r.page_length,
+                        "word_locations": r.word_locations.len()
+                    })
+                }).collect::<Vec<_>>(),
+                "total_results": limited_results.len(),
+                "unfiltered_count": results.unfiltered_result_count,
+                "filters": results.filters
+            });
+            println!("{}", serde_json::to_string_pretty(&json_output)?);
         }
         OutputFormat::Text => {
-            println!("Found {} results for '{}'", results.len(), query);
-            for (i, result) in results.iter().enumerate() {
-                println!("\n{}. {} (score: {:.2})", i + 1, result.page_id, result.score);
-                if !result.words.is_empty() {
-                    println!("   Matched words: {}", result.words.join(", "));
+            println!("Found {} results for '{}' ({} unfiltered)",
+                limited_results.len(), query, results.unfiltered_result_count);
+            
+            for (i, result) in limited_results.iter().enumerate() {
+                println!("\n{}. Page: {} (score: {:.2})",
+                    i + 1, result.page, result.page_score);
+                println!("   Word count: {}", result.page_length);
+                println!("   Matched locations: {}", result.word_locations.len());
+                
+                // Try to load fragment for more details
+                if verbose {
+                    match search.load_fragment(&result.page) {
+                        Ok(fragment) => {
+                            println!("   URL: {}", fragment.url);
+                            if let Some(title) = fragment.meta.get("title") {
+                                println!("   Title: {}", title);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("   Could not load fragment: {}", e);
+                        }
+                    }
+                }
+            }
+            
+            if !results.filters.is_empty() {
+                println!("\nActive filters:");
+                for (filter_name, values) in &results.filters {
+                    println!("  {}:", filter_name);
+                    for (value, count) in values {
+                        println!("    - {} ({})", value, count);
+                    }
                 }
             }
         }
@@ -171,11 +221,7 @@ fn filters_command(
 ) -> Result<()> {
     // Create and initialize search
     let mut search = NativeSearch::new(bundle)?;
-    search.init()?;
-
-    if let Some(lang) = language {
-        search.set_language(lang);
-    }
+    search.init(language.as_deref())?;
 
     // Get filters
     let filters = search.get_filters()?;
