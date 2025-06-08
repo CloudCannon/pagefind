@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eou pipefail
 
+# export GIT_VERSION=$(git describe --tags --always --dirty)
+export GIT_VERSION="1.3.1"
+
 cd pagefind_web_js && npm i && npm run build-coupled && cd ..
 echo "✅ 1/6 pagefind_web_js built successfully"
 # cd pagefind_web && ./local_build.sh && cd ..
