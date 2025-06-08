@@ -1,6 +1,6 @@
 {
   "name": "@pagefind/js",
-  "version": "0.0.0",
+  "version": "1.3.1",
   "type": "module",
   "main": "npm_dist/cjs/js-api.cjs",
   "module": "npm_dist/mjs/js-api.mjs",

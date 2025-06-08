@@ -235,6 +235,7 @@
     action="javascript:void(0);"
     on:submit={(e) => e.preventDefault()}
   >
+    <!-- svelte-ignore a11y-autofocus -->
     <input
       class="pagefind-ui__search-input"
       on:focus={init}

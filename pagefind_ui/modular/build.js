@@ -6,6 +6,8 @@ import fs from "fs";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
 
+const isVerbose = process.env.PAGEFIND_VERBOSE === "true" || false;
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const { version } = require("./package.json");
@@ -28,7 +30,8 @@ const serve = async () => {
   const server = await context.serve({
     servedir: path.join(__dirname, "_dev_files"),
   });
-  console.log(`Serving the dev suite on http://localhost:${server.port}`);
+  if (isVerbose)
+    console.log(`Serving the dev suite on http://localhost:${server.port}`);
 };
 
 const build = async () => {
@@ -49,7 +52,7 @@ const build = async () => {
     minify: true,
   };
   const compiledVendor = await esbuild.build(esbuildVendorOptions);
-  console.log(compiledVendor);
+  if (isVerbose) console.log(compiledVendor);
 
   // CJS "main" build
   const esbuildCjsOptions = {
@@ -60,7 +63,7 @@ const build = async () => {
     platform: "node",
   };
   const compiledCJS = await esbuild.build(esbuildCjsOptions);
-  console.log(`CJS Build: `, compiledCJS);
+  if (isVerbose) console.log(`CJS Build: `, compiledCJS);
 
   // ESM Module Build
   const esbuildModuleOptions = {
@@ -71,7 +74,7 @@ const build = async () => {
     platform: "neutral",
   };
   const compiledMJS = await esbuild.build(esbuildModuleOptions);
-  console.log(`Module Build: `, compiledMJS);
+  if (isVerbose) console.log(`Module Build: `, compiledMJS);
 
   fs.copyFileSync(
     path.join(__dirname, `css/ui.css`),

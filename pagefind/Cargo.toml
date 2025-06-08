@@ -1,6 +1,6 @@
 [package]
 name = "pagefind"
-version = "0.0.0"
+version = "1.3.1"
 edition = "2021"
 include = ["/src", "/vendor", "/features", "/tests"]
 description = "Implement search on any static website."

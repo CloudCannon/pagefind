@@ -26,7 +26,7 @@ const build = async () => {
     target: "es2020",
   };
   const compiledVendor = await esbuild.build(esbuildVendorOptions);
-  console.log(`Vendor Build: `, compiledVendor);
+  checkErrorsWarnings(compiledVendor, "Vendor Build");
 
   // Coupled highlight vendor build
   const esbuildVendorHighlightOptions = {
@@ -40,7 +40,14 @@ const build = async () => {
   const compiledVendorHighlight = await esbuild.build(
     esbuildVendorHighlightOptions,
   );
-  console.log(`Vendor Highlight Build: `, compiledVendorHighlight);
+  checkErrorsWarnings(compiledVendorHighlight, "Vendor Highlight Build");
 };
+
+const checkErrorsWarnings = (result, label) => {
+  if (result.errors.length > 0 || result.warnings.length > 0) {
+    console.error(`${label} Errors/warning during build!`, result);
+    // throw new Error("Build failed with errors");
+  }
+}
 
 build();

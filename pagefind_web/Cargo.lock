@@ -61,7 +61,7 @@ checksum = "70b9cf5d3cd867dd32e54385d85ecfda45c6f2f896a9d464426ab564e7391467"
 
 [[package]]
 name = "pagefind_web"
-version = "0.0.0"
+version = "1.3.1"
 dependencies = [
  "bit-set",
  "minicbor",

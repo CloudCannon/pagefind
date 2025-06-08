@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { commonOptions } from "./_build_common.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isVerbose = process.env.PAGEFIND_VERBOSE === "true" || false;
 
 const build = async () => {
   const esbuildOptions = {
@@ -14,7 +15,7 @@ const build = async () => {
     conditions: ["svelte", "browser", "production"],
   };
   const compiled = await esbuild.build(esbuildOptions);
-  console.log(`Build: `, compiled);
+  if (isVerbose) console.log(`Build: `, compiled);
 
   const vendorDir = path.join(__dirname, `../pagefind/vendor/`);
   try {
