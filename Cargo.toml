@@ -1,5 +1,5 @@
 [workspace]
 
-members = ["pagefind", "pagefind_stem"]
+members = ["pagefind", "pagefind_stem", "pagefind_core_search", "pagefind_native_search"]
 exclude = ["pagefind_web"]
 resolver = "2"

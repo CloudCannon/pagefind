@@ -1,0 +1,17 @@
+[package]
+name = "pagefind_core_search"
+version = "0.1.0"
+edition = "2021"
+authors = ["CloudCannon"]
+description = "Core search logic for Pagefind - platform-agnostic search algorithms and data structures"
+license = "MIT"
+
+[dependencies]
+pagefind_microjson = "0.1.4"
+pagefind_stem = { path = "../pagefind_stem" }
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+
+[features]
+default = []
