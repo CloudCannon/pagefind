@@ -13,7 +13,8 @@ cd pagefind_ui/modular && npm i && npm run build && cd ../..
 echo "✅ 3/6 pagefind_ui/modular built successfully"
 cd pagefind_playground && npm i && npm run build && cd ..
 echo "✅ 4/6 pagefind_playground built successfully"
-cd pagefind_web && ./local_build.sh && cd ..
+# cd pagefind_web && ./local_build.sh && cd ..
+cd pagefind_web && ./local_fast_build.sh && cd ..
 # Check previous exit code
 if [ $? -ne 0 ]; then
   echo "Build failed"
