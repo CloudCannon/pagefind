@@ -8,7 +8,7 @@ async function test(name, fn) {
         console.log(`✓ ${name}`);
     } catch (error) {
         console.error(`✗ ${name}`);
-        console.error(`  ${error.message}`);
+        console.error(`  ${error.message}`, error);
         process.exit(1);
     }
 }
@@ -19,11 +19,14 @@ async function runTests() {
     // Test 0: Create search with target public URL: https://pagefind.app/_pagefind
     await test('should return error for invalid bundle path', async () => {
         const { errors, search } = await createSearch({
-            bundlePath: 'https://pagefind.app/_pagefind'
+            bundlePath: '../../docs/public/pagefind'
         });
 
         const results = search ? await search.search('test') : null;
 
+        if (errors.length > 0) {
+            console.error('Errors:', errors);
+        }
         assert(errors.length <= 0, 'Expected no errors for valid path');
         assert(results, 'Expected search instance for valid path');
     });

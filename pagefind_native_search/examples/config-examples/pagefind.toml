@@ -1,0 +1,40 @@
+# Pagefind Native Search Configuration (TOML format)
+# This file demonstrates all available configuration options
+
+# Path to the Pagefind bundle directory
+bundle = "./pagefind"
+
+# Force a specific language (auto-detected if not specified)
+language = "en"
+
+# Default number of search results to return
+default_limit = 30
+
+# Enable chunk preloading for better performance
+# This loads all index chunks at startup instead of on-demand
+preload_chunks = false
+
+# Cache size for loaded chunks in megabytes
+cache_size_mb = 50
+
+# Default output format for CLI ("json" or "text")
+output_format = "text"
+
+# Logging configuration
+verbose = false      # Enable detailed logging
+quiet = false        # Only show errors
+logfile = ""         # Path to log file (empty = no file logging)
+
+# Search-specific options
+generate_excerpts = true    # Generate excerpts in search results
+excerpt_length = 300        # Maximum excerpt length in characters
+excerpt_context = 15        # Number of context words around matches
+load_fragments = true       # Load full page fragments
+concurrent_fragments = 5    # Max concurrent fragment loads
+
+# Ranking weight configuration
+# These weights affect how search results are scored and ranked
+ranking_term_similarity = 1.0    # Weight for term similarity
+ranking_page_length = 1.0        # Weight for page length
+ranking_term_saturation = 1.0    # Weight for term saturation
+ranking_term_frequency = 1.0     # Weight for term frequency

@@ -16,7 +16,10 @@
   },
   "types": "types/index.d.ts",
   "scripts": {
-    "test": "node test/basic.test.js",
+    "test": "node --test test/*.test.js",
+    "test:basic": "node test/basic.test.js",
+    "test:integration": "node test/integration.test.js",
+    "test:watch": "node --test --watch test/*.test.js",
     "example": "node example.js",
     "typecheck": "tsc --noEmit"
   },

@@ -1,188 +1,437 @@
-# pagefind_native_search
+# Pagefind Native Search
 
-Native search capabilities for Pagefind - file system based search implementation.
+Native file system-based search implementation for Pagefind indexes. This crate provides the ability to search Pagefind indexes directly from Rust or through a CLI, without requiring a browser or WebAssembly environment.
 
 ## Overview
 
-This crate provides native search functionality for Pagefind indexes, allowing searches to be performed directly from Rust without requiring a browser or WebAssembly environment. It includes both a library interface and a CLI tool.
+Pagefind Native Search allows you to:
+- Search pre-built Pagefind indexes from the file system
+- Use Pagefind search functionality in server-side applications
+- Build CLI tools for searching static sites
+- Integrate Pagefind search into native applications
 
-## Structure
+## Features
 
-- `file_loader/` - Native file loading and decompression logic
-- `config/` - Configuration structures and parsing
-- `cli/` - CLI-specific utilities and helpers
+- **Full compatibility** with Pagefind web indexes
+- **Incremental chunk loading** for optimal performance
+- **Filter support** with faceted search capabilities
+- **Sorting** by custom fields
+- **Excerpt generation** with highlighted matches
+- **Multi-language support** with automatic language detection
+- **Configuration** via files, environment variables, or CLI arguments
 
-## Library Usage
+## Installation
+
+### As a Rust Library
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+pagefind_native_search = "0.1.0"
+```
+
+### As a CLI Tool
+
+```bash
+cargo install pagefind_native_search
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/CloudCannon/pagefind.git
+cd pagefind/pagefind_native_search
+cargo build --release
+```
+
+## Usage
+
+### CLI Usage
+
+Basic search:
+```bash
+pagefind_native_search search "your query" --bundle ./pagefind
+```
+
+Search with filters:
+```bash
+pagefind_native_search search "documentation" \
+  --bundle ./pagefind \
+  --filters '{"category": ["docs", "guides"]}'
+```
+
+Search with sorting:
+```bash
+pagefind_native_search search "latest" \
+  --bundle ./pagefind \
+  --sort '{"by": "date", "direction": "desc"}'
+```
+
+List available filters:
+```bash
+pagefind_native_search filters --bundle ./pagefind
+```
+
+### Library Usage
 
 ```rust
 use pagefind_native_search::{NativeSearch, SearchOptions};
-use pagefind_core_search::RankingWeights;
-use std::collections::HashMap;
+use std::path::Path;
 
-// Create a new native search instance
-let mut search = NativeSearch::new("/path/to/pagefind/bundle")?;
-
-// Initialize with optional language preference
+// Initialize the search index
+let mut search = NativeSearch::new(Path::new("./pagefind"))?;
 search.init(Some("en"))?;
 
-// Set custom ranking weights (optional)
-search.set_ranking_weights(RankingWeights::default());
+// Perform a basic search
+let results = search.search("rust programming", SearchOptions::default())?;
 
-// Perform a search
-let options = SearchOptions {
-    filters: HashMap::new(),
-    sort: None,
-};
-let results = search.search("query", options)?;
-
-// Process results
 for result in results.results {
-    println!("Page: {} (score: {})", result.page, result.page_score);
-    
-    // Load fragment for more details
-    let fragment = search.load_fragment(&result.page)?;
-    println!("URL: {}", fragment.url);
+    println!("{}: {}", result.url, result.title);
+}
+
+// Search with filters
+let mut options = SearchOptions::default();
+options.filters.insert(
+    "category".to_string(),
+    vec!["documentation".to_string()]
+);
+
+let filtered_results = search.search("api", options)?;
+
+// Get available filters
+let filters = search.get_filters()?;
+for (filter_name, values) in filters {
+    println!("Filter: {}", filter_name);
+    for (value, count) in values {
+        println!("  {}: {}", value, count);
+    }
 }
 ```
 
 ## Configuration
 
-Pagefind Native Search supports configuration from multiple sources with the following precedence (highest to lowest):
+Pagefind Native Search supports configuration through multiple sources with the following precedence:
 
-1. **CLI arguments** - Command-line flags override all other settings
-2. **Environment variables** - Variables prefixed with `PAGEFIND_`
-3. **Configuration file** - `pagefind.toml`, `pagefind.yml`, `pagefind.yaml`, or `pagefind.json`
-4. **Default values** - Built-in defaults
+1. **CLI arguments** (highest priority)
+2. **Environment variables** (PAGEFIND_* prefix)
+3. **Configuration files** (pagefind.toml, pagefind.yaml, pagefind.json)
+4. **Default values** (lowest priority)
 
-### Configuration File
+### Configuration File Example
 
-Create a configuration file in your project root. The tool will automatically detect and load:
-- `pagefind.toml` (TOML format)
-- `pagefind.yml` or `pagefind.yaml` (YAML format)
-- `pagefind.json` (JSON format)
+`pagefind.toml`:
+```toml
+bundle = "./pagefind"
+language = "en"
+default_limit = 50
+excerpt_length = 300
+verbose = true
 
-You can also specify a custom config file path with `--config`:
-
-```bash
-pagefind-search --config ./config/search.toml search --query "term"
+# Ranking weights
+ranking_term_similarity = 1.0
+ranking_page_length = 0.5
+ranking_term_frequency = 2.0
 ```
-
-See `pagefind.example.toml` for a complete example configuration file.
 
 ### Environment Variables
 
-All configuration options can be set via environment variables with the `PAGEFIND_` prefix:
-
 ```bash
-export PAGEFIND_BUNDLE=./pagefind
-export PAGEFIND_DEFAULT_LIMIT=50
-export PAGEFIND_VERBOSE=true
-pagefind-search search --query "term"
+export PAGEFIND_BUNDLE="./pagefind"
+export PAGEFIND_LANGUAGE="en"
+export PAGEFIND_DEFAULT_LIMIT="50"
+export PAGEFIND_VERBOSE="true"
 ```
 
 ### Configuration Options
 
-| Option | CLI Flag | Environment Variable | Description | Default |
-|--------|----------|---------------------|-------------|---------|
-| `bundle` | `--bundle` | `PAGEFIND_BUNDLE` | Path to Pagefind bundle directory | Required |
-| `language` | `--language` | `PAGEFIND_LANGUAGE` | Force specific language | Auto-detect |
-| `default_limit` | `--limit` | `PAGEFIND_DEFAULT_LIMIT` | Default result limit | 30 |
-| `output_format` | `--output` | `PAGEFIND_OUTPUT_FORMAT` | Output format (json/text) | text |
-| `verbose` | `--verbose` | `PAGEFIND_VERBOSE` | Enable verbose output | false |
-| `quiet` | `--quiet` | `PAGEFIND_QUIET` | Only show errors | false |
-| `config` | `--config` | - | Custom config file path | Auto-detect |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `bundle` | Path to Pagefind bundle directory | `./pagefind` |
+| `language` | Force a specific language | Auto-detect |
+| `default_limit` | Default number of results | 30 |
+| `excerpt_length` | Maximum excerpt length | 300 |
+| `excerpt_context` | Context words around matches | 15 |
+| `preload_chunks` | Preload all chunks for performance | false |
+| `cache_size_mb` | Cache size for loaded chunks | 50 |
+| `output_format` | Output format (json/text) | text |
+| `verbose` | Enable verbose logging | false |
+| `quiet` | Only show errors | false |
 
-#### Search-Specific Options
+## Performance Considerations
 
-| Option | Environment Variable | Description | Default |
-|--------|---------------------|-------------|---------|
-| `preload_chunks` | `PAGEFIND_PRELOAD_CHUNKS` | Enable chunk preloading | false |
-| `cache_size_mb` | `PAGEFIND_CACHE_SIZE_MB` | Cache size in MB | 50 |
-| `generate_excerpts` | `PAGEFIND_GENERATE_EXCERPTS` | Generate search excerpts | true |
-| `excerpt_length` | `PAGEFIND_EXCERPT_LENGTH` | Max excerpt length | 300 |
-| `excerpt_context` | `PAGEFIND_EXCERPT_CONTEXT` | Context words around matches | 15 |
-| `load_fragments` | `PAGEFIND_LOAD_FRAGMENTS` | Enable fragment loading | true |
-| `concurrent_fragments` | `PAGEFIND_CONCURRENT_FRAGMENTS` | Max concurrent loads | 5 |
+### Chunk Loading
 
-#### Ranking Weights
+Pagefind Native Search uses lazy loading of index chunks to minimize memory usage:
 
-Control how search results are scored:
+1. **Metadata** is loaded on initialization
+2. **Index chunks** are loaded on-demand based on search terms
+3. **Filter chunks** are loaded when filters are applied
+4. **Fragments** are loaded when full content is requested
 
-| Option | CLI Flag | Environment Variable | Default |
-|--------|----------|---------------------|---------|
-| `ranking_term_similarity` | `--ranking-term-similarity` | `PAGEFIND_RANKING_TERM_SIMILARITY` | 1.0 |
-| `ranking_page_length` | `--ranking-page-length` | `PAGEFIND_RANKING_PAGE_LENGTH` | 0.75 |
-| `ranking_term_saturation` | `--ranking-term-saturation` | `PAGEFIND_RANKING_TERM_SATURATION` | 1.5 |
-| `ranking_term_frequency` | `--ranking-term-frequency` | `PAGEFIND_RANKING_TERM_FREQUENCY` | 1.0 |
+### Optimization Tips
 
-## CLI Usage
+1. **Enable chunk preloading** for frequently accessed indexes:
+   ```toml
+   preload_chunks = true
+   ```
+
+2. **Increase cache size** for better performance with large indexes:
+   ```toml
+   cache_size_mb = 100
+   ```
+
+3. **Use specific language** to avoid language detection overhead:
+   ```toml
+   language = "en"
+   ```
+
+4. **Limit concurrent fragment loads** to control memory usage:
+   ```toml
+   concurrent_fragments = 3
+   ```
+
+## Differences from Web-based Search
+
+### Key Differences
+
+1. **No WebAssembly** - Runs natively without browser requirements
+2. **File system access** - Reads index files directly from disk
+3. **Synchronous API** - No async/await required (though async support is planned)
+4. **Memory management** - Direct control over chunk loading and caching
+5. **CLI interface** - Can be used as a command-line tool
+
+### Feature Parity
+
+Native search maintains full compatibility with web-based search:
+- Same ranking algorithms
+- Identical filter behavior
+- Compatible excerpt generation
+- Matching search syntax (including exact phrase search)
+
+### Limitations
+
+- No real-time index updates (indexes must be pre-built)
+- Larger binary size compared to WASM version
+- Platform-specific binaries required
+
+## Migration Guide
+
+### From Web to Native Search
+
+If you're currently using Pagefind in a browser and want to use native search:
+
+1. **Ensure indexes are accessible** - Native search needs file system access to the pagefind bundle
+2. **Update search initialization**:
+   ```javascript
+   // Web version
+   const pagefind = await import("/pagefind/pagefind.js");
+   await pagefind.init();
+   
+   // Native version (Node.js)
+   const { PagefindNativeSearch } = require('@pagefind/node-search');
+   const search = new PagefindNativeSearch({ bundlePath: './pagefind' });
+   ```
+
+3. **Adapt search calls**:
+   ```javascript
+   // Web version
+   const results = await pagefind.search("query");
+   
+   // Native version
+   const results = await search.search("query");
+   ```
+
+### API Compatibility
+
+The native search API is designed to be similar to the web API:
+
+| Web API | Native API | Notes |
+|---------|------------|-------|
+| `pagefind.init()` | `NativeSearch::new()` + `init()` | Two-step initialization |
+| `pagefind.search()` | `search.search()` | Same parameters |
+| `pagefind.filters()` | `search.get_filters()` | Returns all available filters |
+| `pagefind.preload()` | `search.preload()` | Preload chunks for a query |
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Bundle path does not exist"**
+   - Ensure the pagefind directory exists and contains index files
+   - Check the bundle path is correct relative to your working directory
+
+2. **"Failed to decode metadata"**
+   - Verify the pagefind bundle was built with a compatible version
+   - Ensure files aren't corrupted
+
+3. **"No language indexes found"**
+   - Check pagefind-entry.json exists in the bundle directory
+   - Verify the requested language has an index
+
+4. **Performance issues**
+   - Enable chunk preloading for frequently searched indexes
+   - Increase cache size for large indexes
+   - Consider using SSDs for better I/O performance
+
+### Debug Mode
+
+Enable verbose logging to troubleshoot issues:
 
 ```bash
-# Search a Pagefind index
-pagefind-search search --bundle /path/to/bundle --query "search term"
-
-# Search with filters
-pagefind-search search --bundle /path/to/bundle --query "search term" \
-  --filters '{"category": ["tech"], "author": ["alice"]}'
-
-# List available filters
-pagefind-search filters --bundle /path/to/bundle
-
-# Output as JSON
-pagefind-search search --bundle /path/to/bundle --query "search term" --output json
-
-# Use custom config file
-pagefind-search --config ./search-config.toml search --query "term"
-
-# Override config with CLI args
-pagefind-search search --query "term" --limit 10 --verbose
+pagefind_native_search search "query" --verbose
 ```
 
-## Features
+Or set the environment variable:
+```bash
+export PAGEFIND_VERBOSE=true
+```
 
-- Local file system access to Pagefind indexes
-- Support for compressed (pagefind_dcd) file format
-- Filter and sort support
-- JSON and human-readable output formats
-- Progress indicators for long operations
-- Comprehensive configuration system with multiple sources
-- Environment variable support with PAGEFIND_ prefix
-- Configuration file support (TOML, YAML, JSON)
-- Custom ranking weight configuration
+### Logging
 
-## Implementation Status
+Configure logging output:
 
-✅ **Implemented:**
-- File loading and gzip decompression with `pagefind_dcd` magic byte detection
-- Entry file (`pagefind-entry.json`) parsing
-- Metadata loading and CBOR decoding
-- Index chunk loading with lazy loading based on search terms
-- Filter chunk loading and filtering support
-- Fragment loading (JSON format)
-- Search functionality (term search and exact phrase search)
-- Filter support with bitset operations
-- Sorting support
-- CLI interface with search and filter commands
-- JSON and text output formats
-- Configuration system with CLI, environment, and file support
-- Custom ranking weight configuration
+```toml
+# Log to file
+logfile = "./pagefind-search.log"
 
-🚧 **TODO:**
-- Excerpt generation from fragments
-- Highlighting support in search results
-- Sub-result calculation for headings/anchors
-- Performance optimizations for large indexes
-- More comprehensive error handling
-- Additional language stemming support
+# Control verbosity
+verbose = true  # Detailed logs
+quiet = false   # Only errors
+```
 
-## File Format Support
+## Examples
 
-The implementation supports all Pagefind file formats:
+### Basic CLI Search Script
 
-- `pagefind-entry.json`: Entry point with language information
-- `pagefind.{hash}.pf_meta`: Metadata files (CBOR encoded, optionally gzipped)
-- `index/{hash}.pf_index`: Index chunks (CBOR encoded, optionally gzipped)
-- `filter/{hash}.pf_filter`: Filter chunks (CBOR encoded, optionally gzipped)
-- `fragment/{hash}.pf_fragment`: Page fragments (JSON, optionally gzipped)
+```bash
+#!/bin/bash
+# search.sh - Simple search wrapper
 
-Files are automatically decompressed if they are gzipped and contain the `pagefind_dcd` magic bytes.
+BUNDLE_PATH="${PAGEFIND_BUNDLE:-./pagefind}"
+QUERY="$1"
+
+if [ -z "$QUERY" ]; then
+    echo "Usage: $0 <search query>"
+    exit 1
+fi
+
+pagefind_native_search search "$QUERY" \
+    --bundle "$BUNDLE_PATH" \
+    --output-format json | jq '.results[] | {url, title}'
+```
+
+### Rust Integration Example
+
+```rust
+use pagefind_native_search::{NativeSearch, SearchOptions, NativeSearchConfig};
+use std::path::PathBuf;
+
+fn search_site(query: &str) -> anyhow::Result<()> {
+    // Configure search
+    let config = NativeSearchConfig::new("./pagefind")
+        .with_language("en")
+        .with_ranking_weights(RankingWeights {
+            term_similarity: 1.0,
+            page_length: 0.5,
+            term_frequency: 2.0,
+            term_saturation: 1.5,
+        });
+
+    // Initialize search
+    let mut search = NativeSearch::with_config(config)?;
+    search.init(None)?;
+
+    // Search with options
+    let mut options = SearchOptions::default();
+    options.limit = Some(10);
+    
+    let results = search.search(query, options)?;
+    
+    // Process results
+    for (i, result) in results.results.iter().enumerate() {
+        println!("{}. {} (score: {:.2})", 
+            i + 1, 
+            result.title, 
+            result.score
+        );
+        println!("   URL: {}", result.url);
+        if let Some(excerpt) = &result.excerpt {
+            println!("   {}", excerpt);
+        }
+        println!();
+    }
+    
+    Ok(())
+}
+```
+
+### Node.js Wrapper Example
+
+```javascript
+const { PagefindNativeSearch } = require('@pagefind/node-search');
+
+async function searchWithFilters() {
+    const search = new PagefindNativeSearch({
+        bundlePath: './pagefind',
+        config: { language: 'en' }
+    });
+
+    // Get available filters
+    const filters = await search.getFilters();
+    console.log('Available filters:', filters);
+
+    // Search with filters
+    const results = await search.search('documentation', {
+        filters: {
+            category: ['guides', 'reference'],
+            author: ['John Doe']
+        },
+        sort: { by: 'date', direction: 'desc' },
+        limit: 20
+    });
+
+    console.log(`Found ${results.results.length} results`);
+    results.results.forEach(result => {
+        console.log(`- ${result.title}: ${result.url}`);
+    });
+}
+
+searchWithFilters().catch(console.error);
+```
+
+## Contributing
+
+Contributions are welcome! Please see the main Pagefind repository for contribution guidelines.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/CloudCannon/pagefind.git
+cd pagefind/pagefind_native_search
+
+# Run tests
+cargo test
+
+# Run with verbose output
+RUST_LOG=debug cargo run -- search "test" --bundle ../test_bundle
+```
+
+### Testing
+
+Run the test suite:
+```bash
+# Unit tests
+cargo test --lib
+
+# Integration tests
+cargo test --test '*'
+
+# Run with coverage
+cargo tarpaulin --out Html
+```
+
+## License
+
+MIT License - see the main Pagefind repository for details.
