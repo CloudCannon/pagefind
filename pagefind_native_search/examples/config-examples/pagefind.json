@@ -1,0 +1,26 @@
+{
+  "_comment": "Pagefind Native Search Configuration (JSON format)",
+  "_comment2": "This file demonstrates all available configuration options",
+  
+  "bundle": "./pagefind",
+  "language": "en",
+  "default_limit": 30,
+  "preload_chunks": false,
+  "cache_size_mb": 50,
+  "output_format": "text",
+  
+  "verbose": false,
+  "quiet": false,
+  "logfile": "",
+  
+  "generate_excerpts": true,
+  "excerpt_length": 300,
+  "excerpt_context": 15,
+  "load_fragments": true,
+  "concurrent_fragments": 5,
+  
+  "ranking_term_similarity": 1.0,
+  "ranking_page_length": 1.0,
+  "ranking_term_saturation": 1.0,
+  "ranking_term_frequency": 1.0
+}

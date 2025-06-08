@@ -6,6 +6,8 @@ import { createRequire } from "module";
 import { fileURLToPath } from "url";
 import fs from "fs";
 
+const isVerbose = process.env.PAGEFIND_VERBOSE === "true" || false;
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const { version } = require("./package.json");
@@ -47,7 +49,8 @@ const serve = async () => {
   const server = await context.serve({
     servedir: path.join(__dirname, "_dev_files"),
   });
-  console.log(`Serving the dev suite on http://localhost:${server.port}`);
+  if (isVerbose)
+    console.log(`Serving the dev suite on http://localhost:${server.port}`);
 };
 
 const build = async () => {
@@ -72,7 +75,7 @@ const build = async () => {
     outdir: path.join(__dirname, `../../pagefind/vendor/`),
   };
   const compiledVendor = await esbuild.build(esbuildVendorOptions);
-  console.log(`Vendor Build: `, compiledVendor);
+  if (isVerbose) console.log(`Vendor Build: `, compiledVendor);
 
   // CJS "main" build
   const esbuildCjsOptions = {
@@ -84,7 +87,7 @@ const build = async () => {
   };
   const compiledCJS = await esbuild.build(esbuildCjsOptions);
   stripCSSComment(path.join(__dirname, `npm_dist/cjs/ui-core.css`));
-  console.log(`CJS Build: `, compiledCJS);
+  if (isVerbose) console.log(`CJS Build: `, compiledCJS);
 
   // ESM Module Build
   const esbuildModuleOptions = {
@@ -96,7 +99,7 @@ const build = async () => {
   };
   const compiledMJS = await esbuild.build(esbuildModuleOptions);
   stripCSSComment(path.join(__dirname, `npm_dist/mjs/ui-core.css`));
-  console.log(`Module Build: `, compiledMJS);
+  if (isVerbose) console.log(`Module Build: `, compiledMJS);
 
   try {
     fs.mkdirSync(path.join(__dirname, `css`));

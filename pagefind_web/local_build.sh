@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 ##
 #
@@ -24,25 +23,27 @@ else
     RUSTUP_TOOLCHAIN=nightly wasm-pack build --release -t no-modules --manifest-path ./Cargo.toml -Z build-std=panic_abort,std -Z build-std-features=panic_immediate_abort
 fi
 node build.js
-mv pkg/pagefind_web.js ../pagefind/vendor/pagefind_web.$WASM_VERSION.js
+mv pkg/pagefind_web.js "../pagefind/vendor/pagefind_web.$WASM_VERSION.js"
 # Append pagefind_dcd to the decompressed wasm as a magic word read by the frontend
-printf 'pagefind_dcd' > ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
-cat pkg/pagefind_web_bg.wasm >> ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
-gzip --best ../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm
+printf 'pagefind_dcd' > "../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm"
+cat pkg/pagefind_web_bg.wasm >> "../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm"
+gzip --best "../pagefind/vendor/wasm/pagefind_web_bg.unknown.$WASM_VERSION.wasm"
 
 # Build the language-specific wasm files,
 # naively grabbing all features from this crate's Cargo.toml
 grep -e pagefind_stem/ Cargo.toml | while read line ; do
+    lang="${line:0:2}"
+    echo "Building pagefind wasm for language: $lang ($WASM_VERSION)"
     if [ "$1" = "debug" ]; then
-        wasm-pack build --dev -t no-modules --features ${line:0:2}
+        wasm-pack build --dev -t no-modules --features "$lang"
     else
-        RUSTUP_TOOLCHAIN=nightly wasm-pack build --release -t no-modules --features ${line:0:2} --manifest-path ./Cargo.toml -Z build-std=panic_abort,std -Z build-std-features=panic_immediate_abort
+        RUSTUP_TOOLCHAIN=nightly wasm-pack build --release -t no-modules --features "$lang" --manifest-path ./Cargo.toml -Z build-std=panic_abort,std -Z build-std-features=panic_immediate_abort
     fi
 
     # Append pagefind_dcd to the decompressed wasm as a magic word read by the frontend
-    printf 'pagefind_dcd' > ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.$WASM_VERSION.wasm
-    cat pkg/pagefind_web_bg.wasm >> ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.$WASM_VERSION.wasm
-    gzip --best ../pagefind/vendor/wasm/pagefind_web_bg.${line:0:2}.$WASM_VERSION.wasm
+    printf 'pagefind_dcd' > "../pagefind/vendor/wasm/pagefind_web_bg.$lang.$WASM_VERSION.wasm"
+    cat pkg/pagefind_web_bg.wasm >> "../pagefind/vendor/wasm/pagefind_web_bg.$lang.$WASM_VERSION.wasm"
+    gzip --best "../pagefind/vendor/wasm/pagefind_web_bg.$lang.$WASM_VERSION.wasm"
 done
 
 ls -lh ../pagefind/vendor/wasm/

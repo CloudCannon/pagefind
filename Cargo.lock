@@ -956,6 +956,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fastrand"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
+
+[[package]]
 name = "filetime"
 version = "0.2.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1876,6 +1882,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "minicbor"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d15f4203d71fdf90903c2696e55426ac97a363c67b218488a73b534ce7aca10"
+
+[[package]]
 name = "minicbor-derive"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1981,7 +1993,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "pagefind"
-version = "0.0.0"
+version = "1.3.1"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -2003,7 +2015,7 @@ dependencies = [
  "lazy_static",
  "lexical-core",
  "lol_html",
- "minicbor",
+ "minicbor 0.19.1",
  "minifier",
  "pagefind_stem 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "path-slash",
@@ -2018,6 +2030,42 @@ dependencies = [
  "typed-builder",
  "unicode-segmentation",
  "wax",
+]
+
+[[package]]
+name = "pagefind_core_search"
+version = "0.1.0"
+dependencies = [
+ "bit-set",
+ "minicbor 0.20.0",
+ "pagefind_microjson",
+ "pagefind_stem 0.2.0",
+ "serde",
+ "write-json",
+]
+
+[[package]]
+name = "pagefind_microjson"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f97aa64cde14e78d6274c473f36cec98d401f0b583282055e953d2df907e210"
+
+[[package]]
+name = "pagefind_native_search"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bit-set",
+ "clap",
+ "flate2",
+ "minicbor 0.20.0",
+ "pagefind_core_search",
+ "pagefind_stem 0.2.0",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "twelf",
 ]
 
 [[package]]
@@ -2764,6 +2812,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "tempfile"
+version = "3.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8fcd239983515c23a32fb82099f97d0b11b8c72f654ed659363a95c3dad7a53"
+dependencies = [
+ "cfg-if",
+ "fastrand",
+ "once_cell",
+ "rustix",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "thin-slice"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3293,6 +3354,12 @@ name = "windows_x86_64_msvc"
 version = "0.52.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32b752e52a2da0ddfbdbcc6fceadfeede4c939ed16d13e648833a61dfb611ed8"
+
+[[package]]
+name = "write-json"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23f6174b2566cc4a74f95e1367ec343e7fa80c93cc8087f5c4a3d6a1088b2118"
 
 [[package]]
 name = "xattr"
